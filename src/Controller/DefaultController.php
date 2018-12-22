@@ -3,8 +3,7 @@
 namespace App\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Response;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
+use Symfony\Component\Routing\Annotation\Route;
 
 /**
  * Class DefaultController
@@ -14,10 +13,13 @@ class DefaultController extends AbstractController
 {
     /**
      * @Route("/", name="homepage")
+     *
+     * @return \Symfony\Component\HttpFoundation\Response
      */
-    public function indexAction()
-    {
+    public function indexAction() {
+
         return $this->render('default/index.html.twig', array());
+
     }
 
 }

@@ -18,7 +18,8 @@ Encore
      * Each entry will result in one JavaScript file (e.g. app.js)
      * and one CSS file (e.g. app.css) if you JavaScript imports CSS.
      */
-    .addEntry('app', './assets/js/layout.js')
+    .addEntry('layout', './assets/js/layout.js')
+    .addEntry('custom_object_settings', './assets/js/custom_object_settings.js')
     //.addEntry('page1', './assets/js/page1.js')
     //.addEntry('page2', './assets/js/page2.js')
 
@@ -40,7 +41,7 @@ Encore
     .enableVersioning(Encore.isProduction())
 
     // enables Sass/SCSS support
-    //.enableSassLoader()
+    .enableSassLoader()
 
     // uncomment if you use TypeScript
     //.enableTypeScriptLoader()
@@ -49,7 +50,7 @@ Encore
     .autoProvidejQuery()
 
     // copies to {output}/static
-    .addPlugin(new CopyWebpackPlugin({from: 'assets/static', to: 'static'}))
+    .addPlugin(new CopyWebpackPlugin([{from: 'assets/static', to: 'static'}]))
 
     // uncomment if you use API Platform Admin (composer req api-admin)
     //.enableReactPreset()

@@ -1,0 +1,1 @@
+{"base_url":"","routes":{"app_get_custom_object_form":{"tokens":[["text","\/api\/get-custom-object-form"]],"defaults":[],"requirements":[],"hosttokens":[],"methods":["GET"],"schemes":[]}},"prefix":"","host":"localhost","port":"","scheme":"http"}
