@@ -1,4 +1,4 @@
 'use strict';
 
-require('../css/base/_reset.scss');
+require('bootstrap');
 require('../css/main.scss');

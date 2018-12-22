@@ -101,7 +101,7 @@ class CustomObjectSettingsController extends AbstractController
         $customObject = $form->getData();
 
         $this->entityManager->persist($customObject);
-        $this->entityManager->flush($customObject);
+        $this->entityManager->flush();
 
         return new JsonResponse(
             [
