@@ -1,4 +1,8 @@
 'use strict';
 
-require('../css/base/_reset.scss');
+import EventDispatcher from './EventDispatcher';
+
+window.globalEventDispatcher = new EventDispatcher();
+
+require('bootstrap');
 require('../css/main.scss');

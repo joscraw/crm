@@ -1,21 +1,21 @@
 'use strict';
 
 import $ from 'jquery';
+import swal from 'sweetalert2';
 import Routing from '../Routing';
 
-class CustomObjectSettings {
+class CustomObjectForm {
     constructor($wrapper) {
         this.$wrapper = $wrapper;
-        this.customObjects = [];
-
         debugger;
-        this.loadCustomObjects();
 
         this.$wrapper.on(
             'submit',
-            CustomObjectSettings._selectors.newCustomObjectForm,
+            CustomObjectForm._selectors.newCustomObjectForm,
             this.handleNewFormSubmit.bind(this)
         );
+
+        this.loadCustomObjectForm();
     }
 
     /**
@@ -23,11 +23,11 @@ class CustomObjectSettings {
      */
     static get _selectors() {
         return {
-            newCustomObjectForm: '.js-new-custom-object-form'
+            newCustomObjectForm: '.js-new-custom-object-form',
         }
     }
 
-    loadCustomObjects() {
+    loadCustomObjectForm() {
         $.ajax({
             url: Routing.generate('app_get_custom_object_form'),
         }).then(data => {
@@ -37,7 +37,10 @@ class CustomObjectSettings {
     }
 
     handleNewFormSubmit(e) {
-        e.preventDefault();
+
+        if(e.cancelable) {
+            e.preventDefault();
+        }
 
         const $form = $(e.currentTarget);
         const formData = {};
@@ -46,47 +49,44 @@ class CustomObjectSettings {
             formData[fieldData.name] = fieldData.value
         }
 
-        debugger;
+
+        /*
+        Swal({
+  type: 'error',
+  title: 'Oops...',
+  text: 'Something went wrong!',
+  footer: '<a href>Why do I have this issue?</a>'
+})
+
+         */
 
         this._saveCustomObject(formData)
             .then((data) => {
-                debugger;
-                /*this._clearForm();
-                this._addRow(data);*/
+                swal("Success Message Title", "Well done, you created a custom object!", "success");
             }).catch((errorData) => {
+                debugger;
+            this.$wrapper.html(errorData.formMarkup);
             /*this._mapErrorsToForm(errorData.errors);*/
         });
     }
 
     _saveCustomObject(data) {
-        debugger;
         return new Promise( (resolve, reject) => {
-            debugger;
             const url = Routing.generate('custom_object_new', {portal: 1});
-
-            debugger;
 
             $.ajax({
                 url,
                 method: 'POST',
                 data: data
             }).then((data, textStatus, jqXHR) => {
-                debugger;
                 resolve(data);
-               /* $.ajax({
-                    url: jqXHR.getResponseHeader('Location')
-                }).then((data) => {
-                    // we're finally done!
-                    resolve(data);
-                });*/
             }).catch((jqXHR) => {
-                /*const errorData = JSON.parse(jqXHR.responseText);*/
-
                 debugger;
+                const errorData = JSON.parse(jqXHR.responseText);
                 reject(errorData);
             });
         });
     }
 }
 
-export default CustomObjectSettings;
+export default CustomObjectForm;

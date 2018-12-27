@@ -93,7 +93,7 @@ class CustomObjectSettingsController extends AbstractController
             return new JsonResponse(
                 [
                     'success' => false,
-                    'markup' => $formMarkup,
+                    'formMarkup' => $formMarkup,
                 ], Response::HTTP_BAD_REQUEST
             );
         }
@@ -101,7 +101,7 @@ class CustomObjectSettingsController extends AbstractController
         $customObject = $form->getData();
 
         $this->entityManager->persist($customObject);
-        $this->entityManager->flush($customObject);
+        $this->entityManager->flush();
 
         return new JsonResponse(
             [
