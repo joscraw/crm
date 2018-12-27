@@ -1,0 +1,45 @@
+@charset 'UTF-8';
+
+// 1. Configuration and helpers
+@import
+  'abstracts/variables',
+  'abstracts/functions',
+  'abstracts/mixins';
+
+// 2. Vendors
+@import
+
+  '~bootstrap/scss/functions',
+  '~bootstrap/scss/variables',
+  '~bootstrap/scss/mixins',
+  '~bootstrap/scss/reboot',
+  '~bootstrap/scss/utilities',
+  '~bootstrap/scss/grid',
+  '~bootstrap/scss/buttons',
+  '~bootstrap/scss/forms',
+  '~bootstrap/scss/forms';
+
+
+/*@import '~bootstrap/scss/bootstrap';*/
+
+// 3. Base stuff
+@import
+  'base/base',
+  'base/fonts',
+  'base/typography',
+  'base/helpers';
+
+// 4. Layout-related sections
+@import
+  'layout/header',
+  'layout/footer',
+  'layout/drawer';
+
+// 5. Components
+@import
+  'components/button',
+  'components/forms';
+
+// 6. Page-specific styles
+@import
+  'pages/home';

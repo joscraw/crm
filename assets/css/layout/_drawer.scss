@@ -1,0 +1,64 @@
+/* ---------------------------------------------------------------------
+Base Styles
+------------------------------------------------------------------------ */
+
+.navigation-slider {
+  position: fixed;
+  z-index: 1;
+  background-color: #111;
+  transition: 0.5s;
+}
+
+.navigation-slider--left {
+  left: 0;
+  height: 100%;
+  width: 0;
+  top: 0;
+  overflow-x: hidden;
+}
+
+.navigation-slider--right {
+  right: 0;
+  height: 100%;
+  width: 0;
+  top: 0;
+  overflow-x: hidden;
+}
+
+.navigation-slider--bottom {
+  bottom: 0;
+  overflow-y: hidden;
+  width: 100%;
+  height: 0;
+}
+
+.navigation-slider__close-button {
+  padding: 8px 8px 8px 8px;
+  text-decoration: none;
+  font-size: 25px;
+  color: #818181;
+  display: block;
+  transition: 0.3s;
+  position: absolute;
+}
+
+.navigation-slider__close-button--left {
+  left: 0;
+}
+
+.navigation-slider__close-button--right {
+  right: 0;
+}
+
+.sidenav .closebtn {
+  position: absolute;
+  top: 0;
+  right: 25px;
+  font-size: 36px;
+  margin-left: 50px;
+}
+
+@media screen and (max-height: 450px) {
+  .sidenav {padding-top: 15px;}
+  .sidenav a {font-size: 18px;}
+}

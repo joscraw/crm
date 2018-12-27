@@ -17,6 +17,19 @@ class Kernel extends BaseKernel
 
     public function getCacheDir()
     {
+        // If we are developing on a Vagrant Virtual Machine, put the cache in a
+        // directory that is not shared with the host machine.  (Otherwise timing
+        // issues can cause problems with clearing the cache after code changes.)
+        //
+        // This relies upon a VAGRANT environment variable being set.  To tell
+        // PuPhpet to set the variable, add this line to puphet/files/dot/.bash_aliases :
+        //
+        //   export VAGRANT=true
+        //
+        if (getenv('VAGRANT')) {
+            return '/dev/shm/cache/' . $this->getEnvironment();
+        }
+
         return $this->getProjectDir().'/var/cache/'.$this->environment;
     }
 
