@@ -11,7 +11,7 @@
         {% endblock %}
     </head>
     <body>
-    <div id="js-navigation-slider" class="navigation-slider navigation-slider--left">
+{#    <div id="js-navigation-slider" class="navigation-slider navigation-slider--left">
         <a href="javascript:void(0)" class="navigation-slider__close-button navigation-slider__close-button--left" onclick="closeNav()">&times;</a>
     </div>
 
@@ -21,9 +21,9 @@
 
     <div id="js-navigation-slider3" class="navigation-slider navigation-slider--bottom">
         <a href="javascript:void(0)" class="navigation-slider__close-button navigation-slider__close-button--right" onclick="closeNav3()">&times;</a>
-    </div>
+    </div>#}
 
-    <h2>Animated Sidenav Example</h2>
+{#    <h2>Animated Sidenav Example</h2>
     <p>Click on the element below to open the side navigation menu.</p>
     <span style="font-size:30px;cursor:pointer" onclick="openNav()">&#9776; open</span>
 
@@ -33,9 +33,12 @@
 
     <h2>Animated Sidenav Example</h2>
     <p>Click on the element below to open the side navigation menu.</p>
-    <span style="font-size:30px;cursor:pointer" onclick="openNav3()">&#9776; open3</span>
+    <span style="font-size:30px;cursor:pointer" onclick="openNav3()">&#9776; open3</span>#}
 
+
+    <div class="main-content container">
         {% block body %}{% endblock %}
+    </div>
         {% block javascripts %}
             <script src="{{ asset('bundles/fosjsrouting/js/router.min.js') }}"></script>
             <script src="{{ path('fos_js_routing_js', { callback: 'fos.Router.setData' }) }}"></script>

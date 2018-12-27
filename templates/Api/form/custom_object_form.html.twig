@@ -1,5 +1,9 @@
-{{ form_start(form, {'attr': {'class': 'js-new-custom-object-form'}}) }}
+{% form_theme form 'bootstrap_4_layout.html.twig' %}
+
+{{ form_start(form, {'attr': {class: 'js-new-custom-object-form', novalidate: 'novalidate'}}) }}
 {{ form_row(form.label) }}
 {{ form_row(form.internalName) }}
+<small id="emailHelp" class="form-text text-muted">Used for page URLs and super cool behind the scene stuff! If left blank, we will create one for you!</small>
+<br>
 {{ form_rest(form) }}
 {{ form_end(form) }}

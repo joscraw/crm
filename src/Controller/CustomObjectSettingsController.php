@@ -93,7 +93,7 @@ class CustomObjectSettingsController extends AbstractController
             return new JsonResponse(
                 [
                     'success' => false,
-                    'markup' => $formMarkup,
+                    'formMarkup' => $formMarkup,
                 ], Response::HTTP_BAD_REQUEST
             );
         }

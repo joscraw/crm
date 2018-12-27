@@ -1,3 +1,31 @@
 // -----------------------------------------------------------------------------
 // This file contains all styles related to the button component.
 // -----------------------------------------------------------------------------
+
+.btn-primary {
+  @include button-variant($color-blue-25, darken($color-blue-25, 7.5%), darken($color-blue-25, 10%), lighten($color-blue-25,5%), lighten($color-blue-25, 10%), darken($color-blue-25,30%));
+}
+
+.btn-outline-primary {
+  @include button-outline-variant($color-blue-25, #222222, lighten($color-blue-25,5%), $color-blue-25);
+}
+
+.btn-secondary {
+  @include button-variant($color-orange-61, darken($color-orange-61, 7.5%), darken($color-orange-61, 10%), lighten($color-orange-61,5%), lighten($color-orange-61, 10%), darken($color-orange-61,30%));
+}
+
+.btn-outline-secondary {
+  @include button-outline-variant($color-orange-61, #222222, lighten($color-orange-61,5%), $color-orange-61);
+}
+
+.btn-light {
+  @include button-variant($color-white-100, $color-orange-61, lighten($color-orange-61, 35%), $color-orange-61, lighten($color-white-100, 10%), $color-orange-61);
+}
+
+.btn-outline-light {
+  @include button-outline-variant($color-orange-61, #222222, lighten($color-orange-61,5%), $color-orange-61);
+}
+
+
+
+

@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Model\Content;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\CustomObjectRepository")
@@ -18,7 +19,7 @@ class CustomObject
     private $id;
 
     /**
-     * label
+     * @Assert\NotBlank(message="Don't forget a label for your brand new sweeeeet Custom Object!")
      *
      * @ORM\Column(name="label", type="string", length=255, nullable=false)
      *
@@ -28,6 +29,8 @@ class CustomObject
 
     /**
      * internal name
+     *
+     * @Assert\Regex("/^[a-zA-Z_]*$/", message="Woah! Only use letters and underscores please!")
      *
      * @ORM\Column(name="internal_name", type="string", length=255, nullable=false)
      *
