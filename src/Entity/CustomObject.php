@@ -8,6 +8,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\CustomObjectRepository")
+ * @ORM\HasLifecycleCallbacks()
  */
 class CustomObject
 {
@@ -46,6 +47,18 @@ class CustomObject
      * @var Content
      */
     private $content;
+
+    /**
+     * @ORM\PrePersist
+     */
+    public function setInternalNameValue()
+    {
+        if(!$this->internalName) {
+            $this->internalName = strtolower(
+                preg_replace('/\s+/', '_', $this->getLabel())
+            );
+        }
+    }
 
     public function getId(): ?int
     {

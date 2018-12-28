@@ -47,4 +47,33 @@ class CustomObjectRepository extends ServiceEntityRepository
         ;
     }
     */
+
+    public function getDataTableData() {
+
+        $query = $this->createQueryBuilder('dt');
+        $countQuery = $this->createQueryBuilder('dt');
+
+        $results = $query->getQuery()->getResult();
+        $countQuery->select('COUNT(dt)');
+
+        $countResult = $countQuery->getQuery()->getSingleScalarResult();
+
+        return array(
+            "results" 		=> $results,
+            "countResult"	=> $countResult
+        );
+
+    }
+
+    /**
+     * @return mixed
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     */
+    public function findCount()
+    {
+        return $this->createQueryBuilder('dt')
+            ->select('count(dt.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 }

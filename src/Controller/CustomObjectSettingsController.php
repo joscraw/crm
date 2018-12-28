@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\CustomObject;
 use App\Entity\Portal;
 use App\Form\CustomObjectType;
+use App\Repository\CustomObjectRepository;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -27,9 +28,15 @@ class CustomObjectSettingsController extends AbstractController
      */
     private $entityManager;
 
-    public function __construct(EntityManagerInterface $entityManager)
+    /**
+     * @var CustomObjectRepository
+     */
+    private $customObjectRepository;
+
+    public function __construct(EntityManagerInterface $entityManager, CustomObjectRepository $customObjectRepository)
     {
         $this->entityManager = $entityManager;
+        $this->customObjectRepository = $customObjectRepository;
     }
 
     /**
@@ -43,8 +50,67 @@ class CustomObjectSettingsController extends AbstractController
     }
 
     /**
-     * @Route("/get-custom-object-form", name="custom_object_form", methods={"GET"}, options = { "expose" = true })
+     * DataTables passes unique params in the Request and expects a specific response payload
+     * @see https://datatables.net/manual/server-side Documentation for ServerSide Implimentation for DataTables
      *
+     * @Route("/custom-objects-for-datatable", name="custom_objects_for_datatable", methods={"GET"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param Request $request
+     * @return Response
+     */
+    public function getCustomObjectsForDatatableAction(Portal $portal, Request $request) {
+
+        $draw = intval($request->query->get('draw'));
+        $start = $request->query->get('start');
+        $length = $request->query->get('length');
+        $search = $request->query->get('search');
+        $orders = $request->query->get('order');
+        $columns = $request->query->get('columns');
+
+        $results = $this->customObjectRepository->getDataTableData();
+
+        $totalObjectsCount = $this->customObjectRepository->findCount();
+        $filteredObjectsCount = $results['countResult'];
+        $data = $results['results'];
+
+
+        $response = new JsonResponse([
+            'draw'  => $draw,
+            'recordsTotal'  => $totalObjectsCount,
+            'recordsFiltered'   => $filteredObjectsCount,
+            'data'  => [
+                ['hi', 'bye'],
+                ['two', 'three']
+            ]
+        ]);
+
+        return $response;
+
+/*        $response = new JsonResponse(
+            [
+                'draw'  => $draw,
+                'recordsTotal'  => $totalObjectsCount,
+                'recordsFiltered'   => $filteredObjectsCount,
+                'data'  => [
+                    ['hi', 'bye'],
+                    ['two', 'three']
+                ]
+            ],
+            Response::HTTP_OK,
+            [],
+            true
+        );*/
+
+        $j = "hi";
+
+
+        /*return new Response("hi");*/
+
+    }
+
+
+    /**
+     * @Route("/get-custom-object-form", name="custom_object_form", methods={"GET"}, options = { "expose" = true })
      */
     public function getCustomObjectFormAction() {
 
@@ -98,6 +164,7 @@ class CustomObjectSettingsController extends AbstractController
             );
         }
 
+        /** @var $customObject CustomObject */
         $customObject = $form->getData();
 
         $this->entityManager->persist($customObject);

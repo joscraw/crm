@@ -5,9 +5,12 @@ import swal from 'sweetalert2';
 import Routing from '../Routing';
 
 class CustomObjectForm {
+
+    /**
+     * @param $wrapper
+     */
     constructor($wrapper) {
         this.$wrapper = $wrapper;
-        debugger;
 
         this.$wrapper.on(
             'submit',
@@ -29,13 +32,15 @@ class CustomObjectForm {
 
     loadCustomObjectForm() {
         $.ajax({
-            url: Routing.generate('app_get_custom_object_form'),
+            url: Routing.generate('custom_object_form', {portal: 1}),
         }).then(data => {
-            debugger;
             this.$wrapper.html(data.formMarkup);
         })
     }
 
+    /**
+     * @param e
+     */
     handleNewFormSubmit(e) {
 
         if(e.cancelable) {
@@ -49,27 +54,23 @@ class CustomObjectForm {
             formData[fieldData.name] = fieldData.value
         }
 
-
-        /*
-        Swal({
-  type: 'error',
-  title: 'Oops...',
-  text: 'Something went wrong!',
-  footer: '<a href>Why do I have this issue?</a>'
-})
-
-         */
-
         this._saveCustomObject(formData)
             .then((data) => {
-                swal("Success Message Title", "Well done, you created a custom object!", "success");
+                swal("Hooray!", "Well done, you created a custom object!", "success");
             }).catch((errorData) => {
-                debugger;
+
             this.$wrapper.html(errorData.formMarkup);
+
+            // Use for when the form is being generated on the JS side
             /*this._mapErrorsToForm(errorData.errors);*/
         });
     }
 
+    /**
+     * @param data
+     * @return {Promise<any>}
+     * @private
+     */
     _saveCustomObject(data) {
         return new Promise( (resolve, reject) => {
             const url = Routing.generate('custom_object_new', {portal: 1});
@@ -81,7 +82,6 @@ class CustomObjectForm {
             }).then((data, textStatus, jqXHR) => {
                 resolve(data);
             }).catch((jqXHR) => {
-                debugger;
                 const errorData = JSON.parse(jqXHR.responseText);
                 reject(errorData);
             });

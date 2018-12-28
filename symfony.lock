@@ -95,6 +95,9 @@
     "jdorn/sql-formatter": {
         "version": "v1.2.17"
     },
+    "lexik/form-filter-bundle": {
+        "version": "v5.0.7"
+    },
     "monolog/monolog": {
         "version": "1.24.0"
     },

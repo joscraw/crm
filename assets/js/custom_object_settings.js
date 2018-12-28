@@ -1,8 +1,6 @@
 import $ from 'jquery';
-import CreateCustomObjectButton from './Components/CreateCustomObjectButton';
+import CustomObjectSettings from './Components/CustomObjectSettings';
 
 $(document).ready(function() {
-    debugger;
-    /*new CreateCustomObjectForm($('.js-top-bar'));*/
-    new CreateCustomObjectButton($('.js-create-custom-object-button-container'), window.globalEventDispatcher);
+    new CustomObjectSettings($('.js-custom-object-settings-container'), window.globalEventDispatcher);
 });

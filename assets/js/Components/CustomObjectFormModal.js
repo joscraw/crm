@@ -5,10 +5,17 @@ import swal from "sweetalert2";
 import CustomObjectForm from './CustomObjectForm';
 
 class CustomObjectFormModal {
+
+    /**
+     * @param globalEventDispatcher
+     */
     constructor(globalEventDispatcher) {
         this.init(globalEventDispatcher);
     }
 
+    /**
+     * @param globalEventDispatcher
+     */
     init(globalEventDispatcher) {
         this.globalEventDispatcher = globalEventDispatcher;
         this.render();
@@ -21,12 +28,12 @@ class CustomObjectFormModal {
             html: CustomObjectFormModal.markup()
         });
 
-        new CustomObjectForm($('#js-custom-object-form-container'));
+        new CustomObjectForm($('#js-create-custom-object-modal-container'));
     }
 
     static markup() {
         return `
-      <div id="js-custom-object-form-container"></div>
+      <div id="js-create-custom-object-modal-container"></div>
     `;
     }
 }
