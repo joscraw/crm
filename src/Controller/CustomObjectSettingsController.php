@@ -90,6 +90,9 @@ class CustomObjectSettingsController extends AbstractController
             'data'  => $arrayResults
         ]);
 
+
+        return $response;
+
         $blahs = [
             'draw'  => $draw,
             'recordsTotal'  => $totalObjectsCount,

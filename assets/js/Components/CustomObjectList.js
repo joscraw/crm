@@ -7,8 +7,8 @@ window.$.DataTable = dt;*/
 import Routing from '../Routing';
 import Settings from '../Settings';
 
-
 require( 'datatables.net-bs4' );
+require( 'datatables.net-bs4/css/dataTables.bootstrap4.css' );
 
 /*var $ = require('jquery');
 var dt = require('datatables.net-bs');
@@ -93,8 +93,12 @@ class CustomObjectList {
 
     static markup() {
         return `
-            <table id="table_id" class="table display">
+            <table id="table_id" class="table table-striped table-bordered dataTable">
                 <thead>
+                <tr>
+                <th>Name</th>
+                <th>Created At</th>
+                </tr>
                 </thead>
                 <tbody>
                 </tbody>
