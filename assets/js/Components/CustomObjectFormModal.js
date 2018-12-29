@@ -28,7 +28,7 @@ class CustomObjectFormModal {
             html: CustomObjectFormModal.markup()
         });
 
-        new CustomObjectForm($('#js-create-custom-object-modal-container'));
+        new CustomObjectForm($('#js-create-custom-object-modal-container'), this.globalEventDispatcher);
     }
 
     static markup() {

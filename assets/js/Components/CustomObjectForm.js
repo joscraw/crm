@@ -3,14 +3,22 @@
 import $ from 'jquery';
 import swal from 'sweetalert2';
 import Routing from '../Routing';
+import Settings from '../Settings';
 
 class CustomObjectForm {
 
     /**
      * @param $wrapper
+     * @param globalEventDispatcher
      */
-    constructor($wrapper) {
+    constructor($wrapper, globalEventDispatcher) {
+
         this.$wrapper = $wrapper;
+
+        /**
+         * @type {EventDispatcher}
+         */
+        this.globalEventDispatcher = globalEventDispatcher;
 
         this.$wrapper.on(
             'submit',
@@ -57,6 +65,7 @@ class CustomObjectForm {
         this._saveCustomObject(formData)
             .then((data) => {
                 swal("Hooray!", "Well done, you created a custom object!", "success");
+                this.globalEventDispatcher.publish(Settings.Events.CUSTOM_OBJECT_CREATED);
             }).catch((errorData) => {
 
             this.$wrapper.html(errorData.formMarkup);

@@ -5,6 +5,7 @@ var dt = require('datatables.net-bs4');
 window.$.DataTable = dt;*/
 
 import Routing from '../Routing';
+import Settings from '../Settings';
 
 
 require( 'datatables.net-bs4' );
@@ -31,12 +32,20 @@ class CustomObjectList {
      * @param globalEventDispatcher
      */
     init($wrapper, globalEventDispatcher) {
+
         this.$wrapper = $wrapper;
+
+        /**
+         * @type {EventDispatcher}
+         */
         this.globalEventDispatcher = globalEventDispatcher;
 
-
-
         this.render();
+
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.CUSTOM_OBJECT_CREATED,
+            this.reloadList.bind(this)
+            );
 
 
 /*        this.loadCustomObjects();
@@ -55,19 +64,23 @@ class CustomObjectList {
         $('#table_id').DataTable({
             "processing": true,
             "serverSide": true,
+            "columns": [
+                { "data": "label", "name": "label", "title": "label" },
+                { "data": "createdAt", "name": "createdAt", "title": "createdAt" },
+                //repeat for each of my 20 or so fields
+            ],
             "ajax": {
                 url: Routing.generate('custom_objects_for_datatable', {portal: 1}),
                 type: "GET",
                 dataType: "json",
                 contentType: "application/json; charset=utf-8"
-            }/*,
-            "columns": [{ "sName": "NAME" },
-                { "sName": "SERIAL_NUMBER" },
-                { "sName": "AUTHOR" }]*/
+            }
         });
+    }
 
-
-
+    reloadList() {
+        debugger;
+        $('#table_id').DataTable().ajax.reload();
     }
 
     loadCustomObjects() {
@@ -82,10 +95,6 @@ class CustomObjectList {
         return `
             <table id="table_id" class="table display">
                 <thead>
-                    <tr>
-                        <th>Column 1</th>
-                        <th>Column 2</th>
-                    </tr>
                 </thead>
                 <tbody>
                 </tbody>

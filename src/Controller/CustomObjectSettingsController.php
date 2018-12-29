@@ -14,6 +14,14 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Response;
 
+
+use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
+use Symfony\Component\Serializer\Normalizer\GetSetMethodNormalizer;
+use Symfony\Component\Serializer\Serializer;
+use Symfony\Component\Serializer\Encoder\XmlEncoder;
+use Symfony\Component\Serializer\Encoder\JsonEncoder;
+use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
+
 /**
  * Class CustomObjectSettingsController
  * @package App\Controller
@@ -67,22 +75,64 @@ class CustomObjectSettingsController extends AbstractController
         $orders = $request->query->get('order');
         $columns = $request->query->get('columns');
 
-        $results = $this->customObjectRepository->getDataTableData();
+        $results = $this->customObjectRepository->getDataTableData($start, $length, $search, $orders, $columns);
 
         $totalObjectsCount = $this->customObjectRepository->findCount();
         $filteredObjectsCount = $results['countResult'];
-        $data = $results['results'];
+        $arrayResults = $results['arrayResults'];
+
 
 
         $response = new JsonResponse([
             'draw'  => $draw,
             'recordsTotal'  => $totalObjectsCount,
             'recordsFiltered'   => $filteredObjectsCount,
-            'data'  => [
-                ['hi', 'bye'],
-                ['two', 'three']
-            ]
+            'data'  => $arrayResults
         ]);
+
+        $blahs = [
+            'draw'  => $draw,
+            'recordsTotal'  => $totalObjectsCount,
+            'recordsFiltered'   => $filteredObjectsCount,
+            'data'  => $arrayResults
+        ];
+
+  /*      $encoders = array(new XmlEncoder(), new JsonEncoder());
+        $normalizers = array(new ObjectNormalizer());
+        $serializer = new Serializer($normalizers, $encoders);
+
+
+        $response = new Response($serializer->serialize($blahs, 'json'));
+        $response->headers->set('Content-Type', 'application/json');
+        return $response;*/
+
+
+        $encoder = new JsonEncoder();
+        $normalizer = new GetSetMethodNormalizer();
+
+// all callback parameters are optional (you can omit the ones you don't use)
+        $callback = function ($innerObject, $outerObject, string $attributeName, string $format = null, array $context = array()) {
+            return $innerObject instanceof \DateTime ? $innerObject->format(\DateTime::ISO8601) : '';
+        };
+
+        $normalizer->setCallbacks(array('createdAt' => $callback));
+
+        $serializer = new Serializer(array($normalizer), array($encoder));
+
+        $person = new Person();
+        $person->setName('cordoval');
+        $person->setAge(34);
+        $person->setCreatedAt(new \DateTime('now'));
+
+        $serializer->serialize($person, 'json');
+
+
+/*        $response = new JsonResponse([
+            'draw'  => $draw,
+            'recordsTotal'  => $totalObjectsCount,
+            'recordsFiltered'   => $filteredObjectsCount,
+            'data'  => $arrayResults
+        ]);*/
 
         return $response;
 

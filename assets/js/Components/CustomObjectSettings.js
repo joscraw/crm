@@ -42,7 +42,7 @@ class CustomObjectSettings {
 
     render() {
         this.$wrapper.html(CustomObjectSettings.markup(this));
-        new CustomObjectList(this.$wrapper.find('.js-custom-object-settings-container__list'));
+        new CustomObjectList(this.$wrapper.find('.js-custom-object-settings-container__list'), this.globalEventDispatcher);
     }
 
     static markup() {
