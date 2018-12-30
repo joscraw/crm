@@ -5,7 +5,7 @@ import swal from 'sweetalert2';
 import Routing from '../Routing';
 import Settings from '../Settings';
 
-class CustomObjectForm {
+class PropertyGroupForm {
 
     /**
      * @param $wrapper
@@ -22,11 +22,11 @@ class CustomObjectForm {
 
         this.$wrapper.on(
             'submit',
-            CustomObjectForm._selectors.newCustomObjectForm,
+            PropertyGroupForm._selectors.newPropertyGroupForm,
             this.handleNewFormSubmit.bind(this)
         );
 
-        this.loadCustomObjectForm();
+        this.loadPropertyGroupForm();
     }
 
     /**
@@ -34,13 +34,14 @@ class CustomObjectForm {
      */
     static get _selectors() {
         return {
-            newCustomObjectForm: '.js-new-custom-object-form',
+            newPropertyGroupForm: '.js-new-property-group-form',
         }
     }
 
-    loadCustomObjectForm() {
+    loadPropertyGroupForm() {
+        debugger;
         $.ajax({
-            url: Routing.generate('custom_object_form', {portal: 1}),
+            url: Routing.generate('property_group_form', {portal: 1}),
         }).then(data => {
             this.$wrapper.html(data.formMarkup);
         })
@@ -50,6 +51,8 @@ class CustomObjectForm {
      * @param e
      */
     handleNewFormSubmit(e) {
+
+        console.log("form submitted");
 
         if(e.cancelable) {
             e.preventDefault();
@@ -62,10 +65,10 @@ class CustomObjectForm {
             formData[fieldData.name] = fieldData.value
         }
 
-        this._saveCustomObject(formData)
+        this._savePropertyGroup(formData)
             .then((data) => {
-                swal("Hooray!", "Well done, you created a custom object!", "success");
-                this.globalEventDispatcher.publish(Settings.Events.CUSTOM_OBJECT_CREATED);
+                swal("Hooray!", "Well done, you created a new Property Group!", "success");
+                this.globalEventDispatcher.publish(Settings.Events.PROPERTY_GROUP_CREATED);
             }).catch((errorData) => {
 
             this.$wrapper.html(errorData.formMarkup);
@@ -80,9 +83,9 @@ class CustomObjectForm {
      * @return {Promise<any>}
      * @private
      */
-    _saveCustomObject(data) {
+    _savePropertyGroup(data) {
         return new Promise( (resolve, reject) => {
-            const url = Routing.generate('custom_object_new', {portal: 1});
+            const url = Routing.generate('property_group_new', {portal: 1});
 
             $.ajax({
                 url,
@@ -98,4 +101,4 @@ class CustomObjectForm {
     }
 }
 
-export default CustomObjectForm;
+export default PropertyGroupForm;

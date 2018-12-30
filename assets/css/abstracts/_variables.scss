@@ -17,6 +17,7 @@ $code-font-stack: 'Courier New', 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono',
 $color-white-100: hsl(0, 0%, 100%);
 $color-blue-25: hsl(210, 27%, 25%);
 $color-blue-20: hsl(210, 27%, 20%);
+$color-blue-84: hsl(211, 28%, 84%);
 $color-orange-61: hsl(12, 75%, 61%);
 
 
@@ -49,23 +50,6 @@ $dark-grey: rgb(68, 68, 68) !default;
 /// Container's maximum width
 /// @type Length
 $max-width: 1180px !default;
-
-
-
-
-
-/// Breakpoints map
-/// @prop {String} keys - Keys are identifiers mapped to a given length
-/// @prop {Map} values - Values are actual breakpoints expressed in pixels
-$breakpoints: (
-  'small': 320px,
-  'medium': 768px,
-  'large': 1024px,
-) !default;
-
-
-
-
 
 
 /// Relative or absolute URL where all assets are served from

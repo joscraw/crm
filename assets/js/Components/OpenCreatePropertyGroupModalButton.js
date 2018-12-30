@@ -1,22 +1,20 @@
 'use strict';
 
 import Settings from '../Settings';
-import CustomObjectFormModal from './CustomObjectFormModal';
+import PropertyGroupFormModal from './PropertyGroupFormModal';
 
-class CreateCustomObjectButton {
+class OpenCreatePropertyGroupModalButton {
     constructor($wrapper, globalEventDispatcher) {
         this.init($wrapper, globalEventDispatcher);
     }
 
     init($wrapper, globalEventDispatcher) {
         this.$wrapper = $wrapper;
-        this.title = this.$wrapper.data('title');
-        this.buttonClass = this.$wrapper.data('js-button-class');
         this.globalEventDispatcher = globalEventDispatcher;
 
         this.$wrapper.on(
             'click',
-            '.js-create-custom-object-btn',
+            '.js-open-create-property-group-modal-btn',
             this.handleButtonClick.bind(this)
         );
 
@@ -27,18 +25,18 @@ class CreateCustomObjectButton {
         console.log("Create Custom Object Button Clicked");
         this.globalEventDispatcher.publish(Settings.Events.CREATE_CUSTOM_OBJECT_BUTTON_CLICKED);
         console.log(`Event Dispatched: ${Settings.Events.CREATE_CUSTOM_OBJECT_BUTTON_CLICKED}`);
-        new CustomObjectFormModal(this.globalEventDispatcher);
+        new PropertyGroupFormModal(this.globalEventDispatcher);
     }
 
     render() {
-        this.$wrapper.html(CreateCustomObjectButton.markup(this));
+        this.$wrapper.append(OpenCreatePropertyGroupModalButton.markup(this));
     }
 
     static markup() {
         return `
-      <button type="button" class="js-create-custom-object-btn btn btn-secondary">Create Object</button>
+      <button type="button" class="js-open-create-property-group-modal-btn btn btn-secondary">Create Property Group</button>
     `;
     }
 }
 
-export default CreateCustomObjectButton;
+export default OpenCreatePropertyGroupModalButton;

@@ -2,9 +2,9 @@
 
 import $ from 'jquery';
 import swal from "sweetalert2";
-import CustomObjectForm from './CustomObjectForm';
+import PropertyGroupForm from './PropertyGroupForm';
 
-class CustomObjectFormModal {
+class PropertyGroupFormModal {
 
     /**
      * @param globalEventDispatcher
@@ -23,19 +23,19 @@ class CustomObjectFormModal {
 
     render() {
         swal({
-            title: 'Create Custom Object',
+            title: 'Create Property Group',
             showConfirmButton: false,
-            html: CustomObjectFormModal.markup()
+            html: PropertyGroupFormModal.markup()
         });
 
-        new CustomObjectForm($('#js-create-custom-object-modal-container'), this.globalEventDispatcher);
+        new PropertyGroupForm($('#js-create-property-group-modal-container'), this.globalEventDispatcher);
     }
 
     static markup() {
         return `
-      <div id="js-create-custom-object-modal-container"></div>
+      <div id="js-create-property-group-modal-container"></div>
     `;
     }
 }
 
-export default CustomObjectFormModal;
+export default PropertyGroupFormModal;

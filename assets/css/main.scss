@@ -7,7 +7,13 @@
   'abstracts/mixins';
 
 // 2. Vendors
-@import
+
+/*
+Will need to revisit this with DataTables. Datatables needed some more css styles,
+like for the pagination and I wasn't sure exactly which packages to import. I will come back
+todo figure out which libraries to load for datatables
+ */
+/*@import
 
   '~bootstrap/scss/functions',
   '~bootstrap/scss/variables',
@@ -17,10 +23,10 @@
   '~bootstrap/scss/grid',
   '~bootstrap/scss/buttons',
   '~bootstrap/scss/forms',
-  '~bootstrap/scss/forms';
+  '~bootstrap/scss/forms',
+  '~bootstrap/scss/tables';*/
 
-
-/*@import '~bootstrap/scss/bootstrap';*/
+@import '~bootstrap/scss/bootstrap';
 
 // 3. Base stuff
 @import
@@ -33,7 +39,9 @@
 @import
   'layout/header',
   'layout/footer',
-  'layout/drawer';
+  'layout/drawer',
+  'layout/sidebar',
+  'layout/grid';
 
 // 5. Components
 @import

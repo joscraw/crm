@@ -20,6 +20,7 @@ Encore
      */
     .addEntry('layout', './assets/js/layout.js')
     .addEntry('custom_object_settings', './assets/js/custom_object_settings.js')
+    .addEntry('property_settings', './assets/js/property_settings.js')
     //.addEntry('page1', './assets/js/page1.js')
     //.addEntry('page2', './assets/js/page2.js')
 
@@ -42,6 +43,9 @@ Encore
 
     // enables Sass/SCSS support
     .enableSassLoader()
+
+    // enable post CSS loader
+    .enablePostCssLoader()
 
     // uncomment if you use TypeScript
     //.enableTypeScriptLoader()
