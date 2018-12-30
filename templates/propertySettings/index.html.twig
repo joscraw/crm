@@ -2,16 +2,14 @@
 
 {% block title %}Property Settings!{% endblock %}
 
-{% block body %}
-    <div class="js-property-settings-container property-settings-container"></div>
-{% endblock %}
+{% block containerComponent %}js-property-settings{% endblock %}
 
 {% block stylesheets %}
     {{ parent() }}
-    {#<link href="{{ asset('build/custom_object_settings.css') }}" rel="stylesheet" />#}
+   {# <link href="{{ asset('build/custom_object_settings.css') }}" rel="stylesheet" />#}
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
-    {#<script src="{{ asset('build/custom_object_settings.js') }}"></script>#}
+    <script src="{{ asset('build/property_settings.js') }}"></script>
 {% endblock %}

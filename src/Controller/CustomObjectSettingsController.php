@@ -26,7 +26,7 @@ use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
  * Class CustomObjectSettingsController
  * @package App\Controller
  *
- * @Route("/custom-object-settings/{portal}")
+ * @Route("/portal/{portal}")
  *
  */
 class CustomObjectSettingsController extends AbstractController
@@ -48,20 +48,22 @@ class CustomObjectSettingsController extends AbstractController
     }
 
     /**
-     * @Route("/", name="custom_object_settings", methods={"GET"})
+     * @Route("/custom-object-settings", name="custom_object_settings", methods={"GET"})
      * @param Portal $portal
      * @return \Symfony\Component\HttpFoundation\Response
      */
     public function indexAction(Portal $portal) {
 
-        return $this->render('objectSettings/index.html.twig', array());
+        return $this->render('objectSettings/index.html.twig', array(
+            'portal' => $portal,
+        ));
     }
 
     /**
      * DataTables passes unique params in the Request and expects a specific response payload
      * @see https://datatables.net/manual/server-side Documentation for ServerSide Implimentation for DataTables
      *
-     * @Route("/custom-objects-for-datatable", name="custom_objects_for_datatable", methods={"GET"}, options = { "expose" = true })
+     * @Route("/custom-object-settings/get-custom-objects-for-datatable", name="custom_objects_for_datatable", methods={"GET"}, options = { "expose" = true })
      * @param Portal $portal
      * @param Request $request
      * @return Response
@@ -94,7 +96,7 @@ class CustomObjectSettingsController extends AbstractController
 
 
     /**
-     * @Route("/get-custom-object-form", name="custom_object_form", methods={"GET"}, options = { "expose" = true })
+     * @Route("/custom-object-settings/get-custom-object-form", name="custom_object_form", methods={"GET"}, options = { "expose" = true })
      */
     public function getCustomObjectFormAction() {
 
@@ -118,7 +120,7 @@ class CustomObjectSettingsController extends AbstractController
     }
 
     /**
-     * @Route("/custom-objects", name="custom_object_new", methods={"POST"}, options={"expose" = true})
+     * @Route("/custom-object-settings/custom-objects", name="custom_object_new", methods={"POST"}, options={"expose" = true})
      * @param Request $request
      * @return JsonResponse
      * @throws \Doctrine\ORM\ORMException

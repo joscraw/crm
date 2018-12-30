@@ -65,14 +65,14 @@
 
 
                 <li>
-                    <a href="#">
-                        <i class="fa fa-user fa-lg"></i> Profile
+                    <a href="{{ path('custom_object_settings', {portal: portal.id}) }}">
+                        <i class="fa fa-cog fa-lg"></i> Custom Objects
                     </a>
                 </li>
 
                 <li>
-                    <a href="#">
-                        <i class="fa fa-users fa-lg"></i> Users
+                    <a href="{{ path('property_settings', {portal: portal.id}) }}">
+                        <i class="fa fa-cog fa-lg"></i> Properties
                     </a>
                 </li>
             </ul>
