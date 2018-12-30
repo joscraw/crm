@@ -1,0 +1,21 @@
+// -----------------------------------------------------------------------------
+// This file contains all styles related to the grid of the site/application.
+// -----------------------------------------------------------------------------
+
+.l-grid {
+
+  @include media-breakpoint-up(md) {
+    padding-left: 300px;
+  }
+}
+
+.l-grid__main-content {
+
+}
+
+.l-grid__top-bar {
+  border-bottom: 1px solid $color-blue-84;
+  padding: 20px 0;
+  margin-bottom: 50px;
+}
+

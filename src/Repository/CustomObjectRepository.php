@@ -50,7 +50,6 @@ class CustomObjectRepository extends ServiceEntityRepository
 
     public function getDataTableData($start, $length, $search, $orders, $columns)
     {
-
         // Main Query
         $mainQuerySelectColumns = ['dt.label', 'dt.createdAt'];
         $searchQuery = null;
@@ -95,7 +94,6 @@ class CustomObjectRepository extends ServiceEntityRepository
                 }
             }
         }
-
 
         $results = $query->getQuery()->getResult();
         $arrayResults = $query->getQuery()->getArrayResult();

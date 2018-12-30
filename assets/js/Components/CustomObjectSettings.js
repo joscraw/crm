@@ -4,6 +4,8 @@ import $ from 'jquery';
 import Settings from '../Settings';
 import CustomObjectFormModal from './CustomObjectFormModal';
 import CustomObjectList from './CustomObjectList';
+import OpenCreateCustomObjectModalButton from './OpenCreateCustomObjectModalButton';
+import CustomObjectSettingsTopBar from './CustomObjectSettingsTopBar';
 
 
 class CustomObjectSettings {
@@ -24,45 +26,32 @@ class CustomObjectSettings {
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
 
-        this.$wrapper.on(
-            'click',
-            '.js-custom-object-settings-container__create-custom-object-btn',
-            this.handleCreateObjectBtnClick.bind(this)
-        );
-
         this.render();
     }
 
-    handleCreateObjectBtnClick() {
-        console.log("Create Custom Object Button Clicked");
-        this.globalEventDispatcher.publish(Settings.Events.CREATE_CUSTOM_OBJECT_BUTTON_CLICKED);
-        console.log(`Event Dispatched: ${Settings.Events.CREATE_CUSTOM_OBJECT_BUTTON_CLICKED}`);
-        new CustomObjectFormModal(this.globalEventDispatcher);
-    }
-
     render() {
-        this.$wrapper.html(CustomObjectSettings.markup(this));
-        new CustomObjectList(this.$wrapper.find('.js-custom-object-settings-container__list'), this.globalEventDispatcher);
+        const $topBar = this.$wrapper.find('.js-top-bar');
+        const $mainContent = this.$wrapper.find('.js-main-content');
+
+  /*      const container = document.createElement("div");
+        document.body.appendChild(container);
+
+        const $div = $("<div>", {"class": "js-top-bar"});
+        $("#box").append($div);
+*/
+        new CustomObjectSettingsTopBar($topBar, this.globalEventDispatcher);
+        new CustomObjectList($mainContent, this.globalEventDispatcher);
+
     }
 
-    static markup() {
+/*    static markup() {
         return `
-        <div class="js-top-bar custom-object-settings-container__top-bar">
-            <div class="row">
-                <div class="col-lg-10">
-                    <h1>Test h1</h1>
-                </div>
-                <div class="col-lg-2">
-                    <button class="js-custom-object-settings-container__create-custom-object-btn
-                    custom-object-settings-container__create-custom-object-btn btn btn-secondary">Create Object</button>
-                </div>
-            </div>
-        </div>
-        <div class="custom-object-settings-container__main-content">
-        <div class="js-custom-object-settings-container__list custom-object-settings-container__list"></div>
+        <div class="l-grid">
+            <div class="l-grid__top-bar"></div>
+            <div class="l-grid__main-content"></div>
         </div>
     `;
-    }
+    }*/
 }
 
 export default CustomObjectSettings;

@@ -11,66 +11,86 @@
         {% endblock %}
     </head>
     <body>
-{#    <div id="js-navigation-slider" class="navigation-slider navigation-slider--left">
-        <a href="javascript:void(0)" class="navigation-slider__close-button navigation-slider__close-button--left" onclick="closeNav()">&times;</a>
+
+    <div class="side-nav">
+        {% block sideNav %}
+        <div class="nav-side-menu">
+            <div class="brand">Brand Logo</div>
+            <i class="fa fa-bars fa-2x toggle-btn" data-toggle="collapse" data-target="#menu-content"></i>
+
+            <div class="menu-list">
+
+                <ul id="menu-content" class="menu-content collapse out">
+                    <li>
+                        <a href="#">
+                            <i class="fa fa-dashboard fa-lg"></i> Dashboard
+                        </a>
+                    </li>
+
+                    <li  data-toggle="collapse" data-target="#products" class="collapsed active">
+                        <a href="#"><i class="fa fa-gift fa-lg"></i> UI Elements <span class="arrow"></span></a>
+                    </li>
+                    <ul class="sub-menu collapse" id="products">
+                        <li class="active"><a href="#">CSS3 Animation</a></li>
+                        <li><a href="#">General</a></li>
+                        <li><a href="#">Buttons</a></li>
+                        <li><a href="#">Tabs & Accordions</a></li>
+                        <li><a href="#">Typography</a></li>
+                        <li><a href="#">FontAwesome</a></li>
+                        <li><a href="#">Slider</a></li>
+                        <li><a href="#">Panels</a></li>
+                        <li><a href="#">Widgets</a></li>
+                        <li><a href="#">Bootstrap Model</a></li>
+                    </ul>
+
+
+                    <li data-toggle="collapse" data-target="#service" class="collapsed">
+                        <a href="#"><i class="fa fa-globe fa-lg"></i> Services <span class="arrow"></span></a>
+                    </li>
+                    <ul class="sub-menu collapse" id="service">
+                        <li>New Service 1</li>
+                        <li>New Service 2</li>
+                        <li>New Service 3</li>
+                    </ul>
+
+
+                    <li data-toggle="collapse" data-target="#new" class="collapsed">
+                        <a href="#"><i class="fa fa-car fa-lg"></i> New <span class="arrow"></span></a>
+                    </li>
+                    <ul class="sub-menu collapse" id="new">
+                        <li>New New 1</li>
+                        <li>New New 2</li>
+                        <li>New New 3</li>
+                    </ul>
+
+
+                    <li>
+                        <a href="#">
+                            <i class="fa fa-user fa-lg"></i> Profile
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="#">
+                            <i class="fa fa-users fa-lg"></i> Users
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        {% endblock %}
     </div>
-
-    <div id="js-navigation-slider2" class="navigation-slider navigation-slider--right">
-        <a href="javascript:void(0)" class="navigation-slider__close-button navigation-slider__close-button--right" onclick="closeNav2()">&times;</a>
-    </div>
-
-    <div id="js-navigation-slider3" class="navigation-slider navigation-slider--bottom">
-        <a href="javascript:void(0)" class="navigation-slider__close-button navigation-slider__close-button--right" onclick="closeNav3()">&times;</a>
-    </div>#}
-
-{#    <h2>Animated Sidenav Example</h2>
-    <p>Click on the element below to open the side navigation menu.</p>
-    <span style="font-size:30px;cursor:pointer" onclick="openNav()">&#9776; open</span>
-
-    <h2>Animated Sidenav Example</h2>
-    <p>Click on the element below to open the side navigation menu.</p>
-    <span style="font-size:30px;cursor:pointer" onclick="openNav2()">&#9776; open2</span>
-
-    <h2>Animated Sidenav Example</h2>
-    <p>Click on the element below to open the side navigation menu.</p>
-    <span style="font-size:30px;cursor:pointer" onclick="openNav3()">&#9776; open3</span>#}
-
-
-    <div class="main-content container">
-        {% block body %}{% endblock %}
+    <div class="container {% block containerComponent %}{% endblock %}">
+        <div class="l-grid">
+            <div class="l-grid__top-bar js-top-bar"></div>
+            <div class="l-grid__main-content js-main-content"></div>
+        </div>
     </div>
         {% block javascripts %}
             <script src="{{ asset('bundles/fosjsrouting/js/router.min.js') }}"></script>
             <script src="{{ path('fos_js_routing_js', { callback: 'fos.Router.setData' }) }}"></script>
             <script src="{{ asset('build/runtime.js') }}"></script>
             <script src="{{ asset('build/layout.js') }}"></script>
-
-            <script>
-                debugger;
-                function openNav() {
-                    document.getElementById("js-navigation-slider").style.width = "250px";
-                }
-
-                function closeNav() {
-                    document.getElementById("js-navigation-slider").style.width = "0";
-                }
-
-                function openNav2() {
-                    document.getElementById("js-navigation-slider2").style.width = "250px";
-                }
-
-                function closeNav2() {
-                    document.getElementById("js-navigation-slider2").style.width = "0";
-                }
-
-                function openNav3() {
-                    document.getElementById("js-navigation-slider3").style.height = "150px";
-                }
-
-                function closeNav3() {
-                    document.getElementById("js-navigation-slider3").style.height = "0";
-                }
-            </script>
         {% endblock %}
     </body>
 </html>

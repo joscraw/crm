@@ -65,6 +65,7 @@ class CustomObjectSettingsController extends AbstractController
      * @param Portal $portal
      * @param Request $request
      * @return Response
+     * @throws \Doctrine\ORM\NonUniqueResultException
      */
     public function getCustomObjectsForDatatableAction(Portal $portal, Request $request) {
 
@@ -81,8 +82,6 @@ class CustomObjectSettingsController extends AbstractController
         $filteredObjectsCount = $results['countResult'];
         $arrayResults = $results['arrayResults'];
 
-
-
         $response = new JsonResponse([
             'draw'  => $draw,
             'recordsTotal'  => $totalObjectsCount,
@@ -90,75 +89,7 @@ class CustomObjectSettingsController extends AbstractController
             'data'  => $arrayResults
         ]);
 
-
         return $response;
-
-        $blahs = [
-            'draw'  => $draw,
-            'recordsTotal'  => $totalObjectsCount,
-            'recordsFiltered'   => $filteredObjectsCount,
-            'data'  => $arrayResults
-        ];
-
-  /*      $encoders = array(new XmlEncoder(), new JsonEncoder());
-        $normalizers = array(new ObjectNormalizer());
-        $serializer = new Serializer($normalizers, $encoders);
-
-
-        $response = new Response($serializer->serialize($blahs, 'json'));
-        $response->headers->set('Content-Type', 'application/json');
-        return $response;*/
-
-
-        $encoder = new JsonEncoder();
-        $normalizer = new GetSetMethodNormalizer();
-
-// all callback parameters are optional (you can omit the ones you don't use)
-        $callback = function ($innerObject, $outerObject, string $attributeName, string $format = null, array $context = array()) {
-            return $innerObject instanceof \DateTime ? $innerObject->format(\DateTime::ISO8601) : '';
-        };
-
-        $normalizer->setCallbacks(array('createdAt' => $callback));
-
-        $serializer = new Serializer(array($normalizer), array($encoder));
-
-        $person = new Person();
-        $person->setName('cordoval');
-        $person->setAge(34);
-        $person->setCreatedAt(new \DateTime('now'));
-
-        $serializer->serialize($person, 'json');
-
-
-/*        $response = new JsonResponse([
-            'draw'  => $draw,
-            'recordsTotal'  => $totalObjectsCount,
-            'recordsFiltered'   => $filteredObjectsCount,
-            'data'  => $arrayResults
-        ]);*/
-
-        return $response;
-
-/*        $response = new JsonResponse(
-            [
-                'draw'  => $draw,
-                'recordsTotal'  => $totalObjectsCount,
-                'recordsFiltered'   => $filteredObjectsCount,
-                'data'  => [
-                    ['hi', 'bye'],
-                    ['two', 'three']
-                ]
-            ],
-            Response::HTTP_OK,
-            [],
-            true
-        );*/
-
-        $j = "hi";
-
-
-        /*return new Response("hi");*/
-
     }
 
 

@@ -8,6 +8,8 @@ import Routing from '../Routing';
 import Settings from '../Settings';
 
 require( 'datatables.net-bs4' );
+require( 'datatables.net-responsive-bs4' );
+require( 'datatables.net-responsive-bs4/css/responsive.bootstrap4.css' );
 require( 'datatables.net-bs4/css/dataTables.bootstrap4.css' );
 
 /*var $ = require('jquery');
@@ -64,9 +66,9 @@ class CustomObjectList {
         $('#table_id').DataTable({
             "processing": true,
             "serverSide": true,
+            "responsive": true,
             "columns": [
                 { "data": "label", "name": "label", "title": "label" },
-                { "data": "createdAt", "name": "createdAt", "title": "createdAt" },
                 //repeat for each of my 20 or so fields
             ],
             "ajax": {
@@ -79,7 +81,6 @@ class CustomObjectList {
     }
 
     reloadList() {
-        debugger;
         $('#table_id').DataTable().ajax.reload();
     }
 
@@ -93,12 +94,8 @@ class CustomObjectList {
 
     static markup() {
         return `
-            <table id="table_id" class="table table-striped table-bordered dataTable">
+            <table id="table_id" class="table table-striped table-bordered" style="width:100%">
                 <thead>
-                <tr>
-                <th>Name</th>
-                <th>Created At</th>
-                </tr>
                 </thead>
                 <tbody>
                 </tbody>
