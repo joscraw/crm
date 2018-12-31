@@ -5,7 +5,7 @@ import swal from 'sweetalert2';
 import Routing from '../Routing';
 import Settings from '../Settings';
 
-class PropertyGroupForm {
+class PropertyCreateForm {
 
     /**
      * @param $wrapper
@@ -20,13 +20,13 @@ class PropertyGroupForm {
          */
         this.globalEventDispatcher = globalEventDispatcher;
 
-        this.$wrapper.on(
+  /*      this.$wrapper.on(
             'submit',
             PropertyGroupForm._selectors.newPropertyGroupForm,
             this.handleNewFormSubmit.bind(this)
-        );
+        );*/
 
-        this.loadPropertyGroupForm();
+        this.loadCreatePropertyForm();
     }
 
     /**
@@ -38,9 +38,9 @@ class PropertyGroupForm {
         }
     }
 
-    loadPropertyGroupForm() {
+    loadCreatePropertyForm() {
         $.ajax({
-            url: Routing.generate('property_group_form', {portal: 1}),
+            url: Routing.generate('create_property_form', {portal: 1}),
         }).then(data => {
             this.$wrapper.html(data.formMarkup);
         })
@@ -51,7 +51,7 @@ class PropertyGroupForm {
      */
     handleNewFormSubmit(e) {
 
-        console.log("form submitted");
+/*        console.log("form submitted");
 
         if(e.cancelable) {
             e.preventDefault();
@@ -73,8 +73,8 @@ class PropertyGroupForm {
             this.$wrapper.html(errorData.formMarkup);
 
             // Use for when the form is being generated on the JS side
-            /*this._mapErrorsToForm(errorData.errors);*/
-        });
+            /!*this._mapErrorsToForm(errorData.errors);*!/
+        });*/
     }
 
     /**
@@ -83,7 +83,7 @@ class PropertyGroupForm {
      * @private
      */
     _savePropertyGroup(data) {
-        return new Promise( (resolve, reject) => {
+  /*      return new Promise( (resolve, reject) => {
             const url = Routing.generate('property_group_new', {portal: 1});
 
             $.ajax({
@@ -96,8 +96,8 @@ class PropertyGroupForm {
                 const errorData = JSON.parse(jqXHR.responseText);
                 reject(errorData);
             });
-        });
+        });*/
     }
 }
 
-export default PropertyGroupForm;
+export default PropertyCreateForm;

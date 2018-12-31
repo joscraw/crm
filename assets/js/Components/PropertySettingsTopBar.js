@@ -3,6 +3,7 @@
 import $ from 'jquery';
 import Settings from '../Settings';
 import OpenCreatePropertyGroupModalButton from './OpenCreatePropertyGroupModalButton';
+import OpenPropertyCreateModalButton from './OpenPropertyCreateModalButton';
 
 
 class PropertySettingsTopBar {
@@ -12,6 +13,7 @@ class PropertySettingsTopBar {
      * @param globalEventDispatcher
      */
     constructor($wrapper, globalEventDispatcher) {
+        debugger;
         this.init($wrapper, globalEventDispatcher);
     }
 
@@ -27,14 +29,17 @@ class PropertySettingsTopBar {
     }
 
     render() {
+        debugger;
         this.$wrapper.html(PropertySettingsTopBar.markup());
         new OpenCreatePropertyGroupModalButton(this.$wrapper.find('.js-top-bar-button-container'), this.globalEventDispatcher);
+        new OpenPropertyCreateModalButton(this.$wrapper.find('.js-top-bar-button-container'), this.globalEventDispatcher);
+
     }
 
         static markup() {
             return `
             <div class="row">
-                <div class="col-md-4 offset-md-8 text-right js-top-bar-button-container"></div>
+                <div class="col-md-6 offset-md-6 text-right js-top-bar-button-container"></div>
             </div>
         `;
         }

@@ -7,6 +7,7 @@ use App\Entity\Portal;
 use App\Entity\PropertyGroup;
 use App\Form\CustomObjectType;
 use App\Form\PropertyGroupType;
+use App\Model\FieldCatalog;
 use App\Repository\CustomObjectRepository;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
@@ -128,6 +129,28 @@ class PropertySettingsController extends AbstractController
         return new JsonResponse(
             [
                 'success' => true,
+            ]
+        );
+    }
+
+    /**
+     * @Route("property-settings/get-create-property-form", name="create_property_form", methods={"GET"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @return JsonResponse
+     */
+    public function createPropertyAction(Portal $portal) {
+
+        $formMarkup = $this->renderView(
+            'Api/form/create_property_form.html.twig',
+            [
+                'fields' => FieldCatalog::getFieldTypes(),
+            ]
+        );
+
+        return new JsonResponse(
+            [
+                'success' => true,
+                'formMarkup' => $formMarkup
             ]
         );
     }

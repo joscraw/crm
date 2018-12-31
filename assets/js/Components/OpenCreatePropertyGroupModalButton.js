@@ -9,6 +9,7 @@ class OpenCreatePropertyGroupModalButton {
     }
 
     init($wrapper, globalEventDispatcher) {
+        debugger;
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
 
@@ -23,8 +24,8 @@ class OpenCreatePropertyGroupModalButton {
 
     handleButtonClick() {
         console.log("Create Custom Object Button Clicked");
-        this.globalEventDispatcher.publish(Settings.Events.CREATE_CUSTOM_OBJECT_BUTTON_CLICKED);
-        console.log(`Event Dispatched: ${Settings.Events.CREATE_CUSTOM_OBJECT_BUTTON_CLICKED}`);
+        this.globalEventDispatcher.publish(Settings.Events.CREATE_PROPERTY_GROUP_BUTTON_CLICKED);
+        console.log(`Event Dispatched: ${Settings.Events.CREATE_PROPERTY_GROUP_BUTTON_CLICKED}`);
         new PropertyGroupFormModal(this.globalEventDispatcher);
     }
 
