@@ -20,11 +20,23 @@ class PropertyCreateForm {
          */
         this.globalEventDispatcher = globalEventDispatcher;
 
-  /*      this.$wrapper.on(
+        this.$wrapper.on(
             'submit',
-            PropertyGroupForm._selectors.newPropertyGroupForm,
+            PropertyCreateForm._selectors.newPropertyForm,
             this.handleNewFormSubmit.bind(this)
-        );*/
+        );
+
+        this.$wrapper.on(
+            'change',
+            PropertyCreateForm._selectors.fieldType,
+            this.handleFieldTypeChange.bind(this)
+        );
+
+        this.$wrapper.on(
+            'click',
+            PropertyCreateForm._selectors.addItem,
+            this.handleAddItemButtonClick.bind(this)
+        );
 
         this.loadCreatePropertyForm();
     }
@@ -34,13 +46,15 @@ class PropertyCreateForm {
      */
     static get _selectors() {
         return {
-            newPropertyGroupForm: '.js-new-property-group-form',
+            newPropertyForm: '.js-new-property-form',
+            fieldType: '.js-field-type',
+            addItem: '.js-addItem'
         }
     }
 
     loadCreatePropertyForm() {
         $.ajax({
-            url: Routing.generate('create_property_form', {portal: 1}),
+            url: Routing.generate('create_property', {portal: 1}),
         }).then(data => {
             this.$wrapper.html(data.formMarkup);
         })
@@ -51,7 +65,7 @@ class PropertyCreateForm {
      */
     handleNewFormSubmit(e) {
 
-/*        console.log("form submitted");
+        console.log("form submitted");
 
         if(e.cancelable) {
             e.preventDefault();
@@ -64,17 +78,42 @@ class PropertyCreateForm {
             formData[fieldData.name] = fieldData.value
         }
 
-        this._savePropertyGroup(formData)
+        this._saveProperty(formData)
             .then((data) => {
-                swal("Hooray!", "Well done, you created a new Property Group!", "success");
+                swal("Hooray!", "Well done, you created a new Property!", "success");
                 this.globalEventDispatcher.publish(Settings.Events.PROPERTY_GROUP_CREATED);
             }).catch((errorData) => {
 
             this.$wrapper.html(errorData.formMarkup);
 
             // Use for when the form is being generated on the JS side
-            /!*this._mapErrorsToForm(errorData.errors);*!/
-        });*/
+            /*this._mapErrorsToForm(errorData.errors);*/
+        });
+    }
+
+    handleFieldTypeChange() {
+        console.log("field changed");
+    }
+
+    handleAddItemButtonClick(e) {
+
+        debugger;
+
+        if(e.cancelable) {
+            e.preventDefault();
+        }
+
+        let $parentContainer = $('.js-parent-container');
+        let index = $parentContainer.children('.js-child-item').length;
+        let template = $parentContainer.data('template');
+        let tpl = eval('`'+template+'`');
+        let $container = $('<li>').addClass('list-group-item js-child-item');
+        $container.append(tpl);
+        $parentContainer.append($container);
+
+        debugger;
+
+        console.log("button clicked");
     }
 
     /**
@@ -82,9 +121,9 @@ class PropertyCreateForm {
      * @return {Promise<any>}
      * @private
      */
-    _savePropertyGroup(data) {
-  /*      return new Promise( (resolve, reject) => {
-            const url = Routing.generate('property_group_new', {portal: 1});
+    _saveProperty(data) {
+        return new Promise( (resolve, reject) => {
+            const url = Routing.generate('create_property', {portal: 1});
 
             $.ajax({
                 url,
@@ -96,7 +135,7 @@ class PropertyCreateForm {
                 const errorData = JSON.parse(jqXHR.responseText);
                 reject(errorData);
             });
-        });*/
+        });
     }
 }
 

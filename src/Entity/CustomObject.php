@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Model\Content;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -44,13 +46,9 @@ class CustomObject
     private $internalName;
 
     /**
-     * Custom Object Content
-     *
-     * @ORM\Column(name="content", type="text", nullable=true)
-     *
-     * @var Content
+     * @ORM\OneToOne(targetEntity="App\Entity\Property", mappedBy="customObject", cascade={"persist", "remove"})
      */
-    private $content;
+    private $property;
 
     /**
      * @ORM\PrePersist
@@ -101,19 +99,20 @@ class CustomObject
         $this->internalName = $internalName;
     }
 
-    /**
-     * @return Content
-     */
-    public function getContent(): ?Content
+    public function getProperty(): ?Property
     {
-        return $this->content;
+        return $this->property;
     }
 
-    /**
-     * @param Content $content
-     */
-    public function setContent(Content $content)
+    public function setProperty(Property $property): self
     {
-        $this->content = $content;
+        $this->property = $property;
+
+        // set the owning side of the relation if necessary
+        if ($this !== $property->getCustomObject()) {
+            $property->setCustomObject($this);
+        }
+
+        return $this;
     }
 }

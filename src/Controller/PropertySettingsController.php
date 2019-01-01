@@ -4,9 +4,11 @@ namespace App\Controller;
 
 use App\Entity\CustomObject;
 use App\Entity\Portal;
+use App\Entity\Property;
 use App\Entity\PropertyGroup;
 use App\Form\CustomObjectType;
 use App\Form\PropertyGroupType;
+use App\Form\PropertyType;
 use App\Model\FieldCatalog;
 use App\Repository\CustomObjectRepository;
 use Doctrine\ORM\EntityManager;
@@ -134,23 +136,51 @@ class PropertySettingsController extends AbstractController
     }
 
     /**
-     * @Route("property-settings/get-create-property-form", name="create_property_form", methods={"GET"}, options = { "expose" = true })
+     * @Route("property-settings/create-property", name="create_property", methods={"GET", "POST"}, options = { "expose" = true })
      * @param Portal $portal
+     * @param Request $request
      * @return JsonResponse
      */
-    public function createPropertyAction(Portal $portal) {
+    public function createPropertyAction(Portal $portal, Request $request) {
+
+        $property = new Property();
+
+        $form = $this->createForm(PropertyType::class, $property);
+
+        $form->handleRequest($request);
 
         $formMarkup = $this->renderView(
-            'Api/form/create_property_form.html.twig',
+            'Api/form/property_form.html.twig',
             [
-                'fields' => FieldCatalog::getFieldTypes(),
+                'form' => $form->createView(),
             ]
         );
+
+        if ($form->isSubmitted() && !$form->isValid()) {
+
+            if(!$form->isValid()) {
+                return new JsonResponse(
+                    [
+                        'success' => false,
+                        'formMarkup' => $formMarkup,
+                    ], Response::HTTP_BAD_REQUEST
+                );
+            }
+        }
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            /** @var $property Property */
+            $property = $form->getData();
+
+            $this->entityManager->persist($property);
+            $this->entityManager->flush();
+        }
 
         return new JsonResponse(
             [
                 'success' => true,
-                'formMarkup' => $formMarkup
+                'formMarkup' => $formMarkup,
+                Response::HTTP_OK
             ]
         );
     }

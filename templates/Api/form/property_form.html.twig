@@ -1,0 +1,33 @@
+{% form_theme form 'bootstrap_4_layout.html.twig' %}
+
+{{ form_start(form, {'attr': {class: 'js-new-property-form', novalidate: 'novalidate'}}) }}
+{{ form_row(form.label) }}
+{{ form_row(form.internalName) }}
+{{ form_row(form.description) }}
+{{ form_row(form.fieldType, {'attr': {class: 'js-field-type', novalidate: 'novalidate'}}) }}
+
+{% if form.field.isMultiSelect is defined %}
+{{ form_row(form.field.isMultiSelect) }}
+{% endif %}
+
+{% set sharedButtonMarkup %}
+    <button type="button" class="btn btn-link js-addItem">Add an option</button>
+{% endset %}
+
+{% if form.field.options is defined %}
+
+    {{ form_errors((form.field.options)) }}
+
+    {{ sharedButtonMarkup }}
+    <ul class="list-group list-group-flush js-parent-container" data-template="{{ form_widget(form.field.options.vars.prototype)|replace({'__prototype_one__': '${index}'})|e }}">
+        {% for optionItem in form.field.options %}
+            <li class="list-group-item js-child-item">
+                {{ form_row(optionItem) }}
+            </li>
+        {% endfor %}
+    </ul>
+{% endif %}
+
+<br>
+{{ form_rest(form) }}
+{{ form_end(form) }}

@@ -17,7 +17,18 @@ class FieldCatalog
      * @var string
      */
     const SINGLE_LINE_TEXT = 'single_line_text';
+    const DROPDOWN_SELECT = 'dropdown_select';
     /**#@-*/
+
+    /***
+     * List of field types mostly used for select form drop downs
+     *
+     * @var array
+     */
+    private static $fields = [
+        'Single Line Text' => self::SINGLE_LINE_TEXT,
+        'Dropdown Select' => self::DROPDOWN_SELECT,
+    ];
 
     /**
      * List of valid field types
@@ -60,5 +71,14 @@ class FieldCatalog
     public static function getFieldTypes()
     {
         return self::$validFieldTypes;
+    }
+
+    /**
+     * Return list of fields
+     *
+     * @return array
+     */
+    public static function getFields() {
+        return self::$fields;
     }
 }

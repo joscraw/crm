@@ -2,23 +2,21 @@
 
 namespace App\Model;
 
-use JsonSerializable;
-
 /**
- * Class SingleLineTextBoxProperty
+ * Class SingleLineTexField
  * @package App\Model
  */
-class SingleLineTextBoxField extends AbstractField implements JsonSerializable
+class SingleLineTexField extends AbstractField implements \JsonSerializable
 {
     /**
      * @var string
      */
-    protected static $name = 'single_line_text_box_field';
+    protected static $name = 'single_line_text_field';
 
     /**
      * @var string
      */
-    protected static $description = 'Single line text box field';
+    protected static $description = 'Single line text field';
 
     /**
      * (PHP 5 &gt;= 5.4.0)<br/>

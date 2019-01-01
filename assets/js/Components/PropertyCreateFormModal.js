@@ -25,7 +25,7 @@ class PropertyCreateFormModal {
     render() {
         swal({
             title: 'Create Property',
-            showCancelButton: true,
+            showConfirmButton: false,
             customClass: 'swal-wide',
             html: PropertyCreateFormModal.markup()
         });

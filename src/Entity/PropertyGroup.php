@@ -27,6 +27,11 @@ class PropertyGroup
      */
     private $name;
 
+    /**
+     * @ORM\OneToOne(targetEntity="App\Entity\Property", mappedBy="propertyGroup", cascade={"persist", "remove"})
+     */
+    private $property;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -40,6 +45,23 @@ class PropertyGroup
     public function setName(string $name): self
     {
         $this->name = $name;
+
+        return $this;
+    }
+
+    public function getProperty(): ?Property
+    {
+        return $this->property;
+    }
+
+    public function setProperty(Property $property): self
+    {
+        $this->property = $property;
+
+        // set the owning side of the relation if necessary
+        if ($this !== $property->getPropertyGroup()) {
+            $property->setPropertyGroup($this);
+        }
 
         return $this;
     }
