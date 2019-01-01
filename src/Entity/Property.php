@@ -51,7 +51,7 @@ class Property
     private $fieldType;
 
     /**
-     * @var DropdownSelectField
+     * @var AbstractField
      *
      * @Assert\Valid
      *

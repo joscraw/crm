@@ -41,9 +41,7 @@ class PropertyType extends AbstractType
             ))
             ->add('submit', SubmitType::class);
 
-        $builder->add('field', DropdownSelectFieldType::class);
-
-        /*$builder->get('fieldType')->addEventListener(FormEvents::POST_SUBMIT, [$this, 'fieldModifier']);*/
+        $builder->get('fieldType')->addEventListener(FormEvents::POST_SUBMIT, [$this, 'fieldModifier']);
     }
 
     /**
@@ -55,9 +53,8 @@ class PropertyType extends AbstractType
         // since we've added the listener to the child, we'll have
         // to grab the parent
         $form = $event->getForm()->getParent();
+        $data = $event->getData();
 
-        $name = "Josh";
-        $hi = "hi";
 
         // This is a really important thing to NOTE!
         // event listeners can only be attached to a builder (FormBuilderInterface)
@@ -69,6 +66,7 @@ class PropertyType extends AbstractType
             null,
             [
                 'auto_initialize' => false,
+                'label' => false
             ]
         );
 

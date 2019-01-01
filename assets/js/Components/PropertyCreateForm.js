@@ -91,13 +91,72 @@ class PropertyCreateForm {
         });
     }
 
-    handleFieldTypeChange() {
-        console.log("field changed");
+    handleFieldTypeChange(e) {
+
+        console.log("field type changed");
+
+        debugger;
+
+        if(e.cancelable) {
+            e.preventDefault();
+        }
+
+        const $form = $(PropertyCreateForm._selectors.newPropertyForm);
+        const formData = {};
+
+        formData[$(e.target).attr('name')] = $(e.target).val();
+
+
+        const formData4 = {};
+
+        debugger;
+
+        for (let fieldData of $form.serializeArray()) {
+            formData4[fieldData.name] = fieldData.value
+        }
+
+        debugger;
+
+        this._changeFieldType(formData4)
+            .then((data) => {
+                debugger;
+                console.log("hi");
+            }).catch((errorData) => {
+
+
+            $('.js-field-container').replaceWith(
+                // ... with the returned one from the AJAX response.
+                $(errorData.formMarkup).find('.js-field-container')
+            );
+
+            /*this.$wrapper.html(errorData.formMarkup);*/
+
+        });
+
+    }
+
+    _changeFieldType(data) {
+        debugger;
+        return new Promise((resolve, reject) => {
+            debugger;
+            const url = Routing.generate('create_property', {portal: 1});
+
+            $.ajax({
+                url,
+                method: 'POST',
+                data: data
+            }).then((data, textStatus, jqXHR) => {
+                debugger;
+                resolve(data);
+            }).catch((jqXHR) => {
+                debugger;
+                const errorData = JSON.parse(jqXHR.responseText);
+                reject(errorData);
+            });
+        });
     }
 
     handleAddItemButtonClick(e) {
-
-        debugger;
 
         if(e.cancelable) {
             e.preventDefault();
@@ -110,10 +169,6 @@ class PropertyCreateForm {
         let $container = $('<li>').addClass('list-group-item js-child-item');
         $container.append(tpl);
         $parentContainer.append($container);
-
-        debugger;
-
-        console.log("button clicked");
     }
 
     /**
