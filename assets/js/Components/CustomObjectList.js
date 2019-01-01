@@ -24,8 +24,6 @@ class CustomObjectList {
      */
     constructor($wrapper, globalEventDispatcher) {
 
-        debugger;
-
         this.init($wrapper, globalEventDispatcher);
     }
 
@@ -59,9 +57,6 @@ class CustomObjectList {
             ajax: Routing.generate('custom_objects_for_datatable')
         } );
         */
-
-
-        debugger;
 
         $('#table_id').DataTable({
             "processing": true,

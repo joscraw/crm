@@ -9,7 +9,6 @@ class OpenCreatePropertyGroupModalButton {
     }
 
     init($wrapper, globalEventDispatcher) {
-        debugger;
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
 

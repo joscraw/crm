@@ -13,7 +13,6 @@ class PropertySettingsTopBar {
      * @param globalEventDispatcher
      */
     constructor($wrapper, globalEventDispatcher) {
-        debugger;
         this.init($wrapper, globalEventDispatcher);
     }
 
@@ -29,7 +28,6 @@ class PropertySettingsTopBar {
     }
 
     render() {
-        debugger;
         this.$wrapper.html(PropertySettingsTopBar.markup());
         new OpenCreatePropertyGroupModalButton(this.$wrapper.find('.js-top-bar-button-container'), this.globalEventDispatcher);
         new OpenPropertyCreateModalButton(this.$wrapper.find('.js-top-bar-button-container'), this.globalEventDispatcher);

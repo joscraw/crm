@@ -27,7 +27,7 @@ class PropertySettings {
     }
 
     render() {
-        debugger;
+
         const $topBar = this.$wrapper.find('.js-top-bar');
 
   /*      const container = document.createElement("div");

@@ -4,6 +4,7 @@ import $ from 'jquery';
 import swal from 'sweetalert2';
 import Routing from '../Routing';
 import Settings from '../Settings';
+import FormCollectionPrototypeUpdater from '../FormCollectionPrototypeUpdater';
 
 class PropertyCreateForm {
 
@@ -38,6 +39,12 @@ class PropertyCreateForm {
             this.handleAddItemButtonClick.bind(this)
         );
 
+        this.$wrapper.on(
+            'click',
+            PropertyCreateForm._selectors.removeItem,
+            this.handleRemoveItemButtonClick.bind(this)
+        );
+
         this.loadCreatePropertyForm();
     }
 
@@ -48,7 +55,8 @@ class PropertyCreateForm {
         return {
             newPropertyForm: '.js-new-property-form',
             fieldType: '.js-field-type',
-            addItem: '.js-addItem'
+            addItem: '.js-addItem',
+            removeItem: '.js-removeItem'
         }
     }
 
@@ -169,6 +177,28 @@ class PropertyCreateForm {
         let $container = $('<li>').addClass('list-group-item js-child-item');
         $container.append(tpl);
         $parentContainer.append($container);
+    }
+
+    handleRemoveItemButtonClick(e) {
+
+        if(e.cancelable) {
+            e.preventDefault();
+        }
+
+        let $item = $(e.currentTarget).parents('.js-child-item');
+        let $container = $item.closest('.js-parent-container');
+        let fieldPrefix = FormCollectionPrototypeUpdater.getFieldPrefix($item);
+        let index = $item.index();
+        $item.remove();
+        $container.children().slice(index).each(this.updateListElementGenerator(index, fieldPrefix));
+    }
+
+    updateListElementGenerator(offset, fieldPrefix) {
+        debugger;
+        return function(index, el) {
+            debugger;
+            FormCollectionPrototypeUpdater.updateAttributes($(el), fieldPrefix, offset + index + 1)
+        }
     }
 
     /**

@@ -5,7 +5,6 @@ import PropertyCreateFormModal from './PropertyCreateFormModal';
 
 class OpenPropertyCreateModalButton {
     constructor($wrapper, globalEventDispatcher) {
-        debugger;
         this.init($wrapper, globalEventDispatcher);
     }
 

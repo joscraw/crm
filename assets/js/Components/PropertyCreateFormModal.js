@@ -10,7 +10,6 @@ class PropertyCreateFormModal {
      * @param globalEventDispatcher
      */
     constructor(globalEventDispatcher) {
-        debugger;
         this.init(globalEventDispatcher);
     }
 

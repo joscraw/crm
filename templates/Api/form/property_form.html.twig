@@ -1,4 +1,14 @@
-{% form_theme form 'bootstrap_4_layout.html.twig' %}
+{#{% form_theme form _self %}
+
+{% block _property_field_options_entry_row %}
+   <p class="custom-yo">Custom Yo</p>
+{% endblock %}#}
+{% form_theme form with ['bootstrap_4_layout.html.twig', 'form/fields.html.twig'] %}
+
+
+{#{{ dump(form) }}#}
+
+{#{% form_theme form 'bootstrap_4_layout.html.twig' %}#}
 
 {{ form_start(form, {'attr': {class: 'js-new-property-form', novalidate: 'novalidate'}}) }}
 {{ form_row(form.label) }}
@@ -6,17 +16,16 @@
 {{ form_row(form.description) }}
 {{ form_row(form.fieldType, {'attr': {class: 'js-field-type', novalidate: 'novalidate'}}) }}
 
-<div class="js-field-container">
+<div class="js-field-container clearfix">
     {% if form.field.isMultiSelect is defined %}
         {{ form_row(form.field.isMultiSelect) }}
     {% endif %}
 
     {% set sharedButtonMarkup %}
-        <button type="button" class="btn btn-link js-addItem">Add an option</button>
+        <button type="button" class="btn btn-link js-addItem float-left"><i class="fa fa-plus" aria-hidden="true"></i> Add an option</button>
     {% endset %}
 
     {% if form.field.options is defined %}
-        {{ sharedButtonMarkup }}
         <ul class="list-group list-group-flush js-parent-container" data-template="{{ form_widget(form.field.options.vars.prototype)|replace({'__prototype_one__': '${index}'})|e }}">
             {% for optionItem in form.field.options %}
                 <li class="list-group-item js-child-item">
@@ -24,7 +33,9 @@
                 </li>
             {% endfor %}
         </ul>
+        {{ sharedButtonMarkup }}
     {% endif %}
 </div>
+<br>
 {{ form_rest(form) }}
 {{ form_end(form) }}
