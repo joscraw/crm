@@ -54,7 +54,7 @@ class DropdownSelectField extends AbstractField implements \JsonSerializable
             parent::jsonSerialize(),
             [
                 'name' => $this->getName(),
-                'options' => $this->getOptions()->toArray(),
+                'options' => $this->getOptions(),
                 'isMultiSelect' => $this->isMultiSelect(),
             ]
         );

@@ -4,13 +4,12 @@ import Settings from '../Settings';
 import PropertyGroupFormModal from './PropertyGroupFormModal';
 
 class OpenCreatePropertyGroupModalButton {
-    constructor($wrapper, globalEventDispatcher) {
-        this.init($wrapper, globalEventDispatcher);
-    }
 
-    init($wrapper, globalEventDispatcher) {
+    constructor($wrapper, globalEventDispatcher, children) {
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
+        children.openCreatePropertyGroupModalButton = this;
+        this.children = children;
 
         this.$wrapper.on(
             'click',
@@ -25,7 +24,7 @@ class OpenCreatePropertyGroupModalButton {
         console.log("Create Custom Object Button Clicked");
         this.globalEventDispatcher.publish(Settings.Events.CREATE_PROPERTY_GROUP_BUTTON_CLICKED);
         console.log(`Event Dispatched: ${Settings.Events.CREATE_PROPERTY_GROUP_BUTTON_CLICKED}`);
-        new PropertyGroupFormModal(this.globalEventDispatcher);
+        new PropertyGroupFormModal(this.globalEventDispatcher, this.children);
     }
 
     render() {

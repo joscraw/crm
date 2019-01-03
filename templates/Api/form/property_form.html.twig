@@ -14,6 +14,7 @@
 {{ form_row(form.label) }}
 {{ form_row(form.internalName) }}
 {{ form_row(form.description) }}
+{{ form_row(form.propertyGroup, {'attr': {novalidate: 'novalidate'}}) }}
 {{ form_row(form.fieldType, {'attr': {class: 'js-field-type', novalidate: 'novalidate'}}) }}
 
 <div class="js-field-container clearfix">
@@ -29,7 +30,7 @@
         <ul class="list-group list-group-flush js-parent-container" data-template="{{ form_widget(form.field.options.vars.prototype)|replace({'__prototype_one__': '${index}'})|e }}">
             {% for optionItem in form.field.options %}
                 <li class="list-group-item js-child-item">
-                    {{ form_row(optionItem) }}
+                    {{ form_widget(optionItem) }}
                 </li>
             {% endfor %}
         </ul>

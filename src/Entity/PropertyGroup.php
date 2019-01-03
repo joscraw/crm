@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -28,9 +30,14 @@ class PropertyGroup
     private $name;
 
     /**
-     * @ORM\OneToOne(targetEntity="App\Entity\Property", mappedBy="propertyGroup", cascade={"persist", "remove"})
+     * @ORM\OneToMany(targetEntity="App\Entity\Property", mappedBy="propertyGroup", cascade={"persist", "remove"})
      */
-    private $property;
+    private $properties;
+
+    public function __construct()
+    {
+        $this->properties = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -49,18 +56,32 @@ class PropertyGroup
         return $this;
     }
 
-    public function getProperty(): ?Property
+    /**
+     * @return Collection|Property[]
+     */
+    public function getProperties(): Collection
     {
-        return $this->property;
+        return $this->properties;
     }
 
-    public function setProperty(Property $property): self
+    public function addProperty(Property $property): self
     {
-        $this->property = $property;
-
-        // set the owning side of the relation if necessary
-        if ($this !== $property->getPropertyGroup()) {
+        if (!$this->properties->contains($property)) {
+            $this->properties[] = $property;
             $property->setPropertyGroup($this);
+        }
+
+        return $this;
+    }
+
+    public function removeProperty(Property $property): self
+    {
+        if ($this->properties->contains($property)) {
+            $this->properties->removeElement($property);
+            // set the owning side to null (unless already changed)
+            if ($property->getPropertyGroup() === $this) {
+                $property->setPropertyGroup(null);
+            }
         }
 
         return $this;

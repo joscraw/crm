@@ -11,6 +11,7 @@ use App\Form\PropertyGroupType;
 use App\Form\PropertyType;
 use App\Model\FieldCatalog;
 use App\Repository\CustomObjectRepository;
+use App\Service\MessageGenerator;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -46,10 +47,14 @@ class PropertySettingsController extends AbstractController
      */
     private $customObjectRepository;
 
-    public function __construct(EntityManagerInterface $entityManager, CustomObjectRepository $customObjectRepository)
+    private $messageGenerator;
+
+    public function __construct(EntityManagerInterface $entityManager, CustomObjectRepository $customObjectRepository, MessageGenerator $messageGenerator)
     {
         $this->entityManager = $entityManager;
         $this->customObjectRepository = $customObjectRepository;
+        $this->messageGenerator = $messageGenerator;
+
     }
 
     /**
@@ -60,8 +65,11 @@ class PropertySettingsController extends AbstractController
      */
     public function indexAction(Portal $portal, CustomObject $customObject) {
 
+        $j =  $this->messageGenerator->getHappyMessage();
+
         return $this->render('propertySettings/index.html.twig', array(
             'portal' => $portal,
+            'customObject' => $customObject
         ));
     }
 
@@ -136,12 +144,13 @@ class PropertySettingsController extends AbstractController
     }
 
     /**
-     * @Route("property-settings/create-property", name="create_property", methods={"GET", "POST"}, options = { "expose" = true })
+     * @Route("/custom-object/{customObject}/property-settings/create-property", name="create_property", methods={"GET", "POST"}, options = { "expose" = true })
      * @param Portal $portal
+     * @param CustomObject $customObject
      * @param Request $request
      * @return JsonResponse
      */
-    public function createPropertyAction(Portal $portal, Request $request) {
+    public function createPropertyAction(Portal $portal, CustomObject $customObject, Request $request) {
 
         $property = new Property();
 
@@ -171,6 +180,7 @@ class PropertySettingsController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             /** @var $property Property */
             $property = $form->getData();
+            $property->setCustomObject($customObject);
 
             $this->entityManager->persist($property);
             $this->entityManager->flush();

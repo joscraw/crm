@@ -11,6 +11,8 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\PropertyRepository")
+ * @ORM\HasLifecycleCallbacks()
+ * @ORM\EntityListeners({"App\EntityListener\PropertyListener"})
  */
 class Property
 {
@@ -60,16 +62,29 @@ class Property
     private $field;
 
     /**
-     * @ORM\OneToOne(targetEntity="App\Entity\PropertyGroup", inversedBy="property")
+     * @ORM\ManyToOne(targetEntity="App\Entity\PropertyGroup", inversedBy="properties")
      * @ORM\JoinColumn(nullable=false)
      */
     private $propertyGroup;
 
     /**
-     * @ORM\OneToOne(targetEntity="App\Entity\CustomObject", inversedBy="property")
+     * @ORM\ManyToOne(targetEntity="App\Entity\CustomObject", inversedBy="properties")
      * @ORM\JoinColumn(nullable=false)
      */
     private $customObject;
+
+
+    /**
+     * @ORM\PrePersist
+     */
+    public function setInternalNameValue()
+    {
+        if(!$this->internalName) {
+            $this->internalName = strtolower(
+                preg_replace('/\s+/', '_', $this->getLabel())
+            );
+        }
+    }
 
     public static function getValidFieldTypes()
     {
@@ -153,16 +168,22 @@ class Property
         return $this;
     }
 
-    public function getField(): ?AbstractField
+    /**
+     * @return AbstractField
+     */
+    public function getField()
     {
         return $this->field;
     }
 
-    public function setField(AbstractField $field): self
+    /**
+     * @param $field
+     * @return Property
+     */
+    public function setField($field): self
     {
         $this->field = $field;
 
         return $this;
     }
-
 }

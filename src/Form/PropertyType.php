@@ -3,7 +3,9 @@
 namespace App\Form;
 
 use App\Entity\Property;
+use App\Entity\PropertyGroup;
 use App\Model\FieldCatalog;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
@@ -39,7 +41,18 @@ class PropertyType extends AbstractType
             ->add('fieldType', ChoiceType::class, array(
                 'choices'  => FieldCatalog::getFields()
             ))
-            ->add('submit', SubmitType::class);
+            ->add('submit', SubmitType::class)
+            ->add('propertyGroup', EntityType::class, array(
+            // looks for choices from this entity
+            'class' => PropertyGroup::class,
+
+            // uses the User.username property as the visible option string
+            'choice_label' => 'name',
+
+            // used to render a select box, check boxes or radios
+            // 'multiple' => true,
+            // 'expanded' => true,
+        ));
 
         $builder->get('fieldType')->addEventListener(FormEvents::POST_SUBMIT, [$this, 'fieldModifier']);
     }
@@ -54,7 +67,19 @@ class PropertyType extends AbstractType
         // to grab the parent
         $form = $event->getForm()->getParent();
         $data = $event->getData();
+        $fieldClass = null;
 
+        switch($data) {
+            case 'single_line_text':
+                $fieldClass = SingleLineTextFieldType::class;
+                break;
+            case 'dropdown_select':
+                $fieldClass = DropdownSelectFieldType::class;
+        }
+
+        if(!$fieldClass) {
+            return;
+        }
 
         // This is a really important thing to NOTE!
         // event listeners can only be attached to a builder (FormBuilderInterface)
@@ -62,14 +87,13 @@ class PropertyType extends AbstractType
         // the builder is nothing more then a form field
         $builder = $form->getConfig()->getFormFactory()->createNamedBuilder(
             'field',
-            DropdownSelectFieldType::class,
+            $fieldClass,
             null,
             [
                 'auto_initialize' => false,
                 'label' => false
             ]
         );
-
 
         // last but not least, let's add the builder (form field) to the main form
         $form->add($builder->getForm());

@@ -10,43 +10,25 @@ class PropertySettings {
     /**
      * @param $wrapper
      * @param globalEventDispatcher
+     * @param children
      */
-    constructor($wrapper, globalEventDispatcher) {
-        this.init($wrapper, globalEventDispatcher);
-    }
-
-    /**
-     * @param $wrapper
-     * @param globalEventDispatcher
-     */
-    init($wrapper, globalEventDispatcher) {
+    constructor($wrapper, globalEventDispatcher, children = {}) {
+        debugger;
+        this.customObject = $wrapper.data('customObject');
+        this.portal = $wrapper.data('portal');
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
+        children.propertySettings = this;
+        this.children = children;
 
         this.render();
     }
 
     render() {
-
         const $topBar = this.$wrapper.find('.js-top-bar');
-
-  /*      const container = document.createElement("div");
-        document.body.appendChild(container);
-
-        const $div = $("<div>", {"class": "js-top-bar"});
-        $("#box").append($div);
-*/
-        new PropertySettingsTopBar($topBar, this.globalEventDispatcher);
+        new PropertySettingsTopBar($topBar, this.globalEventDispatcher, this.children);
     }
 
-/*    static markup() {
-        return `
-        <div class="l-grid">
-            <div class="l-grid__top-bar"></div>
-            <div class="l-grid__main-content"></div>
-        </div>
-    `;
-    }*/
 }
 
 export default PropertySettings;

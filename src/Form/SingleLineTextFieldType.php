@@ -4,6 +4,7 @@ namespace App\Form;
 
 use App\Entity\CustomObject;
 use App\Model\DropdownSelectField;
+use App\Model\SingleLineTexField;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\CollectionType;
@@ -13,10 +14,10 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 /**
- * Class DropdownSelectFieldType
+ * Class SingleLineTextFieldType
  * @package App\Form
  */
-class DropdownSelectFieldType extends AbstractType
+class SingleLineTextFieldType extends AbstractType
 {
     /**
      * @param FormBuilderInterface $builder
@@ -24,17 +25,7 @@ class DropdownSelectFieldType extends AbstractType
      */
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
-        $builder
-            ->add('isMultiSelect', CheckboxType::class, [
-                'required' => true,
-            ])
-            ->add('options', CollectionType::class, array(
-                'entry_type' => DropdownSelectFieldOptionType::class,
-                'allow_add' => true,
-                'prototype' => true,
-                'prototype_name' => '__prototype_one__',
-                'label' => false
-            ));
+        // noop
     }
 
     /**
@@ -43,7 +34,7 @@ class DropdownSelectFieldType extends AbstractType
     public function configureOptions(OptionsResolver $resolver)
     {
         $resolver->setDefaults(array(
-            'data_class' => DropdownSelectField::class,
+            'data_class' => SingleLineTexField::class,
         ));
     }
 }

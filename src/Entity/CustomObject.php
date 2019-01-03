@@ -46,9 +46,14 @@ class CustomObject
     private $internalName;
 
     /**
-     * @ORM\OneToOne(targetEntity="App\Entity\Property", mappedBy="customObject", cascade={"persist", "remove"})
+     * @ORM\OneToMany(targetEntity="App\Entity\Property", mappedBy="customObject", cascade={"persist", "remove"})
      */
-    private $property;
+    private $properties;
+
+    public function __construct()
+    {
+        $this->properties = new ArrayCollection();
+    }
 
     /**
      * @ORM\PrePersist
@@ -99,18 +104,32 @@ class CustomObject
         $this->internalName = $internalName;
     }
 
-    public function getProperty(): ?Property
+    /**
+     * @return Collection|Property[]
+     */
+    public function getProperties(): Collection
     {
-        return $this->property;
+        return $this->properties;
     }
 
-    public function setProperty(Property $property): self
+    public function addProperty(Property $property): self
     {
-        $this->property = $property;
-
-        // set the owning side of the relation if necessary
-        if ($this !== $property->getCustomObject()) {
+        if (!$this->properties->contains($property)) {
+            $this->properties[] = $property;
             $property->setCustomObject($this);
+        }
+
+        return $this;
+    }
+
+    public function removeProperty(Property $property): self
+    {
+        if ($this->properties->contains($property)) {
+            $this->properties->removeElement($property);
+            // set the owning side to null (unless already changed)
+            if ($property->getCustomObject() === $this) {
+                $property->setCustomObject(null);
+            }
         }
 
         return $this;

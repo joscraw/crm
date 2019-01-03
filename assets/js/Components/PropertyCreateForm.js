@@ -11,10 +11,14 @@ class PropertyCreateForm {
     /**
      * @param $wrapper
      * @param globalEventDispatcher
+     * @param children
      */
-    constructor($wrapper, globalEventDispatcher) {
+    constructor($wrapper, globalEventDispatcher, children = {}) {
 
+        debugger;
         this.$wrapper = $wrapper;
+        children.propertyCreateForm = this;
+        this.children = children;
 
         /**
          * @type {EventDispatcher}
@@ -62,7 +66,7 @@ class PropertyCreateForm {
 
     loadCreatePropertyForm() {
         $.ajax({
-            url: Routing.generate('create_property', {portal: 1}),
+            url: Routing.generate('create_property', {portal: this.children.propertySettings.portal, customObject: this.children.propertySettings.customObject}),
         }).then(data => {
             this.$wrapper.html(data.formMarkup);
         })
@@ -86,6 +90,8 @@ class PropertyCreateForm {
             formData[fieldData.name] = fieldData.value
         }
 
+
+
         this._saveProperty(formData)
             .then((data) => {
                 swal("Hooray!", "Well done, you created a new Property!", "success");
@@ -101,36 +107,22 @@ class PropertyCreateForm {
 
     handleFieldTypeChange(e) {
 
-        console.log("field type changed");
-
-        debugger;
-
         if(e.cancelable) {
             e.preventDefault();
         }
 
-        const $form = $(PropertyCreateForm._selectors.newPropertyForm);
         const formData = {};
 
         formData[$(e.target).attr('name')] = $(e.target).val();
+        formData['validate'] = false;
 
-
-        const formData4 = {};
-
-        debugger;
-
-        for (let fieldData of $form.serializeArray()) {
-            formData4[fieldData.name] = fieldData.value
-        }
-
-        debugger;
-
-        this._changeFieldType(formData4)
+        this._changeFieldType(formData)
             .then((data) => {
                 debugger;
                 console.log("hi");
             }).catch((errorData) => {
 
+            /*$(errorData.formMarkup).find('.invalid-feedback').remove();*/
 
             $('.js-field-container').replaceWith(
                 // ... with the returned one from the AJAX response.
@@ -147,7 +139,7 @@ class PropertyCreateForm {
         debugger;
         return new Promise((resolve, reject) => {
             debugger;
-            const url = Routing.generate('create_property', {portal: 1});
+            const url = Routing.generate('create_property', {portal: this.children.propertySettings.portal, customObject: this.children.propertySettings.customObject});
 
             $.ajax({
                 url,
@@ -208,7 +200,7 @@ class PropertyCreateForm {
      */
     _saveProperty(data) {
         return new Promise( (resolve, reject) => {
-            const url = Routing.generate('create_property', {portal: 1});
+            const url = Routing.generate('create_property', {portal: this.children.propertySettings.portal, customObject: this.children.propertySettings.customObject});
 
             $.ajax({
                 url,

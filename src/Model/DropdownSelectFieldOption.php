@@ -9,7 +9,7 @@ class DropdownSelectFieldOption implements \JsonSerializable
 {
 
     /**
-     * @Assert\NotBlank()
+     * @Assert\NotBlank(message="Don't forget to set a value for each one of your options!")
      *
      * @var string
      */

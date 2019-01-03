@@ -3,6 +3,7 @@
 {% block title %}Property Settings!{% endblock %}
 
 {% block containerComponent %}js-property-settings{% endblock %}
+{% block containerComponentAttributes %}data-custom-object="{{ customObject.id }}" data-portal="{{ portal.id }}"{% endblock %}
 
 {% block stylesheets %}
     {{ parent() }}

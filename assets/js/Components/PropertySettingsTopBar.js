@@ -11,16 +11,12 @@ class PropertySettingsTopBar {
     /**
      * @param $wrapper
      * @param globalEventDispatcher
+     * @param children
      */
-    constructor($wrapper, globalEventDispatcher) {
-        this.init($wrapper, globalEventDispatcher);
-    }
-
-    /**
-     * @param $wrapper
-     * @param globalEventDispatcher
-     */
-    init($wrapper, globalEventDispatcher) {
+    constructor($wrapper, globalEventDispatcher, children = {}) {
+        debugger;
+        children.propertySettingsTopBar = this;
+        this.children = children;
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
 
@@ -29,18 +25,18 @@ class PropertySettingsTopBar {
 
     render() {
         this.$wrapper.html(PropertySettingsTopBar.markup());
-        new OpenCreatePropertyGroupModalButton(this.$wrapper.find('.js-top-bar-button-container'), this.globalEventDispatcher);
-        new OpenPropertyCreateModalButton(this.$wrapper.find('.js-top-bar-button-container'), this.globalEventDispatcher);
+        new OpenCreatePropertyGroupModalButton(this.$wrapper.find('.js-top-bar-button-container'), this.globalEventDispatcher, this.children);
+        new OpenPropertyCreateModalButton(this.$wrapper.find('.js-top-bar-button-container'), this.globalEventDispatcher, this.children);
 
     }
 
-        static markup() {
-            return `
-            <div class="row">
-                <div class="col-md-6 offset-md-6 text-right js-top-bar-button-container"></div>
-            </div>
-        `;
-        }
+    static markup() {
+        return `
+        <div class="row">
+            <div class="col-md-6 offset-md-6 text-right js-top-bar-button-container"></div>
+        </div>
+    `;
+    }
 }
 
 export default PropertySettingsTopBar;
