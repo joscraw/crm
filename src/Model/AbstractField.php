@@ -3,10 +3,13 @@
 namespace App\Model;
 
 use JsonSerializable;
+use Symfony\Component\Serializer\Annotation\DiscriminatorMap;
 
 /**
- * Class AbstractField
- * @package App\Model
+ * @DiscriminatorMap(typeProperty="name", mapping={
+ *    "single_line_text_field"="App\Model\SingleLineTexField",
+ *    "dropdown_select_field"="App\Model\DropdownSelectField"
+ * })
  */
 abstract class AbstractField implements JsonSerializable
 {

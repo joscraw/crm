@@ -11,6 +11,7 @@ use App\Form\PropertyGroupType;
 use App\Form\PropertyType;
 use App\Model\FieldCatalog;
 use App\Repository\CustomObjectRepository;
+use App\Repository\PropertyRepository;
 use App\Service\MessageGenerator;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
@@ -49,12 +50,17 @@ class PropertySettingsController extends AbstractController
 
     private $messageGenerator;
 
-    public function __construct(EntityManagerInterface $entityManager, CustomObjectRepository $customObjectRepository, MessageGenerator $messageGenerator)
+    /**
+     * @var PropertyRepository
+     */
+    private $propertyRepository;
+
+    public function __construct(EntityManagerInterface $entityManager, CustomObjectRepository $customObjectRepository, MessageGenerator $messageGenerator, PropertyRepository $propertyRepository)
     {
         $this->entityManager = $entityManager;
         $this->customObjectRepository = $customObjectRepository;
         $this->messageGenerator = $messageGenerator;
-
+        $this->propertyRepository = $propertyRepository;
     }
 
     /**
@@ -66,6 +72,8 @@ class PropertySettingsController extends AbstractController
     public function indexAction(Portal $portal, CustomObject $customObject) {
 
         $j =  $this->messageGenerator->getHappyMessage();
+
+        $property = $this->propertyRepository->find(11);
 
         return $this->render('propertySettings/index.html.twig', array(
             'portal' => $portal,
