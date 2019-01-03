@@ -29,7 +29,7 @@ class DropdownSelectField extends AbstractField implements \JsonSerializable
      *
      * @Assert\Valid
      *
-     * @var ArrayCollection|DropdownSelectFieldOption[]
+     * @var DropdownSelectFieldOption[]
      */
     private $options;
 
@@ -61,7 +61,7 @@ class DropdownSelectField extends AbstractField implements \JsonSerializable
     }
 
     /**
-     * @return DropdownSelectFieldOption[]|ArrayCollection
+     * @return DropdownSelectFieldOption[]
      */
     public function getOptions()
     {
@@ -69,7 +69,7 @@ class DropdownSelectField extends AbstractField implements \JsonSerializable
     }
 
     /**
-     * @param DropdownSelectFieldOption[]|ArrayCollection $options
+     * @param DropdownSelectFieldOption[] $options
      */
     public function setOptions($options): void
     {
