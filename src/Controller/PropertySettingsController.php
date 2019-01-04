@@ -70,7 +70,7 @@ class PropertySettingsController extends AbstractController
      * @return \Symfony\Component\HttpFoundation\Response
      */
     public function indexAction(Portal $portal, CustomObject $customObject) {
-        
+
         return $this->render('propertySettings/index.html.twig', array(
             'portal' => $portal,
             'customObject' => $customObject
