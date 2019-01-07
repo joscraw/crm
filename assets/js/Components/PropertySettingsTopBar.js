@@ -4,6 +4,7 @@ import $ from 'jquery';
 import Settings from '../Settings';
 import OpenCreatePropertyGroupModalButton from './OpenCreatePropertyGroupModalButton';
 import OpenPropertyCreateModalButton from './OpenPropertyCreateModalButton';
+import CustomObjectNavigation from './CustomObjectNavigation';
 
 
 class PropertySettingsTopBar {
@@ -48,21 +49,24 @@ class PropertySettingsTopBar {
         this.$wrapper.html(PropertySettingsTopBar.markup());
         new OpenCreatePropertyGroupModalButton(this.$wrapper.find('.js-top-bar-button-container'), this.globalEventDispatcher, this.children);
         new OpenPropertyCreateModalButton(this.$wrapper.find('.js-top-bar-button-container'), this.globalEventDispatcher, this.children);
-
+        new CustomObjectNavigation(this.$wrapper.find('.js-custom-object-navigation'), this.globalEventDispatcher, this.children);
     }
 
     static markup() {
         return `
         <div class="row">
             <div class="col-md-6 js-top-bar-search-container">
-
                 <div class="input-group c-search-control">
                   <input class="form-control c-search-control__input js-propery-search-input" type="search" placeholder="Search for a property">
                   <span class="c-search-control__foreground"><i class="fa fa-search"></i></span>
                 </div>
-            
             </div>
-            <div class="col-md-6 text-right js-top-bar-button-container"></div>
+        <div class="col-md-6 text-right js-top-bar-button-container"></div>
+        </div>
+        <br>
+        <br>
+        <div class="row">
+            <div class="col-md-12 js-custom-object-navigation"></div>
         </div>
     `;
     }

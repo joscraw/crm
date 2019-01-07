@@ -82,7 +82,7 @@ class CustomObjectForm {
      */
     _saveCustomObject(data) {
         return new Promise( (resolve, reject) => {
-            const url = Routing.generate('custom_object_new', {portal: 1});
+            const url = Routing.generate('create_custom_object', {portal: 1});
 
             $.ajax({
                 url,

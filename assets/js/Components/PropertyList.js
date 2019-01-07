@@ -1,9 +1,5 @@
 'use strict';
 
-/*window.$ = require('jquery');
-var dt = require('datatables.net-bs4');
-window.$.DataTable = dt;*/
-
 import Routing from '../Routing';
 import Settings from '../Settings';
 import $ from "jquery";
@@ -13,9 +9,6 @@ require( 'datatables.net-responsive-bs4' );
 require( 'datatables.net-responsive-bs4/css/responsive.bootstrap4.css' );
 require( 'datatables.net-bs4/css/dataTables.bootstrap4.css' );
 
-/*var $ = require('jquery');
-var dt = require('datatables.net-bs');
-$.DataTable = dt;*/
 
 class PropertyList {
 
@@ -84,18 +77,22 @@ class PropertyList {
         let propertyGroupId = $(e.target).closest(PropertyList._selectors.collapse).data('property-group-id');
 
         $collapseBody.on('hidden.bs.collapse', (e) => {
-            debugger;
             this.collapseStatus[propertyGroupId] = 'hide';
         });
 
         $collapseBody.on('shown.bs.collapse', (e) => {
-            debugger;
             this.collapseStatus[propertyGroupId] = 'show';
         });
 
-        $collapseBody.collapse('toggle');
+        $collapseBody.on('show.bs.collapse', (e) => {
+            $collapseTitle.find('i').addClass('is-active');
+        });
 
-        $collapseTitle.find('i').toggleClass('is-active');
+        $collapseBody.on('hide.bs.collapse', (e) => {
+            $collapseTitle.find('i').removeClass('is-active');
+        });
+
+        $collapseBody.collapse('toggle');
 
         debugger;
     }

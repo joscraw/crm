@@ -1,9 +1,5 @@
 'use strict';
 
-/*window.$ = require('jquery');
-var dt = require('datatables.net-bs4');
-window.$.DataTable = dt;*/
-
 import Routing from '../Routing';
 import Settings from '../Settings';
 
@@ -12,9 +8,6 @@ require( 'datatables.net-responsive-bs4' );
 require( 'datatables.net-responsive-bs4/css/responsive.bootstrap4.css' );
 require( 'datatables.net-bs4/css/dataTables.bootstrap4.css' );
 
-/*var $ = require('jquery');
-var dt = require('datatables.net-bs');
-$.DataTable = dt;*/
 
 class CustomObjectList {
 

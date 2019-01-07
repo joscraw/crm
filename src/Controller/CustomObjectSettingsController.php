@@ -94,6 +94,38 @@ class CustomObjectSettingsController extends AbstractController
         return $response;
     }
 
+    /**
+     *
+     * @Route("/custom-object-settings/get-custom-objects", name="get_custom_objects", methods={"GET"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param Request $request
+     * @return Response
+     */
+    public function getCustomObjectsAction(Portal $portal, Request $request) {
+
+        $customObjects = $this->customObjectRepository->findBy([
+           'portal' => $portal->getId()
+        ]);
+
+        $payload = [];
+        $payload['custom_objects'] = [];
+
+        foreach($customObjects as $customObject) {
+            $customObjectId = $customObject->getId();
+            $payload['custom_objects'][$customObjectId] = [
+                'id' => $customObjectId,
+                'label' => $customObject->getLabel()
+            ];
+        }
+
+        $response = new JsonResponse([
+            'success' => true,
+            'data'  => $payload,
+        ],  Response::HTTP_OK);
+
+        return $response;
+    }
+
 
     /**
      * @Route("/custom-object-settings/get-custom-object-form", name="custom_object_form", methods={"GET"}, options = { "expose" = true })
@@ -121,13 +153,12 @@ class CustomObjectSettingsController extends AbstractController
     }
 
     /**
-     * @Route("/custom-object-settings/custom-objects", name="custom_object_new", methods={"POST"}, options={"expose" = true})
+     * @Route("/custom-object-settings/create-custom-object", name="create_custom_object", methods={"POST"}, options={"expose" = true})
+     * @param Portal $portal
      * @param Request $request
      * @return JsonResponse
-     * @throws \Doctrine\ORM\ORMException
-     * @throws \Doctrine\ORM\OptimisticLockException
      */
-    public function newCustomObjectAction(Request $request)
+    public function createCustomObjectAction(Portal $portal, Request $request)
     {
         $customObject = new CustomObject();
 
@@ -153,6 +184,7 @@ class CustomObjectSettingsController extends AbstractController
 
         /** @var $customObject CustomObject */
         $customObject = $form->getData();
+        $customObject->setPortal($portal);
 
         $this->entityManager->persist($customObject);
         $this->entityManager->flush();
@@ -164,4 +196,6 @@ class CustomObjectSettingsController extends AbstractController
             Response::HTTP_OK
         );
     }
+
+
 }

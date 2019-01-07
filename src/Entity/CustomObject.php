@@ -55,6 +55,12 @@ class CustomObject
      */
     private $propertyGroups;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Portal", inversedBy="customObjects")
+     * @ORM\JoinColumn(nullable=false)
+     */
+    private $portal;
+
     public function __construct()
     {
         $this->properties = new ArrayCollection();
@@ -168,6 +174,18 @@ class CustomObject
                 $propertyGroup->setCustomObject(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getPortal(): ?Portal
+    {
+        return $this->portal;
+    }
+
+    public function setPortal(Portal $portal): self
+    {
+        $this->portal = $portal;
 
         return $this;
     }
