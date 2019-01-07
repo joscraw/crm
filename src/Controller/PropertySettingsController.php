@@ -11,6 +11,7 @@ use App\Form\PropertyGroupType;
 use App\Form\PropertyType;
 use App\Model\FieldCatalog;
 use App\Repository\CustomObjectRepository;
+use App\Repository\PropertyGroupRepository;
 use App\Repository\PropertyRepository;
 use App\Service\MessageGenerator;
 use Doctrine\ORM\EntityManager;
@@ -48,20 +49,35 @@ class PropertySettingsController extends AbstractController
      */
     private $customObjectRepository;
 
-    private $messageGenerator;
-
     /**
      * @var PropertyRepository
      */
     private $propertyRepository;
 
-    public function __construct(EntityManagerInterface $entityManager, CustomObjectRepository $customObjectRepository, MessageGenerator $messageGenerator, PropertyRepository $propertyRepository)
-    {
+    /**
+     * @var PropertyGroupRepository
+     */
+    private $propertyGroupRepository;
+
+    /**
+     * PropertySettingsController constructor.
+     * @param EntityManagerInterface $entityManager
+     * @param CustomObjectRepository $customObjectRepository
+     * @param PropertyRepository $propertyRepository
+     * @param PropertyGroupRepository $propertyGroupRepository
+     */
+    public function __construct(
+        EntityManagerInterface $entityManager,
+        CustomObjectRepository $customObjectRepository,
+        PropertyRepository $propertyRepository,
+        PropertyGroupRepository $propertyGroupRepository
+    ) {
         $this->entityManager = $entityManager;
         $this->customObjectRepository = $customObjectRepository;
-        $this->messageGenerator = $messageGenerator;
         $this->propertyRepository = $propertyRepository;
+        $this->propertyGroupRepository = $propertyGroupRepository;
     }
+
 
     /**
      * @Route("/property-settings/{internalName}", name="property_settings", methods={"GET"}, defaults={"internalName"="contact"})
@@ -99,18 +115,19 @@ class PropertySettingsController extends AbstractController
             [
                 'success' => true,
                 'formMarkup' => $formMarkup
-            ]
+            ],
+            Response::HTTP_OK
         );
     }
 
     /**
-     * @Route("/property-settings/property-groups", name="property_group_new", methods={"POST"}, options={"expose" = true})
+     * @Route("/custom-object/{customObject}/property-settings/create-property-group", name="property_group_new", methods={"POST"}, options={"expose" = true})
+     * @param Portal $portal
+     * @param CustomObject $customObject
      * @param Request $request
      * @return JsonResponse
-     * @throws \Doctrine\ORM\ORMException
-     * @throws \Doctrine\ORM\OptimisticLockException
      */
-    public function newPropertyGroupAction(Request $request)
+    public function createPropertyGroupAction(Portal $portal, CustomObject $customObject, Request $request)
     {
         $propertyGroup = new PropertyGroup();
 
@@ -136,6 +153,7 @@ class PropertySettingsController extends AbstractController
 
         /** @var $propertyGroup PropertyGroup */
         $propertyGroup = $form->getData();
+        $propertyGroup->setCustomObject($customObject);
 
         $this->entityManager->persist($propertyGroup);
         $this->entityManager->flush();
@@ -143,7 +161,8 @@ class PropertySettingsController extends AbstractController
         return new JsonResponse(
             [
                 'success' => true,
-            ]
+            ],
+            Response::HTTP_OK
         );
     }
 
@@ -194,8 +213,47 @@ class PropertySettingsController extends AbstractController
             [
                 'success' => true,
                 'formMarkup' => $formMarkup,
-                Response::HTTP_OK
-            ]
+            ],
+            Response::HTTP_OK
         );
     }
+
+    /**
+     * @Route("/custom-object/{customObject}/property-settings/get-properties-for-datatable", name="properties_for_datatable", methods={"GET"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param CustomObject $customObject
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getPropertiesForDatatableAction(Portal $portal, CustomObject $customObject, Request $request) {
+
+        $propertyGroups = $this->propertyGroupRepository->getDataTableData($customObject);
+        $payload = [];
+        $payload['property_groups'] = [];
+        $payload['properties']= [];
+
+        foreach($propertyGroups as $propertyGroup) {
+            $propertyGroupId = $propertyGroup->getId();
+            $payload['property_groups'][$propertyGroupId] = [
+                'id' => $propertyGroupId,
+                'label' => $propertyGroup->getName()
+            ];
+
+            $properties = $propertyGroup->getProperties();
+
+            foreach($properties as $property) {
+                $payload['properties'][$propertyGroupId][] = [
+                    'label' => $property->getLabel(),
+                    ];
+            }
+        }
+
+        $response = new JsonResponse([
+            'success' => true,
+            'data'  => $payload
+        ], Response::HTTP_OK);
+
+       return $response;
+    }
+
 }

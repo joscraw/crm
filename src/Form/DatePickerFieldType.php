@@ -3,7 +3,9 @@
 namespace App\Form;
 
 use App\Entity\CustomObject;
+use App\Model\DatePickerField;
 use App\Model\DropdownSelectField;
+use App\Model\SingleLineTextField;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\CollectionType;
@@ -11,10 +13,12 @@ use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use App\Model\DropdownSelectFieldOption;
 
-
-class DropdownSelectFieldOptionType extends AbstractType
+/**
+ * Class DatePickerFieldType
+ * @package App\Form
+ */
+class DatePickerFieldType extends AbstractType
 {
     /**
      * @param FormBuilderInterface $builder
@@ -22,10 +26,7 @@ class DropdownSelectFieldOptionType extends AbstractType
      */
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
-        $builder
-            ->add('label', TextType::class, [
-                'required' => true,
-            ]);
+        // noop
     }
 
     /**
@@ -34,8 +35,7 @@ class DropdownSelectFieldOptionType extends AbstractType
     public function configureOptions(OptionsResolver $resolver)
     {
         $resolver->setDefaults(array(
-            'data_class' => DropdownSelectFieldOption::class,
+            'data_class' => DatePickerField::class,
         ));
     }
-
 }

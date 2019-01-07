@@ -16,8 +16,14 @@ class FieldCatalog
     /**#@+
      * @var string
      */
-    const SINGLE_LINE_TEXT = 'single_line_text';
-    const DROPDOWN_SELECT = 'dropdown_select';
+    const SINGLE_LINE_TEXT = 'single_line_text_field';
+    const MULTI_LINE_TEXT = 'multi_line_text_field';
+    const DROPDOWN_SELECT = 'dropdown_select_field';
+    const SINGLE_CHECKBOX = 'single_checkbox_field';
+    const MULTIPLE_CHECKBOX = 'multiple_checkbox_field';
+    const RADIO_SELECT = 'radio_select_field';
+    const NUMBER = 'number_field';
+    const DATE_PICKER = 'date_picker_field';
     /**#@-*/
 
     /***
@@ -26,20 +32,14 @@ class FieldCatalog
      * @var array
      */
     private static $fields = [
-        'Single Line Text' => self::SINGLE_LINE_TEXT,
-        'Dropdown Select' => self::DROPDOWN_SELECT,
-    ];
-
-    /**
-     * List of valid field types
-     *
-     * @var array
-     */
-    private static $validFieldTypes = [
-        self::SINGLE_LINE_TEXT => [
-            'shortDescription' => 'Single Line Text',
-            'description'      => 'Single line text field.',
-        ]
+        'Single-line text' => self::SINGLE_LINE_TEXT,
+        'Multi-line text' => self::MULTI_LINE_TEXT,
+        'Dropdown select' => self::DROPDOWN_SELECT,
+        'Single checkbox' => self::SINGLE_CHECKBOX,
+        'Multiple Checkbox' => self::MULTIPLE_CHECKBOX,
+        'Radio select' => self::RADIO_SELECT,
+        'Number' => self::NUMBER,
+        'Date picker' => self::DATE_PICKER
     ];
 
     /**
@@ -58,19 +58,9 @@ class FieldCatalog
      * @param $fieldType
      * @return bool
      */
-    public static function isValidInteraction($fieldType)
+    public static function isValidField($fieldType)
     {
-        return array_key_exists($fieldType, self::$validFieldTypes);
-    }
-
-    /**
-     * Return list of valid field types
-     *
-     * @return array
-     */
-    public static function getFieldTypes()
-    {
-        return self::$validFieldTypes;
+        return array_key_exists($fieldType, self::$fields);
     }
 
     /**

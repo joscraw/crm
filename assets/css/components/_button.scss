@@ -26,6 +26,14 @@
   @include button-outline-variant($color-orange-61, #222222, lighten($color-orange-61,5%), $color-orange-61);
 }
 
+.btn {
+  &.is-active {
+    display:block;
+  }
 
+  &.is-disabled {
+    display: none;
+  }
+}
 
 

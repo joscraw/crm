@@ -1,0 +1,19 @@
+// -----------------------------------------------------------------------------
+// This file contains all styles related to the search component.
+// -----------------------------------------------------------------------------
+
+.c-search-control {
+
+}
+
+.c-search-control__input {
+  padding-right: 60px;
+  border-radius: 0.25rem !important;
+}
+
+.c-search-control__foreground {
+  position: absolute;
+  z-index: 100;
+  top: 5px;
+  right: 20px;
+}

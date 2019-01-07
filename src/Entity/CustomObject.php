@@ -50,9 +50,15 @@ class CustomObject
      */
     private $properties;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\PropertyGroup", mappedBy="customObject", cascade={"persist", "remove"})
+     */
+    private $propertyGroups;
+
     public function __construct()
     {
         $this->properties = new ArrayCollection();
+        $this->propertyGroups = new ArrayCollection();
     }
 
     /**
@@ -129,6 +135,37 @@ class CustomObject
             // set the owning side to null (unless already changed)
             if ($property->getCustomObject() === $this) {
                 $property->setCustomObject(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|PropertyGroup[]
+     */
+    public function getPropertyGroups(): Collection
+    {
+        return $this->propertyGroups;
+    }
+
+    public function addPropertyGroup(PropertyGroup $propertyGroup): self
+    {
+        if (!$this->propertyGroups->contains($propertyGroup)) {
+            $this->propertyGroups[] = $propertyGroup;
+            $propertyGroup->setCustomObject($this);
+        }
+
+        return $this;
+    }
+
+    public function removePropertyGroup(PropertyGroup $propertyGroup): self
+    {
+        if ($this->propertyGroups->contains($propertyGroup)) {
+            $this->propertyGroups->removeElement($propertyGroup);
+            // set the owning side to null (unless already changed)
+            if ($propertyGroup->getCustomObject() === $this) {
+                $propertyGroup->setCustomObject(null);
             }
         }
 

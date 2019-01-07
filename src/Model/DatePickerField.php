@@ -3,20 +3,20 @@
 namespace App\Model;
 
 /**
- * Class SingleLineTexField
+ * Class DatePickerField
  * @package App\Model
  */
-class SingleLineTexField extends AbstractField implements \JsonSerializable
+class DatePickerField extends AbstractField implements \JsonSerializable
 {
     /**
      * @var string
      */
-    protected static $name = 'single_line_text_field';
+    protected static $name = FieldCatalog::DATE_PICKER;
 
     /**
      * @var string
      */
-    protected static $description = 'Single line text field';
+    protected static $description = 'Date picker field';
 
     /**
      * (PHP 5 &gt;= 5.4.0)<br/>

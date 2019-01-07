@@ -70,11 +70,30 @@ class PropertyType extends AbstractType
         $fieldClass = null;
 
         switch($data) {
-            case 'single_line_text':
+            case FieldCatalog::SINGLE_LINE_TEXT:
                 $fieldClass = SingleLineTextFieldType::class;
                 break;
-            case 'dropdown_select':
+            case FieldCatalog::MULTI_LINE_TEXT:
+                $fieldClass = MultiLineTextFieldType::class;
+                break;
+            case FieldCatalog::DROPDOWN_SELECT:
                 $fieldClass = DropdownSelectFieldType::class;
+                break;
+            case FieldCatalog::SINGLE_CHECKBOX:
+                $fieldClass = SingleCheckboxFieldType::class;
+                break;
+            case FieldCatalog::MULTIPLE_CHECKBOX:
+                $fieldClass = MultipleCheckboxFieldType::class;
+                break;
+            case FieldCatalog::RADIO_SELECT:
+                $fieldClass = RadioSelectFieldType::class;
+                break;
+            case FieldCatalog::NUMBER:
+                $fieldClass = NumberFieldType::class;
+                break;
+            case FieldCatalog::DATE_PICKER:
+                $fieldClass = DatePickerFieldType::class;
+                break;
         }
 
         if(!$fieldClass) {

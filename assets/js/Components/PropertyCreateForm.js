@@ -90,12 +90,10 @@ class PropertyCreateForm {
             formData[fieldData.name] = fieldData.value
         }
 
-
-
         this._saveProperty(formData)
             .then((data) => {
                 swal("Hooray!", "Well done, you created a new Property!", "success");
-                this.globalEventDispatcher.publish(Settings.Events.PROPERTY_GROUP_CREATED);
+                this.globalEventDispatcher.publish(Settings.Events.PROPERTY_CREATED);
             }).catch((errorData) => {
 
             this.$wrapper.html(errorData.formMarkup);

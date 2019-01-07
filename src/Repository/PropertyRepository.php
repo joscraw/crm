@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\CustomObject;
 use App\Entity\Property;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
@@ -47,4 +48,20 @@ class PropertyRepository extends ServiceEntityRepository
         ;
     }
     */
+
+    /**
+     * @param CustomObject $customObject
+     * @return mixed
+     */
+    public function getDataTableData(CustomObject $customObject)
+    {
+
+        return $this->createQueryBuilder('property')
+            ->innerJoin('property.propertyGroup', 'propertyGroup')
+            ->andWhere('property.customObject = :customObject')
+            ->setParameter('customObject', $customObject->getId())
+            ->getQuery()
+            ->getResult();
+    }
+
 }

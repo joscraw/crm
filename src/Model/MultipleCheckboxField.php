@@ -5,20 +5,20 @@ namespace App\Model;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Validator\Constraints as Assert;
 
-class DropdownSelectField extends AbstractField implements \JsonSerializable
+class MultipleCheckboxField extends AbstractField implements \JsonSerializable
 {
     /**
      * @var string
      */
-    protected static $name = FieldCatalog::DROPDOWN_SELECT;
+    protected static $name = FieldCatalog::MULTIPLE_CHECKBOX;
 
     /**
      * @var string
      */
-    protected static $description = 'Dropdown Select Field';
+    protected static $description = 'Multiple Checkbox Field';
 
     /**
-     * Options for the dropdown select field
+     * Options for checkbox field.
      *
      * @Assert\Valid
      *
@@ -48,7 +48,7 @@ class DropdownSelectField extends AbstractField implements \JsonSerializable
             [
                 'name' => $this->getName(),
                 'description'   => $this->getDescription(),
-                'options' => $this->getOptions(),
+                'options' => $this->getOptions()
             ]
         );
     }

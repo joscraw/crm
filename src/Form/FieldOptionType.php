@@ -11,12 +11,10 @@ use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use App\Model\FieldOption;
 
-/**
- * Class DropdownSelectFieldType
- * @package App\Form
- */
-class DropdownSelectFieldType extends AbstractType
+
+class FieldOptionType extends AbstractType
 {
     /**
      * @param FormBuilderInterface $builder
@@ -25,13 +23,9 @@ class DropdownSelectFieldType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
-            ->add('options', CollectionType::class, array(
-                'entry_type' => FieldOptionType::class,
-                'allow_add' => true,
-                'prototype' => true,
-                'prototype_name' => '__prototype_one__',
-                'label' => false
-            ));
+            ->add('label', TextType::class, [
+                'required' => true,
+            ]);
     }
 
     /**
@@ -40,7 +34,8 @@ class DropdownSelectFieldType extends AbstractType
     public function configureOptions(OptionsResolver $resolver)
     {
         $resolver->setDefaults(array(
-            'data_class' => DropdownSelectField::class,
+            'data_class' => FieldOption::class,
         ));
     }
+
 }

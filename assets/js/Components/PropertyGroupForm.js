@@ -55,7 +55,7 @@ class PropertyGroupForm {
      */
     handleNewFormSubmit(e) {
 
-        console.log("form submitted");
+        debugger;
 
         if(e.cancelable) {
             e.preventDefault();
@@ -88,13 +88,15 @@ class PropertyGroupForm {
      */
     _savePropertyGroup(data) {
         return new Promise( (resolve, reject) => {
-            const url = Routing.generate('property_group_new', {portal: this.children.propertySettings.portal});
+            debugger;
+            const url = Routing.generate('property_group_new', {portal: this.children.propertySettings.portal, customObject: this.children.propertySettings.customObject});
 
             $.ajax({
                 url,
                 method: 'POST',
                 data: data
             }).then((data, textStatus, jqXHR) => {
+                debugger;
                 resolve(data);
             }).catch((jqXHR) => {
                 const errorData = JSON.parse(jqXHR.responseText);

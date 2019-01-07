@@ -8,57 +8,6 @@
         <title>{% block title %}Welcome!{% endblock %}</title>
         {% block stylesheets %}
             <link href="{{ asset('build/layout.css') }}" rel="stylesheet" />
-
-
-            <style>
-                /* adds some margin below the link sets  */
-                .navbar .dropdown-menu div[class*="col"] {
-                    margin-bottom:1rem;
-                }
-
-                .navbar .dropdown-menu {
-                    border:none;
-                    background-color:#0060c8!important;
-                }
-
-                /* breakpoint and up - mega dropdown styles */
-                @media screen and (min-width: 992px) {
-
-                    /* remove the padding from the navbar so the dropdown hover state is not broken */
-                    .navbar {
-                        padding-top:0px;
-                        padding-bottom:0px;
-                    }
-
-                    /* remove the padding from the nav-item and add some margin to give some breathing room on hovers */
-                    .navbar .nav-item {
-                        padding:.5rem .5rem;
-                        margin:0 .25rem;
-                    }
-
-                    /* makes the dropdown full width  */
-                    .navbar .dropdown {position:static;}
-
-                    .navbar .dropdown-menu {
-                        width:100%;
-                        left:0;
-                        right:0;
-                        /*  height of nav-item  */
-                        top:45px;
-                    }
-
-                    /* shows the dropdown menu on hover */
-                    .navbar .dropdown:hover .dropdown-menu, .navbar .dropdown .dropdown-menu:hover {
-                        display:block!important;
-                    }
-
-                    .navbar .dropdown-menu {
-                        border: 1px solid rgba(0,0,0,.15);
-                        background-color: #fff;
-                    }
-
-                }
-            </style>
         {% endblock %}
     </head>
     <body>
@@ -132,7 +81,6 @@
 
     <div class="container {% block containerComponent %}{% endblock %}" {% block containerComponentAttributes %}{% endblock %}>
         <div class="l-grid">
-
             <div class="l-grid__top-bar js-top-bar"></div>
             <div class="l-grid__main-content js-main-content"></div>
         </div>

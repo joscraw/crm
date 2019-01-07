@@ -34,6 +34,12 @@ class PropertyGroup
      */
     private $properties;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\CustomObject", inversedBy="propertyGroups")
+     * @ORM\JoinColumn(nullable=false)
+     */
+    private $customObject;
+
     public function __construct()
     {
         $this->properties = new ArrayCollection();
@@ -83,6 +89,18 @@ class PropertyGroup
                 $property->setPropertyGroup(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getCustomObject(): ?CustomObject
+    {
+        return $this->customObject;
+    }
+
+    public function setCustomObject(CustomObject $customObject): self
+    {
+        $this->customObject = $customObject;
 
         return $this;
     }

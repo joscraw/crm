@@ -2,8 +2,7 @@
 
 namespace App\Form;
 
-use App\Entity\CustomObject;
-use App\Model\DropdownSelectField;
+use App\Model\MultipleCheckboxField;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\CollectionType;
@@ -13,10 +12,10 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 /**
- * Class DropdownSelectFieldType
+ * Class MultipleCheckboxFieldType
  * @package App\Form
  */
-class DropdownSelectFieldType extends AbstractType
+class MultipleCheckboxFieldType extends AbstractType
 {
     /**
      * @param FormBuilderInterface $builder
@@ -40,7 +39,7 @@ class DropdownSelectFieldType extends AbstractType
     public function configureOptions(OptionsResolver $resolver)
     {
         $resolver->setDefaults(array(
-            'data_class' => DropdownSelectField::class,
+            'data_class' => MultipleCheckboxField::class,
         ));
     }
 }

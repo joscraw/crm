@@ -5,7 +5,7 @@ namespace App\Model;
 use Symfony\Component\Validator\Constraints as Assert;
 
 
-class DropdownSelectFieldOption implements \JsonSerializable
+class FieldOption implements \JsonSerializable
 {
 
     /**
@@ -39,7 +39,7 @@ class DropdownSelectFieldOption implements \JsonSerializable
 
     /**
      * @param string $label
-     * @return DropdownSelectFieldOption
+     * @return FieldOption
      */
     public function setLabel(string $label): self
     {

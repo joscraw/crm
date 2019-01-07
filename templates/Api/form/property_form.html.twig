@@ -18,9 +18,6 @@
 {{ form_row(form.fieldType, {'attr': {class: 'js-field-type', novalidate: 'novalidate'}}) }}
 
 <div class="js-field-container clearfix">
-    {% if form.field.isMultiSelect is defined %}
-        {{ form_row(form.field.isMultiSelect) }}
-    {% endif %}
 
     {% set sharedButtonMarkup %}
         <button type="button" class="btn btn-link js-addItem float-left"><i class="fa fa-plus" aria-hidden="true"></i> Add an option</button>

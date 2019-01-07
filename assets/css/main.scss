@@ -46,8 +46,10 @@ todo figure out which libraries to load for datatables
 // 5. Components
 @import
   'components/button',
+  'components/collapse',
   'components/forms',
-  'components/modals';
+  'components/modals',
+  'components/search';
 
 // 6. Page-specific styles
 @import

@@ -7,8 +7,14 @@ use Symfony\Component\Serializer\Annotation\DiscriminatorMap;
 
 /**
  * @DiscriminatorMap(typeProperty="name", mapping={
- *    "single_line_text_field"="App\Model\SingleLineTexField",
- *    "dropdown_select_field"="App\Model\DropdownSelectField"
+ *    "single_line_text_field"="App\Model\SingleLineTextField",
+ *    "multi_line_text_field"="App\Model\MultiLineTextField",
+ *    "dropdown_select_field"="App\Model\DropdownSelectField",
+ *    "single_checkbox_field"="App\Model\SingleCheckboxField",
+ *    "multiple_checkbox_field"="App\Model\MultipleCheckboxField",
+ *    "radio_select_field"="App\Model\RadioSelectField",
+ *    "number_field"="App\Model\NumberField",
+ *    "date_picker_field"="App\Model\DatePickerField"
  * })
  */
 abstract class AbstractField implements JsonSerializable

@@ -89,7 +89,7 @@ class CustomObjectSettingsController extends AbstractController
             'recordsTotal'  => $totalObjectsCount,
             'recordsFiltered'   => $filteredObjectsCount,
             'data'  => $arrayResults
-        ]);
+        ],  Response::HTTP_OK);
 
         return $response;
     }
@@ -115,7 +115,8 @@ class CustomObjectSettingsController extends AbstractController
             [
                 'success' => true,
                 'formMarkup' => $formMarkup
-            ]
+            ],
+            Response::HTTP_OK
         );
     }
 
@@ -159,7 +160,8 @@ class CustomObjectSettingsController extends AbstractController
         return new JsonResponse(
             [
                 'success' => true,
-            ]
+            ],
+            Response::HTTP_OK
         );
     }
 }
