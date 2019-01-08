@@ -23,8 +23,6 @@ class PropertySettings {
         children.propertySettings = this;
         this.children = children;
 
-        /*new PropertyGroupFormModal(window.globalEventDispatcher, this.portal, this.customObject);*/
-
         this.render();
     }
 

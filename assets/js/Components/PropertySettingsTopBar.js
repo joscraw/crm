@@ -50,8 +50,7 @@ class PropertySettingsTopBar {
         this.$wrapper.html(PropertySettingsTopBar.markup());
         new OpenCreatePropertyGroupModalButton(this.$wrapper.find('.js-top-bar-button-container'), this.globalEventDispatcher, this.portal, this.customObject);
         new OpenCreatePropertyModalButton(this.$wrapper.find('.js-top-bar-button-container'), this.globalEventDispatcher, this.portal, this.customObject);
-
-        /*new CustomObjectNavigation(this.$wrapper.find('.js-custom-object-navigation'), this.globalEventDispatcher, this.children);*/
+        new CustomObjectNavigation(this.$wrapper.find('.js-custom-object-navigation'), this.globalEventDispatcher, this.portal, this.customObject);
     }
 
     static markup() {

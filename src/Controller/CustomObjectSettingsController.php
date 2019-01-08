@@ -48,7 +48,7 @@ class CustomObjectSettingsController extends AbstractController
     }
 
     /**
-     * @Route("/custom-object-settings", name="custom_object_settings", methods={"GET"})
+     * @Route("/custom-object-settings", name="custom_object_settings", methods={"GET"}, options = { "expose" = true })
      * @param Portal $portal
      * @return \Symfony\Component\HttpFoundation\Response
      */
@@ -93,39 +93,6 @@ class CustomObjectSettingsController extends AbstractController
 
         return $response;
     }
-
-    /**
-     *
-     * @Route("/custom-object-settings/get-custom-objects", name="get_custom_objects", methods={"GET"}, options = { "expose" = true })
-     * @param Portal $portal
-     * @param Request $request
-     * @return Response
-     */
-    public function getCustomObjectsAction(Portal $portal, Request $request) {
-
-        $customObjects = $this->customObjectRepository->findBy([
-           'portal' => $portal->getId()
-        ]);
-
-        $payload = [];
-        $payload['custom_objects'] = [];
-
-        foreach($customObjects as $customObject) {
-            $customObjectId = $customObject->getId();
-            $payload['custom_objects'][$customObjectId] = [
-                'id' => $customObjectId,
-                'label' => $customObject->getLabel()
-            ];
-        }
-
-        $response = new JsonResponse([
-            'success' => true,
-            'data'  => $payload,
-        ],  Response::HTTP_OK);
-
-        return $response;
-    }
-
 
     /**
      * @Route("/custom-object-settings/get-custom-object-form", name="custom_object_form", methods={"GET"}, options = { "expose" = true })

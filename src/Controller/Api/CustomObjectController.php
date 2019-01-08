@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controller;
+namespace App\Controller\Api;
 
 use App\Entity\CustomObject;
 use App\Entity\Portal;
@@ -30,14 +30,14 @@ use Symfony\Component\Serializer\Encoder\XmlEncoder;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 
+
 /**
- * Class PropertySettingsController
- * @package App\Controller
+ * Class CustomObjectController
+ * @package App\Controller\Api
  *
- * @Route("/property-settings/{portal}")
- *
+ * @Route("api/portal/{portal}")
  */
-class PropertySettingsController extends AbstractController
+class CustomObjectController extends AbstractController
 {
     /**
      * @var EntityManagerInterface
@@ -78,18 +78,36 @@ class PropertySettingsController extends AbstractController
         $this->propertyGroupRepository = $propertyGroupRepository;
     }
 
-
     /**
-     * @Route("/{internalName}", name="property_settings", methods={"GET"}, defaults={"internalName"="contact"}, options = { "expose" = true })
+     *
+     * @Route("/custom-objects", name="get_custom_objects", methods={"GET"}, options = { "expose" = true })
      * @param Portal $portal
-     * @param CustomObject $customObject
-     * @return \Symfony\Component\HttpFoundation\Response
+     * @param Request $request
+     * @return Response
      */
-    public function indexAction(Portal $portal, CustomObject $customObject) {
+    public function getCustomObjectsAction(Portal $portal, Request $request) {
 
-        return $this->render('propertySettings/index.html.twig', array(
-            'portal' => $portal,
-            'customObject' => $customObject
-        ));
+        $customObjects = $this->customObjectRepository->findBy([
+            'portal' => $portal->getId()
+        ]);
+
+        $payload = [];
+        $payload['custom_objects'] = [];
+
+        foreach($customObjects as $customObject) {
+            $customObjectId = $customObject->getId();
+            $payload['custom_objects'][$customObjectId] = [
+                'id' => $customObjectId,
+                'label' => $customObject->getLabel(),
+                'internalName' => $customObject->getInternalName(),
+            ];
+        }
+
+        $response = new JsonResponse([
+            'success' => true,
+            'data'  => $payload,
+        ],  Response::HTTP_OK);
+
+        return $response;
     }
 }
