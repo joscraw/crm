@@ -15,11 +15,13 @@ class PropertyList {
     /**
      * @param $wrapper
      * @param globalEventDispatcher
-     * @param children
+     * @param portal
+     * @param customObject
      */
-    constructor($wrapper, globalEventDispatcher, children = {}) {
+    constructor($wrapper, globalEventDispatcher, portal, customObject) {
 
-        this.children = children;
+        this.portal = portal;
+        this.customObject = customObject;
         this.$wrapper = $wrapper;
         this.searchValue = '';
         this.collapseStatus = {};
@@ -158,7 +160,7 @@ class PropertyList {
 
     loadProperties() {
         return new Promise((resolve, reject) => {
-            const url = Routing.generate('properties_for_datatable', {portal: this.children.propertySettings.portal, customObject: this.children.propertySettings.customObject});
+            const url = Routing.generate('properties_for_datatable', {portal: this.portal, customObject: this.customObject});
 
             $.ajax({
                 url: url,

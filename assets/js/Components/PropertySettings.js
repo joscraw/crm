@@ -32,9 +32,9 @@ class PropertySettings {
         const $topBar = this.$wrapper.find('.js-top-bar');
         new PropertySettingsTopBar($topBar, this.globalEventDispatcher, this.portal, this.customObject);
 
-       /* const $div = $("<div>", {"class": "js-property-list"});
+        const $div = $("<div>", {"class": "js-property-list"});
         this.$wrapper.find('.js-main-content').append($div);
-        new PropertyList($div, this.globalEventDispatcher, this.children);*/
+        new PropertyList($div, this.globalEventDispatcher, this.portal, this.customObject);
     }
 
 }
