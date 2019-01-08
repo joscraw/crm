@@ -3,14 +3,20 @@
 import Settings from '../Settings';
 import PropertyCreateFormModal from './PropertyCreateFormModal';
 
-class OpenPropertyCreateModalButton {
+class OpenCreatePropertyModalButton {
 
-    constructor($wrapper, globalEventDispatcher, children) {
+    /**
+     * @param $wrapper
+     * @param globalEventDispatcher
+     * @param portal
+     * @param customObject
+     */
+    constructor($wrapper, globalEventDispatcher, portal, customObject) {
         debugger;
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
-        children.openPropertyCreateModalButton = this;
-        this.children = children;
+        this.portal = portal;
+        this.customObject = customObject;
 
         this.$wrapper.on(
             'click',
@@ -26,11 +32,11 @@ class OpenPropertyCreateModalButton {
         console.log("Create Custom Object Button Clicked");
         this.globalEventDispatcher.publish(Settings.Events.CREATE_PROPERTY_BUTTON_CLICKED);
         console.log(`Event Dispatched: ${Settings.Events.CREATE_PROPERTY_BUTTON_CLICKED}`);
-        new PropertyCreateFormModal(this.globalEventDispatcher, this.children);
+        new PropertyCreateFormModal(this.globalEventDispatcher, this.portal, this.customObject);
     }
 
     render() {
-        this.$wrapper.append(OpenPropertyCreateModalButton.markup(this));
+        this.$wrapper.append(OpenCreatePropertyModalButton.markup(this));
     }
 
     static markup() {
@@ -40,4 +46,4 @@ class OpenPropertyCreateModalButton {
     }
 }
 
-export default OpenPropertyCreateModalButton;
+export default OpenCreatePropertyModalButton;

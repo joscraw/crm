@@ -3,7 +3,7 @@
 import $ from 'jquery';
 import Settings from '../Settings';
 import OpenCreatePropertyGroupModalButton from './OpenCreatePropertyGroupModalButton';
-import OpenPropertyCreateModalButton from './OpenPropertyCreateModalButton';
+import OpenCreatePropertyModalButton from './OpenCreatePropertyModalButton';
 import CustomObjectNavigation from './CustomObjectNavigation';
 
 
@@ -12,12 +12,13 @@ class PropertySettingsTopBar {
     /**
      * @param $wrapper
      * @param globalEventDispatcher
-     * @param children
+     * @param portal
+     * @param customObject
      */
-    constructor($wrapper, globalEventDispatcher, children = {}) {
+    constructor($wrapper, globalEventDispatcher, portal, customObject) {
         debugger;
-        children.propertySettingsTopBar = this;
-        this.children = children;
+        this.portal = portal;
+        this.customObject = customObject;
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
 
@@ -47,9 +48,10 @@ class PropertySettingsTopBar {
 
     render() {
         this.$wrapper.html(PropertySettingsTopBar.markup());
-        new OpenCreatePropertyGroupModalButton(this.$wrapper.find('.js-top-bar-button-container'), this.globalEventDispatcher, this.children);
-        new OpenPropertyCreateModalButton(this.$wrapper.find('.js-top-bar-button-container'), this.globalEventDispatcher, this.children);
-        new CustomObjectNavigation(this.$wrapper.find('.js-custom-object-navigation'), this.globalEventDispatcher, this.children);
+        new OpenCreatePropertyGroupModalButton(this.$wrapper.find('.js-top-bar-button-container'), this.globalEventDispatcher, this.portal, this.customObject);
+        new OpenCreatePropertyModalButton(this.$wrapper.find('.js-top-bar-button-container'), this.globalEventDispatcher, this.portal, this.customObject);
+
+        /*new CustomObjectNavigation(this.$wrapper.find('.js-custom-object-navigation'), this.globalEventDispatcher, this.children);*/
     }
 
     static markup() {

@@ -93,8 +93,6 @@ class PropertyList {
         });
 
         $collapseBody.collapse('toggle');
-
-        debugger;
     }
 
     render(data) {

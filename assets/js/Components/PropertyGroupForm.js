@@ -10,14 +10,14 @@ class PropertyGroupForm {
     /**
      * @param $wrapper
      * @param globalEventDispatcher
-     * @param children
+     * @param portalId
+     * @param customObjectId
      */
-    constructor($wrapper, globalEventDispatcher, children = {}) {
+    constructor($wrapper, globalEventDispatcher, portalId, customObjectId) {
 
-        debugger;
-        children.propertyGroupForm = this;
-        this.children = children;
         this.$wrapper = $wrapper;
+        this.portalId = portalId;
+        this.customObjectId = customObjectId;
 
         /**
          * @type {EventDispatcher}
@@ -43,8 +43,11 @@ class PropertyGroupForm {
     }
 
     loadPropertyGroupForm() {
+        debugger;
+        const url = Routing.generate('property_group_form', {portal: this.portalId});
+        debugger;
         $.ajax({
-            url: Routing.generate('property_group_form', {portal: this.children.propertySettings.portal}),
+            url: url,
         }).then(data => {
             this.$wrapper.html(data.formMarkup);
         })
@@ -88,8 +91,8 @@ class PropertyGroupForm {
      */
     _savePropertyGroup(data) {
         return new Promise( (resolve, reject) => {
-            debugger;
-            const url = Routing.generate('property_group_new', {portal: this.children.propertySettings.portal, customObject: this.children.propertySettings.customObject});
+            console.log(this.portalId);
+            const url = Routing.generate('property_group_new', {portal: this.portalId, customObject: this.customObjectId});
 
             $.ajax({
                 url,

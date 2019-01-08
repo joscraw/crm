@@ -4,6 +4,7 @@ import $ from 'jquery';
 import Settings from '../Settings';
 import PropertySettingsTopBar from './PropertySettingsTopBar';
 import PropertyList from "./PropertyList";
+import PropertyGroupFormModal from "./PropertyGroupFormModal";
 
 
 class PropertySettings {
@@ -22,16 +23,18 @@ class PropertySettings {
         children.propertySettings = this;
         this.children = children;
 
+        /*new PropertyGroupFormModal(window.globalEventDispatcher, this.portal, this.customObject);*/
+
         this.render();
     }
 
     render() {
         const $topBar = this.$wrapper.find('.js-top-bar');
-        new PropertySettingsTopBar($topBar, this.globalEventDispatcher, this.children);
+        new PropertySettingsTopBar($topBar, this.globalEventDispatcher, this.portal, this.customObject);
 
-        const $div = $("<div>", {"class": "js-property-list"});
+       /* const $div = $("<div>", {"class": "js-property-list"});
         this.$wrapper.find('.js-main-content').append($div);
-        new PropertyList($div, this.globalEventDispatcher, this.children);
+        new PropertyList($div, this.globalEventDispatcher, this.children);*/
     }
 
 }

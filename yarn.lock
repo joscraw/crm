@@ -4954,6 +4954,11 @@ path-to-regexp@0.1.7:
   resolved "https://registry.yarnpkg.com/path-to-regexp/-/path-to-regexp-0.1.7.tgz#df604178005f522f15eb4490e7247a1bfaa67f8c"
   integrity sha1-32BBeABfUi8V60SQ5yR6G/qmf4w=
 
+path-to-regexp@^2.4.0:
+  version "2.4.0"
+  resolved "https://registry.yarnpkg.com/path-to-regexp/-/path-to-regexp-2.4.0.tgz#35ce7f333d5616f1c1e1bfe266c3aba2e5b2e704"
+  integrity sha512-G6zHoVqC6GGTQkZwF4lkuEyMbVOjoBKAEybQUypI1WTkqinCOrq2x6U2+phkJ1XsEMTy4LjtwPI7HW+NVrRR2w==
+
 path-type@^1.0.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/path-type/-/path-type-1.1.0.tgz#59c44f7ee491da704da415da5a4070ba4f8fe441"
@@ -6734,6 +6739,13 @@ unique-slug@^2.0.0:
   integrity sha512-n9cU6+gITaVu7VGj1Z8feKMmfAjEAQGhwD9fE3zvpRRa0wEIx8ODYkVGfSc94M2OX00tUFV8wH3zYbm1I8mxFg==
   dependencies:
     imurmurhash "^0.1.4"
+
+universal-router@^7.0.0:
+  version "7.0.0"
+  resolved "https://registry.yarnpkg.com/universal-router/-/universal-router-7.0.0.tgz#a40d9d4bcb09a41eee1da7cc8a430e1f28a39a24"
+  integrity sha512-/CiQioyY4C5RffvS2DCfaI3bOP8BnWJpZ6MU8LepathHPH+nLOcPKiTlDzOuW7M3o9HbKsRwo37xvPK6AO9+xw==
+  dependencies:
+    path-to-regexp "^2.4.0"
 
 universalify@^0.1.0:
   version "0.1.2"

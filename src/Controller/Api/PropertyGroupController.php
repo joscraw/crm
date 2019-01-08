@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controller;
+namespace App\Controller\Api;
 
 use App\Entity\CustomObject;
 use App\Entity\Portal;
@@ -30,14 +30,14 @@ use Symfony\Component\Serializer\Encoder\XmlEncoder;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 
+
 /**
- * Class PropertySettingsController
- * @package App\Controller
+ * Class PropertyGroupController
+ * @package App\Controller\Api
  *
- * @Route("/property-settings/{portal}")
- *
+ * @Route("api/portal/{portal}")
  */
-class PropertySettingsController extends AbstractController
+class PropertyGroupController extends AbstractController
 {
     /**
      * @var EntityManagerInterface
@@ -78,18 +78,77 @@ class PropertySettingsController extends AbstractController
         $this->propertyGroupRepository = $propertyGroupRepository;
     }
 
+    /**
+     * @Route("/get-property-group-form", name="property_group_form", methods={"GET"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @return JsonResponse
+     */
+    public function getPropertyGroupFormAction(Portal $portal) {
+
+        $propertyGroup = new PropertyGroup();
+
+        $form = $this->createForm(PropertyGroupType::class, $propertyGroup);
+
+        $formMarkup = $this->renderView(
+            'Api/form/property_group_form.html.twig',
+            [
+                'form' => $form->createView(),
+            ]
+        );
+
+        return new JsonResponse(
+            [
+                'success' => true,
+                'formMarkup' => $formMarkup
+            ],
+            Response::HTTP_OK
+        );
+    }
 
     /**
-     * @Route("/{internalName}", name="property_settings", methods={"GET"}, defaults={"internalName"="contact"})
+     * @Route("/custom-object/{customObject}/create-property-group", name="property_group_new", methods={"POST"}, options={"expose" = true})
      * @param Portal $portal
      * @param CustomObject $customObject
-     * @return \Symfony\Component\HttpFoundation\Response
+     * @param Request $request
+     * @return JsonResponse
      */
-    public function indexAction(Portal $portal, CustomObject $customObject) {
+    public function createPropertyGroupAction(Portal $portal, CustomObject $customObject, Request $request)
+    {
+        $propertyGroup = new PropertyGroup();
 
-        return $this->render('propertySettings/index.html.twig', array(
-            'portal' => $portal,
-            'customObject' => $customObject
-        ));
+        $form = $this->createForm(PropertyGroupType::class, $propertyGroup);
+
+        $form->handleRequest($request);
+
+        if (!$form->isValid()) {
+            $formMarkup = $this->renderView(
+                'Api/form/property_group_form.html.twig',
+                [
+                    'form' => $form->createView(),
+                ]
+            );
+
+            return new JsonResponse(
+                [
+                    'success' => false,
+                    'formMarkup' => $formMarkup,
+                ], Response::HTTP_BAD_REQUEST
+            );
+        }
+
+        /** @var $propertyGroup PropertyGroup */
+        $propertyGroup = $form->getData();
+        $propertyGroup->setCustomObject($customObject);
+
+        $this->entityManager->persist($propertyGroup);
+        $this->entityManager->flush();
+
+        return new JsonResponse(
+            [
+                'success' => true,
+            ],
+            Response::HTTP_OK
+        );
     }
+
 }

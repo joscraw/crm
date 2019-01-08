@@ -8,11 +8,12 @@ class PropertyGroupFormModal {
 
     /**
      * @param globalEventDispatcher
-     * @param children
+     * @param portalId
+     * @param customObjectId
      */
-    constructor(globalEventDispatcher, children = {}) {
-        children.propertyGroupFormModal = this;
-        this.children = children;
+    constructor(globalEventDispatcher, portalId, customObjectId) {
+        this.portalId = portalId;
+        this.customObjectId = customObjectId;
         this.globalEventDispatcher = globalEventDispatcher;
         this.render();
     }
@@ -24,7 +25,7 @@ class PropertyGroupFormModal {
             html: PropertyGroupFormModal.markup()
         });
 
-        new PropertyGroupForm($('#js-create-property-group-modal-container'), this.globalEventDispatcher, this.children);
+        new PropertyGroupForm($('#js-create-property-group-modal-container'), this.globalEventDispatcher, this.portalId, this.customObjectId);
     }
 
     static markup() {

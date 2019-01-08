@@ -11,14 +11,14 @@ class PropertyCreateForm {
     /**
      * @param $wrapper
      * @param globalEventDispatcher
-     * @param children
+     * @param portal
+     * @param customObject
      */
-    constructor($wrapper, globalEventDispatcher, children = {}) {
+    constructor($wrapper, globalEventDispatcher, portal, customObject) {
 
-        debugger;
         this.$wrapper = $wrapper;
-        children.propertyCreateForm = this;
-        this.children = children;
+        this.portal = portal;
+        this.customObject = customObject;
 
         /**
          * @type {EventDispatcher}
@@ -66,7 +66,7 @@ class PropertyCreateForm {
 
     loadCreatePropertyForm() {
         $.ajax({
-            url: Routing.generate('create_property', {portal: this.children.propertySettings.portal, customObject: this.children.propertySettings.customObject}),
+            url: Routing.generate('create_property', {portal: this.portal, customObject: this.customObject}),
         }).then(data => {
             this.$wrapper.html(data.formMarkup);
         })
@@ -137,7 +137,7 @@ class PropertyCreateForm {
         debugger;
         return new Promise((resolve, reject) => {
             debugger;
-            const url = Routing.generate('create_property', {portal: this.children.propertySettings.portal, customObject: this.children.propertySettings.customObject});
+            const url = Routing.generate('create_property', {portal: this.portal, customObject: this.customObject});
 
             $.ajax({
                 url,
@@ -198,7 +198,7 @@ class PropertyCreateForm {
      */
     _saveProperty(data) {
         return new Promise( (resolve, reject) => {
-            const url = Routing.generate('create_property', {portal: this.children.propertySettings.portal, customObject: this.children.propertySettings.customObject});
+            const url = Routing.generate('create_property', {portal: this.portal, customObject: this.customObject});
 
             $.ajax({
                 url,
