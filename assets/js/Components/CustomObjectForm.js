@@ -10,10 +10,12 @@ class CustomObjectForm {
     /**
      * @param $wrapper
      * @param globalEventDispatcher
+     * @param portal
      */
-    constructor($wrapper, globalEventDispatcher) {
+    constructor($wrapper, globalEventDispatcher, portal) {
 
         this.$wrapper = $wrapper;
+        this.portal = portal;
 
         /**
          * @type {EventDispatcher}
@@ -40,7 +42,7 @@ class CustomObjectForm {
 
     loadCustomObjectForm() {
         $.ajax({
-            url: Routing.generate('custom_object_form', {portal: 1}),
+            url: Routing.generate('custom_object_form', {internalIdentifier: this.portal}),
         }).then(data => {
             this.$wrapper.html(data.formMarkup);
         })
@@ -82,7 +84,7 @@ class CustomObjectForm {
      */
     _saveCustomObject(data) {
         return new Promise( (resolve, reject) => {
-            const url = Routing.generate('create_custom_object', {portal: 1});
+            const url = Routing.generate('create_custom_object', {internalIdentifier: this.portal});
 
             $.ajax({
                 url,

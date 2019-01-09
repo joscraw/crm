@@ -35,9 +35,10 @@ use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
  * Class PropertyGroupController
  * @package App\Controller\Api
  *
- * @Route("api/portal/{portal}")
+ * @Route("{internalIdentifier}/api/property-groups")
+ *
  */
-class PropertyGroupController extends AbstractController
+class PropertyGroupController extends ApiController
 {
     /**
      * @var EntityManagerInterface
@@ -79,7 +80,7 @@ class PropertyGroupController extends AbstractController
     }
 
     /**
-     * @Route("/get-property-group-form", name="property_group_form", methods={"GET"}, options = { "expose" = true })
+     * @Route("/get-create-form", name="property_group_form", methods={"GET"}, options = { "expose" = true })
      * @param Portal $portal
      * @return JsonResponse
      */
@@ -106,14 +107,18 @@ class PropertyGroupController extends AbstractController
     }
 
     /**
-     * @Route("/custom-object/{customObject}/create-property-group", name="property_group_new", methods={"POST"}, options={"expose" = true})
+     * @Route("/create", name="property_group_new", methods={"POST"}, options={"expose" = true})
      * @param Portal $portal
      * @param CustomObject $customObject
      * @param Request $request
      * @return JsonResponse
+     * @throws \App\Controller\Exception\InvalidInputException
+     * @throws \App\Controller\Exception\MissingRequiredQueryParameterException
      */
     public function createPropertyGroupAction(Portal $portal, CustomObject $customObject, Request $request)
     {
+        $customObject = $this->getCustomObjectForRequest($this->customObjectRepository);
+
         $propertyGroup = new PropertyGroup();
 
         $form = $this->createForm(PropertyGroupType::class, $propertyGroup);

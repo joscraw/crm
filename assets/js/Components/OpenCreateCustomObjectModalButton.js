@@ -4,13 +4,11 @@ import Settings from '../Settings';
 import CustomObjectFormModal from './CustomObjectFormModal';
 
 class OpenCreateCustomObjectModalButton {
-    constructor($wrapper, globalEventDispatcher) {
-        this.init($wrapper, globalEventDispatcher);
-    }
 
-    init($wrapper, globalEventDispatcher) {
+    constructor($wrapper, globalEventDispatcher, portal) {
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
+        this.portal = portal;
 
         this.$wrapper.on(
             'click',
@@ -25,7 +23,7 @@ class OpenCreateCustomObjectModalButton {
         console.log("Create Custom Object Button Clicked");
         this.globalEventDispatcher.publish(Settings.Events.CREATE_CUSTOM_OBJECT_BUTTON_CLICKED);
         console.log(`Event Dispatched: ${Settings.Events.CREATE_CUSTOM_OBJECT_BUTTON_CLICKED}`);
-        new CustomObjectFormModal(this.globalEventDispatcher);
+        new CustomObjectFormModal(this.globalEventDispatcher, this.portal);
     }
 
     render() {

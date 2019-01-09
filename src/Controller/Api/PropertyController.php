@@ -35,9 +35,10 @@ use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
  * Class PropertyController
  * @package App\Controller\Api
  *
- * @Route("api/portal/{portal}")
+ * @Route("{internalIdentifier}/api/properties")
+ *
  */
-class PropertyController extends AbstractController
+class PropertyController extends ApiController
 {
     /**
      * @var EntityManagerInterface
@@ -79,13 +80,17 @@ class PropertyController extends AbstractController
     }
 
     /**
-     * @Route("/custom-object/{customObject}/create-property", name="create_property", methods={"GET", "POST"}, options = { "expose" = true })
+     * @Route("/create", name="create_property", methods={"GET", "POST"}, options = { "expose" = true })
      * @param Portal $portal
      * @param CustomObject $customObject
      * @param Request $request
      * @return JsonResponse
+     * @throws \App\Controller\Exception\InvalidInputException
+     * @throws \App\Controller\Exception\MissingRequiredQueryParameterException
      */
     public function createPropertyAction(Portal $portal, CustomObject $customObject, Request $request) {
+
+        $customObject = $this->getCustomObjectForRequest($this->customObjectRepository);
 
         $property = new Property();
 
@@ -131,13 +136,16 @@ class PropertyController extends AbstractController
     }
 
     /**
-     * @Route("/custom-object/{customObject}/get-properties-for-datatable", name="properties_for_datatable", methods={"GET"}, options = { "expose" = true })
+     * @Route("/get-for-datatable", name="properties_for_datatable", methods={"GET"}, options = { "expose" = true })
      * @param Portal $portal
-     * @param CustomObject $customObject
      * @param Request $request
      * @return JsonResponse
+     * @throws \App\Controller\Exception\InvalidInputException
+     * @throws \App\Controller\Exception\MissingRequiredQueryParameterException
      */
-    public function getPropertiesForDatatableAction(Portal $portal, CustomObject $customObject, Request $request) {
+    public function getPropertiesForDatatableAction(Portal $portal, Request $request) {
+
+        $customObject = $this->getCustomObjectForRequest($this->customObjectRepository);
 
         $propertyGroups = $this->propertyGroupRepository->getDataTableData($customObject);
         $payload = [];

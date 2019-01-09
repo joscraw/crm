@@ -15,16 +15,9 @@ class CustomObjectSettings {
      * @param globalEventDispatcher
      */
     constructor($wrapper, globalEventDispatcher) {
-        this.init($wrapper, globalEventDispatcher);
-    }
-
-    /**
-     * @param $wrapper
-     * @param globalEventDispatcher
-     */
-    init($wrapper, globalEventDispatcher) {
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
+        this.portal = $wrapper.data('portal');
 
         this.render();
     }
@@ -39,8 +32,8 @@ class CustomObjectSettings {
         const $div = $("<div>", {"class": "js-top-bar"});
         $("#box").append($div);
 */
-        new CustomObjectSettingsTopBar($topBar, this.globalEventDispatcher);
-        new CustomObjectList($mainContent, this.globalEventDispatcher);
+        new CustomObjectSettingsTopBar($topBar, this.globalEventDispatcher, this.portal);
+        new CustomObjectList($mainContent, this.globalEventDispatcher, this.portal);
 
     }
 

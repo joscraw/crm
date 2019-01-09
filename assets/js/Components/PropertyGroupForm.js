@@ -43,9 +43,7 @@ class PropertyGroupForm {
     }
 
     loadPropertyGroupForm() {
-        debugger;
-        const url = Routing.generate('property_group_form', {portal: this.portalId});
-        debugger;
+        const url = Routing.generate('property_group_form', {internalIdentifier: this.portalId});
         $.ajax({
             url: url,
         }).then(data => {
@@ -92,7 +90,9 @@ class PropertyGroupForm {
     _savePropertyGroup(data) {
         return new Promise( (resolve, reject) => {
             console.log(this.portalId);
-            const url = Routing.generate('property_group_new', {portal: this.portalId, customObject: this.customObjectId});
+            const url = Routing.generate('property_group_new', {internalIdentifier: this.portalId});
+
+            data.custom_object_id = this.customObjectId;
 
             $.ajax({
                 url,

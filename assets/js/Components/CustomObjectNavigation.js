@@ -34,8 +34,7 @@ class CustomObjectNavigation {
         for(let key in data.data.custom_objects) {
             if(data.data.custom_objects.hasOwnProperty(key)) {
                 let customObject = data.data.custom_objects[key];
-                debugger;
-                let route = Routing.generate('property_settings', {portal: this.portal, internalName: customObject.internalName});
+                let route = Routing.generate('property_settings', {internalIdentifier: this.portal, internalName: customObject.internalName});
                 const html = pillTemplate(customObject, route);
                 const $row = $($.parseHTML(html));
                 $ul.append($row);
@@ -48,7 +47,7 @@ class CustomObjectNavigation {
 
     loadCustomObjects() {
         return new Promise((resolve, reject) => {
-            let url = Routing.generate('get_custom_objects', {portal: this.portal});
+            let url = Routing.generate('get_custom_objects', {internalIdentifier: this.portal});
 
             $.ajax({
                 url: url,

@@ -1,0 +1,15 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}List{% endblock %}
+
+{% block containerComponent %}js-record-list{% endblock %}
+{% block containerComponentAttributes %}data-custom-object="{{ customObject.id }}" data-portal="{{ portal.id }}"{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('build/record_list.js') }}"></script>
+{% endblock %}

@@ -160,10 +160,12 @@ class PropertyList {
 
     loadProperties() {
         return new Promise((resolve, reject) => {
-            const url = Routing.generate('properties_for_datatable', {portal: this.portal, customObject: this.customObject});
+            debugger;
+            const url = Routing.generate('properties_for_datatable', {internalIdentifier: this.portal});
 
             $.ajax({
                 url: url,
+                data: {custom_object_id: this.customObject}
             }).then(data => {
                 resolve(data);
             }).catch(jqXHR => {

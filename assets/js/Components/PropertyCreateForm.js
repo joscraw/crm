@@ -66,7 +66,8 @@ class PropertyCreateForm {
 
     loadCreatePropertyForm() {
         $.ajax({
-            url: Routing.generate('create_property', {portal: this.portal, customObject: this.customObject}),
+            url: Routing.generate('create_property', {internalIdentifier: this.portal}),
+            data: {custom_object_id: this.customObject}
         }).then(data => {
             this.$wrapper.html(data.formMarkup);
         })
@@ -134,10 +135,11 @@ class PropertyCreateForm {
     }
 
     _changeFieldType(data) {
-        debugger;
         return new Promise((resolve, reject) => {
             debugger;
-            const url = Routing.generate('create_property', {portal: this.portal, customObject: this.customObject});
+            const url = Routing.generate('create_property', {internalIdentifier: this.portal});
+
+            data.custom_object_id = this.customObject;
 
             $.ajax({
                 url,
@@ -198,7 +200,9 @@ class PropertyCreateForm {
      */
     _saveProperty(data) {
         return new Promise( (resolve, reject) => {
-            const url = Routing.generate('create_property', {portal: this.portal, customObject: this.customObject});
+            const url = Routing.generate('create_property', {internalIdentifier: this.portal});
+
+            data.custom_object_id = this.customObject;
 
             $.ajax({
                 url,

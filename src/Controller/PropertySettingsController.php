@@ -34,7 +34,7 @@ use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
  * Class PropertySettingsController
  * @package App\Controller
  *
- * @Route("/property-settings/{portal}")
+ * @Route("{internalIdentifier}/properties")
  *
  */
 class PropertySettingsController extends AbstractController

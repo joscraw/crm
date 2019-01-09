@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controller\Api;
+namespace App\Controller;
 
 use App\Entity\CustomObject;
 use App\Entity\Portal;
@@ -30,14 +30,14 @@ use Symfony\Component\Serializer\Encoder\XmlEncoder;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 
-
 /**
- * Class CustomObjectController
- * @package App\Controller\Api
+ * Class RecordController
+ * @package App\Controller
  *
- * @Route("{internalIdentifier}/api/custom-objects")
+ * @Route("/{internalIdentifier}")
+ *
  */
-class CustomObjectController extends ApiController
+class RecordController extends AbstractController
 {
     /**
      * @var EntityManagerInterface
@@ -60,7 +60,7 @@ class CustomObjectController extends ApiController
     private $propertyGroupRepository;
 
     /**
-     * PropertySettingsController constructor.
+     * RecordController constructor.
      * @param EntityManagerInterface $entityManager
      * @param CustomObjectRepository $customObjectRepository
      * @param PropertyRepository $propertyRepository
@@ -78,35 +78,34 @@ class CustomObjectController extends ApiController
         $this->propertyGroupRepository = $propertyGroupRepository;
     }
 
+
     /**
-     * @Route("/", name="get_custom_objects", methods={"GET"}, options = { "expose" = true })
+     * @Route("/{internalName}/list", name="record_list", methods={"GET"}, options = { "expose" = true })
      * @param Portal $portal
-     * @param Request $request
-     * @return Response
+     * @param CustomObject $customObject
+     * @return \Symfony\Component\HttpFoundation\Response
      */
-    public function getCustomObjectsAction(Portal $portal, Request $request) {
+    public function listAction(Portal $portal, CustomObject $customObject) {
 
-        $customObjects = $this->customObjectRepository->findBy([
-            'portal' => $portal->getId()
-        ]);
+        return $this->render('record/list.html.twig', array(
+            'portal' => $portal,
+            'customObject' => $customObject
+        ));
+    }
 
-        $payload = [];
-        $payload['custom_objects'] = [];
+    /**
+     * @Route("/{internalName}/properties", name="record_properties", methods={"GET"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param CustomObject $customObject
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function managePropertiesAction(Portal $portal, CustomObject $customObject) {
 
-        foreach($customObjects as $customObject) {
-            $customObjectId = $customObject->getId();
-            $payload['custom_objects'][$customObjectId] = [
-                'id' => $customObjectId,
-                'label' => $customObject->getLabel(),
-                'internalName' => $customObject->getInternalName(),
-            ];
-        }
+        return new Response("record list view");
 
-        $response = new JsonResponse([
-            'success' => true,
-            'data'  => $payload,
-        ],  Response::HTTP_OK);
-
-        return $response;
+        return $this->render('propertySettings/index.html.twig', array(
+            'portal' => $portal,
+            'customObject' => $customObject
+        ));
     }
 }
