@@ -11,11 +11,13 @@ class RecordForm {
      * @param $wrapper
      * @param globalEventDispatcher
      * @param customObject
+     * @param customObjectLabel
      * @param portal
      */
-    constructor($wrapper, globalEventDispatcher, customObject, portal) {
+    constructor($wrapper, globalEventDispatcher, customObject, customObjectLabel, portal) {
 
         this.$wrapper = $wrapper;
+        this.customObjectLabel = customObjectLabel;
         this.customObject = customObject;
         this.portal = portal;
 
@@ -66,6 +68,7 @@ class RecordForm {
      */
     handleNewFormSubmit(e) {
 
+        debugger;
         if(e.cancelable) {
             e.preventDefault();
         }
@@ -77,10 +80,12 @@ class RecordForm {
             formData[fieldData.name] = fieldData.value
         }
 
-        this._saveCustomObject(formData)
+        debugger;
+
+        this._saveRecord(formData)
             .then((data) => {
-                swal("Hooray!", "Well done, you created a custom object!", "success");
-                this.globalEventDispatcher.publish(Settings.Events.CUSTOM_OBJECT_CREATED);
+                swal("Hooray!", `Well done, you created a shiny brand new ${this.customObjectLabel}!`, "success");
+                this.globalEventDispatcher.publish(Settings.Events.RECORD_CREATED);
             }).catch((errorData) => {
 
             this.$wrapper.html(errorData.formMarkup);
@@ -95,9 +100,11 @@ class RecordForm {
      * @return {Promise<any>}
      * @private
      */
-    _saveCustomObject(data) {
+    _saveRecord(data) {
         return new Promise( (resolve, reject) => {
-            const url = Routing.generate('create_custom_object', {internalIdentifier: this.portal});
+            const url = Routing.generate('create_record', {internalIdentifier: this.portal});
+
+            data.custom_object_id = this.customObject;
 
             $.ajax({
                 url,

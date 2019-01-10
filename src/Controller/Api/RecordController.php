@@ -6,6 +6,7 @@ use App\Entity\CustomObject;
 use App\Entity\Portal;
 use App\Entity\Property;
 use App\Entity\PropertyGroup;
+use App\Entity\Record;
 use App\Form\CustomObjectType;
 use App\Form\PropertyGroupType;
 use App\Form\PropertyType;
@@ -85,12 +86,16 @@ class RecordController extends ApiController
      * @throws \App\Controller\Exception\InvalidInputException
      * @throws \App\Controller\Exception\MissingRequiredQueryParameterException
      */
-    public function getCustomObjectFormAction() {
+    public function getRecordFormAction() {
 
         $customObject = $this->getCustomObjectForRequest($this->customObjectRepository);
 
+        $properties = $this->propertyRepository->findBy([
+            $customObject => $customObject->getId()
+        ]);
+
         $form = $this->createForm(RecordType::class, null, [
-            'customObject' => $customObject
+            'properties' => $properties
         ]);
 
         $formMarkup = $this->renderView(
@@ -104,6 +109,60 @@ class RecordController extends ApiController
             [
                 'success' => true,
                 'formMarkup' => $formMarkup
+            ],
+            Response::HTTP_OK
+        );
+    }
+
+    /**
+     * @Route("/create", name="create_record", methods={"POST"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param Request $request
+     * @return JsonResponse
+     * @throws \App\Controller\Exception\InvalidInputException
+     * @throws \App\Controller\Exception\MissingRequiredQueryParameterException
+     */
+    public function createRecordAction(Portal $portal, Request $request) {
+
+        $customObject = $this->getCustomObjectForRequest($this->customObjectRepository);
+
+        $properties = $this->propertyRepository->findBy([
+            $customObject => 1
+        ]);
+
+        $form = $this->createForm(RecordType::class, null, [
+            'properties' => $properties
+        ]);
+
+        $form->handleRequest($request);
+
+        if (!$form->isValid()) {
+            $formMarkup = $this->renderView(
+                'Api/form/record_form.html.twig',
+                [
+                    'form' => $form->createView(),
+                ]
+            );
+
+            return new JsonResponse(
+                [
+                    'success' => false,
+                    'formMarkup' => $formMarkup,
+                ], Response::HTTP_BAD_REQUEST
+            );
+        }
+
+        $record = new Record();
+        $properties = $form->getData();
+        $record->setProperties($properties);
+        $record->setCustomObject($customObject);
+
+        $this->entityManager->persist($record);
+        $this->entityManager->flush();
+
+        return new JsonResponse(
+            [
+                'success' => true,
             ],
             Response::HTTP_OK
         );

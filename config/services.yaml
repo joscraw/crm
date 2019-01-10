@@ -30,3 +30,7 @@ services:
     App\EntityListener\PropertyListener:
         tags:
             - { name: doctrine.orm.entity_listener }
+
+    App\EntityListener\RecordListener:
+        tags:
+            - { name: doctrine.orm.entity_listener }

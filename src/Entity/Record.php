@@ -7,6 +7,7 @@ use Gedmo\Timestampable\Traits\TimestampableEntity;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\RecordRepository")
+ * @ORM\EntityListeners({"App\EntityListener\RecordListener"})
  */
 class Record
 {

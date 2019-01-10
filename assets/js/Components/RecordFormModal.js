@@ -28,7 +28,7 @@ class RecordFormModal {
             customClass: "swal2-modal--left-align"
         });
 
-        new RecordForm($('#js-create-record-modal-container'), this.globalEventDispatcher, this.customObject, this.portal);
+        new RecordForm($('#js-create-record-modal-container'), this.globalEventDispatcher, this.customObject, this.customObjectLabel, this.portal);
     }
 
     static markup() {

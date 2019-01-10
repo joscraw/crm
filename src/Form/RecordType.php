@@ -3,6 +3,7 @@
 namespace App\Form;
 
 use App\Entity\CustomObject;
+use App\Entity\Property;
 use App\Model\FieldCatalog;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
@@ -27,12 +28,13 @@ class RecordType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
 
-        /** @var CustomObject $customObject */
-        $customObject = $options['customObject'];
-
-        $properties = $customObject->getProperties();
+        /** @var Property $properties[] */
+        $properties = $options['properties'];
 
         foreach($properties as $property) {
+
+            $name = "Josh";
+
             switch($property->getFieldType()) {
                 case FieldCatalog::SINGLE_LINE_TEXT:
                     $builder->add($property->getInternalName(), TextType::class, [
@@ -115,7 +117,7 @@ class RecordType extends AbstractType
     public function configureOptions(OptionsResolver $resolver)
     {
         $resolver->setRequired([
-           'customObject'
+           'properties'
         ]);
     }
 }
