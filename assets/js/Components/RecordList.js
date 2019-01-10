@@ -2,12 +2,12 @@
 
 import $ from 'jquery';
 import Settings from '../Settings';
-import PropertySettingsTopBar from './PropertySettingsTopBar';
+import RecordListTopBar from './RecordListTopBar';
 import PropertyList from "./PropertyList";
 import PropertyGroupFormModal from "./PropertyGroupFormModal";
 
 
-class PropertySettings {
+class RecordList {
 
     /**
      * @param $wrapper
@@ -17,6 +17,7 @@ class PropertySettings {
         debugger;
         this.customObject = $wrapper.data('customObject');
         this.portal = $wrapper.data('portal');
+        this.customObjectLabel = $wrapper.data('customObjectLabel');
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
 
@@ -25,13 +26,13 @@ class PropertySettings {
 
     render() {
         const $topBar = this.$wrapper.find('.js-top-bar');
-        new PropertySettingsTopBar($topBar, this.globalEventDispatcher, this.portal, this.customObject);
+        new RecordListTopBar($topBar, this.globalEventDispatcher, this.portal, this.customObject, this.customObjectLabel);
 
-        const $div = $("<div>", {"class": "js-property-list"});
+        /*const $div = $("<div>", {"class": "js-property-list"});
         this.$wrapper.find('.js-main-content').append($div);
-        new PropertyList($div, this.globalEventDispatcher, this.portal, this.customObject);
+        new PropertyList($div, this.globalEventDispatcher, this.portal, this.customObject);*/
     }
 
 }
 
-export default PropertySettings;
+export default RecordList;

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controller;
+namespace App\Controller\Api;
 
 use App\Entity\CustomObject;
 use App\Entity\Portal;
@@ -9,6 +9,7 @@ use App\Entity\PropertyGroup;
 use App\Form\CustomObjectType;
 use App\Form\PropertyGroupType;
 use App\Form\PropertyType;
+use App\Form\RecordType;
 use App\Model\FieldCatalog;
 use App\Repository\CustomObjectRepository;
 use App\Repository\PropertyGroupRepository;
@@ -30,14 +31,14 @@ use Symfony\Component\Serializer\Encoder\XmlEncoder;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 
+
 /**
  * Class RecordController
- * @package App\Controller
+ * @package App\Controller\Api
  *
- * @Route("/{internalIdentifier}")
- *
+ * @Route("{internalIdentifier}/api/records")
  */
-class RecordController extends AbstractController
+class RecordController extends ApiController
 {
     /**
      * @var EntityManagerInterface
@@ -60,7 +61,7 @@ class RecordController extends AbstractController
     private $propertyGroupRepository;
 
     /**
-     * RecordController constructor.
+     * PropertySettingsController constructor.
      * @param EntityManagerInterface $entityManager
      * @param CustomObjectRepository $customObjectRepository
      * @param PropertyRepository $propertyRepository
@@ -78,34 +79,33 @@ class RecordController extends AbstractController
         $this->propertyGroupRepository = $propertyGroupRepository;
     }
 
-
     /**
-     * @Route("/{internalName}/list", name="record_list", methods={"GET"}, options = { "expose" = true })
-     * @param Portal $portal
-     * @param CustomObject $customObject
-     * @return \Symfony\Component\HttpFoundation\Response
+     * @Route("/create-form", name="create_record_form", methods={"GET"}, options = { "expose" = true })
+     * @return JsonResponse
+     * @throws \App\Controller\Exception\InvalidInputException
+     * @throws \App\Controller\Exception\MissingRequiredQueryParameterException
      */
-    public function listAction(Portal $portal, CustomObject $customObject) {
+    public function getCustomObjectFormAction() {
 
-        return $this->render('record/list.html.twig', array(
-            'portal' => $portal,
-            'customObject' => $customObject,
-        ));
-    }
+        $customObject = $this->getCustomObjectForRequest($this->customObjectRepository);
 
-    /**
-     * @Route("/{internalName}/properties", name="record_properties", methods={"GET"}, options = { "expose" = true })
-     * @param Portal $portal
-     * @param CustomObject $customObject
-     * @return \Symfony\Component\HttpFoundation\Response
-     */
-    public function managePropertiesAction(Portal $portal, CustomObject $customObject) {
+        $form = $this->createForm(RecordType::class, null, [
+            'customObject' => $customObject
+        ]);
 
-        return new Response("record list view");
+        $formMarkup = $this->renderView(
+            'Api/form/record_form.html.twig',
+            [
+                'form' => $form->createView(),
+            ]
+        );
 
-        return $this->render('propertySettings/index.html.twig', array(
-            'portal' => $portal,
-            'customObject' => $customObject,
-        ));
+        return new JsonResponse(
+            [
+                'success' => true,
+                'formMarkup' => $formMarkup
+            ],
+            Response::HTTP_OK
+        );
     }
 }

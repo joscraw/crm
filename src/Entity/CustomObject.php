@@ -61,10 +61,16 @@ class CustomObject
      */
     private $portal;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Record", mappedBy="customObject", orphanRemoval=true)
+     */
+    private $records;
+
     public function __construct()
     {
         $this->properties = new ArrayCollection();
         $this->propertyGroups = new ArrayCollection();
+        $this->records = new ArrayCollection();
     }
 
     /**
@@ -186,6 +192,37 @@ class CustomObject
     public function setPortal(Portal $portal): self
     {
         $this->portal = $portal;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Record[]
+     */
+    public function getRecords(): Collection
+    {
+        return $this->records;
+    }
+
+    public function addRecord(Record $record): self
+    {
+        if (!$this->records->contains($record)) {
+            $this->records[] = $record;
+            $record->setCustomObject($this);
+        }
+
+        return $this;
+    }
+
+    public function removeRecord(Record $record): self
+    {
+        if ($this->records->contains($record)) {
+            $this->records->removeElement($record);
+            // set the owning side to null (unless already changed)
+            if ($record->getCustomObject() === $this) {
+                $record->setCustomObject(null);
+            }
+        }
 
         return $this;
     }

@@ -1,0 +1,104 @@
+<?php
+
+namespace App\Form;
+
+use App\Entity\CustomObject;
+use App\Model\FieldCatalog;
+use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\NumberType;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+use Symfony\Component\Form\Extension\Core\Type\TextareaType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\OptionsResolver\OptionsResolver;
+
+/**
+ * Class RecordType
+ * @package App\Form\Property
+ */
+class RecordType extends AbstractType
+{
+    /**
+     * @param FormBuilderInterface $builder
+     * @param array $options
+     */
+    public function buildForm(FormBuilderInterface $builder, array $options)
+    {
+
+        /** @var CustomObject $customObject */
+        $customObject = $options['customObject'];
+
+        $properties = $customObject->getProperties();
+
+        foreach($properties as $property) {
+            switch($property->getFieldType()) {
+                case FieldCatalog::SINGLE_LINE_TEXT:
+                    $builder->add($property->getInternalName(), TextType::class, [
+                            'required' => false,
+                            'label' => $property->getLabel()
+                        ]);
+                    break;
+                case FieldCatalog::MULTI_LINE_TEXT:
+                    $builder->add($property->getInternalName(), TextareaType::class, [
+                        'required' => false,
+                        'label' => $property->getLabel()
+                    ]);
+                    break;
+                case FieldCatalog::DROPDOWN_SELECT:
+                    $options = $property->getField()->getOptionsForChoiceTypeField();
+                    $builder->add($property->getInternalName(), ChoiceType::class, array(
+                        'choices'  => $options,
+                        'label' => $property->getLabel(),
+                        'required' => false,
+                        'placeholder' => false
+                    ));
+                    break;
+                case FieldCatalog::SINGLE_CHECKBOX:
+                    $builder->add($property->getInternalName(), CheckboxType::class, array(
+                        'label'    => $property->getLabel(),
+                        'required' => false,
+                    ));
+                    break;
+                case FieldCatalog::MULTIPLE_CHECKBOX:
+                    $options = $property->getField()->getOptionsForChoiceTypeField();
+                    $builder->add($property->getInternalName(), ChoiceType::class, array(
+                        'choices'  => $options,
+                        'label' => $property->getLabel(),
+                        'expanded' => true,
+                        'multiple' => true,
+                        'required' => false,
+                        'placeholder' => false
+                    ));
+                    break;
+                case FieldCatalog::RADIO_SELECT:
+                    $options = $property->getField()->getOptionsForChoiceTypeField();
+                    $builder->add($property->getInternalName(), ChoiceType::class, array(
+                        'choices'  => $options,
+                        'label' => $property->getLabel(),
+                        'expanded' => true,
+                        'multiple' => false,
+                        'required' => false,
+                        'placeholder' => false
+                    ));
+                    break;
+                case FieldCatalog::NUMBER:
+                    $builder->add($property->getInternalName(), NumberType::class, [
+                        'required' => false,
+                        'label' => $property->getLabel()
+                    ]);
+                    break;
+            }
+        }
+
+        $builder->add('submit', SubmitType::class);
+    }
+
+    public function configureOptions(OptionsResolver $resolver)
+    {
+        $resolver->setRequired([
+           'customObject'
+        ]);
+    }
+}

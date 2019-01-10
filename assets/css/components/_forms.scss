@@ -2,9 +2,13 @@
 // This file contains all styles related to the form component.
 // -----------------------------------------------------------------------------
 
-label.required:before {
+label.required:before, legend.required:before {
   content: "* ";
   color:red;
+}
+
+input[type="radio"] + label.required:before, input[type="checkbox"] + label.required:before {
+  content: "";
 }
 
 /* clears the 'X' from Internet Explorer */

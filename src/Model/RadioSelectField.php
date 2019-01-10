@@ -5,7 +5,7 @@ namespace App\Model;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Validator\Constraints as Assert;
 
-class RadioSelectField extends AbstractField implements \JsonSerializable
+class RadioSelectField extends AbstractChoiceField implements \JsonSerializable
 {
     /**
      * @var string
@@ -16,23 +16,6 @@ class RadioSelectField extends AbstractField implements \JsonSerializable
      * @var string
      */
     protected static $description = 'Radio Select Field';
-
-    /**
-     * Options for radio field.
-     *
-     * @Assert\Valid
-     *
-     * @var FieldOption[]
-     */
-    private $options;
-
-    /**
-     * Constructor.
-     */
-    public function __construct()
-    {
-        $this->options = new ArrayCollection();
-    }
 
     /**
      * (PHP 5 &gt;= 5.4.0)<br/>
@@ -51,21 +34,5 @@ class RadioSelectField extends AbstractField implements \JsonSerializable
                 'options' => $this->getOptions()
             ]
         );
-    }
-
-    /**
-     * @return FieldOption[]
-     */
-    public function getOptions()
-    {
-        return $this->options;
-    }
-
-    /**
-     * @param FieldOption[] $options
-     */
-    public function setOptions($options): void
-    {
-        $this->options = $options;
     }
 }

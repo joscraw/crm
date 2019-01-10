@@ -5,7 +5,7 @@ namespace App\Model;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Validator\Constraints as Assert;
 
-class MultipleCheckboxField extends AbstractField implements \JsonSerializable
+class MultipleCheckboxField extends AbstractChoiceField implements \JsonSerializable
 {
     /**
      * @var string
@@ -16,23 +16,6 @@ class MultipleCheckboxField extends AbstractField implements \JsonSerializable
      * @var string
      */
     protected static $description = 'Multiple Checkbox Field';
-
-    /**
-     * Options for checkbox field.
-     *
-     * @Assert\Valid
-     *
-     * @var FieldOption[]
-     */
-    private $options;
-
-    /**
-     * Constructor.
-     */
-    public function __construct()
-    {
-        $this->options = new ArrayCollection();
-    }
 
     /**
      * (PHP 5 &gt;= 5.4.0)<br/>
@@ -48,24 +31,7 @@ class MultipleCheckboxField extends AbstractField implements \JsonSerializable
             [
                 'name' => $this->getName(),
                 'description'   => $this->getDescription(),
-                'options' => $this->getOptions()
             ]
         );
-    }
-
-    /**
-     * @return FieldOption[]
-     */
-    public function getOptions()
-    {
-        return $this->options;
-    }
-
-    /**
-     * @param FieldOption[] $options
-     */
-    public function setOptions($options): void
-    {
-        $this->options = $options;
     }
 }

@@ -5,7 +5,7 @@ namespace App\Model;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Validator\Constraints as Assert;
 
-class DropdownSelectField extends AbstractField implements \JsonSerializable
+class DropdownSelectField extends AbstractChoiceField implements \JsonSerializable
 {
     /**
      * @var string
@@ -16,23 +16,6 @@ class DropdownSelectField extends AbstractField implements \JsonSerializable
      * @var string
      */
     protected static $description = 'Dropdown Select Field';
-
-    /**
-     * Options for the dropdown select field
-     *
-     * @Assert\Valid
-     *
-     * @var FieldOption[]
-     */
-    private $options;
-
-    /**
-     * Constructor.
-     */
-    public function __construct()
-    {
-        $this->options = new ArrayCollection();
-    }
 
     /**
      * (PHP 5 &gt;= 5.4.0)<br/>
@@ -48,24 +31,7 @@ class DropdownSelectField extends AbstractField implements \JsonSerializable
             [
                 'name' => $this->getName(),
                 'description'   => $this->getDescription(),
-                'options' => $this->getOptions(),
             ]
         );
-    }
-
-    /**
-     * @return FieldOption[]
-     */
-    public function getOptions()
-    {
-        return $this->options;
-    }
-
-    /**
-     * @param FieldOption[] $options
-     */
-    public function setOptions($options): void
-    {
-        $this->options = $options;
     }
 }
