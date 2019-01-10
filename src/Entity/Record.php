@@ -48,12 +48,12 @@ class Record
         return $this;
     }
 
-    public function getProperties(): ?array
+    public function getProperties()
     {
         return $this->properties;
     }
 
-    public function setProperties(array $properties): self
+    public function setProperties($properties): self
     {
         $this->properties = $properties;
 

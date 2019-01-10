@@ -33,8 +33,6 @@ class RecordType extends AbstractType
 
         foreach($properties as $property) {
 
-            $name = "Josh";
-
             switch($property->getFieldType()) {
                 case FieldCatalog::SINGLE_LINE_TEXT:
                     $builder->add($property->getInternalName(), TextType::class, [

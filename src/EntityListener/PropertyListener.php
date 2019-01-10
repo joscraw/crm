@@ -35,8 +35,8 @@ class PropertyListener
      */
     private function serializePropertyField(Property $property)
     {
-        $propertyField = $property->getField();
-        $property->setField($this->serializer->serialize($propertyField, 'json'));
+        /*$propertyField = $property->getField();
+        $property->setField($this->serializer->serialize($propertyField, 'json'));*/
     }
 
     /**
@@ -46,8 +46,9 @@ class PropertyListener
      */
     private function deserializePropertyField(Property $property)
     {
-        $propertyField = $property->getField();
+        $propertyField = json_encode($property->getField());
         $propertyField = $this->serializer->deserialize($propertyField, AbstractField::class, 'json');
+
 
         $property->setField($propertyField);
     }

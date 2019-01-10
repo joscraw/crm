@@ -91,7 +91,7 @@ class RecordController extends ApiController
         $customObject = $this->getCustomObjectForRequest($this->customObjectRepository);
 
         $properties = $this->propertyRepository->findBy([
-            $customObject => $customObject->getId()
+            'customObject' => $customObject->getId()
         ]);
 
         $form = $this->createForm(RecordType::class, null, [
@@ -127,7 +127,7 @@ class RecordController extends ApiController
         $customObject = $this->getCustomObjectForRequest($this->customObjectRepository);
 
         $properties = $this->propertyRepository->findBy([
-            $customObject => 1
+            'customObject' => $customObject->getId()
         ]);
 
         $form = $this->createForm(RecordType::class, null, [

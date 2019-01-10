@@ -13,6 +13,7 @@ use App\Model\FieldCatalog;
 use App\Repository\CustomObjectRepository;
 use App\Repository\PropertyGroupRepository;
 use App\Repository\PropertyRepository;
+use App\Repository\RecordRepository;
 use App\Service\MessageGenerator;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
@@ -60,22 +61,30 @@ class RecordController extends AbstractController
     private $propertyGroupRepository;
 
     /**
+     * @var RecordRepository
+     */
+    private $recordRepository;
+
+    /**
      * RecordController constructor.
      * @param EntityManagerInterface $entityManager
      * @param CustomObjectRepository $customObjectRepository
      * @param PropertyRepository $propertyRepository
      * @param PropertyGroupRepository $propertyGroupRepository
+     * @param RecordRepository $recordRepository
      */
     public function __construct(
         EntityManagerInterface $entityManager,
         CustomObjectRepository $customObjectRepository,
         PropertyRepository $propertyRepository,
-        PropertyGroupRepository $propertyGroupRepository
+        PropertyGroupRepository $propertyGroupRepository,
+        RecordRepository $recordRepository
     ) {
         $this->entityManager = $entityManager;
         $this->customObjectRepository = $customObjectRepository;
         $this->propertyRepository = $propertyRepository;
         $this->propertyGroupRepository = $propertyGroupRepository;
+        $this->recordRepository = $recordRepository;
     }
 
 
@@ -86,6 +95,8 @@ class RecordController extends AbstractController
      * @return \Symfony\Component\HttpFoundation\Response
      */
     public function listAction(Portal $portal, CustomObject $customObject) {
+
+        $records = $this->recordRepository->findAll();
 
         return $this->render('record/list.html.twig', array(
             'portal' => $portal,

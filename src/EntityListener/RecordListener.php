@@ -36,8 +36,8 @@ class RecordListener
      */
     private function serializePropertiesField(Record $record)
     {
-        $properties = $record->getProperties();
-        $record->setProperties($this->serializer->serialize($properties, 'json'));
+        /*$properties = $record->getProperties();
+        $record->setProperties($this->serializer->serialize($properties, 'json'));*/
     }
 
     /**
@@ -47,8 +47,9 @@ class RecordListener
      */
     private function deserializePropertiesField(Record $record)
     {
-        $properties = $record->getProperties();
-        $properties = $this->serializer->deserialize($properties, 'array', 'json');
+        $properties = json_encode($record->getProperties());
+        // we aren't mapping the properties to a specific object
+        $properties = json_decode($properties, true);
 
         $record->setProperties($properties);
     }
