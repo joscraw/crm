@@ -27,19 +27,43 @@ class FieldCatalog
     /**#@-*/
 
     /***
-     * List of field types mostly used for select form drop downs
+     * List of field types and options
      *
      * @var array
      */
     private static $fields = [
-        'Single-line text' => self::SINGLE_LINE_TEXT,
-        'Multi-line text' => self::MULTI_LINE_TEXT,
-        'Dropdown select' => self::DROPDOWN_SELECT,
-        'Single checkbox' => self::SINGLE_CHECKBOX,
-        'Multiple Checkbox' => self::MULTIPLE_CHECKBOX,
-        'Radio select' => self::RADIO_SELECT,
-        'Number' => self::NUMBER,
-        'Date picker' => self::DATE_PICKER
+        self::SINGLE_LINE_TEXT => [
+            'description' => 'Stores a string of any alphanumeric characters, such as a word, a phrase, or a sentence.',
+            'friendly_name' => 'Single line text'
+        ],
+        self::MULTI_LINE_TEXT => [
+            'description' => 'Stores multiple strings of alphanumeric characters, such as a paragraph or list of items.',
+            'friendly_name' => 'Multi line text'
+        ],
+        self::DROPDOWN_SELECT => [
+            'description' => 'Stores an unlimited number of options, and only one option can be selected as a value. In forms, they appear as a select field.',
+            'friendly_name' => 'Dropdown select'
+        ],
+        self::SINGLE_CHECKBOX => [
+            'description' => 'Stores two options, on or off. Often used if you need a property value that is strictly true or false. In the CRM they appear as a Dropdown Select. In forms, they appear as a single checkbox.',
+            'friendly_name' => 'Single Checkbox'
+            ],
+        self::MULTIPLE_CHECKBOX => [
+            'description' => 'Stores checkboxes that contain several, usually related options, with an unlimited number of options. In the CRM they appear as a Dropdown Select. In forms, they appear as checkboxes.',
+            'friendly_name' => 'Multiple checkbox'
+        ],
+        self::RADIO_SELECT => [
+            'description' => 'Stores an unlimited number of options, and only one option can be selected as a value. In the CRM they appear as a Dropdown Select. In forms, they appear as radio fields.',
+            'friendly_name' => 'Radio select'
+        ],
+        self::NUMBER => [
+            'description' => 'Stores a string of numerals or numbers written in decimal or scientific notation. You cannot use decimals or negative numbers in your filters when segmenting lists or workflows by number properties.',
+            'friendly_name' => 'Number'
+        ],
+        self::DATE_PICKER => [
+            'description' => 'Stores a date value. In forms, they are used to allow visitors to input a specific date in a standard format, ensuring no confusion between the day and month when inputting the date.',
+            'friendly_name' => 'Date picker'
+        ]
     ];
 
     /**
@@ -64,11 +88,38 @@ class FieldCatalog
     }
 
     /**
-     * Return list of fields
+     * @return array
+     */
+    public static function getValidFieldTypes() {
+
+        return array_keys(self::$fields);
+    }
+
+    /**
+     * Return list of fields and their descriptions/options
      *
      * @return array
      */
     public static function getFields() {
         return self::$fields;
+    }
+
+    /**
+     * @return array
+     */
+    public static function getOptionsForChoiceTypeField() {
+        $choices = [];
+        foreach(self::$fields as $field_name => $options) {
+            $choices[$options['friendly_name']] = $field_name;
+        }
+        return $choices;
+    }
+
+    /**
+     * @param $fieldType
+     * @return mixed|null
+     */
+    public static function getOptionsForFieldType($fieldType) {
+        return array_key_exists($fieldType, self::$fields) ? self::$fields[$fieldType] : null;
     }
 }

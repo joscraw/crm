@@ -48,6 +48,16 @@ class RecordForm {
             data: {custom_object_id: this.customObject}
         }).then(data => {
             this.$wrapper.html(data.formMarkup);
+
+            $('.js-selectize-multiple-select').selectize({
+                plugins: ['remove_button'],
+                sortField: 'text'
+            });
+
+            $('.js-selectize-single-select').selectize({
+                sortField: 'text'
+            });
+
         })
     }
 

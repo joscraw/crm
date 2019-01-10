@@ -1,0 +1,12 @@
+// -----------------------------------------------------------------------------
+// This file contains all styles related to overriding sweetalert2 styles
+// -----------------------------------------------------------------------------
+
+
+.swal2-modal--swal-wide {
+  width: 850px !important;;
+}
+
+.swal2-modal--left-align #swal2-content {
+  text-align: left !important;
+}

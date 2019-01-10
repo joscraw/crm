@@ -27,13 +27,14 @@ class Property
 
     /**
      * @Assert\NotBlank(message="Don't forget a label for your new Property!")
+     * @Assert\Regex("/^[a-zA-Z0-9_\s]*$/", message="Woah! Only use letters, numbers, underscores and spaces please!")
      *
      * @ORM\Column(type="string", length=255)
      */
     private $label;
 
     /**
-     * @Assert\Regex("/^[a-zA-Z_]*$/", message="Woah! Only use letters and underscores please!")
+     * @Assert\Regex("/^[a-zA-Z0-9_]*$/", message="Woah! Only use letters numbers and underscores please!")
      *
      * @ORM\Column(type="string", length=255)
      */
@@ -88,7 +89,7 @@ class Property
 
     public static function getValidFieldTypes()
     {
-        return FieldCatalog::getFields();
+        return FieldCatalog::getValidFieldTypes();
     }
 
     public function getId(): ?int

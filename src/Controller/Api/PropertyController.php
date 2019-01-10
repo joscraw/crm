@@ -98,10 +98,16 @@ class PropertyController extends ApiController
 
         $form->handleRequest($request);
 
+        $fieldHelpMessage = FieldCatalog::getOptionsForFieldType(FieldCatalog::SINGLE_LINE_TEXT)['description'];
+        if($property->getFieldType()) {
+            $fieldHelpMessage = FieldCatalog::getOptionsForFieldType($property->getFieldType())['description'];
+        }
+
         $formMarkup = $this->renderView(
             'Api/form/property_form.html.twig',
             [
                 'form' => $form->createView(),
+                'fieldHelpMessage' => $fieldHelpMessage
             ]
         );
 

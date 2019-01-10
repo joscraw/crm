@@ -52,13 +52,26 @@ class RecordType extends AbstractType
                         'choices'  => $options,
                         'label' => $property->getLabel(),
                         'required' => false,
-                        'placeholder' => false
+                        'expanded' => false,
+                        'multiple' => false,
+                        'attr' => [
+                            'class' => 'js-selectize-single-select'
+                        ]
                     ));
                     break;
                 case FieldCatalog::SINGLE_CHECKBOX:
-                    $builder->add($property->getInternalName(), CheckboxType::class, array(
-                        'label'    => $property->getLabel(),
+                    $builder->add($property->getInternalName(), ChoiceType::class, array(
+                        'choices'  => array(
+                            'Yes' => true,
+                            'No' => false,
+                        ),
+                        'label' => $property->getLabel(),
+                        'expanded' => false,
+                        'multiple' => false,
                         'required' => false,
+                        'attr' => [
+                            'class' => 'js-selectize-single-select'
+                        ]
                     ));
                     break;
                 case FieldCatalog::MULTIPLE_CHECKBOX:
@@ -66,10 +79,12 @@ class RecordType extends AbstractType
                     $builder->add($property->getInternalName(), ChoiceType::class, array(
                         'choices'  => $options,
                         'label' => $property->getLabel(),
-                        'expanded' => true,
+                        'expanded' => false,
                         'multiple' => true,
                         'required' => false,
-                        'placeholder' => false
+                        'attr' => [
+                            'class' => 'js-selectize-multiple-select'
+                        ]
                     ));
                     break;
                 case FieldCatalog::RADIO_SELECT:
@@ -77,10 +92,12 @@ class RecordType extends AbstractType
                     $builder->add($property->getInternalName(), ChoiceType::class, array(
                         'choices'  => $options,
                         'label' => $property->getLabel(),
-                        'expanded' => true,
-                        'multiple' => false,
                         'required' => false,
-                        'placeholder' => false
+                        'expanded' => false,
+                        'multiple' => false,
+                        'attr' => [
+                            'class' => 'js-selectize-single-select'
+                        ]
                     ));
                     break;
                 case FieldCatalog::NUMBER:

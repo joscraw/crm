@@ -39,7 +39,7 @@ class PropertyType extends AbstractType
                 'required' => false,
             ])
             ->add('fieldType', ChoiceType::class, array(
-                'choices'  => FieldCatalog::getFields()
+                'choices'  => FieldCatalog::getOptionsForChoiceTypeField(),
             ))
             ->add('submit', SubmitType::class)
             ->add('propertyGroup', EntityType::class, array(
@@ -68,6 +68,11 @@ class PropertyType extends AbstractType
         $form = $event->getForm()->getParent();
         $data = $event->getData();
         $fieldClass = null;
+        $options = [
+            'auto_initialize' => false,
+            'label' => false,
+            'help' => 'this is a help message'
+        ];
 
         switch($data) {
             case FieldCatalog::SINGLE_LINE_TEXT:
@@ -108,10 +113,7 @@ class PropertyType extends AbstractType
             'field',
             $fieldClass,
             null,
-            [
-                'auto_initialize' => false,
-                'label' => false
-            ]
+            $options
         );
 
         // last but not least, let's add the builder (form field) to the main form

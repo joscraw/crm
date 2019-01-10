@@ -30,7 +30,7 @@ class PropertyCreateFormModal {
         swal({
             title: 'Create Property',
             showConfirmButton: false,
-            customClass: 'swal-wide',
+            customClass: 'swal2-modal--swal-wide',
             html: PropertyCreateFormModal.markup()
         });
 
