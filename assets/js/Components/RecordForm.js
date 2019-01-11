@@ -4,6 +4,7 @@ import $ from 'jquery';
 import swal from 'sweetalert2';
 import Routing from '../Routing';
 import Settings from '../Settings';
+import FormHelper from '../FormHelper';
 
 class RecordForm {
 
@@ -51,13 +52,19 @@ class RecordForm {
         }).then(data => {
             this.$wrapper.html(data.formMarkup);
 
+            debugger;
+
             $('.js-selectize-multiple-select').selectize({
-                plugins: ['remove_button'],
+                /*plugins: ['remove_button'],*/
                 sortField: 'text'
             });
 
             $('.js-selectize-single-select').selectize({
                 sortField: 'text'
+            });
+
+            $('.js-datepicker').datepicker({
+                format: 'yyyy-mm-dd'
             });
 
         })
@@ -68,26 +75,22 @@ class RecordForm {
      */
     handleNewFormSubmit(e) {
 
-        debugger;
         if(e.cancelable) {
             e.preventDefault();
         }
 
         const $form = $(e.currentTarget);
-        const formData = {};
-
-        for (let fieldData of $form.serializeArray()) {
-            formData[fieldData.name] = fieldData.value
-        }
-
-        debugger;
+        let formData = new FormData($form.get(0));
+        formData.append('custom_object_id', this.customObject);
 
         this._saveRecord(formData)
             .then((data) => {
+                debugger;
                 swal("Hooray!", `Well done, you created a shiny brand new ${this.customObjectLabel}!`, "success");
                 this.globalEventDispatcher.publish(Settings.Events.RECORD_CREATED);
             }).catch((errorData) => {
 
+                debugger;
             this.$wrapper.html(errorData.formMarkup);
 
             // Use for when the form is being generated on the JS side
@@ -101,15 +104,17 @@ class RecordForm {
      * @private
      */
     _saveRecord(data) {
+        debugger;
         return new Promise( (resolve, reject) => {
+            debugger;
             const url = Routing.generate('create_record', {internalIdentifier: this.portal});
-
-            data.custom_object_id = this.customObject;
 
             $.ajax({
                 url,
                 method: 'POST',
-                data: data
+                data: data,
+                processData: false,
+                contentType: false
             }).then((data, textStatus, jqXHR) => {
                 resolve(data);
             }).catch((jqXHR) => {
