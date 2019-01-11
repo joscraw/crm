@@ -14,6 +14,7 @@ use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\NotBlank;
 
 /**
  * Class RecordType
@@ -32,24 +33,33 @@ class RecordType extends AbstractType
         $properties = $options['properties'];
 
         foreach($properties as $property) {
+            $options = [];
+
+            if($property->isRequired()) {
+                $options['constraints'] = [
+                    new NotBlank(),
+                ];
+            }
 
             switch($property->getFieldType()) {
                 case FieldCatalog::SINGLE_LINE_TEXT:
-                    $builder->add($property->getInternalName(), TextType::class, [
-                            'required' => false,
-                            'label' => $property->getLabel()
-                        ]);
-                    break;
-                case FieldCatalog::MULTI_LINE_TEXT:
-                    $builder->add($property->getInternalName(), TextareaType::class, [
+                    $options = array_merge($options, [
                         'required' => false,
                         'label' => $property->getLabel()
                     ]);
+                    $builder->add($property->getInternalName(), TextType::class, $options);
+                    break;
+                case FieldCatalog::MULTI_LINE_TEXT:
+                    $options = array_merge($options,[
+                        'required' => false,
+                        'label' => $property->getLabel()
+                    ]);
+                    $builder->add($property->getInternalName(), TextareaType::class, $options);
                     break;
                 case FieldCatalog::DROPDOWN_SELECT:
-                    $options = $property->getField()->getOptionsForChoiceTypeField();
-                    $builder->add($property->getInternalName(), ChoiceType::class, array(
-                        'choices'  => $options,
+                    $choices = $property->getField()->getOptionsForChoiceTypeField();
+                    $options = array_merge($options, [
+                        'choices'  => $choices,
                         'label' => $property->getLabel(),
                         'required' => false,
                         'expanded' => false,
@@ -57,10 +67,11 @@ class RecordType extends AbstractType
                         'attr' => [
                             'class' => 'js-selectize-single-select'
                         ]
-                    ));
+                    ]);
+                    $builder->add($property->getInternalName(), ChoiceType::class, $options);
                     break;
                 case FieldCatalog::SINGLE_CHECKBOX:
-                    $builder->add($property->getInternalName(), ChoiceType::class, array(
+                    $options = array_merge($options, [
                         'choices'  => array(
                             'Yes' => true,
                             'No' => false,
@@ -72,12 +83,13 @@ class RecordType extends AbstractType
                         'attr' => [
                             'class' => 'js-selectize-single-select'
                         ]
-                    ));
+                    ]);
+                    $builder->add($property->getInternalName(), ChoiceType::class, $options);
                     break;
                 case FieldCatalog::MULTIPLE_CHECKBOX:
-                    $options = $property->getField()->getOptionsForChoiceTypeField();
-                    $builder->add($property->getInternalName(), ChoiceType::class, array(
-                        'choices'  => $options,
+                    $choices = $property->getField()->getOptionsForChoiceTypeField();
+                    $options = array_merge($options, [
+                        'choices'  => $choices,
                         'label' => $property->getLabel(),
                         'expanded' => false,
                         'multiple' => true,
@@ -85,12 +97,13 @@ class RecordType extends AbstractType
                         'attr' => [
                             'class' => 'js-selectize-multiple-select'
                         ]
-                    ));
+                    ]);
+                    $builder->add($property->getInternalName(), ChoiceType::class, $options);
                     break;
                 case FieldCatalog::RADIO_SELECT:
-                    $options = $property->getField()->getOptionsForChoiceTypeField();
-                    $builder->add($property->getInternalName(), ChoiceType::class, array(
-                        'choices'  => $options,
+                    $choices = $property->getField()->getOptionsForChoiceTypeField();
+                    $options = array_merge($options, [
+                        'choices'  => $choices,
                         'label' => $property->getLabel(),
                         'required' => false,
                         'expanded' => false,
@@ -98,13 +111,15 @@ class RecordType extends AbstractType
                         'attr' => [
                             'class' => 'js-selectize-single-select'
                         ]
-                    ));
+                    ]);
+                    $builder->add($property->getInternalName(), ChoiceType::class, $options);
                     break;
                 case FieldCatalog::NUMBER:
-                    $builder->add($property->getInternalName(), NumberType::class, [
+                    $options = array_merge($options, [
                         'required' => false,
                         'label' => $property->getLabel()
                     ]);
+                    $builder->add($property->getInternalName(), NumberType::class, $options);
                     break;
             }
         }
