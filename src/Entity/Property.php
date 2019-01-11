@@ -76,6 +76,11 @@ class Property
      */
     private $customObject;
 
+    /**
+     * @var bool
+     */
+    protected $required = false;
+
 
     /**
      * @ORM\PrePersist
@@ -197,5 +202,21 @@ class Property
         $this->field = $field;
 
         return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isRequired(): bool
+    {
+        return $this->required;
+    }
+
+    /**
+     * @param bool $required
+     */
+    public function setRequired(bool $required): void
+    {
+        $this->required = $required;
     }
 }

@@ -149,6 +149,4 @@ class Property implements JsonSerializable
     {
         $this->field = $field;
     }
-
-
 }

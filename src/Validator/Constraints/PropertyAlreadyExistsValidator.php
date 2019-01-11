@@ -37,7 +37,7 @@ class PropertyAlreadyExistsValidator extends ConstraintValidator
 
         $internalName = $protocol->getInternalName();
         $label = $protocol->getLabel();
-        
+
         if($internalName && $this->propertyRepository->findByInternalName($internalName)) {
             $this->context->buildViolation($constraint->internalNameAlreadyExistsMessage)
                 ->setParameter('{{ string }}', $internalName)

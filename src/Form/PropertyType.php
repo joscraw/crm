@@ -7,6 +7,7 @@ use App\Entity\PropertyGroup;
 use App\Model\FieldCatalog;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
@@ -36,6 +37,9 @@ class PropertyType extends AbstractType
                 'required' => false,
             ])
             ->add('description', TextareaType::class, [
+                'required' => false,
+            ])
+            ->add('required', CheckboxType::class, [
                 'required' => false,
             ])
             ->add('fieldType', ChoiceType::class, array(
