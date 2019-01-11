@@ -77,6 +77,7 @@ class Property
     private $customObject;
 
     /**
+     * @ORM\Column(type="boolean", nullable=false)
      * @var bool
      */
     protected $required = false;
