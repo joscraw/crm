@@ -93,6 +93,7 @@ class PropertyController extends ApiController
         $customObject = $this->getCustomObjectForRequest($this->customObjectRepository);
 
         $property = new Property();
+        $property->setCustomObject($customObject);
 
         $form = $this->createForm(PropertyType::class, $property);
 
@@ -126,8 +127,6 @@ class PropertyController extends ApiController
         if ($form->isSubmitted() && $form->isValid()) {
             /** @var $property Property */
             $property = $form->getData();
-            $property->setCustomObject($customObject);
-
             $this->entityManager->persist($property);
             $this->entityManager->flush();
         }
