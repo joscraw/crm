@@ -64,4 +64,32 @@ class PropertyRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    /**
+     * @param $internalName
+     * @return mixed
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     */
+    public function findByInternalName($internalName)
+    {
+        return $this->createQueryBuilder('property')
+            ->where('property.internalName = :internalName')
+            ->setParameter('internalName', $internalName)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    /**
+     * @param $label
+     * @return mixed
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     */
+    public function findByLabel($label)
+    {
+        return $this->createQueryBuilder('property')
+            ->orWhere('property.label = :label')
+            ->setParameter('label', $label)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
 }

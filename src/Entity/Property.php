@@ -8,11 +8,13 @@ use App\Model\FieldCatalog;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 use Symfony\Component\Validator\Constraints as Assert;
+use App\Validator\Constraints as CustomAssert;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\PropertyRepository")
  * @ORM\HasLifecycleCallbacks()
  * @ORM\EntityListeners({"App\EntityListener\PropertyListener"})
+ * @CustomAssert\PropertyAlreadyExists
  */
 class Property
 {
@@ -81,10 +83,19 @@ class Property
     public function setInternalNameValue()
     {
         if(!$this->internalName) {
-            $this->internalName = strtolower(
-                preg_replace('/\s+/', '_', $this->getLabel())
-            );
+            $this->internalName = $this->getInternalNameValue();
         }
+    }
+
+    /**
+     * @return string
+     */
+    public function getInternalNameValue()
+    {
+        return strtolower(
+            preg_replace('/\s+/', '_', $this->getLabel())
+        );
+
     }
 
     public static function getValidFieldTypes()
