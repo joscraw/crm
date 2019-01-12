@@ -49,7 +49,7 @@ class RecordForm {
 
     activatePlugins() {
         $('.js-selectize-multiple-select').selectize({
-            /*plugins: ['remove_button'],*/
+            plugins: ['remove_button'],
             sortField: 'text'
         });
 

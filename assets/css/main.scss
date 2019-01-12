@@ -7,10 +7,6 @@
   'abstracts/mixins';
 
 // 2. Vendors
-@import
-'vendors/selectize/_selectize.bootstrap4',
-'vendors/sweetalert2/override';
-
 
 /*
 Will need to revisit this with DataTables. Datatables needed some more css styles,
@@ -29,7 +25,12 @@ todo figure out which libraries to load for datatables
   '~bootstrap/scss/forms',
   '~bootstrap/scss/tables';*/
 
-@import '~bootstrap/scss/bootstrap';
+@import
+  '~bootstrap/scss/bootstrap',
+  'vendors/selectize/_selectize.bootstrap4',
+  '~selectize/dist/css/selectize',
+  'vendors/sweetalert2/override',
+  'vendors/selectize/override';
 
 // 3. Base stuff
 @import
