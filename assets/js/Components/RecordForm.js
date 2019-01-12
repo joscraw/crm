@@ -33,7 +33,9 @@ class RecordForm {
             this.handleNewFormSubmit.bind(this)
         );
 
-        this.loadForm();
+        this.loadForm().then(()=> {this.activatePlugins();});
+
+        this.activatePlugins();
     }
 
     /**
@@ -45,29 +47,33 @@ class RecordForm {
         }
     }
 
+    activatePlugins() {
+        $('.js-selectize-multiple-select').selectize({
+            /*plugins: ['remove_button'],*/
+            sortField: 'text'
+        });
+
+        $('.js-selectize-single-select').selectize({
+            sortField: 'text'
+        });
+
+        $('.js-datepicker').datepicker({
+            format: 'yyyy-mm-dd'
+        });
+    }
+
     loadForm() {
-        $.ajax({
-            url: Routing.generate('create_record_form', {internalIdentifier: this.portal}),
-            data: {custom_object_id: this.customObject}
-        }).then(data => {
-            this.$wrapper.html(data.formMarkup);
-
-            debugger;
-
-            $('.js-selectize-multiple-select').selectize({
-                /*plugins: ['remove_button'],*/
-                sortField: 'text'
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                url: Routing.generate('create_record_form', {internalIdentifier: this.portal}),
+                data: {custom_object_id: this.customObject}
+            }).then(data => {
+                this.$wrapper.html(data.formMarkup);
+                resolve(data);
+            }).catch(errorData => {
+                reject(errorData);
             });
-
-            $('.js-selectize-single-select').selectize({
-                sortField: 'text'
-            });
-
-            $('.js-datepicker').datepicker({
-                format: 'yyyy-mm-dd'
-            });
-
-        })
+        });
     }
 
     /**
@@ -92,6 +98,7 @@ class RecordForm {
 
                 debugger;
             this.$wrapper.html(errorData.formMarkup);
+            this.activatePlugins();
 
             // Use for when the form is being generated on the JS side
             /*this._mapErrorsToForm(errorData.errors);*/

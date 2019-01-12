@@ -24,6 +24,7 @@ class FieldCatalog
     const RADIO_SELECT = 'radio_select_field';
     const NUMBER = 'number_field';
     const DATE_PICKER = 'date_picker_field';
+    const CUSTOM_OBJECT = 'custom_object_field';
     /**#@-*/
 
     /***
@@ -31,7 +32,7 @@ class FieldCatalog
      *
      * @var array
      */
-    private static $fields = [
+    public static $fields = [
         self::SINGLE_LINE_TEXT => [
             'description' => 'Stores a string of any alphanumeric characters, such as a word, a phrase, or a sentence.',
             'friendly_name' => 'Single line text'
@@ -63,6 +64,10 @@ class FieldCatalog
         self::DATE_PICKER => [
             'description' => 'Stores a date value. In forms, they are used to allow visitors to input a specific date in a standard format, ensuring no confusion between the day and month when inputting the date.',
             'friendly_name' => 'Date picker'
+        ],
+        self::CUSTOM_OBJECT=> [
+            'description' => 'Stores a reference to another custom object.',
+            'friendly_name' => 'Custom object'
         ]
     ];
 

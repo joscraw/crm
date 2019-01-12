@@ -8,12 +8,14 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 use Symfony\Component\Validator\Constraints as Assert;
+use App\Validator\Constraints as CustomAssert;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\CustomObjectRepository")
  * @ORM\HasLifecycleCallbacks()
+ * @CustomAssert\CustomObjectAlreadyExists
  */
-class CustomObject
+class CustomObject implements \JsonSerializable
 {
 
     use TimestampableEntity;
@@ -27,6 +29,7 @@ class CustomObject
 
     /**
      * @Assert\NotBlank(message="Don't forget a label for your brand new sweeeeet Custom Object!")
+     * @Assert\Regex("/^[a-zA-Z0-9_\s]*$/", message="Woah! Only use letters, numbers, underscores and spaces please!")
      *
      * @ORM\Column(name="label", type="string", length=255, nullable=false)
      *
@@ -37,7 +40,7 @@ class CustomObject
     /**
      * internal name
      *
-     * @Assert\Regex("/^[a-zA-Z_]*$/", message="Woah! Only use letters and underscores please!")
+     * @Assert\Regex("/^[a-zA-Z0-9_]*$/", message="Woah! Only use letters numbers and underscores please!")
      *
      * @ORM\Column(name="internal_name", type="string", length=255, nullable=false)
      *
@@ -225,5 +228,25 @@ class CustomObject
         }
 
         return $this;
+    }
+
+    /**
+     * (PHP 5 &gt;= 5.4.0)<br/>
+     * Specify data which should be serialized to JSON
+     * @link http://php.net/manual/en/jsonserializable.jsonserialize.php
+     * @return mixed data which can be serialized by <b>json_encode</b>,
+     * which is a value of any type other than a resource.
+     */
+    public function jsonSerialize()
+    {
+        return [
+            'id' => $this->getId(),
+            'label' => $this->getLabel(),
+            'internalName' => $this->getInternalName()
+        ];
+    }
+
+    public function setId($id) {
+        $this->id = $id;
     }
 }

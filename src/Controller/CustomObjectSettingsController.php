@@ -128,6 +128,7 @@ class CustomObjectSettingsController extends AbstractController
     public function createCustomObjectAction(Portal $portal, Request $request)
     {
         $customObject = new CustomObject();
+        $customObject->setPortal($portal);
 
         $form = $this->createForm(CustomObjectType::class, $customObject);
 
@@ -151,8 +152,6 @@ class CustomObjectSettingsController extends AbstractController
 
         /** @var $customObject CustomObject */
         $customObject = $form->getData();
-        $customObject->setPortal($portal);
-
         $this->entityManager->persist($customObject);
         $this->entityManager->flush();
 

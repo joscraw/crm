@@ -21,6 +21,7 @@
 <div class="js-field-container clearfix">
 
     <small id="emailHelp" class="form-text text-muted">{{ fieldHelpMessage }}</small>
+    <hr>
 
     {% set sharedButtonMarkup %}
         <button type="button" class="btn btn-link js-addItem float-left"><i class="fa fa-plus" aria-hidden="true"></i> Add an option</button>
@@ -35,6 +36,10 @@
             {% endfor %}
         </ul>
         {{ sharedButtonMarkup }}
+    {% endif %}
+
+    {% if form.field.customObject is defined %}
+        {{ form_row(form.field.customObject, {'attr': {novalidate: 'novalidate'}}) }}
     {% endif %}
 </div>
 <br>

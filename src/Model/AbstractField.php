@@ -14,7 +14,8 @@ use Symfony\Component\Serializer\Annotation\DiscriminatorMap;
  *    "multiple_checkbox_field"="App\Model\MultipleCheckboxField",
  *    "radio_select_field"="App\Model\RadioSelectField",
  *    "number_field"="App\Model\NumberField",
- *    "date_picker_field"="App\Model\DatePickerField"
+ *    "date_picker_field"="App\Model\DatePickerField",
+ *    "custom_object_field"="App\Model\CustomObjectField"
  * })
  */
 abstract class AbstractField implements JsonSerializable

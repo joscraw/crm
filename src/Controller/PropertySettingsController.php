@@ -87,6 +87,13 @@ class PropertySettingsController extends AbstractController
      */
     public function indexAction(Portal $portal, CustomObject $customObject) {
 
+        $properties = $this->propertyRepository->findAll();
+
+        /*$field = $properties[3]->getField();
+
+        $c = $field->getCustomObject();
+        $i = $c->getId();*/
+
         return $this->render('propertySettings/index.html.twig', array(
             'portal' => $portal,
             'customObject' => $customObject

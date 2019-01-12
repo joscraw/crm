@@ -103,6 +103,9 @@ class PropertyType extends AbstractType
             case FieldCatalog::DATE_PICKER:
                 $fieldClass = DatePickerFieldType::class;
                 break;
+            case FieldCatalog::CUSTOM_OBJECT:
+                $fieldClass = CustomObjectFieldType::class;
+                break;
         }
 
         if(!$fieldClass) {

@@ -122,4 +122,32 @@ class CustomObjectRepository extends ServiceEntityRepository
             ->getQuery()
             ->getSingleScalarResult();
     }
+
+    /**
+     * @param $internalName
+     * @return mixed
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     */
+    public function findByInternalName($internalName)
+    {
+        return $this->createQueryBuilder('customObject')
+            ->where('customObject.internalName = :internalName')
+            ->setParameter('internalName', $internalName)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    /**
+     * @param $label
+     * @return mixed
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     */
+    public function findByLabel($label)
+    {
+        return $this->createQueryBuilder('customObject')
+            ->orWhere('customObject.label = :label')
+            ->setParameter('label', $label)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 }
