@@ -4,7 +4,10 @@ namespace App\Form;
 
 use App\Entity\CustomObject;
 use App\Entity\Property;
+use App\Entity\Record;
 use App\Model\FieldCatalog;
+use Doctrine\ORM\EntityRepository;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
@@ -134,6 +137,41 @@ class RecordType extends AbstractType
                         'attr' => ['class' => 'js-datepicker'],
                     ], $options);
                     $builder->add($property->getInternalName(), DateType::class, $options);
+                    break;
+                case FieldCatalog::CUSTOM_OBJECT:
+                    $customObject = $property->getField()->getCustomObject();
+                    $options = array_merge([
+                        'required' => false,
+                        'label' => $property->getLabel(),
+                        'attr' => [
+                            'class' => 'js-selectize-single-select'
+                        ],
+                        'class' => Record::class,
+                        'query_builder' => function (EntityRepository $er) use ($customObject) {
+                            return $er->createQueryBuilder('record')
+                                ->innerJoin('record.customObject', 'customObject');
+                            /*->where('property.customObject = :customObject')*/
+                            /* ->andWhere('customObject.internalName = internalName')
+                             ->setParameter('internalName', $customObject->getInternalName())*/
+                            /*->setParameter('customObject', $customObject->getId());*/
+                            /*->orderBy('customObject.label', 'ASC');*/
+                        },
+                        'choice_label' => function ($choiceValue, $key, $value) {
+                            /* if ($value == $choiceValue) {
+                                 return 'Definitely!';
+                             }
+
+                             return strtoupper($key);*/
+
+                            return $value;
+
+                            // or if you want to translate some key
+                            //return 'form.choice.'.$key;
+                        },
+                        'expanded' => false,
+                        'multiple' => false
+                    ], $options);
+                    $builder->add('customObject', EntityType::class, $options);
                     break;
             }
         }
