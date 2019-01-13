@@ -34,7 +34,6 @@ class CustomObjectField extends AbstractField implements \JsonSerializable
      */
     public function jsonSerialize()
     {
-        $name = "Josh";
         return array_merge(
             parent::jsonSerialize(),
             [

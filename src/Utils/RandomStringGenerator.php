@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Traits;
+namespace App\Utils;
 
 /**
  * Trait RandomStringGenerator
- * @package App\Traits
+ * @package App\Utils
  */
 trait RandomStringGenerator
 {

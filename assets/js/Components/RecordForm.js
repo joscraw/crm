@@ -57,6 +57,79 @@ class RecordForm {
             sortField: 'text'
         });
 
+        debugger;
+
+        const url = Routing.generate('records_for_selectize', {internalIdentifier: this.portal});
+
+        this.$select = $('.js-selectize-single-select-with-search').selectize({
+            valueField: 'valueField',
+            labelField: 'labelField',
+            searchField: 'searchField',
+            load: (query, callback) => {
+                console.log(this.customObject);
+                debugger;
+                if (!query.length) return callback();
+                $.ajax({
+                    url: url,
+                    type: 'GET',
+                    dataType: 'json',
+                    data: {
+                        search: query,
+                        custom_object_id: this.customObject,
+                        allowed_custom_object_to_search: $('.js-selectize-single-select-with-search').data('allowedCustomObjectToSearch')
+                    },
+                    error: () => {
+                        debugger;
+                        callback();
+                    },
+                    success: (res) => {
+                        debugger;
+                        this.$select.options = res;
+                        callback(res);
+                    }
+                })
+            }
+        });
+
+
+        debugger;
+
+/*        var $name = $('.js-selectize-single-select-with-search').selectize({
+            valueField: 'Id',
+            labelField: 'Name',
+            searchField: 'Name',
+            options: [],
+            persist: false,
+            loadThrottle: 600,
+            create: false,
+            allowEmptyOption: true,
+            load: function(query, callback) {
+                if (!query.length) return callback();
+                $.ajax({
+                    url: url,
+                    type: 'GET',
+                    dataType: 'json',
+                    data: {
+                        name: query,
+                        additionalDataIfRequired: 'Additional Data'
+                    },
+                    error: function() {
+                        debugger;
+                        callback();
+                    },
+                    success: function(res) {
+                        debugger;
+                        // you can apply any modification to data before passing it to selectize
+                        callback(res);
+                        // res is json response from server
+                        // it contains array of objects. Each object has two properties. In this case 'id' and 'Name'
+                        // if array is inside some other property of res like 'response' or something. than use this
+                        //callback(res.response);
+                    }
+                });
+            }
+        })[0].selectize;*/
+
         $('.js-datepicker').datepicker({
             format: 'yyyy-mm-dd'
         });

@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\CustomObject;
 use App\Entity\Record;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
@@ -47,4 +48,33 @@ class RecordRepository extends ServiceEntityRepository
         ;
     }
     */
+
+    /**
+     * @param $search
+     * @param CustomObject $allowedCustomObjectToSearch
+     * @return mixed
+     */
+    public function getSelectizeData($search, CustomObject $allowedCustomObjectToSearch)
+    {
+        // Main Query
+        $mainQuerySelectColumns = ['record.properties as searchField, record.id as labelField, record.id as valueField'];
+        $searchQuery = null;
+        $query = $this->createQueryBuilder('record')
+            ->select($mainQuerySelectColumns)
+            ->innerJoin('record.customObject', 'customObject')
+            ->where('customObject = :customObject')
+            ->setParameter('customObject', $allowedCustomObjectToSearch->getId());
+
+        // Search
+        if(!empty($search)) {
+            $searchQuery = 'record.properties LIKE \'%'.$search.'%\'';
+        }
+
+        if ($searchQuery) {
+            $query->andWhere($searchQuery);
+        }
+
+        $results = $query->getQuery()->getResult();
+        return $results;
+    }
 }

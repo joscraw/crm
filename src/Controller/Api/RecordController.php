@@ -15,7 +15,9 @@ use App\Model\FieldCatalog;
 use App\Repository\CustomObjectRepository;
 use App\Repository\PropertyGroupRepository;
 use App\Repository\PropertyRepository;
+use App\Repository\RecordRepository;
 use App\Service\MessageGenerator;
+use App\Utils\MultiDimensionalArrayExtractor;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -41,6 +43,8 @@ use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
  */
 class RecordController extends ApiController
 {
+    use MultiDimensionalArrayExtractor;
+
     /**
      * @var EntityManagerInterface
      */
@@ -62,22 +66,30 @@ class RecordController extends ApiController
     private $propertyGroupRepository;
 
     /**
+     * @var RecordRepository
+     */
+    private $recordRepository;
+
+    /**
      * PropertySettingsController constructor.
      * @param EntityManagerInterface $entityManager
      * @param CustomObjectRepository $customObjectRepository
      * @param PropertyRepository $propertyRepository
      * @param PropertyGroupRepository $propertyGroupRepository
+     * @param RecordRepository $recordRepository
      */
     public function __construct(
         EntityManagerInterface $entityManager,
         CustomObjectRepository $customObjectRepository,
         PropertyRepository $propertyRepository,
-        PropertyGroupRepository $propertyGroupRepository
+        PropertyGroupRepository $propertyGroupRepository,
+        RecordRepository $recordRepository
     ) {
         $this->entityManager = $entityManager;
         $this->customObjectRepository = $customObjectRepository;
         $this->propertyRepository = $propertyRepository;
         $this->propertyGroupRepository = $propertyGroupRepository;
+        $this->recordRepository = $recordRepository;
     }
 
     /**
@@ -136,6 +148,8 @@ class RecordController extends ApiController
 
         $form->handleRequest($request);
 
+        $d = $form->getData();
+
         if (!$form->isValid()) {
             $formMarkup = $this->renderView(
                 'Api/form/record_form.html.twig',
@@ -166,5 +180,33 @@ class RecordController extends ApiController
             ],
             Response::HTTP_OK
         );
+    }
+
+
+    /**
+     * @Route("/selectize", name="records_for_selectize", methods={"GET"}, options = { "expose" = true })
+     * @see https://stackoverflow.com/questions/29444430/remote-data-loading-from-sql-with-selectize-js
+     * @see https://selectize.github.io/selectize.js/
+     * @param Request $request
+     * @return Response
+     * @throws \App\Controller\Exception\InvalidInputException
+     * @throws \App\Controller\Exception\MissingRequiredQueryParameterException
+     */
+    public function getRecordsForSelectizeAction(Request $request) {
+
+        $customObject = $this->getCustomObjectForRequest($this->customObjectRepository);
+
+        $search = $request->query->get('search');
+        $allowedCustomObjectToSearch = $this->customObjectRepository
+            ->find($request->query->get('allowed_custom_object_to_search'));
+
+        $records = $this->recordRepository->getSelectizeData($search, $allowedCustomObjectToSearch);
+
+        foreach($records as &$record) {
+            $record['searchField'] = json_encode($this->extractValues($record['searchField']));
+        }
+
+        $response = new JsonResponse($records,  Response::HTTP_OK);
+        return $response;
     }
 }

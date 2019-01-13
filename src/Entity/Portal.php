@@ -2,7 +2,7 @@
 
 namespace App\Entity;
 
-use App\Traits\RandomStringGenerator;
+use App\Utils\RandomStringGenerator;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
