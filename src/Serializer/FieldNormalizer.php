@@ -4,6 +4,7 @@ namespace App\Serializer;
 
 
 use App\Entity\CustomObject;
+use App\Entity\Record;
 use App\Model\AbstractField;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Serializer\Exception\CircularReferenceException;
@@ -31,8 +32,9 @@ class FieldNormalizer implements NormalizerInterface
     public function normalize($object, $format = null, array $context = array())
     {
 
-        $data = $this->normalizer->normalize($field, $format, $context);
+        /*$data = $this->normalizer->normalize($field, $format, $context);*/
 
+        $data = "hi";
         $j = "hi";
 
         // Here, add, edit, or delete some data:
@@ -53,7 +55,7 @@ class FieldNormalizer implements NormalizerInterface
      */
     public function supportsNormalization($data, $format = null)
     {
-        return false;
-        return $data instanceof AbstractField;
+        return true;
+        return $data instanceof Record;
     }
 }
