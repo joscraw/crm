@@ -241,6 +241,7 @@ class RecordType extends AbstractType
                         ));*/
 
                     $customObject = $property->getField()->getCustomObject();
+
                     $options = array_merge([
                         'required' => false,
                         'label' => $property->getLabel(),
@@ -251,6 +252,10 @@ class RecordType extends AbstractType
                         ],
                         'expanded' => false,
                     ], $options);
+
+                    if($property->getField()->isMultiple()) {
+                        $options['multiple'] = true;
+                    }
 
                     $builder->add($property->getInternalName(), RecordChoiceType::class, $options);
 

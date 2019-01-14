@@ -26,6 +26,11 @@ class CustomObjectField extends AbstractField implements \JsonSerializable
     private $customObject;
 
     /**
+     * @var boolean
+     */
+    private $multiple = false;
+
+    /**
      * (PHP 5 &gt;= 5.4.0)<br/>
      * Specify data which should be serialized to JSON
      * @link http://php.net/manual/en/jsonserializable.jsonserialize.php
@@ -39,7 +44,8 @@ class CustomObjectField extends AbstractField implements \JsonSerializable
             [
                 'name'          => $this->getName(),
                 'description'   => $this->getDescription(),
-                'customObject'  => $this->getCustomObject()
+                'customObject'  => $this->getCustomObject(),
+                'multiple'      => $this->isMultiple()
             ]
         );
     }
@@ -61,5 +67,21 @@ class CustomObjectField extends AbstractField implements \JsonSerializable
         $this->customObject = $customObject;
 
         return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isMultiple(): ?bool
+    {
+        return $this->multiple;
+    }
+
+    /**
+     * @param bool $multiple
+     */
+    public function setMultiple(bool $multiple): void
+    {
+        $this->multiple = $multiple;
     }
 }

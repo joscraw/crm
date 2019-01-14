@@ -44,18 +44,22 @@ class PropertyType extends AbstractType
             ])
             ->add('fieldType', ChoiceType::class, array(
                 'choices'  => FieldCatalog::getOptionsForChoiceTypeField(),
+                'required' => false,
+                'placeholder' => false,
             ))
             ->add('submit', SubmitType::class)
             ->add('propertyGroup', EntityType::class, array(
-            // looks for choices from this entity
-            'class' => PropertyGroup::class,
+                'required' => false,
+                'placeholder' => false,
+                // looks for choices from this entity
+                'class' => PropertyGroup::class,
 
-            // uses the User.username property as the visible option string
-            'choice_label' => 'name',
+                // uses the User.username property as the visible option string
+                'choice_label' => 'name',
 
-            // used to render a select box, check boxes or radios
-            // 'multiple' => true,
-            // 'expanded' => true,
+                // used to render a select box, check boxes or radios
+                // 'multiple' => true,
+                // 'expanded' => true,
         ));
 
         $builder->get('fieldType')->addEventListener(FormEvents::POST_SUBMIT, [$this, 'fieldModifier']);
@@ -75,7 +79,7 @@ class PropertyType extends AbstractType
         $options = [
             'auto_initialize' => false,
             'label' => false,
-            'help' => 'this is a help message'
+            'help' => 'this is a help message',
         ];
 
         switch($data) {

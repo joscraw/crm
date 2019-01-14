@@ -37,7 +37,14 @@ class CustomObjectFieldType extends AbstractType
             },
             'choice_label' => 'label',
             'expanded' => false,
-            'multiple' => false
+            'multiple' => false,
+            'required' => false,
+            'placeholder' => false
+        ));
+
+        $builder->add('multiple', CheckboxType::class, array(
+            'label'    => 'Multiple',
+            'required' => false,
         ));
     }
 

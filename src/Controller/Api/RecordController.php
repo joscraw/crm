@@ -100,6 +100,8 @@ class RecordController extends ApiController
      */
     public function getRecordFormAction() {
 
+        $records = $this->recordRepository->findAll();
+
         $customObject = $this->getCustomObjectForRequest($this->customObjectRepository);
 
         $properties = $this->propertyRepository->findBy([
