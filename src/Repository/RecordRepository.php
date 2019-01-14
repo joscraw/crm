@@ -66,7 +66,7 @@ class RecordRepository extends ServiceEntityRepository
 
         // Search
         if(!empty($search)) {
-            $searchQuery = 'record.properties LIKE \'%'.$search.'%\'';
+            $searchQuery = 'LOWER(record.properties) LIKE \'%'.strtolower($search).'%\'';
         }
 
         if ($searchQuery) {
