@@ -56,8 +56,7 @@ class RecordRepository extends ServiceEntityRepository
      */
     public function getSelectizeData($search, CustomObject $allowedCustomObjectToSearch)
     {
-        // Main Query
-        $mainQuerySelectColumns = ['record.properties as searchField, record.id as labelField, record.id as valueField'];
+        $mainQuerySelectColumns = "record.id as id, record.properties as properties";
         $searchQuery = null;
         $query = $this->createQueryBuilder('record')
             ->select($mainQuerySelectColumns)

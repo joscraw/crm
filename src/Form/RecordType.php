@@ -161,21 +161,24 @@ class RecordType extends AbstractType
                     $builder->add($property->getInternalName(), DateType::class, $options);
                     break;
                 case FieldCatalog::CUSTOM_OBJECT:
-                  /*  $customObject = $property->getField()->getCustomObject();
+                    /*$customObject = $property->getField()->getCustomObject();
                     $options = array_merge([
                         'required' => false,
                         'label' => $property->getLabel(),
                         'attr' => [
-                            'class' => 'js-selectize-single-select-with-search'
+                            'class' => 'js-selectize-single-select-with-search',
+                            'placeholder' => 'Start typing to search..',
+                            'data-allowed-custom-object-to-search' => $customObject->getId()
                         ],
                         'class' => Record::class,
                         'query_builder' => function (EntityRepository $er) use ($customObject) {
                             return $er->createQueryBuilder('record')
-                                ->innerJoin('record.customObject', 'customObject');
-                            //->where('property.customObject = :customObject')
+                                ->innerJoin('record.customObject', 'customObject')
+                                //->setMaxResults(1)
+                                ->where('customObject.id = :customObject')
                              //->andWhere('customObject.internalName = internalName')
                             // ->setParameter('internalName', $customObject->getInternalName())
-                            //->setParameter('customObject', $customObject->getId());
+                                ->setParameter('customObject', 1000);
                             //->orderBy('customObject.label', 'ASC');
                         },
                         'choice_label' => function ($choiceValue, $key, $value) {
@@ -184,13 +187,13 @@ class RecordType extends AbstractType
                         },
                         'expanded' => false,
                         'multiple' => false
-                    ], $options);
+                    ], $options);*/
 
-                    $builder->add('customObject', EntityType::class, $options);*/
+                    /*$builder->add('customObject', EntityType::class, $options);*/
 
 
                     // This is the custom object that the property will be allowed to search on
-                    $customObject = $property->getField()->getCustomObject();
+              /*      $customObject = $property->getField()->getCustomObject();
                     $options = [
                         'choices'  => [],
                         'label' => $property->getLabel(),
@@ -214,14 +217,14 @@ class RecordType extends AbstractType
                             'data-allowed-custom-object-to-search' => $customObject->getId()
                         ],
                         'auto_initialize' => false
-                    ));
+                    ));*/
 
                     /*$builder->add('customObject', ChoiceType::class, $options);*/
 
                     /*$builder->get('customObject')
                         ->addModelTransformer($this->transformer);*/
 
-/*                    $builder->get('customObject')
+                   /* $builder->get('customObject')
                         ->addModelTransformer(new CallbackTransformer(
                             function ($customObject) {
                                 if(null === $customObject) {
@@ -237,7 +240,21 @@ class RecordType extends AbstractType
                             }
                         ));*/
 
-                    $builder->get('customObject')->addEventListener(FormEvents::PRE_SUBMIT, [$this, 'fieldModifier']);
+                    $customObject = $property->getField()->getCustomObject();
+                    $options = array_merge([
+                        'required' => false,
+                        'label' => $property->getLabel(),
+                        'attr' => [
+                            'class' => 'js-selectize-single-select-with-search',
+                            'placeholder' => 'Start typing to search..',
+                            'data-allowed-custom-object-to-search' => $customObject->getId()
+                        ],
+                        'expanded' => false,
+                    ], $options);
+
+                    $builder->add($property->getInternalName(), RecordChoiceType::class, $options);
+
+                    /*$builder->get('customObject')->addEventListener(FormEvents::PRE_SUBMIT, [$this, 'fieldModifier']);*/
 
 /*                  $builder->get('customObject')->addEventListener(FormEvents::PRE_SUBMIT, [$this, 'fieldModifier2']);
 

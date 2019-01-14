@@ -148,8 +148,6 @@ class RecordController extends ApiController
 
         $form->handleRequest($request);
 
-        $d = $form->getData();
-
         if (!$form->isValid()) {
             $formMarkup = $this->renderView(
                 'Api/form/record_form.html.twig',
@@ -203,7 +201,16 @@ class RecordController extends ApiController
         $records = $this->recordRepository->getSelectizeData($search, $allowedCustomObjectToSearch);
 
         foreach($records as &$record) {
-            $record['searchField'] = json_encode($this->extractValues($record['searchField']));
+            $record['valueField'] = $record['id'];
+            // Add the record id to the searchField so we can search by that also
+            // use the current time as the key so you don't run any risk of overriding any of
+            // the record property key/values
+            $record['properties']['id'] = $record['id'];
+            $record['searchField'] = json_encode($this->extractValues($record['properties']));
+            $record['labelField'] = sprintf("%s id: %s",
+                $allowedCustomObjectToSearch->getLabel(),
+                $record['id']
+            );
         }
 
         $response = new JsonResponse($records,  Response::HTTP_OK);
