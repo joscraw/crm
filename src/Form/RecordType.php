@@ -16,6 +16,7 @@ use Symfony\Component\Form\CallbackTransformer;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
+use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
@@ -263,11 +264,17 @@ class RecordType extends AbstractType
 
                     $builder->add($property->getInternalName(), RecordChoiceType::class, $options);
 
-                    /*$builder->get('customObject')->addEventListener(FormEvents::PRE_SUBMIT, [$this, 'fieldModifier']);*/
+                    $allowedSelectizeSearchResultProperties = [];
+                    foreach($property->getField()->getSelectizeSearchResultProperties() as $searchResultProperty) {
+                    $allowedSelectizeSearchResultProperties[] = $searchResultProperty;
+                    }
 
-/*                  $builder->get('customObject')->addEventListener(FormEvents::PRE_SUBMIT, [$this, 'fieldModifier2']);
-
-                    $builder->get('customObject')->addEventListener(FormEvents::POST_SUBMIT, [$this, 'fieldModifier3']);*/
+                    $builder->add('allowedSelectizeSearchResultProperties', HiddenType::class, array(
+                        'data' => json_encode($allowedSelectizeSearchResultProperties),
+                        'attr' => [
+                            'class' => 'js-allowed-selectize-search-result-properties',
+                        ],
+                    ));
 
                     break;
             }

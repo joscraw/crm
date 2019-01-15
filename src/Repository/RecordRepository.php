@@ -52,28 +52,26 @@ class RecordRepository extends ServiceEntityRepository
     /**
      * @param $search
      * @param CustomObject $allowedCustomObjectToSearch
+     * @param $selectizeAllowedSearchableProperties
      * @return mixed
+     * @throws \Doctrine\DBAL\DBALException
      */
-    public function getSelectizeData($search, CustomObject $allowedCustomObjectToSearch)
+    public function getSelectizeData($search, CustomObject $allowedCustomObjectToSearch, $selectizeAllowedSearchableProperties)
     {
-        $mainQuerySelectColumns = "record.id as id, record.properties as properties";
-        $searchQuery = null;
-        $query = $this->createQueryBuilder('record')
-            ->select($mainQuerySelectColumns)
-            ->innerJoin('record.customObject', 'customObject')
-            ->where('customObject = :customObject')
-            ->setParameter('customObject', $allowedCustomObjectToSearch->getId());
 
-        // Search
-        if(!empty($search)) {
-            $searchQuery = 'LOWER(record.properties) LIKE \'%'.strtolower($search).'%\'';
+        $jsonExtract = "properties->>'$.%s' as %s";
+        $resultStr = [];
+        foreach($selectizeAllowedSearchableProperties as $allowedSearchableProperty) {
+            $resultStr[] = sprintf($jsonExtract, $allowedSearchableProperty->getInternalName(), $allowedSearchableProperty->getInternalName());
         }
+        $resultStr = implode(",",$resultStr);
+        $query = sprintf("SELECT id, properties, %s from record WHERE LOWER(properties) LIKE '%%%s%%'", $resultStr, strtolower($search));
 
-        if ($searchQuery) {
-            $query->andWhere($searchQuery);
-        }
+        $em = $this->getEntityManager();
+        $stmt = $em->getConnection()->prepare($query);
+        $stmt->execute();
+        $results = $stmt->fetchAll();
 
-        $results = $query->getQuery()->getResult();
         return $results;
     }
 }

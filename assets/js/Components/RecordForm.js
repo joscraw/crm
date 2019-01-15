@@ -61,6 +61,9 @@ class RecordForm {
 
         const url = Routing.generate('records_for_selectize', {internalIdentifier: this.portal});
 
+        var $j = $('.js-allowed-selectize-search-result-properties').val();
+
+        debugger;
         this.$select = $('.js-selectize-single-select-with-search').selectize({
             valueField: 'valueField',
             labelField: 'labelField',
@@ -76,7 +79,8 @@ class RecordForm {
                     data: {
                         search: query,
                         custom_object_id: this.customObject,
-                        allowed_custom_object_to_search: $('.js-selectize-single-select-with-search').data('allowedCustomObjectToSearch')
+                        allowed_custom_object_to_search: $('.js-selectize-single-select-with-search').data('allowedCustomObjectToSearch'),
+                        allowed_selectize_search_result_properties: $('.js-allowed-selectize-search-result-properties').val()
                     },
                     error: () => {
                         debugger;

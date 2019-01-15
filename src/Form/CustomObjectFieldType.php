@@ -117,7 +117,7 @@ class CustomObjectFieldType extends AbstractType
                 'multiple' => true,
                 'label' => 'Search Result Properties',
                 'help' => 'When adding a value to this property, these will be the visible properties you will be able to see in the search to help you make your choice.',
-                'required' => true,
+                'required' => false,
                 'attr' => [
                     'placeholder' => $placeholder,
                     'class' => 'js-selectize-multiple-select'

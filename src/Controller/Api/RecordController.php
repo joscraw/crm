@@ -33,6 +33,7 @@ use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
+use Symfony\Component\Serializer\SerializerInterface;
 
 
 /**
@@ -71,25 +72,33 @@ class RecordController extends ApiController
     private $recordRepository;
 
     /**
+     * @var SerializerInterface
+     */
+    private $serializer;
+
+    /**
      * PropertySettingsController constructor.
      * @param EntityManagerInterface $entityManager
      * @param CustomObjectRepository $customObjectRepository
      * @param PropertyRepository $propertyRepository
      * @param PropertyGroupRepository $propertyGroupRepository
      * @param RecordRepository $recordRepository
+     * @param SerializerInterface $serializer
      */
     public function __construct(
         EntityManagerInterface $entityManager,
         CustomObjectRepository $customObjectRepository,
         PropertyRepository $propertyRepository,
         PropertyGroupRepository $propertyGroupRepository,
-        RecordRepository $recordRepository
+        RecordRepository $recordRepository,
+        SerializerInterface $serializer
     ) {
         $this->entityManager = $entityManager;
         $this->customObjectRepository = $customObjectRepository;
         $this->propertyRepository = $propertyRepository;
         $this->propertyGroupRepository = $propertyGroupRepository;
         $this->recordRepository = $recordRepository;
+        $this->serializer = $serializer;
     }
 
     /**
@@ -203,22 +212,39 @@ class RecordController extends ApiController
         $allowedCustomObjectToSearch = $this->customObjectRepository
             ->find($request->query->get('allowed_custom_object_to_search'));
 
-        $records = $this->recordRepository->getSelectizeData($search, $allowedCustomObjectToSearch);
+        $selectizeAllowedSearchableProperties = $this->serializer->deserialize($request->query->get('allowed_selectize_search_result_properties'), 'App\Entity\Property[]', 'json');
 
-        foreach($records as &$record) {
-            $record['valueField'] = $record['id'];
-            // Add the record id to the searchField so we can search by that also
-            // use the current time as the key so you don't run any risk of overriding any of
-            // the record property key/values
-            $record['properties']['id'] = $record['id'];
-            $record['searchField'] = json_encode($this->extractValues($record['properties']));
-            $record['labelField'] = sprintf("%s id: %s",
-                $allowedCustomObjectToSearch->getLabel(),
-                $record['id']
-            );
+
+        $results = $this->recordRepository->getSelectizeData($search, $allowedCustomObjectToSearch, $selectizeAllowedSearchableProperties);
+
+        $allowedProperties = ['id'];
+        foreach($selectizeAllowedSearchableProperties as $allowedSearchableProperty) {
+            $allowedProperties[] = $allowedSearchableProperty->getInternalName();
         }
 
-        $response = new JsonResponse($records,  Response::HTTP_OK);
+        $selectizeRecords = [];
+        foreach($results as $result) {
+            $selectizeRecord = [];
+
+            $whitelistedResult = array_intersect_key($result, array_flip($allowedProperties));
+
+            $label = [];
+            foreach($whitelistedResult as $name => $value) {
+                $label[] = sprintf("%s: %s",
+                    $name,
+                    $value
+                );
+            }
+            $label = implode(',', $label);
+
+            $selectizeRecord['labelField'] = $label;
+            $selectizeRecord['searchField'] = 'id:' . $result['id'] . ' ' . json_encode($result['properties']);
+            $selectizeRecord['valueField'] = $result['id'];
+
+            $selectizeRecords[] = $selectizeRecord;
+        }
+
+        $response = new JsonResponse($selectizeRecords,  Response::HTTP_OK);
         return $response;
     }
 }
