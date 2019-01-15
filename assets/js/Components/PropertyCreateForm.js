@@ -55,7 +55,9 @@ class PropertyCreateForm {
             this.handleRemoveItemButtonClick.bind(this)
         );
 
-        this.loadCreatePropertyForm();
+        this.loadCreatePropertyForm().then(() => { this.activatePlugins(); });
+
+        this.activatePlugins();
     }
 
     /**
@@ -71,13 +73,31 @@ class PropertyCreateForm {
         }
     }
 
+
+    activatePlugins() {
+
+        $('.js-selectize-multiple-select').selectize({
+            plugins: ['remove_button'],
+            sortField: 'text'
+        });
+
+        $('.js-selectize-single-select').selectize({
+            sortField: 'text'
+        });
+    }
+
     loadCreatePropertyForm() {
-        $.ajax({
-            url: Routing.generate('create_property', {internalIdentifier: this.portal}),
-            data: {custom_object_id: this.customObject}
-        }).then(data => {
-            this.$wrapper.html(data.formMarkup);
-        })
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                url: Routing.generate('create_property', {internalIdentifier: this.portal}),
+                data: {custom_object_id: this.customObject}
+            }).then(data => {
+                this.$wrapper.html(data.formMarkup);
+                resolve(data);
+            }).catch(errorData => {
+                reject(errorData);
+            });
+        });
     }
 
     /**
@@ -103,6 +123,8 @@ class PropertyCreateForm {
 
             this.$wrapper.html(errorData.formMarkup);
 
+            this.activatePlugins();
+
             // Use for when the form is being generated on the JS side
             /*this._mapErrorsToForm(errorData.errors);*/
         });
@@ -116,7 +138,30 @@ class PropertyCreateForm {
 
         debugger;
 
-        console.log("test");
+        const formData = {};
+
+        formData[$(e.target).attr('name')] = $(e.target).val();
+        formData[$(PropertyCreateForm._selectors.customObject).attr('name')] = $(PropertyCreateForm._selectors.customObject).val();
+        formData[$(PropertyCreateForm._selectors.fieldType).attr('name')] = $(PropertyCreateForm._selectors.fieldType).val();
+
+        formData['validate'] = false;
+
+        debugger;
+        this._changeCustomObject(formData)
+            .then((data) => {
+                debugger;
+                console.log("hi");
+            }).catch((errorData) => {
+
+                debugger;
+            $('.js-selectize-search-result-properties-container').replaceWith(
+                // ... with the returned one from the AJAX response.
+                $(errorData.formMarkup).find('.js-selectize-search-result-properties-container')
+            );
+
+            this.activatePlugins();
+
+        });
 
     }
 
@@ -127,7 +172,6 @@ class PropertyCreateForm {
         }
 
         const formData = {};
-
         formData[$(e.target).attr('name')] = $(e.target).val();
         formData['validate'] = false;
 
@@ -137,17 +181,35 @@ class PropertyCreateForm {
                 console.log("hi");
             }).catch((errorData) => {
 
-            /*$(errorData.formMarkup).find('.invalid-feedback').remove();*/
-
             $('.js-field-container').replaceWith(
                 // ... with the returned one from the AJAX response.
                 $(errorData.formMarkup).find('.js-field-container')
             );
 
-            /*this.$wrapper.html(errorData.formMarkup);*/
+            this.activatePlugins();
 
         });
 
+    }
+
+    _changeCustomObject(data) {
+        return new Promise((resolve, reject) => {
+            debugger;
+            const url = Routing.generate('create_property', {internalIdentifier: this.portal});
+
+            data.custom_object_id = this.customObject;
+
+            $.ajax({
+                url,
+                method: 'POST',
+                data: data
+            }).then((data, textStatus, jqXHR) => {
+                resolve(data);
+            }).catch((jqXHR) => {
+                const errorData = JSON.parse(jqXHR.responseText);
+                reject(errorData);
+            });
+        });
     }
 
     _changeFieldType(data) {
@@ -162,10 +224,8 @@ class PropertyCreateForm {
                 method: 'POST',
                 data: data
             }).then((data, textStatus, jqXHR) => {
-                debugger;
                 resolve(data);
             }).catch((jqXHR) => {
-                debugger;
                 const errorData = JSON.parse(jqXHR.responseText);
                 reject(errorData);
             });

@@ -85,22 +85,28 @@ class CustomObjectFieldType extends AbstractType
             'required' => false,
         ));
 
-        $formModifier = function (FormInterface $form, CustomObjectField $customObjectField = null) use ($portal) {
+        /**
+         * @param FormInterface $form
+         * @param CustomObject|null $customObject
+         */
+        $formModifier = function (FormInterface $form, CustomObject $customObject = null) use ($portal) {
 
             $form->add('selectizeSearchResultProperties', EntityType::class, array(
                 'class' => Property::class,
-                'query_builder' => function (EntityRepository $er) use ($portal) {
-                    return $this->getQueryBuilder($portal);
+                'query_builder' => function (EntityRepository $er) use ($portal, $customObject) {
+                    return $this->getQueryBuilder($portal, $customObject);
                 },
                 'choice_label' => 'label',
                 'expanded' => false,
                 'multiple' => true,
+                'label' => 'Search Result Properties',
+                'help' => 'When adding a value to this property, these will be the visible properties you will be able to see in the search to help you make your choice.',
                 'required' => true,
                 /*'data' => 60,*/
                 /*'placeholder' => false,*/
                 'attr' => [
                     'placeholder' => 'Start typing to search..',
-                    'class' => 'js-custom-object'
+                    'class' => 'js-selectize-multiple-select'
                 ]
             ));
 
@@ -132,18 +138,18 @@ class CustomObjectFieldType extends AbstractType
 
         /*$builder->get('customObject')->addEventListener(FormEvents::POST_SUBMIT, [$this, 'fieldModifier']);*/
 
-/*        $builder->get('sport')->addEventListener(
+        $builder->get('customObject')->addEventListener(
             FormEvents::POST_SUBMIT,
             function (FormEvent $event) use ($formModifier) {
                 // It's important here to fetch $event->getForm()->getData(), as
                 // $event->getData() will get you the client data (that is, the ID)
-                $sport = $event->getForm()->getData();
+                $customObject = $event->getForm()->getData();
 
                 // since we've added the listener to the child, we'll have to pass on
                 // the parent to the callback functions!
-                $formModifier($event->getForm()->getParent(), $sport);
+                $formModifier($event->getForm()->getParent(), $customObject);
             }
-        );*/
+        );
 
 /*        $builder->addEventListener(
             FormEvents::PRE_SET_DATA,
@@ -177,12 +183,24 @@ class CustomObjectFieldType extends AbstractType
         $builder->add($property->getInternalName(), ChoiceType::class, $options);*/
     }
 
-    private function getQueryBuilder(Portal $portal) {
+    /**
+     * @param Portal $portal
+     * @param CustomObject|null $customObject
+     * @return \Doctrine\ORM\QueryBuilder
+     */
+    private function getQueryBuilder(Portal $portal, CustomObject $customObject = null) {
 
-        return $this->propertyRepository->createQueryBuilder('property')
+        $queryBuilder = $this->propertyRepository->createQueryBuilder('property')
             ->innerJoin('property.customObject', 'customObject')
             ->where('customObject.portal = :portal')
             ->setParameter('portal', $portal);
+
+        if($customObject) {
+            $queryBuilder->andWhere('customObject = :customObject')
+                ->setParameter('customObject', $customObject);
+        }
+
+        return $queryBuilder;
     }
 
     /**
