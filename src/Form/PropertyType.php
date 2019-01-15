@@ -2,9 +2,11 @@
 
 namespace App\Form;
 
+use App\Entity\CustomObject;
 use App\Entity\Portal;
 use App\Entity\Property;
 use App\Entity\PropertyGroup;
+use App\Model\CustomObjectField;
 use App\Model\FieldCatalog;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
@@ -32,6 +34,8 @@ class PropertyType extends AbstractType
     {
         /** @var Portal $portal */
         $portal = $options['portal'];
+        /** @var CustomObject $customObject */
+        $customObject = $options['customObject'];
 
         $builder
             ->add('label', TextType::class, [
@@ -79,8 +83,10 @@ class PropertyType extends AbstractType
         // to grab the parent
         $form = $event->getForm()->getParent();
         $portal = $form->getConfig()->getOption('portal');
+        $customObject = $form->getConfig()->getOption('customObject');
 
         $data = $event->getData();
+        $builderData = null;
         $fieldClass = null;
         $options = [
             'auto_initialize' => false,
@@ -115,7 +121,9 @@ class PropertyType extends AbstractType
                 break;
             case FieldCatalog::CUSTOM_OBJECT:
                 $fieldClass = CustomObjectFieldType::class;
+                $builderData = new CustomObjectField();
                 $options['portal'] = $portal;
+                $options['customObject'] = $customObject;
                 break;
         }
 
@@ -130,7 +138,7 @@ class PropertyType extends AbstractType
         $builder = $form->getConfig()->getFormFactory()->createNamedBuilder(
             'field',
             $fieldClass,
-            null,
+            $builderData,
             $options
         );
 
@@ -148,7 +156,8 @@ class PropertyType extends AbstractType
         ));
 
         $resolver->setRequired([
-            'portal'
+            'portal',
+            'customObject'
         ]);
     }
 }

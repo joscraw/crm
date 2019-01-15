@@ -63,18 +63,22 @@ class CustomObjectFieldType extends AbstractType
     {
         /** @var Portal $portal */
         $portal = $options['portal'];
+        /** @var CustomObject $customObject */
+        $customObject = $options['customObject'];
 
         $builder->add('customObject', EntityType::class, array(
             'class' => CustomObject::class,
-            'query_builder' => function (EntityRepository $er) {
+            'query_builder' => function (EntityRepository $er) use ($portal) {
                 return $er->createQueryBuilder('customObject')
+                    ->where('customObject.portal = :portal')
+                    ->setParameter('portal', $portal)
                     ->orderBy('customObject.label', 'ASC');
             },
             'choice_label' => 'label',
             'expanded' => false,
             'multiple' => false,
             'required' => false,
-            'placeholder' => false,
+            'placeholder' => 'Select a custom object please...',
             'attr' => [
                 'class' => 'js-custom-object'
             ]
@@ -87,56 +91,50 @@ class CustomObjectFieldType extends AbstractType
 
         /**
          * @param FormInterface $form
-         * @param CustomObject|null $customObject
+         * @param CustomObject|null $customObjectReference
          */
-        $formModifier = function (FormInterface $form, CustomObject $customObject = null) use ($portal) {
+        $formModifier = function (FormInterface $form, CustomObject $customObjectReference = null) use ($portal) {
 
+            $choices = null === $customObjectReference ? array() : $this->getQueryBuilder($portal, $customObjectReference);
+
+            if(null === $customObjectReference) {
+                $placeholder = 'Select an object up above to get started!';
+            } elseif(empty($choices)) {
+                $placeholder = 'Woah, hold up! No Properties exist for that object yet!';
+            } else {
+                $placeholder = 'Start typing to search..';
+            }
+            
             $form->add('selectizeSearchResultProperties', EntityType::class, array(
                 'class' => Property::class,
-                'query_builder' => function (EntityRepository $er) use ($portal, $customObject) {
-                    return $this->getQueryBuilder($portal, $customObject);
-                },
+                /*
+                'query_builder' => function (EntityRepository $er) use ($portal, $customObjectReference) {
+                    return $this->getQueryBuilder($portal, $customObjectReference);
+                },*/
+                'choices' => $choices,
                 'choice_label' => 'label',
                 'expanded' => false,
                 'multiple' => true,
                 'label' => 'Search Result Properties',
                 'help' => 'When adding a value to this property, these will be the visible properties you will be able to see in the search to help you make your choice.',
                 'required' => true,
-                /*'data' => 60,*/
-                /*'placeholder' => false,*/
                 'attr' => [
-                    'placeholder' => 'Start typing to search..',
+                    'placeholder' => $placeholder,
                     'class' => 'js-selectize-multiple-select'
                 ]
             ));
-
-
-
-           /* $positions = null === $sport ? array() : $sport->getAvailablePositions();*/
-
-           /* $form->add('selectizeSearchResultProperties',
-                TextType::class,
-                [
-                    'auto_initialize' => false
-                ]
-            );*/
         };
 
         $builder->addEventListener(
             FormEvents::PRE_SET_DATA,
             function (FormEvent $event) use ($formModifier) {
-                // this would be your entity, i.e. SportMeetup
+
                 $data = $event->getData();
 
-                if($data) {
+                $formModifier($event->getForm(), $data->getCustomObject());
 
-                }
-
-                $formModifier($event->getForm());
             }
         );
-
-        /*$builder->get('customObject')->addEventListener(FormEvents::POST_SUBMIT, [$this, 'fieldModifier']);*/
 
         $builder->get('customObject')->addEventListener(
             FormEvents::POST_SUBMIT,
@@ -150,57 +148,23 @@ class CustomObjectFieldType extends AbstractType
                 $formModifier($event->getForm()->getParent(), $customObject);
             }
         );
-
-/*        $builder->addEventListener(
-            FormEvents::PRE_SET_DATA,
-            function (FormEvent $event) use ($formModifier) {
-                // this would be your entity, i.e. SportMeetup
-                $data = $event->getData();
-
-                $formModifier($event->getForm(), $data->getSport());
-            }
-        );
-
-
-        $builder->get('customObject')->addEventListener(FormEvents::POST_SUBMIT, [$this, 'fieldModifier']);*/
-
-        /*$builder->add('selectizeSearchResultProperties', CheckboxType::class, array(
-            'label'    => 'Multiple',
-            'required' => false,
-        ));
-
-        $choices = $property->getField()->getOptionsForChoiceTypeField();
-        $options = array_merge([
-            'choices'  => $choices,
-            'label' => $property->getLabel(),
-            'expanded' => false,
-            'multiple' => true,
-            'required' => false,
-            'attr' => [
-                'class' => 'js-selectize-multiple-select'
-            ]
-        ], $options);
-        $builder->add($property->getInternalName(), ChoiceType::class, $options);*/
     }
 
     /**
      * @param Portal $portal
-     * @param CustomObject|null $customObject
+     * @param CustomObject|null $customObjectReference
      * @return \Doctrine\ORM\QueryBuilder
      */
-    private function getQueryBuilder(Portal $portal, CustomObject $customObject = null) {
+    private function getQueryBuilder(Portal $portal, CustomObject $customObjectReference) {
 
         $queryBuilder = $this->propertyRepository->createQueryBuilder('property')
             ->innerJoin('property.customObject', 'customObject')
             ->where('customObject.portal = :portal')
-            ->setParameter('portal', $portal);
+            ->andWhere('customObject = :customObject')
+            ->setParameter('portal', $portal)
+            ->setParameter('customObject', $customObjectReference);
 
-        if($customObject) {
-            $queryBuilder->andWhere('customObject = :customObject')
-                ->setParameter('customObject', $customObject);
-        }
-
-        return $queryBuilder;
+        return $queryBuilder->getQuery()->getResult();
     }
 
     /**
@@ -246,7 +210,8 @@ class CustomObjectFieldType extends AbstractType
         ));
 
         $resolver->setRequired([
-            'portal'
+            'portal',
+            'customObject'
         ]);
     }
 }

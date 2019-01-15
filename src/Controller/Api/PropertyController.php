@@ -96,7 +96,8 @@ class PropertyController extends ApiController
         $property->setCustomObject($customObject);
 
         $form = $this->createForm(PropertyType::class, $property, [
-            'portal' => $portal
+            'portal' => $portal,
+            'customObject' => $customObject
         ]);
 
         $form->handleRequest($request);
