@@ -3,6 +3,7 @@
 namespace App\Form;
 
 use App\Entity\CustomObject;
+use App\Entity\Portal;
 use App\Entity\Property;
 use App\Entity\Record;
 use App\Form\DataTransformer\IdToRecordTransformer;
@@ -57,6 +58,9 @@ class RecordType extends AbstractType
 
         /** @var Property $properties[] */
         $properties = $options['properties'];
+
+        /** @var Portal $portal */
+        $portal = $options['portal'];
 
         foreach($properties as $property) {
             $options = [];
@@ -366,7 +370,8 @@ class RecordType extends AbstractType
     public function configureOptions(OptionsResolver $resolver)
     {
         $resolver->setRequired([
-           'properties'
+           'properties',
+            'portal'
         ]);
     }
 }

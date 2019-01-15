@@ -87,7 +87,7 @@ class PropertySettingsController extends AbstractController
      */
     public function indexAction(Portal $portal, CustomObject $customObject) {
 
-        $properties = $this->propertyRepository->findAll();
+        $properties = $this->propertyRepository->find(67);
 
         /*$field = $properties[3]->getField();
 

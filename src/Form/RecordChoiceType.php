@@ -144,7 +144,7 @@ class RecordChoiceType extends AbstractType implements ChoiceLoaderInterface
     {
         $resolver->setDefaults([
             'choice_loader' => $this,
-            'multiple' => false
+            'multiple' => false,
             ]);
     }
 }

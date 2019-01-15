@@ -56,6 +56,16 @@ class PropertyListener
      */
     private function deserializePropertyField(Property $property)
     {
+        /*$encoders = array(new XmlEncoder(), new JsonEncoder());
+         $normalizers = array(new ObjectNormalizer());
+         $serializer = new Serializer($normalizers, $encoders);
+
+        $propertyField = json_encode($property->getField()['selectizeSearchResultProperties'][0]);
+
+        $propertyField = $this->serializer->deserialize($propertyField, Property::class, 'json');
+
+        $name = "Josh";*/
+
         $propertyField = json_encode($property->getField());
         $propertyField = $this->serializer->deserialize($propertyField, AbstractField::class, 'json');
         $property->setField($propertyField);

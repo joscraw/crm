@@ -94,11 +94,12 @@ class RecordController extends ApiController
 
     /**
      * @Route("/create-form", name="create_record_form", methods={"GET"}, options = { "expose" = true })
+     * @param Portal $portal
      * @return JsonResponse
      * @throws \App\Controller\Exception\InvalidInputException
      * @throws \App\Controller\Exception\MissingRequiredQueryParameterException
      */
-    public function getRecordFormAction() {
+    public function getRecordFormAction(Portal $portal) {
 
         $records = $this->recordRepository->findAll();
 
@@ -109,7 +110,8 @@ class RecordController extends ApiController
         ]);
 
         $form = $this->createForm(RecordType::class, null, [
-            'properties' => $properties
+            'properties' => $properties,
+            'portal' => $portal
         ]);
 
         $formMarkup = $this->renderView(
@@ -145,7 +147,8 @@ class RecordController extends ApiController
         ]);
 
         $form = $this->createForm(RecordType::class, null, [
-            'properties' => $properties
+            'properties' => $properties,
+            'portal' => $portal
         ]);
 
         $form->handleRequest($request);

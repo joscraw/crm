@@ -16,7 +16,7 @@ use App\Validator\Constraints as CustomAssert;
  * @ORM\EntityListeners({"App\EntityListener\PropertyListener"})
  * @CustomAssert\PropertyAlreadyExists
  */
-class Property
+class Property implements \JsonSerializable
 {
     use TimestampableEntity;
 
@@ -219,5 +219,26 @@ class Property
     public function setRequired(bool $required): void
     {
         $this->required = $required;
+    }
+
+    /**
+     * Specify data which should be serialized to JSON
+     * @link https://php.net/manual/en/jsonserializable.jsonserialize.php
+     * @return mixed data which can be serialized by <b>json_encode</b>,
+     * which is a value of any type other than a resource.
+     * @since 5.4.0
+     */
+    public function jsonSerialize()
+    {
+       return [
+           'id' => $this->getId(),
+           'internalName' => $this->getInternalName(),
+           'label' => $this->getLabel(),
+           'fieldType' => $this->getFieldType()
+       ];
+    }
+
+    public function setId($id) {
+        $this->id = $id;
     }
 }

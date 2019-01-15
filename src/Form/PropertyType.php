@@ -2,6 +2,7 @@
 
 namespace App\Form;
 
+use App\Entity\Portal;
 use App\Entity\Property;
 use App\Entity\PropertyGroup;
 use App\Model\FieldCatalog;
@@ -29,6 +30,9 @@ class PropertyType extends AbstractType
      */
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
+        /** @var Portal $portal */
+        $portal = $options['portal'];
+
         $builder
             ->add('label', TextType::class, [
                 'required' => true,
@@ -74,6 +78,8 @@ class PropertyType extends AbstractType
         // since we've added the listener to the child, we'll have
         // to grab the parent
         $form = $event->getForm()->getParent();
+        $portal = $form->getConfig()->getOption('portal');
+
         $data = $event->getData();
         $fieldClass = null;
         $options = [
@@ -109,6 +115,7 @@ class PropertyType extends AbstractType
                 break;
             case FieldCatalog::CUSTOM_OBJECT:
                 $fieldClass = CustomObjectFieldType::class;
+                $options['portal'] = $portal;
                 break;
         }
 
@@ -139,5 +146,9 @@ class PropertyType extends AbstractType
         $resolver->setDefaults(array(
             'data_class' => Property::class,
         ));
+
+        $resolver->setRequired([
+            'portal'
+        ]);
     }
 }

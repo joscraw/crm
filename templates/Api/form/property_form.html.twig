@@ -42,9 +42,14 @@
         {{ form_row(form.field.customObject, {'attr': {novalidate: 'novalidate'}}) }}
     {% endif %}
 
+    {% if form.field.selectizeSearchResultProperties is defined %}
+        {{ form_row(form.field.selectizeSearchResultProperties, {'attr': {novalidate: 'novalidate'}}) }}
+    {% endif %}
+
     {% if form.field.multiple is defined %}
         {{ form_row(form.field.multiple, {'attr': {novalidate: 'novalidate'}}) }}
     {% endif %}
+
 </div>
 <br>
 {{ form_rest(form) }}

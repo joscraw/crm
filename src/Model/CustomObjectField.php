@@ -3,6 +3,8 @@
 namespace App\Model;
 
 use App\Entity\CustomObject;
+use Doctrine\Common\Collections\ArrayCollection;
+use App\Entity\Property;
 
 /**
  * Class CustomObjectField
@@ -31,6 +33,20 @@ class CustomObjectField extends AbstractField implements \JsonSerializable
     private $multiple = false;
 
     /**
+     * When searching for a record to assign to this field when using selectize.js
+     * you have the ability to control what properties you see back
+     * in the search results response. This allows for a more intuitive search
+     *
+     * @var Property[] $selectizeSearchResultProperties
+     */
+    private $selectizeSearchResultProperties;
+
+    public function __construct()
+    {
+        $this->selectizeSearchResultProperties = new ArrayCollection();
+    }
+
+    /**
      * (PHP 5 &gt;= 5.4.0)<br/>
      * Specify data which should be serialized to JSON
      * @link http://php.net/manual/en/jsonserializable.jsonserialize.php
@@ -45,7 +61,8 @@ class CustomObjectField extends AbstractField implements \JsonSerializable
                 'name'          => $this->getName(),
                 'description'   => $this->getDescription(),
                 'customObject'  => $this->getCustomObject(),
-                'multiple'      => $this->isMultiple()
+                'multiple'      => $this->isMultiple(),
+                'selectizeSearchResultProperties' => $this->getSelectizeSearchResultProperties()->toArray()
             ]
         );
     }
@@ -79,9 +96,55 @@ class CustomObjectField extends AbstractField implements \JsonSerializable
 
     /**
      * @param bool $multiple
+     * @return CustomObjectField
      */
-    public function setMultiple(bool $multiple): void
+    public function setMultiple(bool $multiple): self
     {
         $this->multiple = $multiple;
+
+        return $this;
     }
+
+    public function getSelectizeSearchResultProperties()
+    {
+        return $this->selectizeSearchResultProperties;
+    }
+
+    /**
+     * @param ArrayCollection $selectizeSearchResultProperties
+     * @return CustomObjectField
+     */
+    public function setSelectizeSearchResultProperties($selectizeSearchResultProperties): self
+    {
+        $this->selectizeSearchResultProperties = $selectizeSearchResultProperties;
+
+        return $this;
+    }
+
+    /**
+     * @param Property $selectizeSearchResultProperty
+     * @return CustomObjectField
+     */
+    public function addSelectizeSearchResultProperty(Property $selectizeSearchResultProperty): self
+    {
+        if (!$this->selectizeSearchResultProperties->contains($selectizeSearchResultProperty)) {
+            $this->selectizeSearchResultProperties[] = $selectizeSearchResultProperty;
+        }
+        return $this;
+    }
+
+    /**
+     * @param Property $selectizeSearchResultProperty
+     * @return CustomObjectField
+     */
+    public function removeSelectizeSearchResultProperty(Property $selectizeSearchResultProperty): self
+    {
+        if ($this->selectizeSearchResultProperties->contains($selectizeSearchResultProperty)) {
+            $this->selectizeSearchResultProperties->removeElement($selectizeSearchResultProperty);
+        }
+
+        return $this;
+    }
+
+
 }

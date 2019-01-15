@@ -38,6 +38,12 @@ class PropertyCreateForm {
         );
 
         this.$wrapper.on(
+            'change',
+            PropertyCreateForm._selectors.customObject,
+            this.handleCustomObjectChange.bind(this)
+        );
+
+        this.$wrapper.on(
             'click',
             PropertyCreateForm._selectors.addItem,
             this.handleAddItemButtonClick.bind(this)
@@ -59,6 +65,7 @@ class PropertyCreateForm {
         return {
             newPropertyForm: '.js-new-property-form',
             fieldType: '.js-field-type',
+            customObject: '.js-custom-object',
             addItem: '.js-addItem',
             removeItem: '.js-removeItem'
         }
@@ -85,11 +92,8 @@ class PropertyCreateForm {
         }
 
         const $form = $(e.currentTarget);
-        const formData = {};
-
-        for (let fieldData of $form.serializeArray()) {
-            formData[fieldData.name] = fieldData.value
-        }
+        let formData = new FormData($form.get(0));
+        formData.append('custom_object_id', this.customObject);
 
         this._saveProperty(formData)
             .then((data) => {
@@ -102,6 +106,18 @@ class PropertyCreateForm {
             // Use for when the form is being generated on the JS side
             /*this._mapErrorsToForm(errorData.errors);*/
         });
+    }
+
+    handleCustomObjectChange(e) {
+
+        if(e.cancelable) {
+            e.preventDefault();
+        }
+
+        debugger;
+
+        console.log("test");
+
     }
 
     handleFieldTypeChange(e) {
@@ -207,7 +223,9 @@ class PropertyCreateForm {
             $.ajax({
                 url,
                 method: 'POST',
-                data: data
+                data: data,
+                processData: false,
+                contentType: false
             }).then((data, textStatus, jqXHR) => {
                 resolve(data);
             }).catch((jqXHR) => {
