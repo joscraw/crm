@@ -3,7 +3,9 @@
 namespace App\Repository;
 
 use App\Entity\CustomObject;
+use App\Entity\Portal;
 use App\Entity\Property;
+use App\Model\FieldCatalog;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
@@ -90,6 +92,26 @@ class PropertyRepository extends ServiceEntityRepository
             ->setParameter('label', $label)
             ->getQuery()
             ->getOneOrNullResult();
+    }
+
+    /**
+     * @param Portal $portal
+     * @param CustomObject|null $customObjectReference
+     * @return \Doctrine\ORM\QueryBuilder
+     */
+    public function getSelectizeSearchResultProperties(Portal $portal, CustomObject $customObjectReference) {
+
+        $fieldTypes = [FieldCatalog::SINGLE_LINE_TEXT, FieldCatalog::MULTI_LINE_TEXT];
+        $queryBuilder = $this->createQueryBuilder('property')
+            ->innerJoin('property.customObject', 'customObject')
+            ->where('customObject.portal = :portal')
+            ->andWhere('customObject = :customObject')
+            ->andWhere('property.fieldType IN (:fieldTypes)')
+            ->setParameter('fieldTypes', $fieldTypes)
+            ->setParameter('portal', $portal)
+            ->setParameter('customObject', $customObjectReference);
+
+        return $queryBuilder->getQuery()->getResult();
     }
 
 }

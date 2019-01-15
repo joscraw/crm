@@ -64,8 +64,6 @@ class CustomObjectFieldType extends AbstractType
     {
         /** @var Portal $portal */
         $portal = $options['portal'];
-        /** @var CustomObject $customObject */
-        $customObject = $options['customObject'];
 
         $builder->add('customObject', EntityType::class, array(
             'class' => CustomObject::class,
@@ -90,114 +88,46 @@ class CustomObjectFieldType extends AbstractType
             'required' => false,
         ));
 
-        /**
-         * @param FormInterface $form
-         * @param CustomObject|null $customObjectReference
-         */
-        $formModifier = function (FormInterface $form, CustomObject $customObjectReference = null) use ($portal) {
+        $builder->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event) {
+            $data = $event->getData();
+            $this->modifyForm($event->getForm(), $data->getCustomObject());
+        });
 
-            $choices = null === $customObjectReference ? array() : $this->getQueryBuilder($portal, $customObjectReference);
-
-            if(null === $customObjectReference) {
-                $placeholder = 'Select an object up above to get started!';
-            } elseif(empty($choices)) {
-                $placeholder = 'Woah, hold up! No Properties exist for that object yet!';
-            } else {
-                $placeholder = 'Start typing to search..';
-            }
-
-            $form->add('selectizeSearchResultProperties', EntityType::class, array(
-                'class' => Property::class,
-                'choices' => $choices,
-                'choice_label' => 'label',
-                'expanded' => false,
-                'multiple' => true,
-                'label' => 'Search Result Properties',
-                'help' => 'When using this property throughout the CRM, these SRP\'s (Search Result Properties) will show up in the dropdown of the HTML field.',
-                'required' => false,
-                'attr' => [
-                    'placeholder' => $placeholder,
-                    'class' => 'js-selectize-multiple-select'
-                ]
-            ));
-        };
-
-        $builder->addEventListener(
-            FormEvents::PRE_SET_DATA,
-            function (FormEvent $event) use ($formModifier) {
-
-                $data = $event->getData();
-
-                $formModifier($event->getForm(), $data->getCustomObject());
-
-            }
-        );
-
-        $builder->get('customObject')->addEventListener(
-            FormEvents::POST_SUBMIT,
-            function (FormEvent $event) use ($formModifier) {
-                // It's important here to fetch $event->getForm()->getData(), as
-                // $event->getData() will get you the client data (that is, the ID)
-                $customObject = $event->getForm()->getData();
-
-                // since we've added the listener to the child, we'll have to pass on
-                // the parent to the callback functions!
-                $formModifier($event->getForm()->getParent(), $customObject);
-            }
-        );
+        $builder->get('customObject')->addEventListener(FormEvents::POST_SUBMIT, function (FormEvent $event) {
+            $customObject = $event->getForm()->getData();
+            $this->modifyForm($event->getForm()->getParent(), $customObject);
+        });
     }
 
-    /**
-     * @param Portal $portal
-     * @param CustomObject|null $customObjectReference
-     * @return \Doctrine\ORM\QueryBuilder
-     */
-    private function getQueryBuilder(Portal $portal, CustomObject $customObjectReference) {
+    private function modifyForm(FormInterface $form, CustomObject $customObjectReference = null) {
 
-        $fieldTypes = [FieldCatalog::SINGLE_LINE_TEXT, FieldCatalog::MULTI_LINE_TEXT];
-        $queryBuilder = $this->propertyRepository->createQueryBuilder('property')
-            ->innerJoin('property.customObject', 'customObject')
-            ->where('customObject.portal = :portal')
-            ->andWhere('customObject = :customObject')
-            ->andWhere('property.fieldType IN (:fieldTypes)')
-            ->setParameter('fieldTypes', $fieldTypes)
-            ->setParameter('portal', $portal)
-            ->setParameter('customObject', $customObjectReference);
+        $portal = $form->getConfig()->getOption('portal');
 
-        return $queryBuilder->getQuery()->getResult();
-    }
+        $choices = null === $customObjectReference ? array() : $this->propertyRepository->getSelectizeSearchResultProperties($portal, $customObjectReference);
 
-    /**
-     * @see * @see https://stackoverflow.com/questions/25354806/how-to-add-an-event-listener-to-a-dynamically-added-field-using-symfony-forms#answer-29735470
-     * @param FormEvent $event
-     */
-    public function fieldModifier(FormEvent $event) {
-
-        // since we've added the listener to the child, we'll have
-        // to grab the parent
-        $form = $event->getForm()->getParent();
-        $data = $event->getData();
-
-
-        if(is_array($data)) {
-            $name = "josh";
+        if(null === $customObjectReference) {
+            $placeholder = 'Select an object up above to get started!';
+        } elseif(empty($choices)) {
+            $placeholder = 'Woah, hold up! No Properties exist for that object yet!';
+        } else {
+            $placeholder = 'Start typing to search..';
         }
 
-        // This is a really important thing to NOTE!
-        // event listeners can only be attached to a builder (FormBuilderInterface)
-        // and NOT to a form (FormInterface). This is why we have to create our own builder
-        // the builder is nothing more then a form field
-        $builder = $form->getConfig()->getFormFactory()->createNamedBuilder(
-            'selectizeSearchResultProperties',
-            TextType::class,
-            null,
-            [
-                'auto_initialize' => false
+        $form->add('selectizeSearchResultProperties', EntityType::class, array(
+            'class' => Property::class,
+            'choices' => $choices,
+            'choice_label' => 'label',
+            'expanded' => false,
+            'multiple' => true,
+            'label' => 'Search Result Properties',
+            'help' => 'When using this property throughout the CRM, these SRP\'s (Search Result Properties) will show up in the dropdown of the HTML field.',
+            'required' => false,
+            'attr' => [
+                'placeholder' => $placeholder,
+                'class' => 'js-selectize-multiple-select'
             ]
-        );
+        ));
 
-        // last but not least, let's add the builder (form field) to the main form
-        $form->add($builder->getForm());
     }
 
     /**
