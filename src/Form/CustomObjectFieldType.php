@@ -8,6 +8,7 @@ use App\Entity\Property;
 use App\Model\CustomObjectField;
 use App\Model\DatePickerField;
 use App\Model\DropdownSelectField;
+use App\Model\FieldCatalog;
 use App\Model\SingleLineTextField;
 use App\Repository\CustomObjectRepository;
 use App\Repository\PropertyRepository;
@@ -104,19 +105,15 @@ class CustomObjectFieldType extends AbstractType
             } else {
                 $placeholder = 'Start typing to search..';
             }
-            
+
             $form->add('selectizeSearchResultProperties', EntityType::class, array(
                 'class' => Property::class,
-                /*
-                'query_builder' => function (EntityRepository $er) use ($portal, $customObjectReference) {
-                    return $this->getQueryBuilder($portal, $customObjectReference);
-                },*/
                 'choices' => $choices,
                 'choice_label' => 'label',
                 'expanded' => false,
                 'multiple' => true,
                 'label' => 'Search Result Properties',
-                'help' => 'When adding a value to this property, these will be the visible properties you will be able to see in the search to help you make your choice.',
+                'help' => 'When using this property throughout the CRM, these SRP\'s (Search Result Properties) will show up in the dropdown of the HTML field.',
                 'required' => false,
                 'attr' => [
                     'placeholder' => $placeholder,
@@ -157,10 +154,13 @@ class CustomObjectFieldType extends AbstractType
      */
     private function getQueryBuilder(Portal $portal, CustomObject $customObjectReference) {
 
+        $fieldTypes = [FieldCatalog::SINGLE_LINE_TEXT, FieldCatalog::MULTI_LINE_TEXT];
         $queryBuilder = $this->propertyRepository->createQueryBuilder('property')
             ->innerJoin('property.customObject', 'customObject')
             ->where('customObject.portal = :portal')
             ->andWhere('customObject = :customObject')
+            ->andWhere('property.fieldType IN (:fieldTypes)')
+            ->setParameter('fieldTypes', $fieldTypes)
             ->setParameter('portal', $portal)
             ->setParameter('customObject', $customObjectReference);
 
