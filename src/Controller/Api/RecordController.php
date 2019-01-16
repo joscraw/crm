@@ -203,6 +203,7 @@ class RecordController extends ApiController
      * @return Response
      * @throws \App\Controller\Exception\InvalidInputException
      * @throws \App\Controller\Exception\MissingRequiredQueryParameterException
+     * @throws \Doctrine\DBAL\DBALException
      */
     public function getRecordsForSelectizeAction(Request $request) {
 
@@ -216,31 +217,44 @@ class RecordController extends ApiController
 
 
         $results = $this->recordRepository->getSelectizeData($search, $allowedCustomObjectToSearch, $selectizeAllowedSearchableProperties);
-
-        $allowedProperties = ['id'];
-        foreach($selectizeAllowedSearchableProperties as $allowedSearchableProperty) {
-            $allowedProperties[] = $allowedSearchableProperty->getInternalName();
-        }
+        $interalNameToLabelMap = $this->propertyRepository->findAllInternalNamesAndLabelsForCustomObject($customObject);
 
         $selectizeRecords = [];
         foreach($results as $result) {
+            $properties = $result['properties'];
+            $id = $result['id'];
+//            unset($result['properties']);
             $selectizeRecord = [];
-
-            $whitelistedResult = array_intersect_key($result, array_flip($allowedProperties));
-
-            $label = [];
-            foreach($whitelistedResult as $name => $value) {
-                $label[] = sprintf("%s: %s",
-                    $name,
-                    $value
-                );
-            }
-            $label = implode(',', $label);
-
-            $selectizeRecord['labelField'] = $label;
-            $selectizeRecord['searchField'] = 'id:' . $result['id'] . ' ' . json_encode($result['properties']);
             $selectizeRecord['valueField'] = $result['id'];
 
+            $items = [];
+            foreach($result as $internalName => $value) {
+                $item = [];
+                $key = array_search($internalName, array_column($interalNameToLabelMap, 'internalName'));
+                $label = '';
+                if($key !== false) {
+                    $label = $interalNameToLabelMap[$key]['label'];
+                } elseif($internalName === 'id') {
+                    $label = 'Id';
+                } else {
+                    continue;
+                }
+
+                $item['internalName'] = $internalName;
+                $item['label'] = $label;
+                $item['value'] = $value;
+                $items[] = $item;
+            }
+
+            $selectizeRecord['items'] = $items;
+
+            $labels = [];
+            foreach($items as $item) {
+                $labels[] = sprintf("%s: %s", $item['label'], $item['value']);
+            }
+            $selectizeRecord['labelField'] = implode(', ', $labels);
+
+            $selectizeRecord['searchField'] = 'id:' . $result['id'] . ' ' . json_encode($properties);
             $selectizeRecords[] = $selectizeRecord;
         }
 

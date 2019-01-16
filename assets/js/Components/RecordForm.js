@@ -92,6 +92,20 @@ class RecordForm {
                         callback(res);
                     }
                 })
+            },
+            render: {
+                option: function(record, escape) {
+
+                    let rows = ``,
+                        items = record.items;
+                    debugger;
+                    for(let i = 0; i < items.length; i++) {
+                        debugger;
+                        let item = items[i];
+                        rows += `<li class="c-selectize__list-item">${item.label}: ${item.value}</li>`;
+                    }
+                    return `<div class="c-selectize"><ul class="c-selectize__list">${rows}</ul></div>`;
+                }
             }
         });
 

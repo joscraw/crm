@@ -81,6 +81,21 @@ class PropertyRepository extends ServiceEntityRepository
     }
 
     /**
+     * @param CustomObject $customObject
+     * @return mixed
+     */
+    public function findAllInternalNamesAndLabelsForCustomObject(CustomObject $customObject)
+    {
+        return $this->createQueryBuilder('property')
+            ->select('property.internalName, property.label')
+            ->innerJoin('property.customObject', 'customObject')
+            ->where('customObject = :customObject')
+            ->setParameter('customObject', $customObject)
+            ->getQuery()
+            ->getArrayResult();
+    }
+
+    /**
      * @param $label
      * @return mixed
      * @throws \Doctrine\ORM\NonUniqueResultException
