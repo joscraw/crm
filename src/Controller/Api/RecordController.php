@@ -222,8 +222,6 @@ class RecordController extends ApiController
         $selectizeRecords = [];
         foreach($results as $result) {
             $properties = $result['properties'];
-            $id = $result['id'];
-//            unset($result['properties']);
             $selectizeRecord = [];
             $selectizeRecord['valueField'] = $result['id'];
 
@@ -231,7 +229,6 @@ class RecordController extends ApiController
             foreach($result as $internalName => $value) {
                 $item = [];
                 $key = array_search($internalName, array_column($interalNameToLabelMap, 'internalName'));
-                $label = '';
                 if($key !== false) {
                     $label = $interalNameToLabelMap[$key]['label'];
                 } elseif($internalName === 'id') {
