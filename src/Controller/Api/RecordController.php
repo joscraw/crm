@@ -297,8 +297,8 @@ class RecordController extends ApiController
 
         $response = new JsonResponse([
             'draw'  => $draw,
+            'recordsFiltered' => !empty($search['value']) ? $filteredRecordsCount : $totalRecordsCount,
             'recordsTotal'  => $totalRecordsCount,
-            'recordsFiltered'   => $filteredRecordsCount,
             'data'  => $results
         ],  Response::HTTP_OK);
 

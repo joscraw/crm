@@ -44,6 +44,9 @@ class RecordTable {
                 { "data": "tes_555", "name": "tes_555", "title": "tes_555"},
                 //repeat for each of my 20 or so fields
             ],
+            // num of results per page
+            "pageLength": 10,
+            /*"iDisplayLength": 1,*/
             "ajax": {
                 url: Routing.generate('records_for_datatable', {internalIdentifier: this.portal}),
                 type: "GET",

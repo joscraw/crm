@@ -5,6 +5,8 @@ import Settings from '../../Settings';
 import PropertySettingsTopBar from './../PropertySettingsTopBar';
 import PropertyList from "./../PropertyList";
 import PropertyGroupFormModal from "./../PropertyGroupFormModal";
+import CustomObjectSettingsTopBar from "../CustomObjectSettingsTopBar";
+import CustomObjectList from "../CustomObjectList";
 
 
 class PropertySettings {
@@ -24,12 +26,23 @@ class PropertySettings {
     }
 
     render() {
-        const $topBar = this.$wrapper.find('.js-top-bar');
-        new PropertySettingsTopBar($topBar, this.globalEventDispatcher, this.portal, this.customObject);
+        this.$wrapper.html(PropertySettings.markup());
+        new PropertySettingsTopBar(this.$wrapper.find('.js-top-bar'), this.globalEventDispatcher, this.portal, this.customObject);
+        new PropertyList(this.$wrapper.find('.js-main-content'), this.globalEventDispatcher, this.portal, this.customObject);
 
-        const $div = $("<div>", {"class": "js-property-list"});
-        this.$wrapper.find('.js-main-content').append($div);
-        new PropertyList($div, this.globalEventDispatcher, this.portal, this.customObject);
+    }
+
+    static markup() {
+
+        return `
+      <div class="js-record-list-page">
+        <div class="l-grid">
+            <div class="l-grid__top-bar js-top-bar"></div>
+            <div class="l-grid__sub-bar js-sub-bar"></div>
+            <div class="l-grid__main-content js-main-content"></div>
+        </div>
+      </div>
+    `;
     }
 
 }

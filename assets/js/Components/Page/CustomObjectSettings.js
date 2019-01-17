@@ -23,28 +23,24 @@ class CustomObjectSettings {
     }
 
     render() {
-        const $topBar = this.$wrapper.find('.js-top-bar');
-        const $mainContent = this.$wrapper.find('.js-main-content');
-
-  /*      const container = document.createElement("div");
-        document.body.appendChild(container);
-
-        const $div = $("<div>", {"class": "js-top-bar"});
-        $("#box").append($div);
-*/
-        new CustomObjectSettingsTopBar($topBar, this.globalEventDispatcher, this.portal);
-        new CustomObjectList($mainContent, this.globalEventDispatcher, this.portal);
+        this.$wrapper.html(CustomObjectSettings.markup());
+        new CustomObjectSettingsTopBar(this.$wrapper.find('.js-top-bar'), this.globalEventDispatcher, this.portal);
+        new CustomObjectList(this.$wrapper.find('.js-main-content'), this.globalEventDispatcher, this.portal);
 
     }
 
-/*    static markup() {
+    static markup() {
+
         return `
+      <div class="js-record-list-page">
         <div class="l-grid">
-            <div class="l-grid__top-bar"></div>
-            <div class="l-grid__main-content"></div>
+            <div class="l-grid__top-bar js-top-bar"></div>
+            <div class="l-grid__sub-bar js-sub-bar"></div>
+            <div class="l-grid__main-content js-main-content"></div>
         </div>
+      </div>
     `;
-    }*/
+    }
 }
 
 export default CustomObjectSettings;

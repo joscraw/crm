@@ -86,8 +86,8 @@ class CustomObjectSettingsController extends AbstractController
 
         $response = new JsonResponse([
             'draw'  => $draw,
+            'recordsFiltered' => !empty($search['value']) ? $filteredObjectsCount : $totalObjectsCount,
             'recordsTotal'  => $totalObjectsCount,
-            'recordsFiltered'   => $filteredObjectsCount,
             'data'  => $arrayResults
         ],  Response::HTTP_OK);
 

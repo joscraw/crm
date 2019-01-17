@@ -34,6 +34,8 @@ class CustomObjectList {
         );
 
         $('#table_id').DataTable({
+
+            "pageLength": 10,
             "processing": true,
             "serverSide": true,
             "responsive": true,
@@ -67,8 +69,27 @@ class CustomObjectList {
         return `
             <table id="table_id" class="table table-striped table-bordered" style="width:100%">
                 <thead>
+               <!-- <tr><td>hye</td>
+                <td>bye</td>
+                </tr>-->
+             
                 </thead>
                 <tbody>
+            <!--    <tr>
+             <td>Josh</td>
+                <td>Beth</td>
+                </tr>
+                
+                   <tr>
+             <td>1</td>
+                <td>2</td>
+                </tr>
+                
+                   <tr>
+             <td>3</td>
+                <td>4</td>
+                </tr>
+             -->
                 </tbody>
             </table>
         `;

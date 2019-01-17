@@ -119,7 +119,7 @@ class RecordRepository extends ServiceEntityRepository
                 $query .= ' ' . $order['dir'];
             }
 
-        // limit 
+        // limit
         $query .= sprintf(' LIMIT %s, %s', $start, $length);
 
         $em = $this->getEntityManager();
