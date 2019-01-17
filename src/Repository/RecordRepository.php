@@ -97,6 +97,31 @@ class RecordRepository extends ServiceEntityRepository
         $resultStr = implode(",",$resultStr);
         $query = sprintf("SELECT id, %s from record WHERE custom_object_id='%s'", $resultStr, $customObject->getId());
 
+        // Search
+        if(!empty($search['value'])) {
+            $searchItem = $search['value'];
+            $query .= 'and LOWER(properties) LIKE \'%'.strtolower($searchItem).'%\'';
+        }
+
+        // Order
+        foreach ($orders as $key => $order) {
+            // Orders does not contain the name of the column, but its number,
+            // so add the name so we can handle it just like the $columns array
+            $orders[$key]['name'] = $columns[$order['column']]['name'];
+        }
+
+        foreach ($orders as $key => $order) {
+
+                if(isset($order['name'])) {
+                    $query .= ' ORDER BY ' . $order['name'];
+                }
+
+                $query .= ' ' . $order['dir'];
+            }
+
+        // limit 
+        $query .= sprintf(' LIMIT %s, %s', $start, $length);
+
         $em = $this->getEntityManager();
         $stmt = $em->getConnection()->prepare($query);
         $stmt->execute();
