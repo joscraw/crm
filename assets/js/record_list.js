@@ -1,6 +1,6 @@
 import $ from 'jquery';
-import RecordList from './Components/RecordList';
+import RecordList from './Components/Page/RecordList';
 
 $(document).ready(function() {
-    new RecordList($('.js-record-list'), window.globalEventDispatcher);
+    new RecordList($('#app'), window.globalEventDispatcher);
 });

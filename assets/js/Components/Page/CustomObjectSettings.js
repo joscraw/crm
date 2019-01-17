@@ -1,11 +1,11 @@
 'use strict';
 
 import $ from 'jquery';
-import Settings from '../Settings';
-import CustomObjectFormModal from './CustomObjectFormModal';
-import CustomObjectList from './CustomObjectList';
-import OpenCreateCustomObjectModalButton from './OpenCreateCustomObjectModalButton';
-import CustomObjectSettingsTopBar from './CustomObjectSettingsTopBar';
+import Settings from '../../Settings';
+import CustomObjectFormModal from './../CustomObjectFormModal';
+import CustomObjectList from './../CustomObjectList';
+import OpenCreateCustomObjectModalButton from './../OpenCreateCustomObjectModalButton';
+import CustomObjectSettingsTopBar from './../CustomObjectSettingsTopBar';
 
 
 class CustomObjectSettings {

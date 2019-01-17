@@ -258,4 +258,50 @@ class RecordController extends ApiController
         $response = new JsonResponse($selectizeRecords,  Response::HTTP_OK);
         return $response;
     }
+
+    /**
+     * DataTables passes unique params in the Request and expects a specific response payload
+     * @see https://datatables.net/manual/server-side Documentation for ServerSide Implimentation for DataTables
+     *
+     * @Route("/datatable", name="records_for_datatable", methods={"GET"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param Request $request
+     * @return Response
+     * @throws \App\Controller\Exception\InvalidInputException
+     * @throws \App\Controller\Exception\MissingRequiredQueryParameterException
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    public function getRecordsForDatatableAction(Portal $portal, Request $request) {
+
+        $draw = intval($request->query->get('draw'));
+        $start = $request->query->get('start');
+        $length = $request->query->get('length');
+        $search = $request->query->get('search');
+        $orders = $request->query->get('order');
+        $columns = $request->query->get('columns');
+        $customObject = $this->getCustomObjectForRequest($this->customObjectRepository);
+
+        $propertiesForDatatable = $this->propertyRepository->findBy(array(
+           'customObject' => $customObject
+        ));
+
+        $results = $this->recordRepository->getDataTableData($start, $length, $search, $orders, $columns, $propertiesForDatatable, $customObject);
+
+        $countQuery = $this->recordRepository->createQueryBuilder('records')->select('COUNT(records)');
+        $totalRecordsCount = $countQuery->getQuery()->getSingleScalarResult();
+
+
+        $filteredRecordsCount = $results['countResult'];
+        $results = $results['results'];
+
+        $response = new JsonResponse([
+            'draw'  => $draw,
+            'recordsTotal'  => $totalRecordsCount,
+            'recordsFiltered'   => $filteredRecordsCount,
+            'data'  => $results
+        ],  Response::HTTP_OK);
+
+        return $response;
+    }
 }

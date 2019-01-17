@@ -35,7 +35,6 @@ class RecordListTopBar {
 
     handleKeyupEvent(e) {
 
-        debugger;
         if(e.cancelable) {
             e.preventDefault();
         }
@@ -52,14 +51,6 @@ class RecordListTopBar {
 
         this.$wrapper.html(RecordListTopBar.markup());
         new CreateRecordButton(this.$wrapper.find('.js-top-bar-button-container'), this.globalEventDispatcher, this.portal, this.customObject, this.customObjectLabel);
-
-
-
-
-/*        this.$wrapper.html(PropertySettingsTopBar.markup());
-        new OpenCreatePropertyGroupModalButton(this.$wrapper.find('.js-top-bar-button-container'), this.globalEventDispatcher, this.portal, this.customObject);
-        new OpenCreatePropertyModalButton(this.$wrapper.find('.js-top-bar-button-container'), this.globalEventDispatcher, this.portal, this.customObject);
-        new CustomObjectNavigation(this.$wrapper.find('.js-custom-object-navigation'), this.globalEventDispatcher, this.portal, this.customObject);*/
     }
 
     static markup() {

@@ -1,10 +1,10 @@
 'use strict';
 
 import $ from 'jquery';
-import Settings from '../Settings';
-import PropertySettingsTopBar from './PropertySettingsTopBar';
-import PropertyList from "./PropertyList";
-import PropertyGroupFormModal from "./PropertyGroupFormModal";
+import Settings from '../../Settings';
+import PropertySettingsTopBar from './../PropertySettingsTopBar';
+import PropertyList from "./../PropertyList";
+import PropertyGroupFormModal from "./../PropertyGroupFormModal";
 
 
 class PropertySettings {
