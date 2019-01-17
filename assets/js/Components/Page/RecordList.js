@@ -27,7 +27,7 @@ class RecordList {
     render() {
         this.$wrapper.html(RecordList.markup(this));
         new RecordListTopBar(this.$wrapper.find('.js-top-bar'), this.globalEventDispatcher, this.portal, this.customObject, this.customObjectLabel);
-        new RecordTable(this.$wrapper.find('.js-main-content'), this.globalEventDispatcher, this.portal, this.customObject);
+        new RecordTable(this.$wrapper.find('.js-main-content'), this.globalEventDispatcher, this.portal, this.customObject, this.customObjectLabel);
     }
 
     static markup() {

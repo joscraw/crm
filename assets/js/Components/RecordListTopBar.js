@@ -4,6 +4,7 @@ import $ from 'jquery';
 import Settings from '../Settings';
 import CreateRecordButton from './CreateRecordButton';
 import CustomObjectNavigation from './CustomObjectNavigation';
+import DatatableSearch from "./DatatableSearch";
 
 
 class RecordListTopBar {
@@ -22,13 +23,6 @@ class RecordListTopBar {
         this.customObjectLabel = customObjectLabel;
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
-
-     /*   this.$wrapper.on(
-            'keyup',
-            '.js-propery-search-input',
-            this.handleKeyupEvent.bind(this)
-        );
-        */
 
         this.render();
     }
@@ -51,17 +45,13 @@ class RecordListTopBar {
 
         this.$wrapper.html(RecordListTopBar.markup());
         new CreateRecordButton(this.$wrapper.find('.js-top-bar-button-container'), this.globalEventDispatcher, this.portal, this.customObject, this.customObjectLabel);
+        new DatatableSearch(this.$wrapper.find('.js-top-bar-search-container'), this.globalEventDispatcher, this.portal, this.customObject, this.customObjectLabel, "Search for a record...")
     }
 
     static markup() {
         return `
         <div class="row">
-            <div class="col-md-6 js-top-bar-search-container">
-                <div class="input-group c-search-control">
-                  <input class="form-control c-search-control__input js-propery-search-input" type="search" placeholder="Search for a property">
-                  <span class="c-search-control__foreground"><i class="fa fa-search"></i></span>
-                </div>
-            </div>
+            <div class="col-md-6 js-top-bar-search-container"></div>
         <div class="col-md-6 text-right js-top-bar-button-container"></div>
         </div>
         <br>

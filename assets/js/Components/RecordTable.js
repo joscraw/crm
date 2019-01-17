@@ -2,6 +2,7 @@
 
 import Routing from '../Routing';
 import Settings from '../Settings';
+import $ from "jquery";
 
 require( 'datatables.net-bs4' );
 require( 'datatables.net-responsive-bs4' );
@@ -17,12 +18,18 @@ class RecordTable {
      * @param portal
      * @param customObject
      */
-    constructor($wrapper, globalEventDispatcher, portal, customObject) {
+    constructor($wrapper, globalEventDispatcher, portal, customObject, customObjectLabel) {
 
         this.portal = portal;
         this.$wrapper = $wrapper;
         this.customObject = customObject;
+        this.customObjectLabel = customObjectLabel;
         this.globalEventDispatcher = globalEventDispatcher;
+
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.DATATABLE_SEARCH_KEY_UP,
+            this.applySearch.bind(this)
+        );
 
         this.render();
 
@@ -35,6 +42,25 @@ class RecordTable {
             "processing": true,
             "serverSide": true,
             "responsive": true,
+            "language": {
+                "emptyTable": `No "${this.customObjectLabel}" records found.`,
+            },
+            /*
+            the "dom" property determines what components DataTables shows by default
+
+            Possible Flags:
+
+            l - length changing input control
+            f - filtering input
+            t - The table!
+            i - Table information summary
+            p - pagination control
+            r - processing display element
+
+            For more information on the "dom" property and how to use it
+            https://datatables.net/reference/option/dom
+            */
+            "dom": "lpirt",
             "columns": [
                 { "data": "id", "name": "id", "title": "id"},
                 { "data": "first_name", "name": "first_name", "title": "first_name"},
@@ -57,13 +83,23 @@ class RecordTable {
         });
     }
 
+    /**
+     * @param args
+     */
+    applySearch(args = {}) {
+
+        debugger;
+        if(typeof args.searchValue !== 'undefined') {
+            this.searchValue = args.searchValue;
+        }
+
+        $('#table_id').DataTable().search(
+            this.searchValue
+        ).draw();
+    }
 
     reloadList() {
         $('#table_id').DataTable().ajax.reload();
-    }
-
-    loadCustomObjects() {
-
     }
 
     render() {
