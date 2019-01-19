@@ -55,6 +55,19 @@ class PropertyRepository extends ServiceEntityRepository
      * @param CustomObject $customObject
      * @return mixed
      */
+    public function findByCustomObject(CustomObject $customObject)
+    {
+        return $this->createQueryBuilder('property')
+            ->where('property.customObject = :customObject')
+            ->setParameter('customObject', $customObject->getId())
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * @param CustomObject $customObject
+     * @return mixed
+     */
     public function getDataTableData(CustomObject $customObject)
     {
 
@@ -107,6 +120,19 @@ class PropertyRepository extends ServiceEntityRepository
             ->setParameter('label', $label)
             ->getQuery()
             ->getOneOrNullResult();
+    }
+
+    /**
+     * @param $ids
+     * @return mixed
+     */
+    public function findByArrayOfIds($ids)
+    {
+        return $this->createQueryBuilder('property')
+            ->where('property.id IN (:ids)')
+            ->setParameter('ids', $ids)
+            ->getQuery()
+            ->getResult();
     }
 
     /**

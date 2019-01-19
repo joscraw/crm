@@ -225,4 +225,40 @@ class PropertyController extends ApiController
 
         return $response;
     }
+
+    /**
+     * @Route("/set-columns", name="set_property_columns", methods={"POST"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param Request $request
+     * @return JsonResponse
+     * @throws \App\Controller\Exception\InvalidInputException
+     * @throws \App\Controller\Exception\MissingRequiredQueryParameterException
+     */
+    public function setColumnsAction(Portal $portal, Request $request) {
+
+        $customObject = $this->getCustomObjectForRequest($this->customObjectRepository);
+        $selectedProperties = $request->request->get('selected_properties');
+        $allProperties = $this->propertyRepository->findByCustomObject($customObject);
+
+        foreach($allProperties as $property) {
+            $key = array_search($property->getId(), $selectedProperties);
+
+            if($key !== false) {
+                $property->setIsColumn(true);
+                $property->setColumnOrder($key);
+            } else {
+                $property->setIsColumn(false);
+                $property->setColumnOrder(null);
+            }
+
+            $this->entityManager->persist($property);
+            $this->entityManager->flush();
+        }
+
+        $response = new JsonResponse([
+            'success' => true
+        ], Response::HTTP_OK);
+
+        return $response;
+    }
 }

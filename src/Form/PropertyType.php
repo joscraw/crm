@@ -8,6 +8,7 @@ use App\Entity\Property;
 use App\Entity\PropertyGroup;
 use App\Model\CustomObjectField;
 use App\Model\FieldCatalog;
+use Doctrine\ORM\EntityRepository;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
@@ -61,6 +62,13 @@ class PropertyType extends AbstractType
                 'placeholder' => false,
                 // looks for choices from this entity
                 'class' => PropertyGroup::class,
+                'query_builder' => function (EntityRepository $er) use ($customObject) {
+                    return $er->createQueryBuilder('propertyGroup')
+                        ->innerJoin('propertyGroup.customObject', 'customObject')
+                        ->where('propertyGroup.customObject = :customObject')
+                        ->setParameter('customObject', $customObject)
+                        ->orderBy('customObject.label', 'ASC');
+                },
 
                 // uses the User.username property as the visible option string
                 'choice_label' => 'name',

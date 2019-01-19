@@ -81,12 +81,8 @@ class ColumnsForm {
         const $selectedColumnsContainer = $(ColumnsForm._selectors.selectedColumnsContainer);
         $selectedColumnsContainer.sortable({
             placeholder: "ui-state-highlight",
-            cursor: 'crosshair',
-            update: function(event, ui) {
-                var order = $("#sortable").sortable("toArray");
-                $('#image_order').val(order.join(","));
-                alert($('#image_order').val());
-            }});
+            cursor: 'crosshair'
+        });
         $selectedColumnsContainer.disableSelection();
     }
 
@@ -196,20 +192,33 @@ class ColumnsForm {
             e.preventDefault();
         }
 
+
+        debugger;
+
+        const $selectedColumnsContainer = $(ColumnsForm._selectors.selectedColumnsContainer);
+
+        let newOrderArray = $selectedColumnsContainer.sortable('toArray');
+
         const $form = $(e.currentTarget);
         let formData = new FormData($form.get(0));
         formData.append('custom_object_id', this.customObject);
 
-        this._saveRecord(formData)
+        for (let i = 0; i < newOrderArray.length; i++) {
+            formData.append('selected_properties[]', newOrderArray[i]);
+        }
+
+        debugger;
+
+        this._saveColumns(formData)
             .then((data) => {
                 debugger;
-                swal("Hooray!", `Well done, you created a shiny brand new ${this.customObjectLabel}!`, "success");
-                this.globalEventDispatcher.publish(Settings.Events.RECORD_CREATED);
+                swal("Whoop whoop!", `Columns successfully updated!`, "success");
+                this.globalEventDispatcher.publish(Settings.Events.COLUMNS_UPDATED);
             }).catch((errorData) => {
 
                 debugger;
-            this.$wrapper.html(errorData.formMarkup);
-            this.activatePlugins();
+            /*this.$wrapper.html(errorData.formMarkup);
+            this.activatePlugins();*/
 
             // Use for when the form is being generated on the JS side
             /*this._mapErrorsToForm(errorData.errors);*/
@@ -236,11 +245,11 @@ class ColumnsForm {
      * @return {Promise<any>}
      * @private
      */
-    _saveRecord(data) {
+    _saveColumns(data) {
         debugger;
         return new Promise( (resolve, reject) => {
             debugger;
-            const url = Routing.generate('create_record', {internalIdentifier: this.portal});
+            const url = Routing.generate('set_property_columns', {internalIdentifier: this.portal});
 
             $.ajax({
                 url,
@@ -249,8 +258,10 @@ class ColumnsForm {
                 processData: false,
                 contentType: false
             }).then((data, textStatus, jqXHR) => {
+                debugger;
                 resolve(data);
             }).catch((jqXHR) => {
+                debugger;
                 const errorData = JSON.parse(jqXHR.responseText);
                 reject(errorData);
             });
@@ -318,7 +329,7 @@ const mainTemplate = () => `
         <div class="js-search-container"></div>
         <div class="js-property-list"></div>
         <form class="js-selected-properties-form">
-        <input type="hidden" value="" name="sortedProperties">
+        <input type="hidden" value="" class="js-sorted-properties" name="sortedProperties">
         <button type="submit" class="btn-primary btn">Submit</button>
         </form>
         </div>
@@ -330,7 +341,7 @@ const mainTemplate = () => `
 
 
 const selectedColumnTemplate = (label, id) => `
-    <div class="card js-selected-column" id="item-${id}">
+    <div class="card js-selected-column" id="${id}">
         <div class="card-body">${label}<span><i class="fa fa-times js-remove-selected-column-icon" data-property-id="${id}" aria-hidden="true"></i></span></div>
     </div>
 `;
