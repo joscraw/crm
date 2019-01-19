@@ -37,6 +37,12 @@ class ColumnsForm {
             this.handleNewFormSubmit.bind(this)
         );
 
+        this.$wrapper.on(
+            'change',
+            ColumnsForm._selectors.propertyCheckbox,
+            this.handlePropertyCheckboxChanged.bind(this)
+        );
+
         this.globalEventDispatcher.subscribe(
             Settings.Events.COLUMN_SEARCH_KEY_UP,
             this.applySearch.bind(this)
@@ -56,6 +62,7 @@ class ColumnsForm {
     static get _selectors() {
         return {
             columnsForm: '.js-columns-form',
+            propertyCheckbox: '.js-property-checkbox'
         }
     }
 
@@ -256,6 +263,10 @@ class ColumnsForm {
         });
     }
 
+    handlePropertyCheckboxChanged(e) {
+        console.log("checkbox changed");
+    }
+
     /**
      * @param data
      * @return {Promise<any>}
@@ -288,7 +299,6 @@ class ColumnsForm {
      * @private
      */
     _addList(propertyGroup, properties) {
-        debugger;
         let $propertyList = this.$wrapper.find('.js-property-list');
         const html = listTemplate(propertyGroup);
         const $list = $($.parseHTML(html));
@@ -298,10 +308,16 @@ class ColumnsForm {
         var options = {
             valueNames: [ 'label' ],
             // Since there are no elements in the list, this will be used as template.
-            item: '<li><p class="label"></p></li>'
+            item: `<li><div class="form-check"><input class="form-check-input js-property-checkbox" name="properties[]" type="checkbox" value="" id="defaultCheck1"><label class="form-check-label" for="defaultCheck1"><p class="label"></p></label></div></li>`
         };
 
+
         this.lists.push(new List(`list-${propertyGroup.id}`, options, properties));
+
+        $( `#list-${propertyGroup.id} li input[type="checkbox"]` ).each((index, element) => {
+            $(element).val(properties[index].id);
+        });
+
     }
 }
 
