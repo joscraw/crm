@@ -57,7 +57,7 @@ class ColumnsForm {
 
         this.loadProperties().then(data => {
             this.render(data).then(() => {
-                this.renderSelectedColumns();
+                this._setSelectedColumnsCount();
             })
         });
 
@@ -73,7 +73,8 @@ class ColumnsForm {
             selectedPropertiesForm: '.js-selected-properties-form',
             propertyCheckbox: '.js-property-checkbox',
             selectedColumnsContainer: '.js-selected-columns-container',
-            removeSelectedColumnIcon: '.js-remove-selected-column-icon'
+            removeSelectedColumnIcon: '.js-remove-selected-column-icon',
+            selectedColumnsCount: '.js-selected-columns-count'
         }
     }
 
@@ -97,25 +98,6 @@ class ColumnsForm {
 
         this.$wrapper.find('.js-property-list').find(`[data-property-id="${propertyId}"]`).prop('checked', false);
 
-        /*this.renderSelectedColumns();*/
-    }
-
-    renderSelectedColumns() {
-
-        debugger;
-        const $selectedColumnsContainer = $(ColumnsForm._selectors.selectedColumnsContainer);
-        $selectedColumnsContainer.html("");
-        const $form = $(ColumnsForm._selectors.columnsForm);
-        for (let fieldData of $form.serializeArray()) {
-            debugger;
-            let value = fieldData.value;
-            let label = $form.find(`input[value=${value}]`).attr('data-label');
-            const html = selectedColumnTemplate(label, value);
-            const $selectedColumnTemplate = $($.parseHTML(html));
-            $selectedColumnsContainer.append($selectedColumnTemplate);
-        }
-
-        this.activatePlugins();
     }
 
     /**
@@ -123,7 +105,6 @@ class ColumnsForm {
      */
     applySearch(args = {}) {
 
-        debugger;
         if(typeof args.searchValue !== 'undefined') {
             this.searchValue = args.searchValue;
         }
@@ -166,7 +147,6 @@ class ColumnsForm {
             const html = mainTemplate();
             const $mainTemplate = $($.parseHTML(html));
             this.$wrapper.append($mainTemplate);
-            debugger;
 
             for(let key in data.data.property_groups) {
                 debugger;
@@ -192,9 +172,6 @@ class ColumnsForm {
             e.preventDefault();
         }
 
-
-        debugger;
-
         const $selectedColumnsContainer = $(ColumnsForm._selectors.selectedColumnsContainer);
 
         let newOrderArray = $selectedColumnsContainer.sortable('toArray');
@@ -207,8 +184,6 @@ class ColumnsForm {
             formData.append('selected_properties[]', newOrderArray[i]);
         }
 
-        debugger;
-
         this._saveColumns(formData)
             .then((data) => {
                 debugger;
@@ -216,7 +191,6 @@ class ColumnsForm {
                 this.globalEventDispatcher.publish(Settings.Events.COLUMNS_UPDATED);
             }).catch((errorData) => {
 
-                debugger;
             /*this.$wrapper.html(errorData.formMarkup);
             this.activatePlugins();*/
 
@@ -226,18 +200,13 @@ class ColumnsForm {
     }
 
     handlePropertyCheckboxChanged(e) {
-        debugger;
         let label = $(e.target).attr('data-label');
         let propertyId = $(e.target).attr('data-property-id');
         if($(e.target).is(":checked")) {
             this._addSelectedColumn(label, propertyId);
         } else {
-            debugger;
             this._removeSelectedColumn(propertyId);
         }
-
-        debugger;
-        /*this.renderSelectedColumns();*/
     }
 
     /**
@@ -246,9 +215,9 @@ class ColumnsForm {
      * @private
      */
     _saveColumns(data) {
-        debugger;
+
         return new Promise( (resolve, reject) => {
-            debugger;
+
             const url = Routing.generate('set_property_columns', {internalIdentifier: this.portal});
 
             $.ajax({
@@ -258,10 +227,8 @@ class ColumnsForm {
                 processData: false,
                 contentType: false
             }).then((data, textStatus, jqXHR) => {
-                debugger;
                 resolve(data);
             }).catch((jqXHR) => {
-                debugger;
                 const errorData = JSON.parse(jqXHR.responseText);
                 reject(errorData);
             });
@@ -296,6 +263,23 @@ class ColumnsForm {
             $(element).next().attr('for', `property-${properties[index].id}`);
         });
 
+        let selectedColumns = {};
+        for(let i = 0; i < properties.length; i++) {
+            let property = properties[i];
+
+            if(property.isColumn) {
+                $( `#list-${propertyGroup.id} li [data-property-id='${property.id}']` ).prop('checked', true);
+                selectedColumns[property.columnOrder] = {'label': property.label, 'id': property.id};
+            } else {
+                $( `#list-${propertyGroup.id} li [data-property-id='${property.id}']` ).prop('checked', false);
+            }
+        }
+
+        // make sure the selected columns appear in the correct order
+        for(let order in selectedColumns) {
+            this._addSelectedColumn(selectedColumns[order].label, selectedColumns[order].id);
+        }
+
     }
 
     _addSelectedColumn(label, propertyId) {
@@ -308,10 +292,15 @@ class ColumnsForm {
     }
 
     _removeSelectedColumn(propertyId) {
-        debugger;
         const $selectedColumnsContainer = $(ColumnsForm._selectors.selectedColumnsContainer);
         $selectedColumnsContainer.find(`[data-property-id="${propertyId}"]`).closest('.js-selected-column').remove();
 
+    }
+
+    _setSelectedColumnsCount() {
+        const $selectedColumnsContainer = $(ColumnsForm._selectors.selectedColumnsContainer);
+        let count = $selectedColumnsContainer.find('.js-selected-column').length;
+        $(ColumnsForm._selectors.selectedColumnsCount).html(`Selected Columns: ${count}`);
     }
 }
 
@@ -326,14 +315,20 @@ const listTemplate = ({id, label}) => `
 const mainTemplate = () => `
     <div class="row">
         <div class="col-md-6">
-        <div class="js-search-container"></div>
+            <div class="js-search-container"></div>
+        </div>
+        <div class="col-md-6"></div>
+        <div class="col-md-6">
         <div class="js-property-list"></div>
         <form class="js-selected-properties-form">
         <input type="hidden" value="" class="js-sorted-properties" name="sortedProperties">
         <button type="submit" class="btn-primary btn">Submit</button>
         </form>
         </div>
-        <div class="js-selected-columns-container col-md-6"></div>
+        <div class="col-md-6">
+        <div class="js-selected-columns-count"></div>
+        <div class="js-selected-columns-container"></div>
+        </div>
         <div class="col-md-12">
         </div>
     </div>

@@ -214,6 +214,8 @@ class PropertyController extends ApiController
                 $payload['properties'][$propertyGroupId][] = [
                     'id' => $property->getId(),
                     'label' => $property->getLabel(),
+                    'isColumn' => $property->getIsColumn(),
+                    'columnOrder' => $property->getColumnOrder()
                 ];
             }
         }
