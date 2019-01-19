@@ -49,8 +49,9 @@ class ColumnsForm {
         );
 
         this.loadProperties().then(data => {
-            debugger;
-            this.render(data);
+            this.render(data).then(() => {
+                this.renderSelectedColumns();
+            })
         });
 
         /*this.activatePlugins();*/
@@ -61,9 +62,29 @@ class ColumnsForm {
      */
     static get _selectors() {
         return {
-            columnsForm: '.js-columns-form',
-            propertyCheckbox: '.js-property-checkbox'
+            columnsForm: '.js-property-list-form',
+            propertyCheckbox: '.js-property-checkbox',
+            selectedColumnsContainer: '.js-selected-columns-container'
         }
+    }
+
+    renderSelectedColumns() {
+
+        debugger;
+
+        const $selectedColumnsContainer = $(ColumnsForm._selectors.selectedColumnsContainer);
+        $selectedColumnsContainer.html("");
+        const $form = $(ColumnsForm._selectors.columnsForm);
+        for (let fieldData of $form.serializeArray()) {
+            let value = fieldData.value;
+            let label = $form.find(`input[value=${value}]`).attr('data-label');
+            const html = selectedColumnTemplate(label);
+            const $selectedColumnTemplate = $($.parseHTML(html));
+            $selectedColumnsContainer.append($selectedColumnTemplate);
+        }
+
+        debugger;
+
     }
 
     /**
@@ -216,22 +237,25 @@ class ColumnsForm {
     }
 
     render(data) {
-        debugger;
-        const html = mainTemplate();
-        const $mainTemplate = $($.parseHTML(html));
-        this.$wrapper.append($mainTemplate);
-        debugger;
-
-        for(let key in data.data.property_groups) {
+        return new Promise((resolve, reject) => {
+            const html = mainTemplate();
+            const $mainTemplate = $($.parseHTML(html));
+            this.$wrapper.append($mainTemplate);
             debugger;
-            if(data.data.property_groups.hasOwnProperty(key)) {
-                let propertyGroup = data.data.property_groups[key];
-                let properties = data.data.properties[key];
-                this._addList(propertyGroup, properties);
-            }
-        }
 
-        new ColumnSearch(this.$wrapper.find('.js-search-container'), this.globalEventDispatcher, this.portal, this.customObject, this.customObjectLabel, "Search for a column...");
+            for(let key in data.data.property_groups) {
+                debugger;
+                if(data.data.property_groups.hasOwnProperty(key)) {
+                    let propertyGroup = data.data.property_groups[key];
+                    let properties = data.data.properties[key];
+                    this._addList(propertyGroup, properties);
+                }
+            }
+
+            new ColumnSearch(this.$wrapper.find('.js-search-container'), this.globalEventDispatcher, this.portal, this.customObject, this.customObjectLabel, "Search for a column...");
+
+            resolve();
+        });
     }
 
     /**
@@ -265,6 +289,7 @@ class ColumnsForm {
 
     handlePropertyCheckboxChanged(e) {
         console.log("checkbox changed");
+        this.renderSelectedColumns();
     }
 
     /**
@@ -299,24 +324,29 @@ class ColumnsForm {
      * @private
      */
     _addList(propertyGroup, properties) {
-        let $propertyList = this.$wrapper.find('.js-property-list');
+        let $propertyListForm = this.$wrapper.find('.js-property-list-form');
         const html = listTemplate(propertyGroup);
         const $list = $($.parseHTML(html));
-        $propertyList.append($list);
-
+        $propertyListForm.append($list);
 
         var options = {
             valueNames: [ 'label' ],
             // Since there are no elements in the list, this will be used as template.
-            item: `<li><div class="form-check"><input class="form-check-input js-property-checkbox" name="properties[]" type="checkbox" value="" id="defaultCheck1"><label class="form-check-label" for="defaultCheck1"><p class="label"></p></label></div></li>`
+            item: `<li><div class="form-check"><input class="form-check-input js-property-checkbox" name="properties[]" type="checkbox" value="" id=""><label class="form-check-label" for=""><p class="label"></p></label></div></li>`
         };
-
 
         this.lists.push(new List(`list-${propertyGroup.id}`, options, properties));
 
         $( `#list-${propertyGroup.id} li input[type="checkbox"]` ).each((index, element) => {
+            $(element).attr('data-label', properties[index].label);
+            $(element).attr('id', `property-${properties[index].id}`);
+            $(element).next().attr('for', `property-${properties[index].id}`);
             $(element).val(properties[index].id);
         });
+
+    }
+
+    _addSelectedColumn() {
 
     }
 }
@@ -332,17 +362,15 @@ const mainTemplate = () => `
     <div class="row">
         <div class="js-property-list col-md-6">
         <div class="js-search-container"></div>
+        <form class="js-property-list-form"></form>
         </div>
-        <div class="js-selected-properties col-md-6"></div>
+        <div class="js-selected-columns-container col-md-6"></div>
     </div>
 `;
 
-const propertyListTemplate = () => {
 
-};
-
-const selectedPropertiesTemplate = () => {
-
-};
+const selectedColumnTemplate = (label) => `
+    <div class="js-selected-column">${label}</div>
+`;
 
 export default ColumnsForm;
