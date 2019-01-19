@@ -43,6 +43,12 @@ class ColumnsForm {
             this.handlePropertyCheckboxChanged.bind(this)
         );
 
+        this.$wrapper.on(
+            'click',
+            ColumnsForm._selectors.removeSelectedColumnIcon,
+            this.handleRemoveSelectedColumnIconClicked.bind(this)
+        );
+
         this.globalEventDispatcher.subscribe(
             Settings.Events.COLUMN_SEARCH_KEY_UP,
             this.applySearch.bind(this)
@@ -54,7 +60,6 @@ class ColumnsForm {
             })
         });
 
-        /*this.activatePlugins();*/
     }
 
     /**
@@ -64,13 +69,23 @@ class ColumnsForm {
         return {
             columnsForm: '.js-property-list-form',
             propertyCheckbox: '.js-property-checkbox',
-            selectedColumnsContainer: '.js-selected-columns-container'
+            selectedColumnsContainer: '.js-selected-columns-container',
+            removeSelectedColumnIcon: '.js-remove-selected-column-icon'
         }
     }
 
-    renderSelectedColumns() {
+    handleRemoveSelectedColumnIconClicked(e) {
 
-        debugger;
+        if(e.cancelable) {
+            e.preventDefault();
+        }
+
+        let propertyId = $(e.target).data('propertyId');
+        $( `${ColumnsForm._selectors.propertyCheckbox}#property-${propertyId}` ).prop('checked', false);
+        this.renderSelectedColumns();
+    }
+
+    renderSelectedColumns() {
 
         const $selectedColumnsContainer = $(ColumnsForm._selectors.selectedColumnsContainer);
         $selectedColumnsContainer.html("");
@@ -78,13 +93,10 @@ class ColumnsForm {
         for (let fieldData of $form.serializeArray()) {
             let value = fieldData.value;
             let label = $form.find(`input[value=${value}]`).attr('data-label');
-            const html = selectedColumnTemplate(label);
+            const html = selectedColumnTemplate(label, value);
             const $selectedColumnTemplate = $($.parseHTML(html));
             $selectedColumnsContainer.append($selectedColumnTemplate);
         }
-
-        debugger;
-
     }
 
     /**
@@ -110,112 +122,6 @@ class ColumnsForm {
                     $(element).removeClass('d-none');
                 }
             }
-        });
-    }
-
-    activatePlugins() {
-        $('.js-selectize-multiple-select').selectize({
-            plugins: ['remove_button'],
-            sortField: 'text'
-        });
-
-        $('.js-selectize-single-select').selectize({
-            sortField: 'text'
-        });
-
-        debugger;
-
-        const url = Routing.generate('records_for_selectize', {internalIdentifier: this.portal});
-
-        var $j = $('.js-allowed-selectize-search-result-properties').val();
-
-        debugger;
-        this.$select = $('.js-selectize-single-select-with-search').selectize({
-            valueField: 'valueField',
-            labelField: 'labelField',
-            searchField: 'searchField',
-            load: (query, callback) => {
-                console.log(this.customObject);
-                debugger;
-                if (!query.length) return callback();
-                $.ajax({
-                    url: url,
-                    type: 'GET',
-                    dataType: 'json',
-                    data: {
-                        search: query,
-                        custom_object_id: this.customObject,
-                        allowed_custom_object_to_search: $('.js-selectize-single-select-with-search').data('allowedCustomObjectToSearch'),
-                        allowed_selectize_search_result_properties: $('.js-allowed-selectize-search-result-properties').val()
-                    },
-                    error: () => {
-                        debugger;
-                        callback();
-                    },
-                    success: (res) => {
-                        debugger;
-                        this.$select.options = res;
-                        callback(res);
-                    }
-                })
-            },
-            render: {
-                option: function(record, escape) {
-
-                    let rows = ``,
-                        items = record.items;
-                    debugger;
-                    for(let i = 0; i < items.length; i++) {
-                        debugger;
-                        let item = items[i];
-                        rows += `<li class="c-selectize__list-item">${item.label}: ${item.value}</li>`;
-                    }
-                    return `<div class="c-selectize"><ul class="c-selectize__list">${rows}</ul></div>`;
-                }
-            }
-        });
-
-
-        debugger;
-
-/*        var $name = $('.js-selectize-single-select-with-search').selectize({
-            valueField: 'Id',
-            labelField: 'Name',
-            searchField: 'Name',
-            options: [],
-            persist: false,
-            loadThrottle: 600,
-            create: false,
-            allowEmptyOption: true,
-            load: function(query, callback) {
-                if (!query.length) return callback();
-                $.ajax({
-                    url: url,
-                    type: 'GET',
-                    dataType: 'json',
-                    data: {
-                        name: query,
-                        additionalDataIfRequired: 'Additional Data'
-                    },
-                    error: function() {
-                        debugger;
-                        callback();
-                    },
-                    success: function(res) {
-                        debugger;
-                        // you can apply any modification to data before passing it to selectize
-                        callback(res);
-                        // res is json response from server
-                        // it contains array of objects. Each object has two properties. In this case 'id' and 'Name'
-                        // if array is inside some other property of res like 'response' or something. than use this
-                        //callback(res.response);
-                    }
-                });
-            }
-        })[0].selectize;*/
-
-        $('.js-datepicker').datepicker({
-            format: 'yyyy-mm-dd'
         });
     }
 
@@ -288,7 +194,6 @@ class ColumnsForm {
     }
 
     handlePropertyCheckboxChanged(e) {
-        console.log("checkbox changed");
         this.renderSelectedColumns();
     }
 
@@ -369,8 +274,10 @@ const mainTemplate = () => `
 `;
 
 
-const selectedColumnTemplate = (label) => `
-    <div class="js-selected-column">${label}</div>
+const selectedColumnTemplate = (label, id) => `
+    <div class="card js-selected-column">
+        <div class="card-body">${label}<span><i class="fa fa-times js-remove-selected-column-icon" data-property-id="${id}" aria-hidden="true"></i></span></div>
+    </div>
 `;
 
 export default ColumnsForm;
