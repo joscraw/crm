@@ -289,12 +289,13 @@ class ColumnsForm {
         $selectedColumnsContainer.append($selectedColumnTemplate);
 
         this.activatePlugins();
+        this._setSelectedColumnsCount();
     }
 
     _removeSelectedColumn(propertyId) {
         const $selectedColumnsContainer = $(ColumnsForm._selectors.selectedColumnsContainer);
         $selectedColumnsContainer.find(`[data-property-id="${propertyId}"]`).closest('.js-selected-column').remove();
-
+        this._setSelectedColumnsCount();
     }
 
     _setSelectedColumnsCount() {
@@ -316,21 +317,20 @@ const mainTemplate = () => `
     <div class="row">
         <div class="col-md-6">
             <div class="js-search-container"></div>
-        </div>
-        <div class="col-md-6"></div>
-        <div class="col-md-6">
-        <div class="js-property-list"></div>
-        <form class="js-selected-properties-form">
-        <input type="hidden" value="" class="js-sorted-properties" name="sortedProperties">
-        <button type="submit" class="btn-primary btn">Submit</button>
-        </form>
+            <div class="js-property-list"></div>
         </div>
         <div class="col-md-6">
-        <div class="js-selected-columns-count"></div>
-        <div class="js-selected-columns-container"></div>
+            <div class="js-selected-columns-count"></div>
+            <div class="js-selected-columns-container"></div>
         </div>
-        <div class="col-md-12">
+        
+        <div class="col-md-6">
+            <form class="js-selected-properties-form">
+                <input type="hidden" value="" class="js-sorted-properties" name="sortedProperties">
+                <button type="submit" class="btn-primary btn">Submit</button>
+            </form>
         </div>
+      
     </div>
 `;
 
