@@ -63,4 +63,19 @@ class PropertyGroupRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * @param CustomObject $customObject
+     * @return mixed
+     */
+    public function getColumnsData(CustomObject $customObject)
+    {
+
+        return $this->createQueryBuilder('propertyGroup')
+            ->leftJoin('propertyGroup.properties', 'properties')
+            ->where('propertyGroup.customObject = :customObject')
+            ->setParameter('customObject', $customObject->getId())
+            ->getQuery()
+            ->getResult();
+    }
 }

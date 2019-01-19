@@ -82,6 +82,16 @@ class Property implements \JsonSerializable
      */
     protected $required = false;
 
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $isColumn = false;
+
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private $columnOrder;
+
 
     /**
      * @ORM\PrePersist
@@ -240,5 +250,29 @@ class Property implements \JsonSerializable
 
     public function setId($id) {
         $this->id = $id;
+    }
+
+    public function getIsColumn(): ?bool
+    {
+        return $this->isColumn;
+    }
+
+    public function setIsColumn(bool $isColumn): self
+    {
+        $this->isColumn = $isColumn;
+
+        return $this;
+    }
+
+    public function getColumnOrder(): ?int
+    {
+        return $this->columnOrder;
+    }
+
+    public function setColumnOrder(?int $columnOrder): self
+    {
+        $this->columnOrder = $columnOrder;
+
+        return $this;
     }
 }

@@ -183,4 +183,46 @@ class PropertyController extends ApiController
 
         return $response;
     }
+
+    /**
+     * @Route("/get-for-columns", name="properties_for_columns", methods={"GET"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param Request $request
+     * @return JsonResponse
+     * @throws \App\Controller\Exception\InvalidInputException
+     * @throws \App\Controller\Exception\MissingRequiredQueryParameterException
+     */
+    public function getPropertiesForColumnsAction(Portal $portal, Request $request) {
+
+        $customObject = $this->getCustomObjectForRequest($this->customObjectRepository);
+
+        $propertyGroups = $this->propertyGroupRepository->getColumnsData($customObject);
+        $payload = [];
+        $payload['property_groups'] = [];
+        $payload['properties']= [];
+
+        foreach($propertyGroups as $propertyGroup) {
+            $propertyGroupId = $propertyGroup->getId();
+            $payload['property_groups'][$propertyGroupId] = [
+                'id' => $propertyGroupId,
+                'label' => $propertyGroup->getName()
+            ];
+
+            $properties = $propertyGroup->getProperties();
+
+            foreach($properties as $property) {
+                $payload['properties'][$propertyGroupId][] = [
+                    'id' => $property->getId(),
+                    'label' => $property->getLabel(),
+                ];
+            }
+        }
+
+        $response = new JsonResponse([
+            'success' => true,
+            'data'  => $payload
+        ], Response::HTTP_OK);
+
+        return $response;
+    }
 }
