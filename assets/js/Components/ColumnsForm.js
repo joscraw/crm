@@ -7,6 +7,7 @@ import Settings from '../Settings';
 import FormHelper from '../FormHelper';
 import List from 'list.js';
 import ColumnSearch from "./ColumnSearch";
+require('jquery-ui-dist/jquery-ui');
 
 class ColumnsForm {
 
@@ -33,7 +34,7 @@ class ColumnsForm {
 
         this.$wrapper.on(
             'submit',
-            ColumnsForm._selectors.columnsForm,
+            ColumnsForm._selectors.selectedPropertiesForm,
             this.handleNewFormSubmit.bind(this)
         );
 
@@ -60,6 +61,8 @@ class ColumnsForm {
             })
         });
 
+        this.activatePlugins();
+
     }
 
     /**
@@ -67,11 +70,24 @@ class ColumnsForm {
      */
     static get _selectors() {
         return {
-            columnsForm: '.js-property-list-form',
+            selectedPropertiesForm: '.js-selected-properties-form',
             propertyCheckbox: '.js-property-checkbox',
             selectedColumnsContainer: '.js-selected-columns-container',
             removeSelectedColumnIcon: '.js-remove-selected-column-icon'
         }
+    }
+
+    activatePlugins() {
+        const $selectedColumnsContainer = $(ColumnsForm._selectors.selectedColumnsContainer);
+        $selectedColumnsContainer.sortable({
+            placeholder: "ui-state-highlight",
+            cursor: 'crosshair',
+            update: function(event, ui) {
+                var order = $("#sortable").sortable("toArray");
+                $('#image_order').val(order.join(","));
+                alert($('#image_order').val());
+            }});
+        $selectedColumnsContainer.disableSelection();
     }
 
     handleRemoveSelectedColumnIconClicked(e) {
@@ -81,22 +97,29 @@ class ColumnsForm {
         }
 
         let propertyId = $(e.target).data('propertyId');
-        $( `${ColumnsForm._selectors.propertyCheckbox}#property-${propertyId}` ).prop('checked', false);
-        this.renderSelectedColumns();
+        this._removeSelectedColumn(propertyId);
+
+        this.$wrapper.find('.js-property-list').find(`[data-property-id="${propertyId}"]`).prop('checked', false);
+
+        /*this.renderSelectedColumns();*/
     }
 
     renderSelectedColumns() {
 
+        debugger;
         const $selectedColumnsContainer = $(ColumnsForm._selectors.selectedColumnsContainer);
         $selectedColumnsContainer.html("");
         const $form = $(ColumnsForm._selectors.columnsForm);
         for (let fieldData of $form.serializeArray()) {
+            debugger;
             let value = fieldData.value;
             let label = $form.find(`input[value=${value}]`).attr('data-label');
             const html = selectedColumnTemplate(label, value);
             const $selectedColumnTemplate = $($.parseHTML(html));
             $selectedColumnsContainer.append($selectedColumnTemplate);
         }
+
+        this.activatePlugins();
     }
 
     /**
@@ -194,7 +217,18 @@ class ColumnsForm {
     }
 
     handlePropertyCheckboxChanged(e) {
-        this.renderSelectedColumns();
+        debugger;
+        let label = $(e.target).attr('data-label');
+        let propertyId = $(e.target).attr('data-property-id');
+        if($(e.target).is(":checked")) {
+            this._addSelectedColumn(label, propertyId);
+        } else {
+            debugger;
+            this._removeSelectedColumn(propertyId);
+        }
+
+        debugger;
+        /*this.renderSelectedColumns();*/
     }
 
     /**
@@ -229,29 +263,43 @@ class ColumnsForm {
      * @private
      */
     _addList(propertyGroup, properties) {
-        let $propertyListForm = this.$wrapper.find('.js-property-list-form');
+        let $propertyList = this.$wrapper.find('.js-property-list');
         const html = listTemplate(propertyGroup);
         const $list = $($.parseHTML(html));
-        $propertyListForm.append($list);
+        $propertyList.append($list);
 
         var options = {
             valueNames: [ 'label' ],
             // Since there are no elements in the list, this will be used as template.
-            item: `<li><div class="form-check"><input class="form-check-input js-property-checkbox" name="properties[]" type="checkbox" value="" id=""><label class="form-check-label" for=""><p class="label"></p></label></div></li>`
+            item: `<li><div class="form-check"><input class="form-check-input js-property-checkbox" type="checkbox" value="" id=""><label class="form-check-label" for=""><p class="label"></p></label></div></li>`
         };
 
         this.lists.push(new List(`list-${propertyGroup.id}`, options, properties));
 
         $( `#list-${propertyGroup.id} li input[type="checkbox"]` ).each((index, element) => {
             $(element).attr('data-label', properties[index].label);
+            $(element).attr('data-property-id', properties[index].id);
+
+            // Used to make sure when you click the label the checkbox gets checked
             $(element).attr('id', `property-${properties[index].id}`);
             $(element).next().attr('for', `property-${properties[index].id}`);
-            $(element).val(properties[index].id);
         });
 
     }
 
-    _addSelectedColumn() {
+    _addSelectedColumn(label, propertyId) {
+        const $selectedColumnsContainer = $(ColumnsForm._selectors.selectedColumnsContainer);
+        const html = selectedColumnTemplate(label, propertyId);
+        const $selectedColumnTemplate = $($.parseHTML(html));
+        $selectedColumnsContainer.append($selectedColumnTemplate);
+
+        this.activatePlugins();
+    }
+
+    _removeSelectedColumn(propertyId) {
+        debugger;
+        const $selectedColumnsContainer = $(ColumnsForm._selectors.selectedColumnsContainer);
+        $selectedColumnsContainer.find(`[data-property-id="${propertyId}"]`).closest('.js-selected-column').remove();
 
     }
 }
@@ -261,21 +309,28 @@ const listTemplate = ({id, label}) => `
       <p>${label}</p>
       <ul class="list"></ul>
     </div>
+    
 `;
 
 const mainTemplate = () => `
     <div class="row">
-        <div class="js-property-list col-md-6">
+        <div class="col-md-6">
         <div class="js-search-container"></div>
-        <form class="js-property-list-form"></form>
+        <div class="js-property-list"></div>
+        <form class="js-selected-properties-form">
+        <input type="hidden" value="" name="sortedProperties">
+        <button type="submit" class="btn-primary btn">Submit</button>
+        </form>
         </div>
         <div class="js-selected-columns-container col-md-6"></div>
+        <div class="col-md-12">
+        </div>
     </div>
 `;
 
 
 const selectedColumnTemplate = (label, id) => `
-    <div class="card js-selected-column">
+    <div class="card js-selected-column" id="item-${id}">
         <div class="card-body">${label}<span><i class="fa fa-times js-remove-selected-column-icon" data-property-id="${id}" aria-hidden="true"></i></span></div>
     </div>
 `;
