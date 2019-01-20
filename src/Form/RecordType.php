@@ -77,14 +77,20 @@ class RecordType extends AbstractType
                 case FieldCatalog::SINGLE_LINE_TEXT:
                     $options = array_merge([
                         'required' => false,
-                        'label' => $property->getLabel()
+                        'label' => $property->getLabel(),
+                        'attr' => [
+                            'data-property-id' => $property->getId()
+                        ]
                     ], $options);
                     $builder->add($property->getInternalName(), TextType::class, $options);
                     break;
                 case FieldCatalog::MULTI_LINE_TEXT:
                     $options = array_merge([
                         'required' => false,
-                        'label' => $property->getLabel()
+                        'label' => $property->getLabel(),
+                        'attr' => [
+                            'data-property-id' => $property->getId()
+                        ]
                     ], $options);
                     $builder->add($property->getInternalName(), TextareaType::class, $options);
                     break;
@@ -97,7 +103,8 @@ class RecordType extends AbstractType
                         'expanded' => false,
                         'multiple' => false,
                         'attr' => [
-                            'class' => 'js-selectize-single-select'
+                            'class' => 'js-selectize-single-select',
+                            'data-property-id' => $property->getId()
                         ]
                     ], $options);
                     $builder->add($property->getInternalName(), ChoiceType::class, $options);
@@ -113,7 +120,8 @@ class RecordType extends AbstractType
                         'multiple' => false,
                         'required' => false,
                         'attr' => [
-                            'class' => 'js-selectize-single-select'
+                            'class' => 'js-selectize-single-select',
+                            'data-property-id' => $property->getId()
                         ]
                     ], $options);
                     $builder->add($property->getInternalName(), ChoiceType::class, $options);
@@ -127,7 +135,8 @@ class RecordType extends AbstractType
                         'multiple' => true,
                         'required' => false,
                         'attr' => [
-                            'class' => 'js-selectize-multiple-select'
+                            'class' => 'js-selectize-multiple-select',
+                            'data-property-id' => $property->getId()
                         ]
                     ], $options);
                     $builder->add($property->getInternalName(), ChoiceType::class, $options);
@@ -141,7 +150,8 @@ class RecordType extends AbstractType
                         'expanded' => false,
                         'multiple' => false,
                         'attr' => [
-                            'class' => 'js-selectize-single-select'
+                            'class' => 'js-selectize-single-select',
+                            'data-property-id' => $property->getId()
                         ]
                     ], $options);
                     $builder->add($property->getInternalName(), ChoiceType::class, $options);
@@ -149,7 +159,10 @@ class RecordType extends AbstractType
                 case FieldCatalog::NUMBER:
                     $options = array_merge([
                         'required' => false,
-                        'label' => $property->getLabel()
+                        'label' => $property->getLabel(),
+                        'attr' => [
+                            'data-property-id' => $property->getId()
+                        ]
                     ], $options);
                     $builder->add($property->getInternalName(), NumberType::class, $options);
                     break;
@@ -161,89 +174,14 @@ class RecordType extends AbstractType
                         // prevents rendering it as type="date", to avoid HTML5 date pickers
                         'html5' => false,
                         // adds a class that can be selected in JavaScript
-                        'attr' => ['class' => 'js-datepicker'],
+                        'attr' => [
+                            'class' => 'js-datepicker',
+                            'data-property-id' => $property->getId()
+                        ],
                     ], $options);
                     $builder->add($property->getInternalName(), DateType::class, $options);
                     break;
                 case FieldCatalog::CUSTOM_OBJECT:
-                    /*$customObject = $property->getField()->getCustomObject();
-                    $options = array_merge([
-                        'required' => false,
-                        'label' => $property->getLabel(),
-                        'attr' => [
-                            'class' => 'js-selectize-single-select-with-search',
-                            'placeholder' => 'Start typing to search..',
-                            'data-allowed-custom-object-to-search' => $customObject->getId()
-                        ],
-                        'class' => Record::class,
-                        'query_builder' => function (EntityRepository $er) use ($customObject) {
-                            return $er->createQueryBuilder('record')
-                                ->innerJoin('record.customObject', 'customObject')
-                                //->setMaxResults(1)
-                                ->where('customObject.id = :customObject')
-                             //->andWhere('customObject.internalName = internalName')
-                            // ->setParameter('internalName', $customObject->getInternalName())
-                                ->setParameter('customObject', 1000);
-                            //->orderBy('customObject.label', 'ASC');
-                        },
-                        'choice_label' => function ($choiceValue, $key, $value) {
-                            $name = "hi";
-                            return $value;
-                        },
-                        'expanded' => false,
-                        'multiple' => false
-                    ], $options);*/
-
-                    /*$builder->add('customObject', EntityType::class, $options);*/
-
-
-                    // This is the custom object that the property will be allowed to search on
-              /*      $customObject = $property->getField()->getCustomObject();
-                    $options = [
-                        'choices'  => [],
-                        'label' => $property->getLabel(),
-                        'required' => false,
-                        'expanded' => false,
-                        'multiple' => false,
-                        'attr' => [
-                            'class' => 'js-selectize-single-select-with-search',
-                            'placeholder' => 'Start typing to search..',
-                            'data-allowed-custom-object-to-search' => $customObject->getId()
-                        ]
-                    ];
-
-                    $builder->add('customObject', ChoiceType::class, array(
-                        'choices'  => array(
-                            'Contact' => 1
-                        ),
-                        'attr' => [
-                            'class' => 'js-selectize-single-select-with-search',
-                            'placeholder' => 'Start typing to search..',
-                            'data-allowed-custom-object-to-search' => $customObject->getId()
-                        ],
-                        'auto_initialize' => false
-                    ));*/
-
-                    /*$builder->add('customObject', ChoiceType::class, $options);*/
-
-                    /*$builder->get('customObject')
-                        ->addModelTransformer($this->transformer);*/
-
-                   /* $builder->get('customObject')
-                        ->addModelTransformer(new CallbackTransformer(
-                            function ($customObject) {
-                                if(null === $customObject) {
-                                    return '';
-                                }
-                                // transform the object to string
-                                return $customObject->getId();
-                            },
-                            function ($recordId) {
-                                $name = "hi";
-                                // transform the string back to an array
-                                $hi = "yes";
-                            }
-                        ));*/
 
                     $customObject = $property->getField()->getCustomObject();
 
@@ -253,7 +191,8 @@ class RecordType extends AbstractType
                         'attr' => [
                             'class' => 'js-selectize-single-select-with-search',
                             'placeholder' => 'Start typing to search..',
-                            'data-allowed-custom-object-to-search' => $customObject->getId()
+                            'data-allowed-custom-object-to-search' => $customObject->getId(),
+                            'data-property-id' => $property->getId()
                         ],
                         'expanded' => false,
                     ], $options);
@@ -263,115 +202,11 @@ class RecordType extends AbstractType
                     }
 
                     $builder->add($property->getInternalName(), RecordChoiceType::class, $options);
-
-                    $allowedSelectizeSearchResultProperties = [];
-                    foreach($property->getField()->getSelectizeSearchResultProperties() as $searchResultProperty) {
-                    $allowedSelectizeSearchResultProperties[] = $searchResultProperty;
-                    }
-
-                    $builder->add('allowedSelectizeSearchResultProperties', HiddenType::class, array(
-                        'data' => json_encode($allowedSelectizeSearchResultProperties),
-                        'attr' => [
-                            'class' => 'js-allowed-selectize-search-result-properties',
-                        ],
-                    ));
-
                     break;
             }
         }
 
         $builder->add('submit', SubmitType::class);
-    }
-
-
-/*    public function fieldModifier2(FormEvent $event) {
-        $form = $event->getForm()->getParent();
-        $data = $event->getData();
-
-        $event->setData("14");
-
-
-        var_dump($data);
-        $name = "Josh";
-    }
-
-    public function fieldModifier3(FormEvent $event) {
-        $form = $event->getForm()->getParent();
-        $data = $event->getData();
-
-        var_dump($data);
-        $name = "Josh";
-    }*/
-
-    /**
-     * @see * @see https://stackoverflow.com/questions/25354806/how-to-add-an-event-listener-to-a-dynamically-added-field-using-symfony-forms#answer-29735470
-     * @param FormEvent $event
-     */
-    public function fieldModifier(FormEvent $event) {
-
-        $parentForm = $event->getForm()->getParent();
-        $childForm = $event->getForm();
-        $config = $childForm->getConfig();
-        $name = $config->getName();
-
-        $results = $this->recordRepository->createQueryBuilder('record')
-            ->innerJoin('record.customObject', 'customObject')
-            ->getQuery()
-            ->getResult();
-
-        $choices = [];
-        foreach($results as $result) {
-            $choices[$result->getId()] = $result->getId();
-        }
-
-        // This is a really important thing to NOTE!
-        // event listeners can only be attached to a builder (FormBuilderInterface)
-        // and NOT to a form (FormInterface). This is why we have to create our own builder
-        // the builder is nothing more then a form field
-        $builder = $parentForm->getConfig()->getFormFactory()->createNamedBuilder(
-            $name,
-            ChoiceType::class,
-            null,
-            [
-                'choices'  => array(
-                    'Contact1' => "14",
-                    'Contact2' => "15"
-                ),
-                'attr' => [
-                    'class' => 'js-selectize-single-select-with-search',
-                    'placeholder' => 'Start typing to search..',
-                    //'data-allowed-custom-object-to-search' => $customObject->getId()
-                ],
-                'auto_initialize' => false
-            ]
-        );
-
-
-/*        $builder->addModelTransformer(new CallbackTransformer(
-            function ($customObject) {
-                if(null === $customObject) {
-                    return '';
-                }
-                // transform the object to string
-                return $customObject->getId();
-            },
-            function ($recordId) {
-                $name = "hi";
-                // transform the string back to an array
-                $hi = "yes";
-            }
-        ));*/
-
-        //->where('property.customObject = :customObject')
-        //->andWhere('customObject.internalName = internalName')
-        // ->setParameter('internalName', $customObject->getInternalName())
-        //->setParameter('customObject', $customObject->getId());
-        //->orderBy('customObject.label', 'ASC');
-
-        $parentForm->add($builder->getForm());
-
-        $name = "Josh";
-        $hi = "yo";
     }
 
     public function configureOptions(OptionsResolver $resolver)

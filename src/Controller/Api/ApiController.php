@@ -8,6 +8,7 @@ use App\Controller\Exception\InvalidInputException;
 use App\Controller\Exception\MissingRequiredQueryParameterException;
 use App\Entity\CustomObject;
 use App\Repository\CustomObjectRepository;
+use App\Repository\PropertyRepository;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
@@ -48,6 +49,37 @@ class ApiController extends AbstractController
         }
 
         return $customObject;
+    }
+
+    /**
+     * Get Property (from request parameters)
+     *
+     * @param PropertyRepository $propertyRepository
+     * @param bool|true $required
+     * @return CustomObject|null
+     * @throws InvalidInputException
+     * @throws MissingRequiredQueryParameterException
+     */
+    protected function getPropertyForRequest(
+        PropertyRepository $propertyRepository,
+        $required = true
+    ) {
+
+        $property = $this->getEntityForRequest(
+            $propertyRepository,
+            Constants::ARG_PROPERTY_ID,
+            Constants::ERR_MSG_PROPERTY_NOT_FOUND,
+            $required
+        );
+
+        if ($required && null === $property) {
+            throw new InvalidInputException(
+                Constants::ERR_MSG_PROPERTY_NOT_FOUND,
+                Constants::ERROR_CODE_NOT_FOUND_PROPERTY
+            );
+        }
+
+        return $property;
     }
 
     /**

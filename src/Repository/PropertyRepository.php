@@ -183,4 +183,16 @@ class PropertyRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    public function getCountWherePropertyIsColumn(CustomObject $customObject) {
+        return $this->createQueryBuilder('property')
+            ->select('count(property.id) as count')
+            ->where('property.customObject = :customObject')
+            ->andWhere('property.isColumn = :bool')
+            ->setParameter('bool', true)
+            ->setParameter('customObject', $customObject->getId())
+            ->orderBy('property.columnOrder', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
 }

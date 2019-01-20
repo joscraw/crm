@@ -66,7 +66,7 @@ class RecordRepository extends ServiceEntityRepository
             $resultStr[] = sprintf($jsonExtract, $allowedSearchableProperty->getInternalName(), $allowedSearchableProperty->getInternalName());
         }
         $resultStr = empty($resultStr) ? '' : ',' . implode(",",$resultStr);
-        $query = sprintf("SELECT id, properties %s from record WHERE LOWER(properties) LIKE '%%%s%%'", $resultStr, strtolower($search));
+        $query = sprintf("SELECT id, properties %s from record WHERE custom_object_id='%s' AND LOWER(properties) LIKE '%%%s%%'", $resultStr, $allowedCustomObjectToSearch->getId(), strtolower($search));
 
         $em = $this->getEntityManager();
         $stmt = $em->getConnection()->prepare($query);

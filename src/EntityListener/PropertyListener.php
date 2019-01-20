@@ -87,12 +87,11 @@ class PropertyListener
      */
     private function setWhetherOrNotIsColumn(Property $property) {
 
-        $properties = $this->entityManager->getRepository(Property::class)->findBy([
-           'isColumn' => true
-        ]);
+        $columnCount = $this->entityManager->getRepository(Property::class)->getCountWherePropertyIsColumn($property->getCustomObject());
+        $columnCount = (int) $columnCount[0]['count'];
 
         $highestColumnOrder = $this->entityManager->getRepository(Property::class)->getHighestColumnOrder($property->getCustomObject());
-        if(count($properties) <= 5) {
+        if($columnCount <= 5) {
             $property->setIsColumn(true);
 
             if($highestColumnOrder[0]['column_order'] === null) {

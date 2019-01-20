@@ -213,8 +213,8 @@ class RecordController extends ApiController
         $allowedCustomObjectToSearch = $this->customObjectRepository
             ->find($request->query->get('allowed_custom_object_to_search'));
 
-        $selectizeAllowedSearchableProperties = $this->serializer->deserialize($request->query->get('allowed_selectize_search_result_properties'), 'App\Entity\Property[]', 'json');
-
+        $property = $this->getPropertyForRequest($this->propertyRepository);
+        $selectizeAllowedSearchableProperties = $property->getField()->getSelectizeSearchResultProperties();
 
         $results = $this->recordRepository->getSelectizeData($search, $allowedCustomObjectToSearch, $selectizeAllowedSearchableProperties);
         $internalNameToLabelMap = $this->propertyRepository->findAllInternalNamesAndLabelsForCustomObject($allowedCustomObjectToSearch);

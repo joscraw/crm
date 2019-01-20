@@ -29,7 +29,7 @@ class RecordForm {
 
         this.$wrapper.on(
             'submit',
-            RecordForm._selectors.newCustomObjectForm,
+            RecordForm._selectors.newRecordForm,
             this.handleNewFormSubmit.bind(this)
         );
 
@@ -43,7 +43,7 @@ class RecordForm {
      */
     static get _selectors() {
         return {
-            newCustomObjectForm: '.js-new-record-form',
+            newRecordForm: '.js-new-record-form',
         }
     }
 
@@ -64,7 +64,59 @@ class RecordForm {
         var $j = $('.js-allowed-selectize-search-result-properties').val();
 
         debugger;
-        this.$select = $('.js-selectize-single-select-with-search').selectize({
+
+        $('.js-selectize-single-select-with-search').each((index, element) => {
+
+        let select = $(element).selectize({
+                valueField: 'valueField',
+                labelField: 'labelField',
+                searchField: 'searchField',
+                load: (query, callback) => {
+                    console.log(this.customObject);
+                    debugger;
+                    if (!query.length) return callback();
+                    $.ajax({
+                        url: url,
+                        type: 'GET',
+                        dataType: 'json',
+                        data: {
+                            search: query,
+                            custom_object_id: this.customObject,
+                            allowed_custom_object_to_search: $(element).data('allowedCustomObjectToSearch'),
+                            property_id: $(element).data('propertyId')
+                        },
+                        error: () => {
+                            debugger;
+                            callback();
+                        },
+                        success: (res) => {
+                            debugger;
+                            select.options = res;
+                            callback(res);
+                        }
+                    })
+                },
+                render: {
+                    option: function(record, escape) {
+
+                        let rows = ``,
+                            items = record.items;
+                        debugger;
+                        for(let i = 0; i < items.length; i++) {
+                            debugger;
+                            let item = items[i];
+                            rows += `<li class="c-selectize__list-item">${item.label}: ${item.value}</li>`;
+                        }
+                        return `<div class="c-selectize"><ul class="c-selectize__list">${rows}</ul></div>`;
+                    }
+                }
+            });
+
+
+        });
+
+
+  /*      this.$select = $('.js-selectize-single-select-with-search').selectize({
             valueField: 'valueField',
             labelField: 'labelField',
             searchField: 'searchField',
@@ -79,8 +131,8 @@ class RecordForm {
                     data: {
                         search: query,
                         custom_object_id: this.customObject,
-                        allowed_custom_object_to_search: $('.js-selectize-single-select-with-search').data('allowedCustomObjectToSearch'),
-                        allowed_selectize_search_result_properties: $('.js-allowed-selectize-search-result-properties').val()
+                        allowed_custom_object_to_search: $(this).data('allowedCustomObjectToSearch'),
+                        property_id: $(this).data('propertyId')
                     },
                     error: () => {
                         debugger;
@@ -108,7 +160,7 @@ class RecordForm {
                 }
             }
         });
-
+*/
 
         debugger;
 
