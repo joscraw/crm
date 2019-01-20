@@ -249,7 +249,7 @@ class ColumnsForm {
         var options = {
             valueNames: [ 'label' ],
             // Since there are no elements in the list, this will be used as template.
-            item: `<li><div class="form-check"><input class="form-check-input js-property-checkbox" type="checkbox" value="" id=""><label class="form-check-label" for=""><p class="label"></p></label></div></li>`
+            item: `<li><div class="form-check"><input class="form-check-input js-property-checkbox c-column-editor__checkbox" type="checkbox" value="" id=""><label class="form-check-label c-column-editor__checkbox-label" for=""><p class="label"></p></label></div></li>`
         };
 
         this.lists.push(new List(`list-${propertyGroup.id}`, options, properties));
@@ -314,17 +314,17 @@ const listTemplate = ({id, label}) => `
 `;
 
 const mainTemplate = () => `
-    <div class="row">
+    <div class="row c-column-editor">
         <div class="col-md-6">
-            <div class="js-search-container"></div>
-            <div class="js-property-list"></div>
+            <div class="js-search-container c-column-editor__search-container"></div>
+            <div class="js-property-list c-column-editor__property-list"></div>
         </div>
         <div class="col-md-6">
-            <div class="js-selected-columns-count"></div>
-            <div class="js-selected-columns-container"></div>
+            <div class="js-selected-columns-count c-column-editor__selected-columns-count"></div>
+            <div class="js-selected-columns-container c-column-editor__selected-columns"></div>
         </div>
         
-        <div class="col-md-6">
+        <div class="col-md-6 c-column-editor__footer">
             <form class="js-selected-properties-form">
                 <input type="hidden" value="" class="js-sorted-properties" name="sortedProperties">
                 <button type="submit" class="btn-primary btn">Submit</button>
@@ -337,7 +337,7 @@ const mainTemplate = () => `
 
 const selectedColumnTemplate = (label, id) => `
     <div class="card js-selected-column" id="${id}">
-        <div class="card-body">${label}<span><i class="fa fa-times js-remove-selected-column-icon" data-property-id="${id}" aria-hidden="true"></i></span></div>
+        <div class="card-body">${label}<span><i class="fa fa-times js-remove-selected-column-icon c-column-editor__remove-icon" data-property-id="${id}" aria-hidden="true"></i></span></div>
     </div>
 `;
 

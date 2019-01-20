@@ -1,0 +1,32 @@
+// -----------------------------------------------------------------------------
+// This file contains all styles related to the edit columns component.
+// -----------------------------------------------------------------------------
+
+.c-column-editor {
+
+}
+
+.c-column-editor__remove-icon {
+  float: right;
+}
+
+.c-column-editor__property-list, .c-column-editor__selected-columns {
+  overflow-y: scroll;
+  height: 300px;
+}
+
+.c-column-editor__checkbox-label, .c-column-editor__checkbox, .c-column-editor__remove-icon {
+  cursor: pointer;
+}
+
+.c-column-editor__remove-icon:hover {
+  color: $color-orange-61;
+}
+
+.c-column-editor__footer {
+  margin-top: 20px;
+}
+
+.c-column-editor__selected-columns-count, .c-column-editor__search-container {
+  margin-bottom: 20px;
+}
