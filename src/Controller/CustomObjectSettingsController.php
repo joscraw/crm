@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\CustomObject;
 use App\Entity\Portal;
 use App\Form\CustomObjectType;
+use App\Form\EditCustomObjectType;
 use App\Repository\CustomObjectRepository;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
@@ -114,6 +115,74 @@ class CustomObjectSettingsController extends AbstractController
             [
                 'success' => true,
                 'formMarkup' => $formMarkup
+            ],
+            Response::HTTP_OK
+        );
+    }
+
+    /**
+     * @Route("{customObject}/edit-form", name="edit_custom_object_form", methods={"GET"}, options = { "expose" = true })
+     * @param CustomObject $customObject
+     * @return JsonResponse
+     */
+    public function getEditCustomObjectFormAction(CustomObject $customObject) {
+
+        $form = $this->createForm(EditCustomObjectType::class, $customObject);
+
+        $formMarkup = $this->renderView(
+            'Api/form/edit_custom_object_form.html.twig',
+            [
+                'form' => $form->createView(),
+            ]
+        );
+
+        return new JsonResponse(
+            [
+                'success' => true,
+                'formMarkup' => $formMarkup
+            ],
+            Response::HTTP_OK
+        );
+    }
+
+    /**
+     * @Route("{customObject}/edit", name="edit_custom_object", methods={"POST"}, options={"expose" = true})
+     * @param Portal $portal
+     * @param Request $request
+     * @param CustomObject $customObject
+     * @return JsonResponse
+     */
+    public function editCustomObjectAction(Portal $portal, Request $request, CustomObject $customObject)
+    {
+
+        $form = $this->createForm(EditCustomObjectType::class, $customObject);
+
+        $form->handleRequest($request);
+
+        if (!$form->isValid()) {
+            $formMarkup = $this->renderView(
+                'Api/form/edit_custom_object_form.html.twig',
+                [
+                    'form' => $form->createView(),
+                ]
+            );
+
+            return new JsonResponse(
+                [
+                    'success' => false,
+                    'formMarkup' => $formMarkup,
+                ], Response::HTTP_BAD_REQUEST
+            );
+        }
+
+        /** @var $customObject CustomObject */
+        $customObject = $form->getData();
+        $this->entityManager->persist($customObject);
+        $this->entityManager->flush();
+
+        return new JsonResponse(
+            [
+                'success' => true,
             ],
             Response::HTTP_OK
         );

@@ -13,7 +13,8 @@ use App\Validator\Constraints as CustomAssert;
 /**
  * @ORM\Entity(repositoryClass="App\Repository\CustomObjectRepository")
  * @ORM\HasLifecycleCallbacks()
- * @CustomAssert\CustomObjectAlreadyExists
+ * @CustomAssert\CustomObjectLabelAlreadyExists(groups={"CREATE", "EDIT"})
+ * @CustomAssert\CustomObjectInternalNameAlreadyExists(groups={"CREATE"})
  */
 class CustomObject implements \JsonSerializable
 {
@@ -28,8 +29,8 @@ class CustomObject implements \JsonSerializable
     private $id;
 
     /**
-     * @Assert\NotBlank(message="Don't forget a label for your brand new sweeeeet Custom Object!")
-     * @Assert\Regex("/^[a-zA-Z0-9_\s]*$/", message="Woah! Only use letters, numbers, underscores and spaces please!")
+     * @Assert\NotBlank(message="Don't forget a label for your super cool sweeeeet Custom Object!", groups={"CREATE", "EDIT"})
+     * @Assert\Regex("/^[a-zA-Z0-9_\s]*$/", message="Woah! Only use letters, numbers, underscores and spaces please!", groups={"CREATE", "EDIT"})
      *
      * @ORM\Column(name="label", type="string", length=255, nullable=false)
      *
@@ -40,7 +41,7 @@ class CustomObject implements \JsonSerializable
     /**
      * internal name
      *
-     * @Assert\Regex("/^[a-zA-Z0-9_]*$/", message="Woah! Only use letters numbers and underscores please!")
+     * @Assert\Regex("/^[a-zA-Z0-9_]*$/", message="Woah! Only use letters numbers and underscores please!", groups={"CREATE"})
      *
      * @ORM\Column(name="internal_name", type="string", length=255, nullable=false)
      *
@@ -104,7 +105,7 @@ class CustomObject implements \JsonSerializable
     /**
      * @param string $label
      */
-    public function setLabel(string $label): void
+    public function setLabel($label): void
     {
         $this->label = $label;
     }
@@ -120,7 +121,7 @@ class CustomObject implements \JsonSerializable
     /**
      * @param string $internalName
      */
-    public function setInternalName(string $internalName)
+    public function setInternalName($internalName)
     {
         $this->internalName = $internalName;
     }

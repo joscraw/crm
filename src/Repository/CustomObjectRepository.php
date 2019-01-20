@@ -51,7 +51,7 @@ class CustomObjectRepository extends ServiceEntityRepository
     public function getDataTableData($start, $length, $search, $orders, $columns)
     {
         // Main Query
-        $mainQuerySelectColumns = ['dt.label', 'dt.createdAt'];
+        $mainQuerySelectColumns = ['dt.id', 'dt.label', 'dt.createdAt'];
         $searchQuery = null;
         $query = $this->createQueryBuilder('dt')
             ->select($mainQuerySelectColumns);

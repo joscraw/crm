@@ -10,10 +10,10 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 /**
- * Class CustomObjectType
+ * Class EditCustomObjectType
  * @package App\Form\Property
  */
-class CustomObjectType extends AbstractType
+class EditCustomObjectType extends AbstractType
 {
     /**
      * @param FormBuilderInterface $builder
@@ -27,6 +27,9 @@ class CustomObjectType extends AbstractType
             ])
             ->add('internalName', TextType::class, [
                 'required' => false,
+                'attr' => [
+                    'readonly' => 'readonly'
+                ]
             ])
             ->add('submit', SubmitType::class);
     }
@@ -38,7 +41,7 @@ class CustomObjectType extends AbstractType
     {
         $resolver->setDefaults(array(
             'data_class' => CustomObject::class,
-            'validation_groups' => ['CREATE'],
+            'validation_groups' => ['EDIT'],
         ));
     }
 }
