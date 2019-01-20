@@ -2,23 +2,21 @@
 
 namespace App\Model;
 
-use JsonSerializable;
-
 /**
- * Class SingleLineTextBoxProperty
+ * Class DatePickerField
  * @package App\Model
  */
-class SingleLineTextBoxField extends AbstractField implements JsonSerializable
+class DatePickerField extends AbstractField implements \JsonSerializable
 {
     /**
      * @var string
      */
-    protected static $name = 'single_line_text_box_field';
+    protected static $name = FieldCatalog::DATE_PICKER;
 
     /**
      * @var string
      */
-    protected static $description = 'Single line text box field';
+    protected static $description = 'Date picker field';
 
     /**
      * (PHP 5 &gt;= 5.4.0)<br/>

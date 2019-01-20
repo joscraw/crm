@@ -10,10 +10,14 @@ class PropertyGroupForm {
     /**
      * @param $wrapper
      * @param globalEventDispatcher
+     * @param portalId
+     * @param customObjectId
      */
-    constructor($wrapper, globalEventDispatcher) {
+    constructor($wrapper, globalEventDispatcher, portalId, customObjectId) {
 
         this.$wrapper = $wrapper;
+        this.portalId = portalId;
+        this.customObjectId = customObjectId;
 
         /**
          * @type {EventDispatcher}
@@ -39,9 +43,9 @@ class PropertyGroupForm {
     }
 
     loadPropertyGroupForm() {
-        debugger;
+        const url = Routing.generate('property_group_form', {internalIdentifier: this.portalId});
         $.ajax({
-            url: Routing.generate('property_group_form', {portal: 1}),
+            url: url,
         }).then(data => {
             this.$wrapper.html(data.formMarkup);
         })
@@ -52,7 +56,7 @@ class PropertyGroupForm {
      */
     handleNewFormSubmit(e) {
 
-        console.log("form submitted");
+        debugger;
 
         if(e.cancelable) {
             e.preventDefault();
@@ -85,13 +89,17 @@ class PropertyGroupForm {
      */
     _savePropertyGroup(data) {
         return new Promise( (resolve, reject) => {
-            const url = Routing.generate('property_group_new', {portal: 1});
+            console.log(this.portalId);
+            const url = Routing.generate('property_group_new', {internalIdentifier: this.portalId});
+
+            data.custom_object_id = this.customObjectId;
 
             $.ajax({
                 url,
                 method: 'POST',
                 data: data
             }).then((data, textStatus, jqXHR) => {
+                debugger;
                 resolve(data);
             }).catch((jqXHR) => {
                 const errorData = JSON.parse(jqXHR.responseText);

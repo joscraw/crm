@@ -11,18 +11,12 @@ class CustomObjectSettingsTopBar {
     /**
      * @param $wrapper
      * @param globalEventDispatcher
+     * @param portal
      */
-    constructor($wrapper, globalEventDispatcher) {
-        this.init($wrapper, globalEventDispatcher);
-    }
-
-    /**
-     * @param $wrapper
-     * @param globalEventDispatcher
-     */
-    init($wrapper, globalEventDispatcher) {
+    constructor($wrapper, globalEventDispatcher, portal) {
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
+        this.portal = portal;
 
         this.render();
     }
@@ -30,7 +24,7 @@ class CustomObjectSettingsTopBar {
     render() {
         this.$wrapper.html(CustomObjectSettingsTopBar.markup());
 
-        new OpenCreateCustomObjectModalButton(this.$wrapper.find('.js-top-bar-button-container'), this.globalEventDispatcher);
+        new OpenCreateCustomObjectModalButton(this.$wrapper.find('.js-top-bar-button-container'), this.globalEventDispatcher, this.portal);
     }
 
         static markup() {

@@ -8,16 +8,11 @@ class CustomObjectFormModal {
 
     /**
      * @param globalEventDispatcher
+     * @param portal
      */
-    constructor(globalEventDispatcher) {
-        this.init(globalEventDispatcher);
-    }
-
-    /**
-     * @param globalEventDispatcher
-     */
-    init(globalEventDispatcher) {
+    constructor(globalEventDispatcher, portal) {
         this.globalEventDispatcher = globalEventDispatcher;
+        this.portal = portal;
         this.render();
     }
 
@@ -28,7 +23,7 @@ class CustomObjectFormModal {
             html: CustomObjectFormModal.markup()
         });
 
-        new CustomObjectForm($('#js-create-custom-object-modal-container'), this.globalEventDispatcher);
+        new CustomObjectForm($('#js-create-custom-object-modal-container'), this.globalEventDispatcher, this.portal);
     }
 
     static markup() {

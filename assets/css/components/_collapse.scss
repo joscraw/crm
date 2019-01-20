@@ -1,0 +1,28 @@
+// -----------------------------------------------------------------------------
+// This file contains all styles related to the collapse component.
+// -----------------------------------------------------------------------------
+
+
+.c-collapse {
+
+}
+
+.c-collapse__title-icon {
+  transition: all 0.4s ease;
+
+  &.is-active {
+    transform: rotateZ(90deg);
+  }
+
+}
+
+.c-collapse {
+
+  &.is-active {
+    display:block;
+  }
+
+  &.is-disabled {
+    display: none;
+  }
+}

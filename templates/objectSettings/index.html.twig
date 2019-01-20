@@ -3,6 +3,7 @@
 {% block title %}Custom Object Settings!{% endblock %}
 
 {% block containerComponent %}js-custom-object-settings{% endblock %}
+{% block containerComponentAttributes %}data-portal="{{ portal.internalIdentifier }}"{% endblock %}
 
 {% block stylesheets %}
     {{ parent() }}

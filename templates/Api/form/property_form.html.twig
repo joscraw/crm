@@ -1,0 +1,58 @@
+{#{% form_theme form _self %}
+
+{% block _property_field_options_entry_row %}
+   <p class="custom-yo">Custom Yo</p>
+{% endblock %}#}
+{% form_theme form with ['bootstrap_4_layout.html.twig', 'form/fields.html.twig'] %}
+
+
+{#{{ dump(form) }}#}
+
+{#{% form_theme form 'bootstrap_4_layout.html.twig' %}#}
+
+{{ form_start(form, {'attr': {class: 'js-new-property-form', novalidate: 'novalidate'}}) }}
+{{ form_row(form.label) }}
+{{ form_row(form.internalName) }}
+{{ form_row(form.description) }}
+{{ form_row(form.propertyGroup, {'attr': {novalidate: 'novalidate'}}) }}
+{{ form_row(form.required, {'attr': {novalidate: 'novalidate'}}) }}
+{{ form_row(form.fieldType, {'attr': {class: 'js-field-type', novalidate: 'novalidate'}}) }}
+
+<div class="js-field-container clearfix">
+
+    <small id="emailHelp" class="form-text text-muted">{{ fieldHelpMessage }}</small>
+    <hr>
+
+    {% set sharedButtonMarkup %}
+        <button type="button" class="btn btn-link js-addItem float-left"><i class="fa fa-plus" aria-hidden="true"></i> Add an option</button>
+    {% endset %}
+
+    {% if form.field.options is defined %}
+        <ul class="list-group list-group-flush js-parent-container" data-template="{{ form_widget(form.field.options.vars.prototype)|replace({'__prototype_one__': '${index}'})|e }}">
+            {% for optionItem in form.field.options %}
+                <li class="list-group-item js-child-item">
+                    {{ form_widget(optionItem) }}
+                </li>
+            {% endfor %}
+        </ul>
+        {{ sharedButtonMarkup }}
+    {% endif %}
+
+    {% if form.field.customObject is defined %}
+        {{ form_row(form.field.customObject, {'attr': {novalidate: 'novalidate'}}) }}
+    {% endif %}
+
+    <div class="js-selectize-search-result-properties-container">
+        {% if form.field.selectizeSearchResultProperties is defined %}
+            {{ form_row(form.field.selectizeSearchResultProperties, {'attr': {novalidate: 'novalidate'}}) }}
+        {% endif %}
+    </div>
+
+    {% if form.field.multiple is defined %}
+        {{ form_row(form.field.multiple, {'attr': {novalidate: 'novalidate'}}) }}
+    {% endif %}
+
+</div>
+<br>
+{{ form_rest(form) }}
+{{ form_end(form) }}

@@ -26,7 +26,7 @@ use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
  * Class CustomObjectSettingsController
  * @package App\Controller
  *
- * @Route("/portal/{portal}")
+ * @Route("{internalIdentifier}/custom-objects")
  *
  */
 class CustomObjectSettingsController extends AbstractController
@@ -48,7 +48,7 @@ class CustomObjectSettingsController extends AbstractController
     }
 
     /**
-     * @Route("/custom-object-settings", name="custom_object_settings", methods={"GET"})
+     * @Route(name="custom_object_settings", methods={"GET"}, options = { "expose" = true })
      * @param Portal $portal
      * @return \Symfony\Component\HttpFoundation\Response
      */
@@ -63,7 +63,7 @@ class CustomObjectSettingsController extends AbstractController
      * DataTables passes unique params in the Request and expects a specific response payload
      * @see https://datatables.net/manual/server-side Documentation for ServerSide Implimentation for DataTables
      *
-     * @Route("/custom-object-settings/get-custom-objects-for-datatable", name="custom_objects_for_datatable", methods={"GET"}, options = { "expose" = true })
+     * @Route("/datatable", name="custom_objects_for_datatable", methods={"GET"}, options = { "expose" = true })
      * @param Portal $portal
      * @param Request $request
      * @return Response
@@ -86,17 +86,16 @@ class CustomObjectSettingsController extends AbstractController
 
         $response = new JsonResponse([
             'draw'  => $draw,
+            'recordsFiltered' => !empty($search['value']) ? $filteredObjectsCount : $totalObjectsCount,
             'recordsTotal'  => $totalObjectsCount,
-            'recordsFiltered'   => $filteredObjectsCount,
             'data'  => $arrayResults
-        ]);
+        ],  Response::HTTP_OK);
 
         return $response;
     }
 
-
     /**
-     * @Route("/custom-object-settings/get-custom-object-form", name="custom_object_form", methods={"GET"}, options = { "expose" = true })
+     * @Route("/form", name="custom_object_form", methods={"GET"}, options = { "expose" = true })
      */
     public function getCustomObjectFormAction() {
 
@@ -115,20 +114,21 @@ class CustomObjectSettingsController extends AbstractController
             [
                 'success' => true,
                 'formMarkup' => $formMarkup
-            ]
+            ],
+            Response::HTTP_OK
         );
     }
 
     /**
-     * @Route("/custom-object-settings/custom-objects", name="custom_object_new", methods={"POST"}, options={"expose" = true})
+     * @Route("/create", name="create_custom_object", methods={"POST"}, options={"expose" = true})
+     * @param Portal $portal
      * @param Request $request
      * @return JsonResponse
-     * @throws \Doctrine\ORM\ORMException
-     * @throws \Doctrine\ORM\OptimisticLockException
      */
-    public function newCustomObjectAction(Request $request)
+    public function createCustomObjectAction(Portal $portal, Request $request)
     {
         $customObject = new CustomObject();
+        $customObject->setPortal($portal);
 
         $form = $this->createForm(CustomObjectType::class, $customObject);
 
@@ -152,14 +152,16 @@ class CustomObjectSettingsController extends AbstractController
 
         /** @var $customObject CustomObject */
         $customObject = $form->getData();
-
         $this->entityManager->persist($customObject);
         $this->entityManager->flush();
 
         return new JsonResponse(
             [
                 'success' => true,
-            ]
+            ],
+            Response::HTTP_OK
         );
     }
+
+
 }
