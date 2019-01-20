@@ -239,7 +239,7 @@ class PropertyController extends ApiController
     public function setColumnsAction(Portal $portal, Request $request) {
 
         $customObject = $this->getCustomObjectForRequest($this->customObjectRepository);
-        $selectedProperties = $request->request->get('selected_properties');
+        $selectedProperties = $request->request->get('selected_properties', []);
         $allProperties = $this->propertyRepository->findByCustomObject($customObject);
 
         foreach($allProperties as $property) {
@@ -278,6 +278,8 @@ class PropertyController extends ApiController
 
         $properties = $this->propertyRepository->findColumnsForTable($customObject);
 
+
+        $payload = [];
         foreach($properties as $property) {
             $payload[]= [
                 'data' => $property->getInternalName(),

@@ -47,10 +47,15 @@ class RecordTable {
     }
 
     activatePlugins(columns) {
+        debugger;
+        $('#table_id thead').empty();
+        $('#table_id tbody').empty();
+        debugger;
+
         this.table = $('#table_id').DataTable({
             "processing": true,
             "serverSide": true,
-            "responsive": true,
+            /*"order": [],*/
             "language": {
                 "emptyTable": `No "${this.customObjectLabel}" records found.`,
             },
@@ -74,6 +79,7 @@ class RecordTable {
             // num of results per page
             "pageLength": 10,
             /*"iDisplayLength": 1,*/
+            /*"order": [[1, 'asc']],*/
             "ajax": {
                 url: Routing.generate('records_for_datatable', {internalIdentifier: this.portal}),
                 type: "GET",
@@ -118,9 +124,12 @@ class RecordTable {
 
     reloadTable() {
         this.loadColumnsForTable().then((data) => {
+            debugger;
             this.table.destroy();
+            /*$('#table_id').DataTable().destroy();*/
+            debugger;
             this.activatePlugins(data.data);
-        }).catch(() => {
+        }).catch(errorData => {
             debugger;
         });
     }
@@ -133,6 +142,7 @@ class RecordTable {
         return `
             <table id="table_id" class="table table-striped table-bordered" style="width:100%">
                 <thead>
+                <tr><th></th></tr>
                 </thead>
                 <tbody>
                 </tbody>
