@@ -286,6 +286,14 @@ class RecordController extends ApiController
 
         $results = $this->recordRepository->getDataTableData($start, $length, $search, $orders, $columns, $propertiesForDatatable, $customObject);
 
+        foreach($results['results'] as &$result) {
+            foreach($result as $key => $value) {
+                if(in_array($value, ['null', null])) {
+                    $result[$key] = '-';
+                }
+            }
+        }
+
         $countQuery = $this->recordRepository->createQueryBuilder('records')->select('COUNT(records)');
         $totalRecordsCount = $countQuery->getQuery()->getSingleScalarResult();
 
