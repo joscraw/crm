@@ -155,4 +155,20 @@ class PropertyRepository extends ServiceEntityRepository
         return $queryBuilder->getQuery()->getResult();
     }
 
+    /**
+     * @param CustomObject $customObject
+     * @return mixed
+     */
+    public function findColumnsForTable(CustomObject $customObject)
+    {
+        return $this->createQueryBuilder('property')
+            ->where('property.customObject = :customObject')
+            ->andWhere('property.isColumn = :bool')
+            ->setParameter('bool', true)
+            ->setParameter('customObject', $customObject->getId())
+            ->orderBy('property.columnOrder', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
 }

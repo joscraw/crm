@@ -282,9 +282,7 @@ class RecordController extends ApiController
         $columns = $request->query->get('columns');
         $customObject = $this->getCustomObjectForRequest($this->customObjectRepository);
 
-        $propertiesForDatatable = $this->propertyRepository->findBy(array(
-           'customObject' => $customObject
-        ));
+        $propertiesForDatatable = $this->propertyRepository->findColumnsForTable($customObject);
 
         $results = $this->recordRepository->getDataTableData($start, $length, $search, $orders, $columns, $propertiesForDatatable, $customObject);
 

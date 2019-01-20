@@ -263,4 +263,34 @@ class PropertyController extends ApiController
 
         return $response;
     }
+
+    /**
+     * @Route("/get-columns-for-table", name="get_columns_for_table", methods={"GET"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param Request $request
+     * @return JsonResponse
+     * @throws \App\Controller\Exception\InvalidInputException
+     * @throws \App\Controller\Exception\MissingRequiredQueryParameterException
+     */
+    public function getColumnsForTableAction(Portal $portal, Request $request) {
+
+        $customObject = $this->getCustomObjectForRequest($this->customObjectRepository);
+
+        $properties = $this->propertyRepository->findColumnsForTable($customObject);
+
+        foreach($properties as $property) {
+            $payload[]= [
+                'data' => $property->getInternalName(),
+                'name' => $property->getInternalName(),
+                'title' => $property->getLabel(),
+            ];
+        }
+
+        $response = new JsonResponse([
+            'success' => true,
+            'data'  => $payload
+        ], Response::HTTP_OK);
+
+        return $response;
+    }
 }

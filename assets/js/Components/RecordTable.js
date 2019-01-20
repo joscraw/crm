@@ -31,13 +31,22 @@ class RecordTable {
             this.applySearch.bind(this)
         );
 
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.COLUMNS_UPDATED,
+            this.reloadTable.bind(this)
+        );
+
         this.render();
 
-/*        this.globalEventDispatcher.subscribe(
-            Settings.Events.CUSTOM_OBJECT_CREATED,
-            this.reloadList.bind(this)
-        );*/
+        this.loadColumnsForTable().then((data) => {
+            debugger;
+            this.activatePlugins(data.data);
+        }).catch(() => {
+            debugger;
+        });
+    }
 
+    activatePlugins(columns) {
         $('#table_id').DataTable({
             "processing": true,
             "serverSide": true,
@@ -61,15 +70,7 @@ class RecordTable {
             https://datatables.net/reference/option/dom
             */
             "dom": "lpirt",
-            "columns": [
-                { "data": "id", "name": "id", "title": "id"},
-                { "data": "first_name", "name": "first_name", "title": "first_name"},
-                { "data": "last_name", "name": "last_name", "title": "last_name"},
-                { "data": "best_friend", "name": "best_friend", "title": "best_friend"},
-                { "data": "number", "name": "number", "title": "number"},
-                { "data": "tes_555", "name": "tes_555", "title": "tes_555"},
-                //repeat for each of my 20 or so fields
-            ],
+            "columns": columns,
             // num of results per page
             "pageLength": 10,
             /*"iDisplayLength": 1,*/
@@ -80,6 +81,23 @@ class RecordTable {
                 dataType: "json",
                 contentType: "application/json; charset=utf-8"
             }
+        });
+    }
+
+    loadColumnsForTable() {
+        return new Promise((resolve, reject) => {
+            debugger;
+            const url = Routing.generate('get_columns_for_table', {internalIdentifier: this.portal});
+
+            $.ajax({
+                url: url,
+                data: {custom_object_id: this.customObject}
+            }).then(data => {
+                resolve(data);
+            }).catch(jqXHR => {
+                const errorData = JSON.parse(jqXHR.responseText);
+                reject(errorData);
+            });
         });
     }
 
@@ -98,8 +116,8 @@ class RecordTable {
         ).draw();
     }
 
-    reloadList() {
-        $('#table_id').DataTable().ajax.reload();
+    reloadTable() {
+        this.loadColumnsForTable();
     }
 
     render() {
