@@ -47,7 +47,7 @@ class RecordTable {
     }
 
     activatePlugins(columns) {
-        $('#table_id').DataTable({
+        this.table = $('#table_id').DataTable({
             "processing": true,
             "serverSide": true,
             "responsive": true,
@@ -117,7 +117,12 @@ class RecordTable {
     }
 
     reloadTable() {
-        this.loadColumnsForTable();
+        this.loadColumnsForTable().then((data) => {
+            this.table.destroy();
+            this.activatePlugins(data.data);
+        }).catch(() => {
+            debugger;
+        });
     }
 
     render() {
