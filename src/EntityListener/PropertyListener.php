@@ -91,6 +91,25 @@ class PropertyListener
            'isColumn' => true
         ]);
 
+        $highestColumnOrder = $this->entityManager->getRepository(Property::class)->getHighestColumnOrder($property->getCustomObject());
+        if(count($properties) <= 5) {
+            $property->setIsColumn(true);
+
+            if($highestColumnOrder[0]['column_order'] === null) {
+                $property->setColumnOrder(0);
+            } else {
+                $highestColumn = (int) $highestColumnOrder[0]['column_order'];
+                $property->setColumnOrder(++$highestColumn);
+            }
+        }
+    }
+
+    private function setColumnOrder(Property $property) {
+
+        $properties = $this->entityManager->getRepository(Property::class)->findBy([
+            'isColumn' => true
+        ]);
+
         if(count($properties) <= 5) {
             $property->setIsColumn(true);
         }
@@ -107,6 +126,7 @@ class PropertyListener
     {
         $this->serializePropertyField($property);
         $this->setWhetherOrNotIsColumn($property);
+        $this->setColumnOrder($property);
     }
 
     /**

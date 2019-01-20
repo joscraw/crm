@@ -265,14 +265,14 @@ class PropertyController extends ApiController
     }
 
     /**
-     * @Route("/get-columns-for-table", name="get_columns_for_table", methods={"GET"}, options = { "expose" = true })
+     * @Route("/get-columns-for-datatable", name="get_columns_for_table", methods={"GET"}, options = { "expose" = true })
      * @param Portal $portal
      * @param Request $request
      * @return JsonResponse
      * @throws \App\Controller\Exception\InvalidInputException
      * @throws \App\Controller\Exception\MissingRequiredQueryParameterException
      */
-    public function getColumnsForTableAction(Portal $portal, Request $request) {
+    public function getColumnsForDataTableAction(Portal $portal, Request $request) {
 
         $customObject = $this->getCustomObjectForRequest($this->customObjectRepository);
 

@@ -264,10 +264,13 @@ class ColumnsForm {
         });
 
         let selectedColumns = {};
+        debugger;
         for(let i = 0; i < properties.length; i++) {
+            debugger;
             let property = properties[i];
 
             if(property.isColumn) {
+                debugger;
                 $( `#list-${propertyGroup.id} li [data-property-id='${property.id}']` ).prop('checked', true);
                 selectedColumns[property.columnOrder] = {'label': property.label, 'id': property.id};
             } else {
@@ -276,6 +279,7 @@ class ColumnsForm {
         }
 
         // make sure the selected columns appear in the correct order
+        debugger;
         for(let order in selectedColumns) {
             this._addSelectedColumn(selectedColumns[order].label, selectedColumns[order].id);
         }
@@ -283,6 +287,7 @@ class ColumnsForm {
     }
 
     _addSelectedColumn(label, propertyId) {
+        debugger;
         const $selectedColumnsContainer = $(ColumnsForm._selectors.selectedColumnsContainer);
         const html = selectedColumnTemplate(label, propertyId);
         const $selectedColumnTemplate = $($.parseHTML(html));

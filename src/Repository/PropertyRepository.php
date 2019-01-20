@@ -171,4 +171,16 @@ class PropertyRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    public function getHighestColumnOrder(CustomObject $customObject) {
+        return $this->createQueryBuilder('property')
+            ->select('max(property.columnOrder) as column_order')
+            ->where('property.customObject = :customObject')
+            ->andWhere('property.isColumn = :bool')
+            ->setParameter('bool', true)
+            ->setParameter('customObject', $customObject->getId())
+            ->orderBy('property.columnOrder', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
 }
