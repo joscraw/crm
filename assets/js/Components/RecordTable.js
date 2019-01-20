@@ -32,6 +32,11 @@ class RecordTable {
         );
 
         this.globalEventDispatcher.subscribe(
+            Settings.Events.RECORD_CREATED,
+            this.reloadTable.bind(this)
+        );
+
+        this.globalEventDispatcher.subscribe(
             Settings.Events.COLUMNS_UPDATED,
             this.reloadTable.bind(this)
         );

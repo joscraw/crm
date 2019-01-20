@@ -58,7 +58,7 @@ class PropertyType extends AbstractType
             ))
             ->add('submit', SubmitType::class)
             ->add('propertyGroup', EntityType::class, array(
-                'required' => false,
+                'required' => true,
                 'placeholder' => false,
                 // looks for choices from this entity
                 'class' => PropertyGroup::class,

@@ -65,6 +65,7 @@ class Property implements \JsonSerializable
     private $field;
 
     /**
+     * @Assert\NotBlank(message="Don't forget to select a property group!")
      * @ORM\ManyToOne(targetEntity="App\Entity\PropertyGroup", inversedBy="properties")
      * @ORM\JoinColumn(nullable=false)
      */

@@ -6,6 +6,7 @@ use App\Entity\CustomObject;
 use App\Entity\Property;
 use App\Model\AbstractField;
 use App\Model\CustomObjectField;
+use App\Repository\PropertyRepository;
 use App\Serializer\FieldNormalizer;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Event\LifecycleEventArgs;
@@ -33,9 +34,16 @@ class PropertyListener
      */
     private $serializer;
 
-    public function __construct(SerializerInterface $serializer)
+    /**
+     * @var EntityManagerInterface
+     */
+    private $entityManager;
+
+
+    public function __construct(SerializerInterface $serializer,  EntityManagerInterface $entityManager)
     {
         $this->serializer = $serializer;
+        $this->entityManager = $entityManager;
     }
 
     /**
@@ -71,6 +79,24 @@ class PropertyListener
         $property->setField($propertyField);
     }
 
+
+    /**
+     *  Set the first 5 properties to display on the columns for the datatables
+     * that way the datatables is not empty
+     * @param Property $property
+     */
+    private function setWhetherOrNotIsColumn(Property $property) {
+
+        $properties = $this->entityManager->getRepository(Property::class)->findBy([
+           'isColumn' => true
+        ]);
+
+        if(count($properties) <= 5) {
+            $property->setIsColumn(true);
+        }
+
+    }
+
     /**
      * Serialize the content property before persisting
      *
@@ -80,6 +106,7 @@ class PropertyListener
     public function prePersist(Property $property, LifecycleEventArgs $args)
     {
         $this->serializePropertyField($property);
+        $this->setWhetherOrNotIsColumn($property);
     }
 
     /**

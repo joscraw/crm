@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\CustomObject;
 use App\Entity\Record;
+use App\Model\FieldCatalog;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
@@ -64,8 +65,8 @@ class RecordRepository extends ServiceEntityRepository
         foreach($selectizeAllowedSearchableProperties as $allowedSearchableProperty) {
             $resultStr[] = sprintf($jsonExtract, $allowedSearchableProperty->getInternalName(), $allowedSearchableProperty->getInternalName());
         }
-        $resultStr = implode(",",$resultStr);
-        $query = sprintf("SELECT id, properties, %s from record WHERE LOWER(properties) LIKE '%%%s%%'", $resultStr, strtolower($search));
+        $resultStr = empty($resultStr) ? '' : ',' . implode(",",$resultStr);
+        $query = sprintf("SELECT id, properties %s from record WHERE LOWER(properties) LIKE '%%%s%%'", $resultStr, strtolower($search));
 
         $em = $this->getEntityManager();
         $stmt = $em->getConnection()->prepare($query);
@@ -92,6 +93,11 @@ class RecordRepository extends ServiceEntityRepository
         $jsonExtract = "properties->>'$.%s' as %s";
         $resultStr = [];
         foreach($propertiesForDatatable as $property) {
+
+            if($property->getFieldType() === FieldCatalog::CUSTOM_OBJECT) {
+                $jsonExtract = "properties->>'$.%s.id' as %s";
+            }
+
             $resultStr[] = sprintf($jsonExtract, $property->getInternalName(), $property->getInternalName());
         }
         $resultStr = implode(",",$resultStr);
@@ -194,5 +200,19 @@ class RecordRepository extends ServiceEntityRepository
             "arrayResults"  => $arrayResults,
             "countResult"	=> $countResult
         );
+    }
+
+    /**
+     * @param CustomObject $customObject
+     * @return mixed
+     */
+    public function findCountByCustomObject(CustomObject $customObject)
+    {
+        return $this->createQueryBuilder('record')
+            ->select('COUNT(record) as count')
+            ->where('record.customObject = :customObject')
+            ->setParameter('customObject', $customObject->getId())
+            ->getQuery()
+            ->getResult();
     }
 }

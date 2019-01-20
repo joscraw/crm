@@ -217,7 +217,7 @@ class RecordController extends ApiController
 
 
         $results = $this->recordRepository->getSelectizeData($search, $allowedCustomObjectToSearch, $selectizeAllowedSearchableProperties);
-        $interalNameToLabelMap = $this->propertyRepository->findAllInternalNamesAndLabelsForCustomObject($customObject);
+        $internalNameToLabelMap = $this->propertyRepository->findAllInternalNamesAndLabelsForCustomObject($allowedCustomObjectToSearch);
 
         $selectizeRecords = [];
         foreach($results as $result) {
@@ -228,9 +228,9 @@ class RecordController extends ApiController
             $items = [];
             foreach($result as $internalName => $value) {
                 $item = [];
-                $key = array_search($internalName, array_column($interalNameToLabelMap, 'internalName'));
+                $key = array_search($internalName, array_column($internalNameToLabelMap, 'internalName'));
                 if($key !== false) {
-                    $label = $interalNameToLabelMap[$key]['label'];
+                    $label = $internalNameToLabelMap[$key]['label'];
                 } elseif($internalName === 'id') {
                     $label = 'Id';
                 } else {
@@ -294,8 +294,8 @@ class RecordController extends ApiController
             }
         }
 
-        $countQuery = $this->recordRepository->createQueryBuilder('records')->select('COUNT(records)');
-        $totalRecordsCount = $countQuery->getQuery()->getSingleScalarResult();
+        $countQuery = $this->recordRepository->findCountByCustomObject($customObject);
+        $totalRecordsCount = !empty($countQuery[0]['count']) ? $countQuery[0]['count'] : 0;
 
 
         $filteredRecordsCount = $results['countResult'];
