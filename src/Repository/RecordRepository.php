@@ -94,8 +94,14 @@ class RecordRepository extends ServiceEntityRepository
         $resultStr = [];
         foreach($propertiesForDatatable as $property) {
 
+            // custom objects are nested json structures. Let's just grab the id out of it
             if($property->getFieldType() === FieldCatalog::CUSTOM_OBJECT) {
                 $jsonExtract = "properties->>'$.%s.id' as %s";
+            }
+
+            // custom objects that allow multiple are arrays of nested json structures. Let's just grab each id out of they array
+            if($property->getFieldType() === FieldCatalog::CUSTOM_OBJECT && $property->getField()->isMultiple()) {
+                $jsonExtract = "properties->>'$.%s[*].id' as %s";
             }
 
             $resultStr[] = sprintf($jsonExtract, $property->getInternalName(), $property->getInternalName());
