@@ -288,8 +288,17 @@ class RecordController extends ApiController
 
         foreach($results['results'] as &$result) {
             foreach($result as $key => $value) {
+                
+                // 'null' values are columns that exist and you leave empty
+                // null valus are columns that don't exist
                 if(in_array($value, ['null', null])) {
                     $result[$key] = '-';
+                }
+
+                if(in_array($value, ['true'])) {
+                    $result[$key] = 'yes';
+                } else if(in_array($value, ['false'])) {
+                    $result[$key] = 'no';
                 }
             }
         }
