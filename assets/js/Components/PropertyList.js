@@ -3,6 +3,8 @@
 import Routing from '../Routing';
 import Settings from '../Settings';
 import $ from "jquery";
+import EditCustomObjectButton from "./EditCustomObjectButton";
+import EditPropertyGroupButton from "./EditPropertyGroupButton";
 
 require( 'datatables.net-bs4' );
 require( 'datatables.net-responsive-bs4' );
@@ -44,6 +46,11 @@ class PropertyList {
 
         this.globalEventDispatcher.subscribe(
             Settings.Events.PROPERTY_CREATED,
+            this.redrawDataTable.bind(this)
+        );
+
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.PROPERTY_GROUP_EDITED,
             this.redrawDataTable.bind(this)
         );
 
@@ -214,6 +221,8 @@ class PropertyList {
             ],
             "data": properties
         });
+
+        new EditPropertyGroupButton($row.find('.js-edit-property-group-button'), this.globalEventDispatcher, this.portal, propertyGroup.id, "Edit");
     }
 }
 
@@ -223,9 +232,10 @@ class PropertyList {
  */
 const rowTemplate = (propertyGroup) => `
     <div class="c-collapse js-collapse" data-property-group-id="${propertyGroup.id}">
-        <h2 class="is-active c-collapse__title js-collapse__title">
-          <i class="fa fa-angle-right c-collapse__title-icon"></i> ${propertyGroup.label}
-        </h2>
+        <div class="is-active c-collapse__title js-collapse__title">
+        <h2><i class="fa fa-angle-right c-collapse__title-icon"></i> ${propertyGroup.label}</h2>
+          <div class="d-inline js-edit-property-group-button c-collapse__edit-property-group-button"></div>
+        </div>
         <div class="collapse c-collapse__body js-collapse__body">
           <div class="card card-body">
             <table id="table${propertyGroup.id}" class="table table-striped table-bordered" style="width:100%">

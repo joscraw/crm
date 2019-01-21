@@ -10,10 +10,10 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 /**
- * Class PropertyGroupType
+ * Class EditPropertyGroupType
  * @package App\Form\Property
  */
-class PropertyGroupType extends AbstractType
+class EditPropertyGroupType extends AbstractType
 {
     /**
      * @param FormBuilderInterface $builder
@@ -35,7 +35,7 @@ class PropertyGroupType extends AbstractType
     {
         $resolver->setDefaults(array(
             'data_class' => PropertyGroup::class,
-            'validation_groups' => ['CREATE'],
+            'validation_groups' => ['EDIT'],
         ));
     }
 }

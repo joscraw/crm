@@ -23,7 +23,7 @@ class PropertyGroup
     private $id;
 
     /**
-     * @Assert\NotBlank(message="Don't forget a name for your super cool Property Group!")
+     * @Assert\NotBlank(message="Don't forget a name for your super cool Property Group!", groups={"CREATE", "EDIT"})
      *
      * @ORM\Column(type="string", length=255)
      */
@@ -55,7 +55,7 @@ class PropertyGroup
         return $this->name;
     }
 
-    public function setName(string $name): self
+    public function setName($name): self
     {
         $this->name = $name;
 

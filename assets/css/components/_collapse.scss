@@ -26,3 +26,13 @@
     display: none;
   }
 }
+
+.c-collapse__title {
+  position: relative;
+}
+
+.c-collapse__edit-property-group-button {
+  position: absolute;
+  right: 0;
+  top: 0;
+}
