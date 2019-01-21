@@ -3,6 +3,7 @@
 import Routing from '../Routing';
 import Settings from '../Settings';
 import EditCustomObjectButton from "./EditCustomObjectButton";
+import $ from "jquery";
 
 require( 'datatables.net-bs4' );
 require( 'datatables.net-responsive-bs4' );
@@ -35,20 +36,45 @@ class CustomObjectList {
             this.reloadList.bind(this)
         );
 
-        this.globalEventDispatcher.subscribe(
+      /*  this.globalEventDispatcher.subscribe(
             Settings.Events.CUSTOM_OBJECT_EDITED,
             this.reloadList.bind(this)
+        );
+*/
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.CUSTOM_OBJECT_SEARCH_KEY_UP,
+            this.applySearch.bind(this)
         );
 
     }
 
     activatePlugins() {
-        $('#table_id').DataTable({
+
+        this.table = $('#table_id').DataTable({
 
             "pageLength": 10,
             "processing": true,
             "serverSide": true,
             "responsive": true,
+            "language": {
+                "emptyTable": `No "${this.customObjectLabel}" custom objects found.`,
+            },
+            /*
+            the "dom" property determines what components DataTables shows by default
+
+            Possible Flags:
+
+            l - length changing input control
+            f - filtering input
+            t - The table!
+            i - Table information summary
+            p - pagination control
+            r - processing display element
+
+            For more information on the "dom" property and how to use it
+            https://datatables.net/reference/option/dom
+            */
+            "dom": "lpirt",
             "columns": [
                 { "data": "label", "name": "label", "title": "label", mRender: (data, type, row) => {
                         return `${row['label']} <span class="js-edit-custom-object" data-custom-object-id="${row['id']}"></span>`;
@@ -61,18 +87,43 @@ class CustomObjectList {
                 dataType: "json",
                 contentType: "application/json; charset=utf-8"
             },
-            "initComplete": (settings, json) => {
-
-                $('.js-edit-custom-object').each((index, element) => {
-                    new EditCustomObjectButton($(element), this.globalEventDispatcher, this.portal, $(element).data('customObjectId'), "Edit");
-                });
-            }
+            "initComplete": (settings, json) => {this.addEditCustomObjectButton()},
+            "drawCallback": (settings)  => {this.addEditCustomObjectButton();}
         });
+    }
+
+    addEditCustomObjectButton() {
+        this.$wrapper.find('.js-edit-custom-object').each((index, element) => {
+            new EditCustomObjectButton($(element), this.globalEventDispatcher, this.portal, $(element).data('customObjectId'), "Edit");
+        });
+    }
+
+    /**
+     * @param args
+     */
+    applySearch(args = {}) {
+
+        debugger;
+        if(typeof args.searchValue !== 'undefined') {
+            this.searchValue = args.searchValue;
+        }
+
+        $('#table_id').DataTable().search(
+            this.searchValue
+        ).draw();
+
+        debugger;
+       /* $('.js-edit-custom-object').each((index, element) => {
+            debugger;
+            new EditCustomObjectButton($(element), this.globalEventDispatcher, this.portal, $(element).data('customObjectId'), "Edit");
+        });*/
     }
 
 
     reloadList() {
-        $('#table_id').DataTable().ajax.reload();
+        this.table.destroy();
+        /*this.table.ajax.reload();*/
+        this.activatePlugins();
     }
 
     loadCustomObjects() {
