@@ -7,6 +7,7 @@ use App\Entity\Portal;
 use App\Entity\Property;
 use App\Entity\PropertyGroup;
 use App\Form\CustomObjectType;
+use App\Form\DeletePropertyGroupType;
 use App\Form\EditPropertyGroupType;
 use App\Form\PropertyGroupType;
 use App\Form\PropertyType;
@@ -128,6 +129,74 @@ class PropertyGroupController extends ApiController
             [
                 'success' => true,
                 'formMarkup' => $formMarkup
+            ],
+            Response::HTTP_OK
+        );
+    }
+
+    /**
+     * @Route("{propertyGroup}/delete-form", name="delete_property_group_form", methods={"GET"}, options = { "expose" = true })
+     * @param PropertyGroup $propertyGroup
+     * @return JsonResponse
+     */
+    public function getDeletePropertyGroupFormAction(PropertyGroup $propertyGroup) {
+
+        $form = $this->createForm(DeletePropertyGroupType::class, $propertyGroup);
+
+        $formMarkup = $this->renderView(
+            'Api/form/delete_property_group_form.html.twig',
+            [
+                'form' => $form->createView(),
+            ]
+        );
+
+        return new JsonResponse(
+            [
+                'success' => true,
+                'formMarkup' => $formMarkup
+            ],
+            Response::HTTP_OK
+        );
+    }
+
+    /**
+     * @Route("{propertyGroup}/delete", name="delete_property_group", methods={"POST"}, options={"expose" = true})
+     * @param Portal $portal
+     * @param Request $request
+     * @param PropertyGroup $propertyGroup
+     * @return JsonResponse
+     */
+    public function deletePropertyGroupAction(Portal $portal, Request $request, PropertyGroup $propertyGroup)
+    {
+
+        $form = $this->createForm(DeletePropertyGroupType::class, $propertyGroup);
+
+        $form->handleRequest($request);
+
+        if (!$form->isValid()) {
+            $formMarkup = $this->renderView(
+                'Api/form/delete_property_group_form.html.twig',
+                [
+                    'form' => $form->createView(),
+                ]
+            );
+            return new JsonResponse(
+                [
+                    'success' => false,
+                    'formMarkup' => $formMarkup,
+                ], Response::HTTP_BAD_REQUEST
+            );
+        }
+
+        // delete property group here
+        /** @var $propertyGroup PropertyGroup */
+        $propertyGroup = $form->getData();
+        $this->entityManager->remove($propertyGroup);
+        $this->entityManager->flush();
+
+        return new JsonResponse(
+            [
+                'success' => true,
             ],
             Response::HTTP_OK
         );

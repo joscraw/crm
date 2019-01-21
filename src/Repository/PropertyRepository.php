@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\CustomObject;
 use App\Entity\Portal;
 use App\Entity\Property;
+use App\Entity\PropertyGroup;
 use App\Model\FieldCatalog;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
@@ -191,6 +192,21 @@ class PropertyRepository extends ServiceEntityRepository
             ->setParameter('bool', true)
             ->setParameter('customObject', $customObject->getId())
             ->orderBy('property.columnOrder', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * @param PropertyGroup $propertyGroup
+     * @return mixed
+     */
+    public function getCountByPropertyGroup(PropertyGroup $propertyGroup)
+    {
+        return $this->createQueryBuilder('property')
+            ->select('count(property.id) as count')
+            ->join('property.propertyGroup', 'propertyGroup')
+            ->where('propertyGroup = :propertyGroup')
+            ->setParameter('propertyGroup', $propertyGroup->getId())
             ->getQuery()
             ->getResult();
     }

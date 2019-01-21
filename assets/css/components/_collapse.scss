@@ -7,6 +7,10 @@
 
 }
 
+.c-collapse__header {
+  float: left;
+}
+
 .c-collapse__title-icon {
   transition: all 0.4s ease;
 
@@ -27,12 +31,6 @@
   }
 }
 
-.c-collapse__title {
-  position: relative;
-}
-
-.c-collapse__edit-property-group-button {
-  position: absolute;
-  right: 0;
-  top: 0;
+.c-collapse__edit-property-group-button, .c-collapse__delete-property-group-button {
+  float: right;
 }

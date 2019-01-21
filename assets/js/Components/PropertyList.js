@@ -5,6 +5,7 @@ import Settings from '../Settings';
 import $ from "jquery";
 import EditCustomObjectButton from "./EditCustomObjectButton";
 import EditPropertyGroupButton from "./EditPropertyGroupButton";
+import DeletePropertyGroupButton from "./DeletePropertyGroupButton";
 
 require( 'datatables.net-bs4' );
 require( 'datatables.net-responsive-bs4' );
@@ -51,6 +52,11 @@ class PropertyList {
 
         this.globalEventDispatcher.subscribe(
             Settings.Events.PROPERTY_GROUP_EDITED,
+            this.redrawDataTable.bind(this)
+        );
+
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.PROPERTY_GROUP_DELETED,
             this.redrawDataTable.bind(this)
         );
 
@@ -223,6 +229,7 @@ class PropertyList {
         });
 
         new EditPropertyGroupButton($row.find('.js-edit-property-group-button'), this.globalEventDispatcher, this.portal, propertyGroup.id, "Edit");
+        new DeletePropertyGroupButton($row.find('.js-delete-property-group-button'), this.globalEventDispatcher, this.portal, this.customObject, propertyGroup.id, "Delete");
     }
 }
 
@@ -232,9 +239,10 @@ class PropertyList {
  */
 const rowTemplate = (propertyGroup) => `
     <div class="c-collapse js-collapse" data-property-group-id="${propertyGroup.id}">
-        <div class="is-active c-collapse__title js-collapse__title">
-        <h2><i class="fa fa-angle-right c-collapse__title-icon"></i> ${propertyGroup.label}</h2>
-          <div class="d-inline js-edit-property-group-button c-collapse__edit-property-group-button"></div>
+        <div class="is-active c-collapse__title js-collapse__title clearfix">
+        <h2 class="c-collapse__header"><i class="fa fa-angle-right c-collapse__title-icon"></i> ${propertyGroup.label}</h2>
+          <div class="d-inline js-delete-property-group-button c-collapse__delete-property-group-button"></div>
+          <div class="d-inline js-edit-property-group-button c-collapse__edit-property-group-button"></div>  
         </div>
         <div class="collapse c-collapse__body js-collapse__body">
           <div class="card card-body">
