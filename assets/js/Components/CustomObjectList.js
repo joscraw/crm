@@ -4,6 +4,7 @@ import Routing from '../Routing';
 import Settings from '../Settings';
 import EditCustomObjectButton from "./EditCustomObjectButton";
 import $ from "jquery";
+import DeleteCustomObjectButton from "./DeleteCustomObjectButton";
 
 require( 'datatables.net-bs4' );
 require( 'datatables.net-responsive-bs4' );
@@ -36,11 +37,16 @@ class CustomObjectList {
             this.reloadList.bind(this)
         );
 
-      /*  this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.subscribe(
             Settings.Events.CUSTOM_OBJECT_EDITED,
             this.reloadList.bind(this)
         );
-*/
+
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.CUSTOM_OBJECT_DELETED,
+            this.reloadList.bind(this)
+        );
+
         this.globalEventDispatcher.subscribe(
             Settings.Events.CUSTOM_OBJECT_SEARCH_KEY_UP,
             this.applySearch.bind(this)
@@ -77,7 +83,9 @@ class CustomObjectList {
             "dom": "lpirt",
             "columns": [
                 { "data": "label", "name": "label", "title": "label", mRender: (data, type, row) => {
-                        return `${row['label']} <span class="js-edit-custom-object" data-custom-object-id="${row['id']}"></span>`;
+                        return `
+                        ${row['label']} <span class="js-edit-custom-object c-custom-object-table__edit-button" data-custom-object-id="${row['id']}"></span>
+                        <span class="js-delete-custom-object c-custom-object-table__delete-button" data-custom-object-id="${row['id']}"></span>`;
                     }},
                 //repeat for each of my 20 or so fields
             ],
@@ -87,8 +95,14 @@ class CustomObjectList {
                 dataType: "json",
                 contentType: "application/json; charset=utf-8"
             },
-            "initComplete": (settings, json) => {this.addEditCustomObjectButton()},
-            "drawCallback": (settings)  => {this.addEditCustomObjectButton();}
+            "initComplete": (settings, json) => {
+                this.addEditCustomObjectButton();
+                this.addDeleteCustomObjectButton();
+            },
+            "drawCallback": (settings)  => {
+                this.addEditCustomObjectButton();
+                this.addDeleteCustomObjectButton();
+            }
         });
     }
 
@@ -98,12 +112,18 @@ class CustomObjectList {
         });
     }
 
+    addDeleteCustomObjectButton() {
+        this.$wrapper.find('.js-delete-custom-object').each((index, element) => {
+            new DeleteCustomObjectButton($(element), this.globalEventDispatcher, this.portal, $(element).data('customObjectId'), "Delete");
+        });
+    }
+
+
     /**
      * @param args
      */
     applySearch(args = {}) {
 
-        debugger;
         if(typeof args.searchValue !== 'undefined') {
             this.searchValue = args.searchValue;
         }
@@ -111,24 +131,14 @@ class CustomObjectList {
         $('#table_id').DataTable().search(
             this.searchValue
         ).draw();
-
-        debugger;
-       /* $('.js-edit-custom-object').each((index, element) => {
-            debugger;
-            new EditCustomObjectButton($(element), this.globalEventDispatcher, this.portal, $(element).data('customObjectId'), "Edit");
-        });*/
     }
 
 
     reloadList() {
         this.table.destroy();
-        /*this.table.ajax.reload();*/
         this.activatePlugins();
     }
 
-    loadCustomObjects() {
-
-    }
 
     render() {
         return new Promise((resolve, reject) => {
@@ -139,7 +149,7 @@ class CustomObjectList {
 
     static markup() {
         return `
-            <table id="table_id" class="table table-striped table-bordered" style="width:100%">
+            <table id="table_id" class="table table-striped table-bordered c-custom-object-table" style="width:100%">
                 <thead>
                 </thead>
                 <tbody>

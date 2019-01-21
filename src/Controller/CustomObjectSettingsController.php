@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\CustomObject;
 use App\Entity\Portal;
 use App\Form\CustomObjectType;
+use App\Form\DeleteCustomObjectType;
 use App\Form\EditCustomObjectType;
 use App\Repository\CustomObjectRepository;
 use Doctrine\ORM\EntityManager;
@@ -140,6 +141,75 @@ class CustomObjectSettingsController extends AbstractController
             [
                 'success' => true,
                 'formMarkup' => $formMarkup
+            ],
+            Response::HTTP_OK
+        );
+    }
+
+    /**
+     * @Route("{customObject}/delete-form", name="delete_custom_object_form", methods={"GET"}, options = { "expose" = true })
+     * @param CustomObject $customObject
+     * @return JsonResponse
+     */
+    public function getDeleteCustomObjectFormAction(CustomObject $customObject) {
+
+        $form = $this->createForm(DeleteCustomObjectType::class, $customObject);
+
+        $formMarkup = $this->renderView(
+            'Api/form/delete_custom_object_form.html.twig',
+            [
+                'form' => $form->createView(),
+            ]
+        );
+
+        return new JsonResponse(
+            [
+                'success' => true,
+                'formMarkup' => $formMarkup
+            ],
+            Response::HTTP_OK
+        );
+    }
+
+    /**
+     * @Route("{customObject}/delete", name="delete_custom_object", methods={"POST"}, options={"expose" = true})
+     * @param Portal $portal
+     * @param Request $request
+     * @param CustomObject $customObject
+     * @return JsonResponse
+     */
+    public function deleteCustomObjectAction(Portal $portal, Request $request, CustomObject $customObject)
+    {
+
+        $form = $this->createForm(DeleteCustomObjectType::class, $customObject);
+
+        $form->handleRequest($request);
+
+        if (!$form->isValid()) {
+            $formMarkup = $this->renderView(
+                'Api/form/delete_custom_object_form.html.twig',
+                [
+                    'form' => $form->createView(),
+                ]
+            );
+
+            return new JsonResponse(
+                [
+                    'success' => false,
+                    'formMarkup' => $formMarkup,
+                ], Response::HTTP_BAD_REQUEST
+            );
+        }
+
+        // delete custom object here
+        /** @var $customObject CustomObject */
+        $customObject = $form->getData();
+        $this->entityManager->remove($customObject);
+        $this->entityManager->flush();
+
+        return new JsonResponse(
+            [
+                'success' => true,
             ],
             Response::HTTP_OK
         );

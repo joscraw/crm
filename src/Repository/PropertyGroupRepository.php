@@ -53,6 +53,21 @@ class PropertyGroupRepository extends ServiceEntityRepository
      * @param CustomObject $customObject
      * @return mixed
      */
+    public function getCountByCustomObject(CustomObject $customObject)
+    {
+        return $this->createQueryBuilder('propertyGroup')
+            ->select('count(propertyGroup.id) as count')
+            ->join('propertyGroup.customObject', 'customObject')
+            ->where('customObject = :customObject')
+            ->setParameter('customObject', $customObject->getId())
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * @param CustomObject $customObject
+     * @return mixed
+     */
     public function getDataTableData(CustomObject $customObject)
     {
 

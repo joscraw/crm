@@ -15,6 +15,7 @@ use App\Validator\Constraints as CustomAssert;
  * @ORM\HasLifecycleCallbacks()
  * @CustomAssert\CustomObjectLabelAlreadyExists(groups={"CREATE", "EDIT"})
  * @CustomAssert\CustomObjectInternalNameAlreadyExists(groups={"CREATE"})
+ * @CustomAssert\CustomObjectDeletion(groups={"DELETE"})
  */
 class CustomObject implements \JsonSerializable
 {

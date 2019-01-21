@@ -1,0 +1,22 @@
+// -----------------------------------------------------------------------------
+// This file contains all styles related to the custom object table component
+// -----------------------------------------------------------------------------
+
+.c-custom-object-table {
+
+}
+
+.c-custom-object-table tr:hover {
+
+  .c-custom-object-table__edit-button, .c-custom-object-table__delete-button {
+    display: block;
+  }
+
+}
+
+.c-custom-object-table__edit-button, .c-custom-object-table__delete-button {
+  display: none;
+  float: right;
+  margin-right: 10px;
+}
+
