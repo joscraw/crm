@@ -104,6 +104,10 @@ class RecordRepository extends ServiceEntityRepository
                 $jsonExtract = "properties->>'$.%s[*].id' as %s";
             }
 
+            if($property->getFieldType() === FieldCatalog::DATE_PICKER) {
+                $jsonExtract = "properties->>'$.%s.date' as %s";
+            }
+
             $resultStr[] = sprintf($jsonExtract, $property->getInternalName(), $property->getInternalName());
         }
         $resultStr = implode(",",$resultStr);
