@@ -24,6 +24,9 @@ class EditPropertyGroupType extends AbstractType
         $builder
             ->add('name', TextType::class, [
                 'required' => true,
+                'attr' => [
+                    'autocomplete' => 'off'
+                ]
             ])
             ->add('submit', SubmitType::class);
     }

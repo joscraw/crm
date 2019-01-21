@@ -24,9 +24,15 @@ class CustomObjectType extends AbstractType
         $builder
             ->add('label', TextType::class, [
                 'required' => true,
+                'attr' => [
+                    'autocomplete' => 'off'
+                ]
             ])
             ->add('internalName', TextType::class, [
                 'required' => false,
+                'attr' => [
+                    'autocomplete' => 'off'
+                ]
             ])
             ->add('submit', SubmitType::class);
     }

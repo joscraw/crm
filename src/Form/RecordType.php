@@ -79,7 +79,8 @@ class RecordType extends AbstractType
                         'required' => false,
                         'label' => $property->getLabel(),
                         'attr' => [
-                            'data-property-id' => $property->getId()
+                            'data-property-id' => $property->getId(),
+                            'autocomplete' => 'off'
                         ]
                     ], $options);
                     $builder->add($property->getInternalName(), TextType::class, $options);
@@ -89,7 +90,8 @@ class RecordType extends AbstractType
                         'required' => false,
                         'label' => $property->getLabel(),
                         'attr' => [
-                            'data-property-id' => $property->getId()
+                            'data-property-id' => $property->getId(),
+                            'autocomplete' => 'off'
                         ]
                     ], $options);
                     $builder->add($property->getInternalName(), TextareaType::class, $options);
@@ -104,7 +106,8 @@ class RecordType extends AbstractType
                         'multiple' => false,
                         'attr' => [
                             'class' => 'js-selectize-single-select',
-                            'data-property-id' => $property->getId()
+                            'data-property-id' => $property->getId(),
+                            'autocomplete' => 'off'
                         ]
                     ], $options);
                     $builder->add($property->getInternalName(), ChoiceType::class, $options);
@@ -121,7 +124,8 @@ class RecordType extends AbstractType
                         'required' => false,
                         'attr' => [
                             'class' => 'js-selectize-single-select',
-                            'data-property-id' => $property->getId()
+                            'data-property-id' => $property->getId(),
+                            'autocomplete' => 'off'
                         ]
                     ], $options);
                     $builder->add($property->getInternalName(), ChoiceType::class, $options);
@@ -136,7 +140,8 @@ class RecordType extends AbstractType
                         'required' => false,
                         'attr' => [
                             'class' => 'js-selectize-multiple-select',
-                            'data-property-id' => $property->getId()
+                            'data-property-id' => $property->getId(),
+                            'autocomplete' => 'off'
                         ]
                     ], $options);
                     $builder->add($property->getInternalName(), ChoiceType::class, $options);
@@ -151,7 +156,8 @@ class RecordType extends AbstractType
                         'multiple' => false,
                         'attr' => [
                             'class' => 'js-selectize-single-select',
-                            'data-property-id' => $property->getId()
+                            'data-property-id' => $property->getId(),
+                            'autocomplete' => 'off'
                         ]
                     ], $options);
                     $builder->add($property->getInternalName(), ChoiceType::class, $options);
@@ -161,7 +167,8 @@ class RecordType extends AbstractType
                         'required' => false,
                         'label' => $property->getLabel(),
                         'attr' => [
-                            'data-property-id' => $property->getId()
+                            'data-property-id' => $property->getId(),
+                            'autocomplete' => 'off'
                         ]
                     ], $options);
                     $builder->add($property->getInternalName(), NumberType::class, $options);
@@ -171,12 +178,14 @@ class RecordType extends AbstractType
                         'required' => false,
                         'label' => $property->getLabel(),
                         'widget' => 'single_text',
+                        'format' => 'yyyy-MM-dd',
                         // prevents rendering it as type="date", to avoid HTML5 date pickers
                         'html5' => false,
                         // adds a class that can be selected in JavaScript
                         'attr' => [
                             'class' => 'js-datepicker',
-                            'data-property-id' => $property->getId()
+                            'data-property-id' => $property->getId(),
+                            'autocomplete' => 'off'
                         ],
                     ], $options);
                     $builder->add($property->getInternalName(), DateType::class, $options);
@@ -192,7 +201,8 @@ class RecordType extends AbstractType
                             'class' => 'js-selectize-single-select-with-search',
                             'placeholder' => 'Start typing to search..',
                             'data-allowed-custom-object-to-search' => $customObject->getId(),
-                            'data-property-id' => $property->getId()
+                            'data-property-id' => $property->getId(),
+                            'autocomplete' => 'off'
                         ],
                         'expanded' => false,
                     ], $options);

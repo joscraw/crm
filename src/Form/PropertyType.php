@@ -41,12 +41,21 @@ class PropertyType extends AbstractType
         $builder
             ->add('label', TextType::class, [
                 'required' => true,
+                'attr' => [
+                    'autocomplete' => 'off'
+                ]
             ])
             ->add('internalName', TextType::class, [
                 'required' => false,
+                'attr' => [
+                    'autocomplete' => 'off'
+                ]
             ])
             ->add('description', TextareaType::class, [
                 'required' => false,
+                'attr' => [
+                    'autocomplete' => 'off'
+                ]
             ])
             ->add('required', CheckboxType::class, [
                 'required' => false,

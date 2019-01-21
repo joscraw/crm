@@ -79,14 +79,6 @@
         </div>
     </div>
 
-{#    <div class="container {% block containerComponent %}{% endblock %}" {% block containerComponentAttributes %}{% endblock %}>
-        <div class="l-grid">
-            <div class="l-grid__top-bar js-top-bar"></div>
-            <div class="l-grid__sub-bar js-sub-bar"></div>
-            <div class="l-grid__main-content js-main-content"></div>
-        </div>
-    </div>#}
-
     <div id="app" class="container {% block containerComponent %}{% endblock %}" {% block containerComponentAttributes %}{% endblock %}></div>
 
     {% block javascripts %}
@@ -94,6 +86,7 @@
             <script src="{{ path('fos_js_routing_js', { callback: 'fos.Router.setData' }) }}"></script>
             <script src="{{ asset('build/runtime.js') }}"></script>
             <script src="{{ asset('build/layout.js') }}"></script>
+
         {% endblock %}
     </body>
 </html>

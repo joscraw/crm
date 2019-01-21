@@ -24,11 +24,15 @@ class EditCustomObjectType extends AbstractType
         $builder
             ->add('label', TextType::class, [
                 'required' => true,
+                'attr' => [
+                    'autocomplete' => 'off'
+                ]
             ])
             ->add('internalName', TextType::class, [
                 'required' => false,
                 'attr' => [
-                    'readonly' => 'readonly'
+                    'readonly' => 'readonly',
+                    'autocomplete' => 'off'
                 ]
             ])
             ->add('submit', SubmitType::class);

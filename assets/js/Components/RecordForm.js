@@ -6,6 +6,11 @@ import Routing from '../Routing';
 import Settings from '../Settings';
 import FormHelper from '../FormHelper';
 
+require('jquery-ui-dist/jquery-ui');
+require('jquery-ui-dist/jquery-ui.css');
+require('bootstrap-datepicker');
+require('bootstrap-datepicker/dist/css/bootstrap-datepicker.css');
+
 class RecordForm {
 
     /**
@@ -35,7 +40,7 @@ class RecordForm {
 
         this.loadForm().then(()=> {this.activatePlugins();});
 
-        this.activatePlugins();
+        /*this.activatePlugins();*/
     }
 
     /**
@@ -201,7 +206,7 @@ class RecordForm {
         })[0].selectize;*/
 
         $('.js-datepicker').datepicker({
-            format: 'yyyy-mm-dd'
+            format: 'yyyy-MM-dd'
         });
     }
 
