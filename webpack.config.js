@@ -22,6 +22,7 @@ Encore
     .addEntry('custom_object_settings', './assets/js/custom_object_settings.js')
     .addEntry('property_settings', './assets/js/property_settings.js')
     .addEntry('record_list', './assets/js/record_list.js')
+    .addEntry('routing_settings', './assets/js/routing_settings.js')
     //.addEntry('page1', './assets/js/page1.js')
     //.addEntry('page2', './assets/js/page2.js')
 

@@ -14,7 +14,7 @@
 
     <!-- SideNav Menu -->
     <!-- https://bootsnipp.com/snippets/featured/responsive-navigation-menu -->
-    <div class="nav-side-menu">
+{#    <div class="nav-side-menu">
         <div class="brand">Brand Logo</div>
         <i class="fa fa-bars fa-2x toggle-btn" data-toggle="collapse" data-target="#menu-content"></i>
 
@@ -77,7 +77,10 @@
                 </li>
             </ul>
         </div>
-    </div>
+    </div>#}
+
+    {% block body %}{% endblock %}
+
 
     <div id="app" class="container {% block containerComponent %}{% endblock %}" {% block containerComponentAttributes %}{% endblock %}></div>
 

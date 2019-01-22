@@ -34,8 +34,6 @@ use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
  * Class PropertySettingsController
  * @package App\Controller
  *
- * @Route("{internalIdentifier}/properties")
- *
  */
 class PropertySettingsController extends AbstractController
 {
@@ -85,18 +83,31 @@ class PropertySettingsController extends AbstractController
      * @param CustomObject $customObject
      * @return \Symfony\Component\HttpFoundation\Response
      */
-    public function indexAction(Portal $portal, CustomObject $customObject) {
+/*     public function indexAction(Portal $portal, CustomObject $customObject) {
 
-        $properties = $this->propertyRepository->find(67);
+        return $this->render('propertySettings/index.html.twig', array(
+            'portal' => $portal,
+            'customObject' => $customObject
+        ));
+    }*/
+
+    /**
+     * @Route("/search", name="routing")
+     * @return Response
+     */
+    public function routingAction() {
+
+        /*return new Response("hi");
+        $properties = $this->propertyRepository->find(67);*/
 
         /*$field = $properties[3]->getField();
 
         $c = $field->getCustomObject();
         $i = $c->getId();*/
 
-        return $this->render('propertySettings/index.html.twig', array(
-            'portal' => $portal,
-            'customObject' => $customObject
+        return $this->render('propertySettings/routing.html.twig', array(
+            /*'portal' => $portal,*/
+            /*'customObject' => $customObject*/
         ));
     }
 }
