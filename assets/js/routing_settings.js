@@ -9,8 +9,8 @@ $(document).ready(function() {
     debugger;
     var Router = Backbone.Router.extend({
         routes: {
-            "search/settings": "index",
-            "search/properties": "search"
+            ":id/properties/search": "index",
+            ":id/properties/contact": "search"
         },
 
         index: function() {

@@ -34,6 +34,8 @@ use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
  * Class PropertySettingsController
  * @package App\Controller
  *
+ * @Route("{internalIdentifier}/properties")
+ *
  */
 class PropertySettingsController extends AbstractController
 {
@@ -92,7 +94,7 @@ class PropertySettingsController extends AbstractController
     }*/
 
     /**
-     * @Route("/search/{reactRouting}", name="routing", requirements={"reactRouting"=".+"}, defaults={"reactRouting": null})
+     * @Route("/{reactRouting}", name="routing", requirements={"reactRouting"=".+"}, defaults={"reactRouting": null})
      * @return Response
      */
     public function routingAction() {
@@ -110,4 +112,5 @@ class PropertySettingsController extends AbstractController
             /*'customObject' => $customObject*/
         ));
     }
+
 }
