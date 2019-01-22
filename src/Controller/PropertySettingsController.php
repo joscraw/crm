@@ -92,7 +92,7 @@ class PropertySettingsController extends AbstractController
     }*/
 
     /**
-     * @Route("/search", name="routing")
+     * @Route("/search/{reactRouting}", name="routing", requirements={"reactRouting"=".+"}, defaults={"reactRouting": null})
      * @return Response
      */
     public function routingAction() {
