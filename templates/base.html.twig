@@ -14,7 +14,7 @@
 
     <!-- SideNav Menu -->
     <!-- https://bootsnipp.com/snippets/featured/responsive-navigation-menu -->
-{#    <div class="nav-side-menu">
+    <div class="nav-side-menu">
         <div class="brand">Brand Logo</div>
         <i class="fa fa-bars fa-2x toggle-btn" data-toggle="collapse" data-target="#menu-content"></i>
 
@@ -71,16 +71,13 @@
                 </li>
 
                 <li>
-                    <a href="{{ path('property_settings', {internalIdentifier: portal.internalIdentifier}) }}">
+                    <a href="{{ path('property_settings', {internalIdentifier: portal.internalIdentifier, internalName:'contact'}) }}">
                         <i class="fa fa-cog fa-lg"></i> Properties
                     </a>
                 </li>
             </ul>
         </div>
-    </div>#}
-
-    {% block body %}{% endblock %}
-
+    </div>
 
     <div id="app" class="container {% block containerComponent %}{% endblock %}" {% block containerComponentAttributes %}{% endblock %}></div>
 

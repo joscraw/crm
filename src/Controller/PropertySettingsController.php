@@ -91,25 +91,21 @@ class PropertySettingsController extends AbstractController
             'portal' => $portal,
             'customObject' => $customObject
         ));
+
+defaults={"internalName"="contact"}
     }*/
 
     /**
-     * @Route("/{reactRouting}", name="routing", requirements={"reactRouting"=".+"}, defaults={"reactRouting": null})
+     * @Route("/{internalName}/{routing}", name="property_settings", requirements={"routing"=".+"}, defaults={"routing": null}, methods={"GET"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param CustomObject $customObject
      * @return Response
      */
-    public function routingAction() {
+    public function indexAction(Portal $portal, CustomObject $customObject) {
 
-        /*return new Response("hi");
-        $properties = $this->propertyRepository->find(67);*/
-
-        /*$field = $properties[3]->getField();
-
-        $c = $field->getCustomObject();
-        $i = $c->getId();*/
-
-        return $this->render('propertySettings/routing.html.twig', array(
-            /*'portal' => $portal,*/
-            /*'customObject' => $customObject*/
+        return $this->render('propertySettings/index.html.twig', array(
+            'portal' => $portal,
+            'customObject' => $customObject
         ));
     }
 

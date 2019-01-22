@@ -13,13 +13,13 @@ $(document).ready(function() {
             ":id/properties/contact": "search"
         },
 
-        index: function() {
+        index: function(id) {
             debugger;
 
             console.log("hi");
         },
 
-        search: function() {
+        search: function(id) {
             debugger;
             console.log("bye");
         }
