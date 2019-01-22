@@ -78,23 +78,6 @@ class PropertySettingsController extends AbstractController
         $this->propertyGroupRepository = $propertyGroupRepository;
     }
 
-
-    /**
-     * @Route("/{internalName}", name="property_settings", methods={"GET"}, defaults={"internalName"="contact"}, options = { "expose" = true })
-     * @param Portal $portal
-     * @param CustomObject $customObject
-     * @return \Symfony\Component\HttpFoundation\Response
-     */
-/*     public function indexAction(Portal $portal, CustomObject $customObject) {
-
-        return $this->render('propertySettings/index.html.twig', array(
-            'portal' => $portal,
-            'customObject' => $customObject
-        ));
-
-defaults={"internalName"="contact"}
-    }*/
-
     /**
      * @Route("/{internalName}/{routing}", name="property_settings", requirements={"routing"=".+"}, defaults={"routing": null}, methods={"GET"}, options = { "expose" = true })
      * @param Portal $portal

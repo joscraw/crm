@@ -5,6 +5,7 @@ namespace App\Form;
 use App\Entity\CustomObject;
 use App\Entity\Portal;
 use App\Entity\Property;
+use App\Form\Type\SelectizeSearchResultPropertiesType;
 use App\Model\CustomObjectField;
 use App\Model\DatePickerField;
 use App\Model\DropdownSelectField;
@@ -62,21 +63,41 @@ class CustomObjectFieldType extends AbstractType
      */
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
+
         /** @var Portal $portal */
         $portal = $options['portal'];
 
-        $builder->add('customObject', EntityType::class, array(
-            'class' => CustomObject::class,
-            'query_builder' => function (EntityRepository $er) use ($portal) {
+        /** @var  $customObject */
+        $customObject = $options['customObject'];
+
+        $builder->add('customObject', ChoiceType::class, array(
+            /*'class' => CustomObject::class,*/
+            'choices'  => $this->customObjectRepository->findByPortal($portal),
+           /* 'query_builder' => function (EntityRepository $er) use ($portal) {
                 return $er->createQueryBuilder('customObject')
                     ->where('customObject.portal = :portal')
                     ->setParameter('portal', $portal)
                     ->orderBy('customObject.label', 'ASC');
+            },*/
+            /*'choice_label' => 'label',
+            'data' => 2,*/
+            /*'choices'  => [
+                'Maybe' => null,
+                'Yes' => true,
+                'No' => false,
+            ],
+            'data' => 'Yes',*/
+            'choice_value' => function ($choice) {
+                return $choice->getId();
             },
-            'choice_label' => 'label',
+            'choice_label' => function($choice, $key, $value) {
+                return $choice->getLabel();
+            },
+            'data' => $customObject,
             'expanded' => false,
             'multiple' => false,
             'required' => false,
+            'by_reference' => false,
             'placeholder' => 'Select a custom object please...',
             'attr' => [
                 'class' => 'js-custom-object'
@@ -97,6 +118,7 @@ class CustomObjectFieldType extends AbstractType
             $customObject = $event->getForm()->getData();
             $this->modifyForm($event->getForm()->getParent(), $customObject);
         });
+
     }
 
     private function modifyForm(FormInterface $form, CustomObject $customObjectReference = null) {
@@ -113,10 +135,15 @@ class CustomObjectFieldType extends AbstractType
             $placeholder = 'Start typing to search..';
         }
 
-        $form->add('selectizeSearchResultProperties', EntityType::class, array(
-            'class' => Property::class,
+        $form->add('selectizeSearchResultProperties', SelectizeSearchResultPropertiesType::class, array(
+            /*'class' => Property::class,*/
             'choices' => $choices,
-            'choice_label' => 'label',
+            'choice_value' => function ($choice) {
+                return $choice->getId();
+            },
+            'choice_label' => function($choice, $key, $value) {
+                return $choice->getLabel();
+            },
             'expanded' => false,
             'multiple' => true,
             'label' => 'Search Result Properties',

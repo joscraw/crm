@@ -7,6 +7,7 @@ use App\Entity\Portal;
 use App\Entity\Property;
 use App\Entity\PropertyGroup;
 use App\Form\CustomObjectType;
+use App\Form\EditPropertyType;
 use App\Form\PropertyGroupType;
 use App\Form\PropertyType;
 use App\Model\FieldCatalog;
@@ -144,6 +145,70 @@ class PropertyController extends ApiController
     }
 
     /**
+     * @Route("{internalName}/edit", name="edit_property", methods={"GET", "POST"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param Request $request
+     * @param Property $property
+     * @return JsonResponse
+     * @throws \App\Controller\Exception\InvalidInputException
+     * @throws \App\Controller\Exception\MissingRequiredQueryParameterException
+     */
+    public function editPropertyAction(Portal $portal, Property $property, Request $request) {
+
+        $customObject = $this->getCustomObjectForRequest($this->customObjectRepository);
+
+        $property->setCustomObject($customObject);
+
+        $form = $this->createForm(EditPropertyType::class, $property, [
+            'portal' => $portal,
+            'customObject' => $customObject,
+            'property' => $property
+        ]);
+
+        $form->handleRequest($request);
+
+        $fieldHelpMessage = FieldCatalog::getOptionsForFieldType(FieldCatalog::SINGLE_LINE_TEXT)['description'];
+        if($property->getFieldType()) {
+            $fieldHelpMessage = FieldCatalog::getOptionsForFieldType($property->getFieldType())['description'];
+        }
+
+        $formMarkup = $this->renderView(
+            'Api/form/property_form.html.twig',
+            [
+                'form' => $form->createView(),
+                'fieldHelpMessage' => $fieldHelpMessage
+            ]
+        );
+
+        if ($form->isSubmitted() && !$form->isValid()) {
+
+            if(!$form->isValid()) {
+                return new JsonResponse(
+                    [
+                        'success' => false,
+                        'formMarkup' => $formMarkup,
+                    ], Response::HTTP_BAD_REQUEST
+                );
+            }
+        }
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            /** @var $property Property */
+            $property = $form->getData();
+            $this->entityManager->persist($property);
+            $this->entityManager->flush();
+        }
+
+        return new JsonResponse(
+            [
+                'success' => true,
+                'formMarkup' => $formMarkup,
+            ],
+            Response::HTTP_OK
+        );
+    }
+
+    /**
      * @Route("/get-for-datatable", name="properties_for_datatable", methods={"GET"}, options = { "expose" = true })
      * @param Portal $portal
      * @param Request $request
@@ -172,6 +237,8 @@ class PropertyController extends ApiController
             foreach($properties as $property) {
                 $payload['properties'][$propertyGroupId][] = [
                     'label' => $property->getLabel(),
+                    'internalName' => $property->getInternalName(),
+                    'id' => $property->getId()
                 ];
             }
         }

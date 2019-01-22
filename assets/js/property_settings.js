@@ -1,5 +1,6 @@
 import $ from 'jquery';
 import PropertySettings from './Components/Page/PropertySettings';
+import EditProperty from "./Components/Page/EditProperty";
 require('backbone/backbone.js');
 
 $(document).ready(function() {
@@ -7,10 +8,17 @@ $(document).ready(function() {
     var Router = Backbone.Router.extend({
         routes: {
             ":internalIdentifier/properties/:internalName": "index",
+            ":internalIdentifier/properties/:internalName/:propertyInternalName": "propertyEdit",
         },
 
         index: function(internalIdentifier, internalName) {
             new PropertySettings($('#app'), window.globalEventDispatcher);
+        },
+
+        propertyEdit: function(internalIdentifier, internalName, propertyInternalName) {
+            debugger;
+            new EditProperty($('#app'), window.globalEventDispatcher, propertyInternalName);
+            console.log("property edit page");
         }
     });
 

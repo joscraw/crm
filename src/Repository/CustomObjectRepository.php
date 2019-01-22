@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\CustomObject;
+use App\Entity\Portal;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
@@ -149,5 +150,15 @@ class CustomObjectRepository extends ServiceEntityRepository
             ->setParameter('label', $label)
             ->getQuery()
             ->getOneOrNullResult();
+    }
+
+    public function findByPortal(Portal $portal) {
+
+        return $this->createQueryBuilder('customObject')
+            ->where('customObject.portal = :portal')
+            ->setParameter('portal', $portal)
+            ->orderBy('customObject.label', 'ASC')
+            ->getQuery()
+            ->getResult();
     }
 }

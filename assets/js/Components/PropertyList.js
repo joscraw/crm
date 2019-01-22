@@ -21,12 +21,14 @@ class PropertyList {
      * @param portal
      * @param customObject
      */
-    constructor($wrapper, globalEventDispatcher, portal, customObject) {
+    constructor($wrapper, globalEventDispatcher, portal, customObject, customObjectInternalName) {
 
+        debugger;
         this.portal = portal;
         this.customObject = customObject;
         this.$wrapper = $wrapper;
         this.searchValue = '';
+        this.customObjectInternalName = customObjectInternalName;
         this.collapseStatus = {};
 
         /**
@@ -222,7 +224,16 @@ class PropertyList {
             */
             "dom": "rt",
             "columns": [
-                { "data": "label", "name": "label", "title": "label" },
+                { "data": "label", "name": "label", "title": "label", mRender: (data, type, row) => {
+
+                        debugger;
+
+                        let url = Routing.generate('property_settings', {internalIdentifier: this.portal, internalName: this.customObjectInternalName});
+                            url = `${url}/${row['internalName']}`;
+                        debugger;
+
+                        return `<a href="${url}">${row['label']}</a>`;
+                    } },
                 //repeat for each of my 20 or so fields
             ],
             "data": properties
