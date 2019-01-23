@@ -20,8 +20,11 @@ class PropertyList {
      * @param globalEventDispatcher
      * @param portal
      * @param customObject
+     * @param customObjectInternalName
+     * @param internalIdentifier
+     * @param internalName
      */
-    constructor($wrapper, globalEventDispatcher, portal, customObject, customObjectInternalName) {
+    constructor($wrapper, globalEventDispatcher, portal, customObject, customObjectInternalName, internalIdentifier, internalName) {
 
         debugger;
         this.portal = portal;
@@ -30,6 +33,8 @@ class PropertyList {
         this.searchValue = '';
         this.customObjectInternalName = customObjectInternalName;
         this.collapseStatus = {};
+        this.internalIdentifier = internalIdentifier;
+        this.internalName = internalName;
 
         /**
          * @type {EventDispatcher}
@@ -176,7 +181,7 @@ class PropertyList {
     loadProperties() {
         return new Promise((resolve, reject) => {
             debugger;
-            const url = Routing.generate('properties_for_datatable', {internalIdentifier: this.portal});
+            const url = Routing.generate('properties_for_datatable', {internalIdentifier: this.portal, internalName: this.internalName});
 
             $.ajax({
                 url: url,

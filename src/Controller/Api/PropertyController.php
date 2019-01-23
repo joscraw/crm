@@ -212,16 +212,17 @@ class PropertyController extends ApiController
     }
 
     /**
-     * @Route("/get-for-datatable", name="properties_for_datatable", methods={"GET"}, options = { "expose" = true })
+     * @Route("/{internalName}/get-for-datatable", name="properties_for_datatable", methods={"GET"}, options = { "expose" = true })
      * @param Portal $portal
+     * @param CustomObject $customObject
      * @param Request $request
      * @return JsonResponse
      * @throws \App\Controller\Exception\InvalidInputException
      * @throws \App\Controller\Exception\MissingRequiredQueryParameterException
      */
-    public function getPropertiesForDatatableAction(Portal $portal, Request $request) {
+    public function getPropertiesForDatatableAction(Portal $portal, CustomObject $customObject, Request $request) {
 
-        $customObject = $this->getCustomObjectForRequest($this->customObjectRepository);
+        /*$customObject = $this->getCustomObjectForRequest($this->customObjectRepository);*/
 
         $propertyGroups = $this->propertyGroupRepository->getDataTableData($customObject);
         $payload = [];

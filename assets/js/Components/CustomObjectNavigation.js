@@ -11,13 +11,17 @@ class CustomObjectNavigation {
      * @param globalEventDispatcher
      * @param portal
      * @param customObject
+     * @param internalIdentifier
+     * @param internalName
      */
-    constructor($wrapper, globalEventDispatcher, portal, customObject) {
+    constructor($wrapper, globalEventDispatcher, portal, customObject, internalIdentifier, internalName) {
 
         debugger;
         this.portal = portal;
         this.customObject = customObject;
         this.$wrapper = $wrapper;
+        this.internalIdentifier = internalIdentifier;
+        this.internalName = internalName;
 
         /**
          * @type {EventDispatcher}
@@ -33,15 +37,22 @@ class CustomObjectNavigation {
         const $ul = $("<ul>", {"class": "nav nav-tabs c-tab-nav"});
         for(let key in data.data.custom_objects) {
             if(data.data.custom_objects.hasOwnProperty(key)) {
+                debugger;
                 let customObject = data.data.custom_objects[key];
                 let route = Routing.generate('property_settings', {internalIdentifier: this.portal, internalName: customObject.internalName});
+
                 const html = pillTemplate(customObject, route);
                 const $row = $($.parseHTML(html));
                 $ul.append($row);
+
+                if(this.internalName === customObject.internalName) {
+                    debugger;
+                    $ul.find("[data-custom-object-id='" + customObject.id + "']").find('a').addClass('active');
+                }
+
             }
         }
 
-        $ul.find("[data-custom-object-id='" + this.customObject + "']").find('a').addClass('active');
         this.$wrapper.html($ul);
     }
 

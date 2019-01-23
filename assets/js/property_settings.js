@@ -12,7 +12,7 @@ $(document).ready(function() {
         },
 
         index: function(internalIdentifier, internalName) {
-            new PropertySettings($('#app'), window.globalEventDispatcher);
+            new PropertySettings($('#app'), window.globalEventDispatcher, internalIdentifier, internalName);
         },
 
         propertyEdit: function(internalIdentifier, internalName, propertyInternalName) {

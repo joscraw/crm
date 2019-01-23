@@ -14,13 +14,17 @@ class PropertySettingsTopBar {
      * @param globalEventDispatcher
      * @param portal
      * @param customObject
+     * @param internalIdentifier
+     * @param internalName
      */
-    constructor($wrapper, globalEventDispatcher, portal, customObject) {
+    constructor($wrapper, globalEventDispatcher, portal, customObject, internalIdentifier, internalName) {
         debugger;
         this.portal = portal;
         this.customObject = customObject;
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
+        this.internalIdentifier = internalIdentifier;
+        this.internalName = internalName;
 
         this.$wrapper.on(
             'keyup',
@@ -50,7 +54,7 @@ class PropertySettingsTopBar {
         this.$wrapper.html(PropertySettingsTopBar.markup());
         new OpenCreatePropertyGroupModalButton(this.$wrapper.find('.js-top-bar-button-container'), this.globalEventDispatcher, this.portal, this.customObject);
         new OpenCreatePropertyModalButton(this.$wrapper.find('.js-top-bar-button-container'), this.globalEventDispatcher, this.portal, this.customObject);
-        new CustomObjectNavigation(this.$wrapper.find('.js-custom-object-navigation'), this.globalEventDispatcher, this.portal, this.customObject);
+        new CustomObjectNavigation(this.$wrapper.find('.js-custom-object-navigation'), this.globalEventDispatcher, this.portal, this.customObject, this.internalIdentifier, this.internalName);
     }
 
     static markup() {
