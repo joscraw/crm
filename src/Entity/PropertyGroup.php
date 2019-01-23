@@ -12,6 +12,7 @@ use App\Validator\Constraints as CustomAssert;
 /**
  * @ORM\Entity(repositoryClass="App\Repository\PropertyGroupRepository")
  * @CustomAssert\PropertyGroupDeletion(groups={"DELETE"})
+ * @CustomAssert\PropertyGroupNameAlreadyExists(groups={"CREATE", "EDIT"})
  */
 class PropertyGroup
 {

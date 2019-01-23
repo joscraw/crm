@@ -41,14 +41,11 @@ class PropertyInternalNameAlreadyExistsValidator extends ConstraintValidator
 
         foreach($properties as $property) {
             if($property->getId() !== $protocol->getId()) {
-                if(count($properties) > 0) {
                     $this->context->buildViolation($constraint->internalNameAlreadyExistsMessage)
                         ->setParameter('{{ string }}', $internalName)
                         ->setParameter('{{ string2 }}', $protocol->getCustomObject()->getLabel())
                         ->atPath('internalName')
                         ->addViolation();
-                }
-
                 return;
             }
         }

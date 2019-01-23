@@ -239,7 +239,7 @@ class PropertyList {
             "data": properties
         });
 
-        new EditPropertyGroupButton($row.find('.js-edit-property-group-button'), this.globalEventDispatcher, this.portal, propertyGroup.id, "Edit");
+        new EditPropertyGroupButton($row.find('.js-edit-property-group-button'), this.globalEventDispatcher, this.portal, propertyGroup.id, "Edit", this.customObject);
         new DeletePropertyGroupButton($row.find('.js-delete-property-group-button'), this.globalEventDispatcher, this.portal, this.customObject, propertyGroup.id, "Delete");
     }
 }

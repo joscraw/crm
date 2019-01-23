@@ -8,13 +8,14 @@ import EditPropertyGroupFormModal from "./EditPropertyGroupFormModal";
 
 class EditPropertyGroupButton {
 
-    constructor($wrapper, globalEventDispatcher, portal, propertyGroupId, label) {
+    constructor($wrapper, globalEventDispatcher, portal, propertyGroupId, label, customObject) {
         debugger;
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
         this.label = label;
         this.portal = portal;
         this.propertyGroupId = propertyGroupId;
+        this.customObject = customObject;
         debugger;
 
         this.$wrapper.on(
@@ -38,7 +39,7 @@ class EditPropertyGroupButton {
         console.log("Edit Property Group Button Clicked");
         this.globalEventDispatcher.publish(Settings.Events.EDIT_PROPERTY_GROUP_BUTTON_CLICKED);
         console.log(`Event Dispatched: ${Settings.Events.EDIT_PROPERTY_GROUP_BUTTON_CLICKED}`);
-        new EditPropertyGroupFormModal(this.globalEventDispatcher, this.portal, this.propertyGroupId);
+        new EditPropertyGroupFormModal(this.globalEventDispatcher, this.portal, this.propertyGroupId, this.customObject);
 
     }
 

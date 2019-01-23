@@ -13,10 +13,11 @@ class EditPropertyGroupFormModal {
      * @param portal
      * @param propertyGroupId
      */
-    constructor(globalEventDispatcher, portal, propertyGroupId) {
+    constructor(globalEventDispatcher, portal, propertyGroupId, customObject) {
         this.globalEventDispatcher = globalEventDispatcher;
         this.portal = portal;
         this.propertyGroupId = propertyGroupId;
+        this.customObject = customObject;
         this.render();
     }
 
@@ -27,7 +28,7 @@ class EditPropertyGroupFormModal {
             html: EditPropertyGroupFormModal.markup()
         });
 
-        new EditPropertyGroupForm($('#js-edit-property-group-modal-container'), this.globalEventDispatcher, this.portal, this.propertyGroupId);
+        new EditPropertyGroupForm($('#js-edit-property-group-modal-container'), this.globalEventDispatcher, this.portal, this.propertyGroupId, this.customObject);
     }
 
     static markup() {

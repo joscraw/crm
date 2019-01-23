@@ -208,9 +208,14 @@ class PropertyGroupController extends ApiController
      * @param Request $request
      * @param PropertyGroup $propertyGroup
      * @return JsonResponse
+     * @throws \App\Controller\Exception\InvalidInputException
+     * @throws \App\Controller\Exception\MissingRequiredQueryParameterException
      */
     public function editPropertyGroupAction(Portal $portal, Request $request, PropertyGroup $propertyGroup)
     {
+        $customObject = $this->getCustomObjectForRequest($this->customObjectRepository);
+
+        $propertyGroup->setCustomObject($customObject);
 
         $form = $this->createForm(EditPropertyGroupType::class, $propertyGroup);
 
@@ -258,6 +263,8 @@ class PropertyGroupController extends ApiController
         $customObject = $this->getCustomObjectForRequest($this->customObjectRepository);
 
         $propertyGroup = new PropertyGroup();
+
+        $propertyGroup->setCustomObject($customObject);
 
         $form = $this->createForm(PropertyGroupType::class, $propertyGroup);
 

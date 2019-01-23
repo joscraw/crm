@@ -93,4 +93,20 @@ class PropertyGroupRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * @param $name
+     * @param CustomObject $customObject
+     * @return mixed
+     */
+    public function findByNameAndCustomObject($name, CustomObject $customObject)
+    {
+        return $this->createQueryBuilder('propertyGroup')
+            ->where('propertyGroup.name = :name')
+            ->andWhere('propertyGroup.customObject = :customObject')
+            ->setParameter('name', $name)
+            ->setParameter('customObject', $customObject->getId())
+            ->getQuery()
+            ->getResult();
+    }
 }

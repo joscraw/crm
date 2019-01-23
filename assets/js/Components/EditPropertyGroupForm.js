@@ -13,12 +13,13 @@ class EditPropertyGroupForm {
      * @param portal
      * @param propertyGroupId
      */
-    constructor($wrapper, globalEventDispatcher, portal, propertyGroupId) {
+    constructor($wrapper, globalEventDispatcher, portal, propertyGroupId, customObject) {
 
         debugger;
         this.$wrapper = $wrapper;
         this.portal = portal;
         this.propertyGroupId = propertyGroupId;
+        this.customObject = customObject;
 
         /**
          * @type {EventDispatcher}
@@ -87,6 +88,8 @@ class EditPropertyGroupForm {
         return new Promise( (resolve, reject) => {
 
             const url = Routing.generate('edit_property_group', {internalIdentifier: this.portal, propertyGroup: this.propertyGroupId});
+
+            data.custom_object_id = this.customObject;
 
             $.ajax({
                 url,
