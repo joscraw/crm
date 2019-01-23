@@ -17,6 +17,8 @@ class PropertyEditForm {
      */
     constructor($wrapper, globalEventDispatcher, portal, customObject, propertyInternalName) {
 
+        debugger;
+
         this.$wrapper = $wrapper;
         this.portal = portal;
         this.customObject = customObject;
@@ -27,24 +29,14 @@ class PropertyEditForm {
          */
         this.globalEventDispatcher = globalEventDispatcher;
 
-     /*   this.$wrapper.on(
+   /*     this.$wrapper.on(
             'submit',
             PropertyCreateForm._selectors.newPropertyForm,
             this.handleNewFormSubmit.bind(this)
-        );
+        );*/
 
-        this.$wrapper.on(
-            'change',
-            PropertyCreateForm._selectors.fieldType,
-            this.handleFieldTypeChange.bind(this)
-        );
 
-        this.$wrapper.on(
-            'change',
-            PropertyCreateForm._selectors.customObject,
-            this.handleCustomObjectChange.bind(this)
-        );
-
+/*
         this.$wrapper.on(
             'click',
             PropertyCreateForm._selectors.addItem,
@@ -56,10 +48,30 @@ class PropertyEditForm {
             PropertyCreateForm._selectors.removeItem,
             this.handleRemoveItemButtonClick.bind(this)
         );
-*/
+        */
+
+        this.$wrapper.on(
+            'submit',
+            PropertyEditForm._selectors.newPropertyForm,
+            this.handleEditFormSubmit.bind(this)
+        );
+
+        this.$wrapper.on(
+            'change',
+            PropertyEditForm._selectors.fieldType,
+            this.handleFieldTypeChange.bind(this)
+        );
+
+        this.$wrapper.on(
+            'change',
+            PropertyEditForm._selectors.customObject,
+            this.handleCustomObjectChange.bind(this)
+        );
+
         this.loadEditPropertyForm().then(() => { this.activatePlugins(); });
 
         this.activatePlugins();
+
     }
 
     /**
@@ -106,7 +118,7 @@ class PropertyEditForm {
     /**
      * @param e
      */
-    handleNewFormSubmit(e) {
+    handleEditFormSubmit(e) {
 
         console.log("form submitted");
 
@@ -120,7 +132,7 @@ class PropertyEditForm {
 
         this._saveProperty(formData)
             .then((data) => {
-                swal("Hooray!", "Well done, you created a new Property!", "success");
+                swal("Sweeeeet!", "You've edited your Property!", "success");
                 this.globalEventDispatcher.publish(Settings.Events.PROPERTY_CREATED);
             }).catch((errorData) => {
 
@@ -144,8 +156,8 @@ class PropertyEditForm {
         const formData = {};
 
         formData[$(e.target).attr('name')] = $(e.target).val();
-        formData[$(PropertyCreateForm._selectors.customObject).attr('name')] = $(PropertyCreateForm._selectors.customObject).val();
-        formData[$(PropertyCreateForm._selectors.fieldType).attr('name')] = $(PropertyCreateForm._selectors.fieldType).val();
+        formData[$(PropertyEditForm._selectors.customObject).attr('name')] = $(PropertyEditForm._selectors.customObject).val();
+        formData[$(PropertyEditForm._selectors.fieldType).attr('name')] = $(PropertyEditForm._selectors.fieldType).val();
 
         formData['validate'] = false;
 
@@ -170,6 +182,7 @@ class PropertyEditForm {
 
     handleFieldTypeChange(e) {
 
+        debugger;
         if(e.cancelable) {
             e.preventDefault();
         }
@@ -184,6 +197,7 @@ class PropertyEditForm {
                 console.log("hi");
             }).catch((errorData) => {
 
+                debugger;
             $('.js-field-container').replaceWith(
                 // ... with the returned one from the AJAX response.
                 $(errorData.formMarkup).find('.js-field-container')
@@ -198,7 +212,7 @@ class PropertyEditForm {
     _changeCustomObject(data) {
         return new Promise((resolve, reject) => {
             debugger;
-            const url = Routing.generate('create_property', {internalIdentifier: this.portal});
+            const url = Routing.generate('edit_property', {internalIdentifier: this.portal, internalName: this.propertyInternalName});
 
             data.custom_object_id = this.customObject;
 
@@ -207,8 +221,10 @@ class PropertyEditForm {
                 method: 'POST',
                 data: data
             }).then((data, textStatus, jqXHR) => {
+                debugger;
                 resolve(data);
             }).catch((jqXHR) => {
+                debugger;
                 const errorData = JSON.parse(jqXHR.responseText);
                 reject(errorData);
             });
@@ -218,7 +234,7 @@ class PropertyEditForm {
     _changeFieldType(data) {
         return new Promise((resolve, reject) => {
             debugger;
-            const url = Routing.generate('create_property', {internalIdentifier: this.portal});
+            const url = Routing.generate('edit_property', {internalIdentifier: this.portal, internalName: this.propertyInternalName});
 
             data.custom_object_id = this.customObject;
 
@@ -279,7 +295,7 @@ class PropertyEditForm {
      */
     _saveProperty(data) {
         return new Promise( (resolve, reject) => {
-            const url = Routing.generate('create_property', {internalIdentifier: this.portal});
+            const url = Routing.generate('edit_property', {internalIdentifier: this.portal, internalName: this.propertyInternalName});
 
             data.custom_object_id = this.customObject;
 

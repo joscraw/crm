@@ -2,7 +2,6 @@
 
 namespace App\Validator\Constraints;
 
-use App\Repository\CustomObjectRepository;
 use App\Repository\PropertyRepository;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
@@ -13,16 +12,19 @@ use Symfony\Component\Validator\Exception\UnexpectedValueException;
  * Class PropertyLabelAlreadyExistsValidator
  * @package App\Validator\Constraints
  */
-class CustomObjectLabelAlreadyExistsValidator extends ConstraintValidator
+class PropertyLabelAlreadyExistsValidator extends ConstraintValidator
 {
     /**
-     * @var CustomObjectRepository
+     * @var PropertyRepository
      */
-    private $customObjectRepository;
+    private $propertyRepository;
 
-    public function __construct(CustomObjectRepository $customObjectRepository)
-    {
-        $this->customObjectRepository = $customObjectRepository;
+    /**
+     * @PropertyAlreadyExists constructor.
+     * @param PropertyRepository $propertyRepository
+     */
+    public function __construct(PropertyRepository $propertyRepository) {
+        $this->propertyRepository = $propertyRepository;
     }
 
     /**
@@ -32,16 +34,18 @@ class CustomObjectLabelAlreadyExistsValidator extends ConstraintValidator
     public function validate($protocol, Constraint $constraint)
     {
         $label = $protocol->getLabel();
-        $portal = $protocol->getPortal();
-        $customObjects = $this->customObjectRepository->findByLabelAndPortal($label, $portal);
+        $customObject = $protocol->getCustomObject();
+        $properties = $this->propertyRepository->findByLabelAndCustomObject($label, $customObject);
 
-        foreach ($customObjects as $customObject) {
-            if ($customObject->getId() !== $protocol->getId()) {
+        foreach($properties as $property) {
+            if($property->getId() !== $protocol->getId()) {
                 $this->context->buildViolation($constraint->labelAlreadyExistsMessage)
                     ->setParameter('{{ string }}', $label)
-                    ->setParameter('{{ string2 }}', $protocol->getLabel())
+                    ->setParameter('{{ string2 }}', $protocol->getCustomObject()->getLabel())
                     ->atPath('label')
                     ->addViolation();
+
+                return;
             }
         }
     }

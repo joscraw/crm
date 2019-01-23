@@ -9,10 +9,10 @@ use Symfony\Component\Validator\Exception\UnexpectedTypeException;
 use Symfony\Component\Validator\Exception\UnexpectedValueException;
 
 /**
- * Class PropertyAlreadyExistsValidator
+ * Class PropertyInternalNameAlreadyExistsValidator
  * @package App\Validator\Constraints
  */
-class PropertyAlreadyExistsValidator extends ConstraintValidator
+class PropertyInternalNameAlreadyExistsValidator extends ConstraintValidator
 {
     /**
      * @var PropertyRepository
@@ -36,22 +36,21 @@ class PropertyAlreadyExistsValidator extends ConstraintValidator
     {
 
         $internalName = $protocol->getInternalName();
-        $label = $protocol->getLabel();
+        $customObject = $protocol->getCustomObject();
+        $properties = $this->propertyRepository->findByInternalNameAndCustomObject($internalName, $customObject);
 
-        if($internalName && $this->propertyRepository->findByInternalName($internalName)) {
-            $this->context->buildViolation($constraint->internalNameAlreadyExistsMessage)
-                ->setParameter('{{ string }}', $internalName)
-                ->setParameter('{{ string2 }}', $protocol->getCustomObject()->getLabel())
-                ->atPath('internalName')
-                ->addViolation();
-        }
+        foreach($properties as $property) {
+            if($property->getId() !== $protocol->getId()) {
+                if(count($properties) > 0) {
+                    $this->context->buildViolation($constraint->internalNameAlreadyExistsMessage)
+                        ->setParameter('{{ string }}', $internalName)
+                        ->setParameter('{{ string2 }}', $protocol->getCustomObject()->getLabel())
+                        ->atPath('internalName')
+                        ->addViolation();
+                }
 
-        if($label && $this->propertyRepository->findByLabel($label)) {
-            $this->context->buildViolation($constraint->labelAlreadyExistsMessage)
-                ->setParameter('{{ string }}', $label)
-                ->setParameter('{{ string2 }}', $protocol->getCustomObject()->getLabel())
-                ->atPath('label')
-                ->addViolation();
+                return;
+            }
         }
     }
 }

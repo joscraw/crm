@@ -29,10 +29,10 @@ use Symfony\Component\Form\FormInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 /**
- * Class DatePickerFieldType
+ * Class EditCustomObjectFieldType
  * @package App\Form
  */
-class CustomObjectFieldType extends AbstractType
+class EditCustomObjectFieldType extends AbstractType
 {
 
     /**

@@ -117,10 +117,42 @@ class PropertyRepository extends ServiceEntityRepository
     public function findByLabel($label)
     {
         return $this->createQueryBuilder('property')
-            ->orWhere('property.label = :label')
+            ->where('property.label = :label')
             ->setParameter('label', $label)
             ->getQuery()
             ->getOneOrNullResult();
+    }
+
+    /**
+     * @param $label
+     * @param CustomObject $customObject
+     * @return mixed
+     */
+    public function findByLabelAndCustomObject($label, CustomObject $customObject)
+    {
+        return $this->createQueryBuilder('property')
+            ->where('property.label = :label')
+            ->andWhere('property.customObject = :customObject')
+            ->setParameter('label', $label)
+            ->setParameter('customObject', $customObject->getId())
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * @param $internalName
+     * @param CustomObject $customObject
+     * @return mixed
+     */
+    public function findByInternalNameAndCustomObject($internalName, CustomObject $customObject)
+    {
+        return $this->createQueryBuilder('property')
+            ->where('property.internalName = :internalName')
+            ->andWhere('property.customObject = :customObject')
+            ->setParameter('internalName', $internalName)
+            ->setParameter('customObject', $customObject->getId())
+            ->getQuery()
+            ->getResult();
     }
 
     /**

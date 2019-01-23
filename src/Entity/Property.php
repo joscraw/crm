@@ -14,7 +14,8 @@ use App\Validator\Constraints as CustomAssert;
  * @ORM\Entity(repositoryClass="App\Repository\PropertyRepository")
  * @ORM\HasLifecycleCallbacks()
  * @ORM\EntityListeners({"App\EntityListener\PropertyListener"})
- * @CustomAssert\PropertyAlreadyExists
+ * @CustomAssert\PropertyInternalNameAlreadyExists(groups={"CREATE", "EDIT"})
+ * @CustomAssert\PropertyLabelAlreadyExists(groups={"CREATE", "EDIT"})
  */
 class Property implements \JsonSerializable
 {
@@ -130,7 +131,7 @@ class Property implements \JsonSerializable
         return $this->label;
     }
 
-    public function setLabel(string $label): self
+    public function setLabel(?string $label): self
     {
         $this->label = $label;
 
@@ -142,7 +143,7 @@ class Property implements \JsonSerializable
         return $this->internalName;
     }
 
-    public function setInternalName(string $internalName): self
+    public function setInternalName(?string $internalName): self
     {
         $this->internalName = $internalName;
 
@@ -178,7 +179,7 @@ class Property implements \JsonSerializable
         return $this->propertyGroup;
     }
 
-    public function setPropertyGroup(PropertyGroup $propertyGroup): self
+    public function setPropertyGroup(?PropertyGroup $propertyGroup): self
     {
         $this->propertyGroup = $propertyGroup;
 
@@ -190,7 +191,7 @@ class Property implements \JsonSerializable
         return $this->customObject;
     }
 
-    public function setCustomObject(CustomObject $customObject): self
+    public function setCustomObject(?CustomObject $customObject): self
     {
         $this->customObject = $customObject;
 
@@ -227,7 +228,7 @@ class Property implements \JsonSerializable
     /**
      * @param bool $required
      */
-    public function setRequired(bool $required): void
+    public function setRequired(?bool $required): void
     {
         $this->required = $required;
     }
@@ -258,7 +259,7 @@ class Property implements \JsonSerializable
         return $this->isColumn;
     }
 
-    public function setIsColumn(bool $isColumn): self
+    public function setIsColumn(?bool $isColumn): self
     {
         $this->isColumn = $isColumn;
 

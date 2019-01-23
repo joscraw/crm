@@ -161,4 +161,36 @@ class CustomObjectRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * @param $internalName
+     * @param Portal $portal
+     * @return mixed
+     */
+    public function findByInternalNameAndPortal($internalName, Portal $portal)
+    {
+        return $this->createQueryBuilder('customObject')
+            ->where('customObject.internalName = :internalName')
+            ->andWhere('customObject.portal = :portal')
+            ->setParameter('internalName', $internalName)
+            ->setParameter('portal', $portal->getId())
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * @param $label
+     * @param Portal $portal
+     * @return mixed
+     */
+    public function findByLabelAndPortal($label, Portal $portal)
+    {
+        return $this->createQueryBuilder('customObject')
+            ->where('customObject.label = :label')
+            ->andWhere('customObject.portal = :portal')
+            ->setParameter('label', $label)
+            ->setParameter('portal', $portal->getId())
+            ->getQuery()
+            ->getResult();
+    }
 }

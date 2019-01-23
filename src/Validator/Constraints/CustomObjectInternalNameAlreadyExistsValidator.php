@@ -2,6 +2,7 @@
 
 namespace App\Validator\Constraints;
 
+use App\Repository\CustomObjectRepository;
 use App\Repository\PropertyRepository;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
@@ -15,33 +16,34 @@ use Symfony\Component\Validator\Exception\UnexpectedValueException;
 class CustomObjectInternalNameAlreadyExistsValidator extends ConstraintValidator
 {
     /**
-     * @var PropertyRepository
+     * @var CustomObjectRepository
      */
-    private $propertyRepository;
+    private $customObjectRepository;
 
-    /**
-     * @PropertyAlreadyExists constructor.
-     * @param PropertyRepository $propertyRepository
-     */
-    public function __construct(PropertyRepository $propertyRepository) {
-        $this->propertyRepository = $propertyRepository;
+    public function __construct(CustomObjectRepository $customObjectRepository)
+    {
+        $this->customObjectRepository = $customObjectRepository;
     }
+
 
     /**
      * @param mixed $protocol
      * @param Constraint $constraint
-     * @throws \Doctrine\ORM\NonUniqueResultException
      */
     public function validate($protocol, Constraint $constraint)
     {
         $internalName = $protocol->getInternalName();
+        $portal = $protocol->getPortal();
+        $customObjects = $this->customObjectRepository->findByInternalNameAndPortal($internalName, $portal);
 
-        if($internalName && $this->propertyRepository->findByInternalName($internalName)) {
-            $this->context->buildViolation($constraint->internalNameAlreadyExistsMessage)
-                ->setParameter('{{ string }}', $internalName)
-                ->setParameter('{{ string2 }}', $protocol->getCustomObject()->getLabel())
-                ->atPath('internalName')
-                ->addViolation();
+        foreach ($customObjects as $customObject) {
+            if ($customObject->getId() !== $protocol->getId()) {
+                $this->context->buildViolation($constraint->internalNameAlreadyExistsMessage)
+                    ->setParameter('{{ string }}', $internalName)
+                    ->setParameter('{{ string2 }}', $protocol->getLabel())
+                    ->atPath('internalName')
+                    ->addViolation();
+            }
         }
     }
 }

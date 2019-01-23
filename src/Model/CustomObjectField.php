@@ -79,7 +79,7 @@ class CustomObjectField extends AbstractField implements \JsonSerializable
      * @param CustomObject $customObject
      * @return $this
      */
-    public function setCustomObject(CustomObject $customObject)
+    public function setCustomObject(CustomObject $customObject = null)
     {
         $this->customObject = $customObject;
 

@@ -170,6 +170,7 @@ class PropertyType extends AbstractType
     {
         $resolver->setDefaults(array(
             'data_class' => Property::class,
+            'validation_groups' => ['CREATE', 'EDIT'],
         ));
 
         $resolver->setRequired([

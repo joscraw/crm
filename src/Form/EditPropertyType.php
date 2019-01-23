@@ -7,7 +7,15 @@ use App\Entity\Portal;
 use App\Entity\Property;
 use App\Entity\PropertyGroup;
 use App\Model\CustomObjectField;
+use App\Model\DatePickerField;
+use App\Model\DropdownSelectField;
 use App\Model\FieldCatalog;
+use App\Model\MultiLineTextField;
+use App\Model\MultipleCheckboxField;
+use App\Model\NumberField;
+use App\Model\RadioSelectField;
+use App\Model\SingleCheckboxField;
+use App\Model\SingleLineTextField;
 use App\Repository\CustomObjectRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
@@ -53,13 +61,12 @@ class EditPropertyType extends AbstractType
     {
         /** @var Portal $portal */
         $portal = $options['portal'];
+
         /** @var CustomObject $customObject */
         $customObject = $options['customObject'];
 
         /** @var Property $property */
         $property = $options['property'];
-
-        $f = $property->getField();
 
         $builder
             ->add('label', TextType::class, [
@@ -93,7 +100,6 @@ class EditPropertyType extends AbstractType
             ->add('propertyGroup', EntityType::class, array(
                 'required' => true,
                 'placeholder' => false,
-                // looks for choices from this entity
                 'class' => PropertyGroup::class,
                 'query_builder' => function (EntityRepository $er) use ($customObject) {
                     return $er->createQueryBuilder('propertyGroup')
@@ -102,13 +108,7 @@ class EditPropertyType extends AbstractType
                         ->setParameter('customObject', $customObject)
                         ->orderBy('customObject.label', 'ASC');
                 },
-
-                // uses the User.username property as the visible option string
                 'choice_label' => 'name',
-
-                // used to render a select box, check boxes or radios
-                // 'multiple' => true,
-                // 'expanded' => true,
         ));
 
         $builder->get('fieldType')->addEventListener(FormEvents::POST_SUBMIT, [$this, 'fieldModifier']);
@@ -120,15 +120,16 @@ class EditPropertyType extends AbstractType
                 // this would be your entity, i.e. SportMeetup
                 $data = $event->getData();
 
-                $customObject = $data->getField()->getCustomObject();
-                $form = $event->getForm();
+                if($data->getFieldType() === FieldCatalog::CUSTOM_OBJECT) {
+                    $customObject = $data->getField()->getCustomObject();
+                    $form = $event->getForm();
 
-                $form->add('field', CustomObjectFieldType::class, [
-                    'portal' => $portal,
-                    'customObject' => $customObject,
-                    /*'data' => $property->getField()*/
-                ]);
-
+                    $form->add('field', CustomObjectFieldType::class, [
+                        'portal' => $portal,
+                        'customObject' => $customObject
+                        /*'data' => $property->getField()*/
+                    ]);
+                }
             }
         );
     }
@@ -147,6 +148,7 @@ class EditPropertyType extends AbstractType
         $property = $form->getConfig()->getOption('property');
 
         $data = $event->getData();
+
         $builderData = null;
         $fieldClass = null;
         $options = [
@@ -157,31 +159,39 @@ class EditPropertyType extends AbstractType
 
         switch($data) {
             case FieldCatalog::SINGLE_LINE_TEXT:
+                $builderData = new SingleLineTextField();
                 $fieldClass = SingleLineTextFieldType::class;
                 break;
             case FieldCatalog::MULTI_LINE_TEXT:
+                $builderData = new MultiLineTextField();
                 $fieldClass = MultiLineTextFieldType::class;
                 break;
             case FieldCatalog::DROPDOWN_SELECT:
+                $builderData = new DropdownSelectField();
                 $fieldClass = DropdownSelectFieldType::class;
                 break;
             case FieldCatalog::SINGLE_CHECKBOX:
+                $builderData = new SingleCheckboxField();
                 $fieldClass = SingleCheckboxFieldType::class;
                 break;
             case FieldCatalog::MULTIPLE_CHECKBOX:
+                $builderData = new MultipleCheckboxField();
                 $fieldClass = MultipleCheckboxFieldType::class;
                 break;
             case FieldCatalog::RADIO_SELECT:
+                $builderData = new RadioSelectField();
                 $fieldClass = RadioSelectFieldType::class;
                 break;
             case FieldCatalog::NUMBER:
+                $builderData = new NumberField();
                 $fieldClass = NumberFieldType::class;
                 break;
             case FieldCatalog::DATE_PICKER:
+                $builderData = new DatePickerField();
                 $fieldClass = DatePickerFieldType::class;
                 break;
             case FieldCatalog::CUSTOM_OBJECT:
-                $fieldClass = CustomObjectFieldType::class;
+                $fieldClass = EditCustomObjectFieldType::class;
                 $builderData = new CustomObjectField();
                 $options['portal'] = $portal;
                 $options['customObject'] = $customObject;
@@ -214,6 +224,7 @@ class EditPropertyType extends AbstractType
     {
         $resolver->setDefaults(array(
             'data_class' => Property::class,
+            'validation_groups' => ['EDIT'],
         ));
 
         $resolver->setRequired([
