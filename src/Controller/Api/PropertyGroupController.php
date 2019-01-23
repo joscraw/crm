@@ -109,7 +109,7 @@ class PropertyGroupController extends ApiController
     }
 
     /**
-     * @Route("{propertyGroup}/get-edit-form", name="edit_property_group_form", methods={"GET"}, options = { "expose" = true })
+     * @Route("/{propertyGroup}/get-edit-form", name="edit_property_group_form", methods={"GET"}, options = { "expose" = true })
      * @param Portal $portal
      * @param PropertyGroup $propertyGroup
      * @return JsonResponse
@@ -135,7 +135,7 @@ class PropertyGroupController extends ApiController
     }
 
     /**
-     * @Route("{propertyGroup}/delete-form", name="delete_property_group_form", methods={"GET"}, options = { "expose" = true })
+     * @Route("/{propertyGroup}/delete-form", name="delete_property_group_form", methods={"GET"}, options = { "expose" = true })
      * @param PropertyGroup $propertyGroup
      * @return JsonResponse
      */
@@ -160,7 +160,7 @@ class PropertyGroupController extends ApiController
     }
 
     /**
-     * @Route("{propertyGroup}/delete", name="delete_property_group", methods={"POST"}, options={"expose" = true})
+     * @Route("/{propertyGroup}/delete", name="delete_property_group", methods={"POST"}, options={"expose" = true})
      * @param Portal $portal
      * @param Request $request
      * @param PropertyGroup $propertyGroup
@@ -203,7 +203,7 @@ class PropertyGroupController extends ApiController
     }
 
     /**
-     * @Route("{propertyGroup}/edit", name="edit_property_group", methods={"POST"}, options={"expose" = true})
+     * @Route("/{propertyGroup}/edit", name="edit_property_group", methods={"POST"}, options={"expose" = true})
      * @param Portal $portal
      * @param Request $request
      * @param PropertyGroup $propertyGroup

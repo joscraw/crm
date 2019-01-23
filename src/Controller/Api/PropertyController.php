@@ -7,6 +7,7 @@ use App\Entity\Portal;
 use App\Entity\Property;
 use App\Entity\PropertyGroup;
 use App\Form\CustomObjectType;
+use App\Form\DeletePropertyType;
 use App\Form\EditPropertyType;
 use App\Form\PropertyGroupType;
 use App\Form\PropertyType;
@@ -145,7 +146,7 @@ class PropertyController extends ApiController
     }
 
     /**
-     * @Route("{internalName}/edit", name="edit_property", methods={"GET", "POST"}, options = { "expose" = true })
+     * @Route("/{internalName}/edit", name="edit_property", methods={"GET", "POST"}, options = { "expose" = true })
      * @param Portal $portal
      * @param Request $request
      * @param Property $property
@@ -365,5 +366,76 @@ class PropertyController extends ApiController
         ], Response::HTTP_OK);
 
         return $response;
+    }
+
+    /**
+     * @Route("/{property}/delete-form", name="delete_property_form", methods={"GET"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param Property $property
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getDeletePropertyFormAction(Portal $portal, Property $property, Request $request) {
+
+        $form = $this->createForm(DeletePropertyType::class, $property);
+
+        $formMarkup = $this->renderView(
+            'Api/form/delete_property_form.html.twig',
+            [
+                'form' => $form->createView(),
+            ]
+        );
+
+        return new JsonResponse(
+            [
+                'success' => true,
+                'formMarkup' => $formMarkup
+            ],
+            Response::HTTP_OK
+        );
+    }
+
+    /**
+     * @Route("/{property}/delete", name="delete_property", methods={"POST"}, options={"expose" = true})
+     * @param Portal $portal
+     * @param Request $request
+     * @param Property $property
+     * @return JsonResponse
+     */
+    public function deletePropertyAction(Portal $portal, Request $request, Property $property)
+    {
+
+        $form = $this->createForm(DeletePropertyType::class, $property);
+
+        $form->handleRequest($request);
+
+        if (!$form->isValid()) {
+            $formMarkup = $this->renderView(
+                'Api/form/delete_property_form.html.twig',
+                [
+                    'form' => $form->createView(),
+                ]
+            );
+
+            return new JsonResponse(
+                [
+                    'success' => false,
+                    'formMarkup' => $formMarkup,
+                ], Response::HTTP_BAD_REQUEST
+            );
+        }
+
+        // delete custom object here
+        /** @var $property Property */
+        $property = $form->getData();
+        $this->entityManager->remove($property);
+        $this->entityManager->flush();
+
+        return new JsonResponse(
+            [
+                'success' => true,
+            ],
+            Response::HTTP_OK
+        );
     }
 }

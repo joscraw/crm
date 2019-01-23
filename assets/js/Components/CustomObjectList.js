@@ -95,10 +95,6 @@ class CustomObjectList {
                 dataType: "json",
                 contentType: "application/json; charset=utf-8"
             },
-            "initComplete": (settings, json) => {
-                this.addEditCustomObjectButton();
-                this.addDeleteCustomObjectButton();
-            },
             "drawCallback": (settings)  => {
                 this.addEditCustomObjectButton();
                 this.addDeleteCustomObjectButton();

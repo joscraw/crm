@@ -6,6 +6,8 @@ import $ from "jquery";
 import EditCustomObjectButton from "./EditCustomObjectButton";
 import EditPropertyGroupButton from "./EditPropertyGroupButton";
 import DeletePropertyGroupButton from "./DeletePropertyGroupButton";
+import DeleteCustomObjectButton from "./DeleteCustomObjectButton";
+import DeletePropertyButton from "./DeletePropertyButton";
 
 require( 'datatables.net-bs4' );
 require( 'datatables.net-responsive-bs4' );
@@ -64,6 +66,11 @@ class PropertyList {
 
         this.globalEventDispatcher.subscribe(
             Settings.Events.PROPERTY_GROUP_DELETED,
+            this.redrawDataTable.bind(this)
+        );
+
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.PROPERTY_DELETED,
             this.redrawDataTable.bind(this)
         );
 
@@ -235,13 +242,19 @@ class PropertyList {
                         url = `${url}/${row['internalName']}`;
 
                         return `
-                        ${row['label']} <span class="c-table__edit-button" data-custom-object-id="${row['id']}"><a href="${url}" role="button" class="btn btn-primary btn-sm">Edit</a></span>
+                        ${row['label']} <span class="c-table__edit-button"><a href="${url}" role="button" class="btn btn-primary btn-sm">Edit</a></span>
+                        <span class="js-delete-property c-table__delete-button" data-property-id="${row['id']}"></span>
                          `;
 
                     } },
                 //repeat for each of my 20 or so fields
             ],
-            "data": properties
+            "data": properties,
+            "initComplete": (settings, json) => {
+                $row.find('.js-delete-property').each((index, element) => {
+                    new DeletePropertyButton($(element), this.globalEventDispatcher, this.portal, this.customObject, $(element).attr('data-property-id'), "Delete");
+                });
+            }
         });
 
         new EditPropertyGroupButton($row.find('.js-edit-property-group-button'), this.globalEventDispatcher, this.portal, propertyGroup.id, "Edit", this.customObject);

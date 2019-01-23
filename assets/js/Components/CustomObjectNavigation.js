@@ -37,7 +37,7 @@ class CustomObjectNavigation {
         const $ul = $("<ul>", {"class": "nav nav-tabs c-tab-nav"});
         for(let key in data.data.custom_objects) {
             if(data.data.custom_objects.hasOwnProperty(key)) {
-                debugger;
+
                 let customObject = data.data.custom_objects[key];
                 let route = Routing.generate('property_settings', {internalIdentifier: this.portal, internalName: customObject.internalName});
 
@@ -46,7 +46,7 @@ class CustomObjectNavigation {
                 $ul.append($row);
 
                 if(this.internalName === customObject.internalName) {
-                    debugger;
+
                     $ul.find("[data-custom-object-id='" + customObject.id + "']").find('a').addClass('active');
                 }
 
