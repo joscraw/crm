@@ -35,13 +35,14 @@ class CustomTransformer implements DataTransformerInterface
 
     /**
      * Transforms an id (record) to an object (issue).
-     *
+     * @param $properties
+     * @return array|ArrayCollection
      */
     public function reverseTransform($properties)
     {
         // no issue number? It's optional, so that's ok
         if (empty($properties)) {
-            return;
+            return [];
         }
 
         return new ArrayCollection($properties);
