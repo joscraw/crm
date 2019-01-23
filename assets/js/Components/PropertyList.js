@@ -231,13 +231,13 @@ class PropertyList {
             "columns": [
                 { "data": "label", "name": "label", "title": "label", mRender: (data, type, row) => {
 
-                        debugger;
-
                         let url = Routing.generate('property_settings', {internalIdentifier: this.portal, internalName: this.customObjectInternalName});
-                            url = `${url}/${row['internalName']}`;
-                        debugger;
+                        url = `${url}/${row['internalName']}`;
 
-                        return `<a href="${url}">${row['label']}</a>`;
+                        return `
+                        ${row['label']} <span class="c-table__edit-button" data-custom-object-id="${row['id']}"><a href="${url}" role="button" class="btn btn-primary btn-sm">Edit</a></span>
+                         `;
+
                     } },
                 //repeat for each of my 20 or so fields
             ],
@@ -262,7 +262,7 @@ const rowTemplate = (propertyGroup) => `
         </div>
         <div class="collapse c-collapse__body js-collapse__body">
           <div class="card card-body">
-            <table id="table${propertyGroup.id}" class="table table-striped table-bordered" style="width:100%">
+            <table id="table${propertyGroup.id}" class="table table-striped table-bordered c-table" style="width:100%">
                 <thead>
                 </thead>
                 <tbody>
