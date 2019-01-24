@@ -82,17 +82,13 @@ class PropertyController extends ApiController
     }
 
     /**
-     * @Route("/create", name="create_property", methods={"GET", "POST"}, options = { "expose" = true })
+     * @Route("{internalName}/create", name="create_property", methods={"GET", "POST"}, options = { "expose" = true })
      * @param Portal $portal
      * @param CustomObject $customObject
      * @param Request $request
      * @return JsonResponse
-     * @throws \App\Controller\Exception\InvalidInputException
-     * @throws \App\Controller\Exception\MissingRequiredQueryParameterException
      */
     public function createPropertyAction(Portal $portal, CustomObject $customObject, Request $request) {
-
-        $customObject = $this->getCustomObjectForRequest($this->customObjectRepository);
 
         $property = new Property();
         $property->setCustomObject($customObject);
@@ -146,17 +142,14 @@ class PropertyController extends ApiController
     }
 
     /**
-     * @Route("/{internalName}/edit", name="edit_property", methods={"GET", "POST"}, options = { "expose" = true })
+     * @Route("/{internalName}/{propertyInternalName}/edit", name="edit_property", methods={"GET", "POST"}, options = { "expose" = true })
      * @param Portal $portal
-     * @param Request $request
+     * @param CustomObject $customObject
      * @param Property $property
+     * @param Request $request
      * @return JsonResponse
-     * @throws \App\Controller\Exception\InvalidInputException
-     * @throws \App\Controller\Exception\MissingRequiredQueryParameterException
      */
-    public function editPropertyAction(Portal $portal, Property $property, Request $request) {
-
-        $customObject = $this->getCustomObjectForRequest($this->customObjectRepository);
+    public function editPropertyAction(Portal $portal, CustomObject $customObject, Property $property, Request $request) {
 
         $property->setCustomObject($customObject);
 
@@ -218,12 +211,8 @@ class PropertyController extends ApiController
      * @param CustomObject $customObject
      * @param Request $request
      * @return JsonResponse
-     * @throws \App\Controller\Exception\InvalidInputException
-     * @throws \App\Controller\Exception\MissingRequiredQueryParameterException
      */
     public function getPropertiesForDatatableAction(Portal $portal, CustomObject $customObject, Request $request) {
-
-        /*$customObject = $this->getCustomObjectForRequest($this->customObjectRepository);*/
 
         $propertyGroups = $this->propertyGroupRepository->getDataTableData($customObject);
         $payload = [];
@@ -234,7 +223,8 @@ class PropertyController extends ApiController
             $propertyGroupId = $propertyGroup->getId();
             $payload['property_groups'][$propertyGroupId] = [
                 'id' => $propertyGroupId,
-                'label' => $propertyGroup->getName()
+                'label' => $propertyGroup->getName(),
+                'internalName' => $propertyGroup->getInternalName()
             ];
 
             $properties = $propertyGroup->getProperties();
@@ -257,16 +247,13 @@ class PropertyController extends ApiController
     }
 
     /**
-     * @Route("/get-for-columns", name="properties_for_columns", methods={"GET"}, options = { "expose" = true })
+     * @Route("/{internalName}/get-for-columns", name="properties_for_columns", methods={"GET"}, options = { "expose" = true })
      * @param Portal $portal
+     * @param CustomObject $customObject
      * @param Request $request
      * @return JsonResponse
-     * @throws \App\Controller\Exception\InvalidInputException
-     * @throws \App\Controller\Exception\MissingRequiredQueryParameterException
      */
-    public function getPropertiesForColumnsAction(Portal $portal, Request $request) {
-
-        $customObject = $this->getCustomObjectForRequest($this->customObjectRepository);
+    public function getPropertiesForColumnsAction(Portal $portal, CustomObject $customObject, Request $request) {
 
         $propertyGroups = $this->propertyGroupRepository->getColumnsData($customObject);
         $payload = [];
@@ -301,16 +288,14 @@ class PropertyController extends ApiController
     }
 
     /**
-     * @Route("/set-columns", name="set_property_columns", methods={"POST"}, options = { "expose" = true })
+     * @Route("/{internalName}/set-columns", name="set_property_columns", methods={"POST"}, options = { "expose" = true })
      * @param Portal $portal
+     * @param CustomObject $customObject
      * @param Request $request
      * @return JsonResponse
-     * @throws \App\Controller\Exception\InvalidInputException
-     * @throws \App\Controller\Exception\MissingRequiredQueryParameterException
      */
-    public function setColumnsAction(Portal $portal, Request $request) {
+    public function setColumnsAction(Portal $portal, CustomObject $customObject, Request $request) {
 
-        $customObject = $this->getCustomObjectForRequest($this->customObjectRepository);
         $selectedProperties = $request->request->get('selected_properties', []);
         $allProperties = $this->propertyRepository->findByCustomObject($customObject);
 
@@ -337,16 +322,13 @@ class PropertyController extends ApiController
     }
 
     /**
-     * @Route("/get-columns-for-datatable", name="get_columns_for_table", methods={"GET"}, options = { "expose" = true })
+     * @Route("/{internalName}/get-columns-for-datatable", name="get_columns_for_table", methods={"GET"}, options = { "expose" = true })
      * @param Portal $portal
+     * @param CustomObject $customObject
      * @param Request $request
      * @return JsonResponse
-     * @throws \App\Controller\Exception\InvalidInputException
-     * @throws \App\Controller\Exception\MissingRequiredQueryParameterException
      */
-    public function getColumnsForDataTableAction(Portal $portal, Request $request) {
-
-        $customObject = $this->getCustomObjectForRequest($this->customObjectRepository);
+    public function getColumnsForDataTableAction(Portal $portal, CustomObject $customObject, Request $request) {
 
         $properties = $this->propertyRepository->findColumnsForTable($customObject);
 
@@ -369,13 +351,14 @@ class PropertyController extends ApiController
     }
 
     /**
-     * @Route("/{property}/delete-form", name="delete_property_form", methods={"GET"}, options = { "expose" = true })
+     * @Route("/{internalName}/{propertyInternalName}/delete-form", name="delete_property_form", methods={"GET"}, options = { "expose" = true })
      * @param Portal $portal
+     * @param CustomObject $customObject
      * @param Property $property
      * @param Request $request
      * @return JsonResponse
      */
-    public function getDeletePropertyFormAction(Portal $portal, Property $property, Request $request) {
+    public function getDeletePropertyFormAction(Portal $portal, CustomObject $customObject, Property $property, Request $request) {
 
         $form = $this->createForm(DeletePropertyType::class, $property);
 
@@ -396,7 +379,7 @@ class PropertyController extends ApiController
     }
 
     /**
-     * @Route("/{property}/delete", name="delete_property", methods={"POST"}, options={"expose" = true})
+     * @Route("/{internalName}/{propertyInternalName}/delete", name="delete_property", methods={"POST"}, options={"expose" = true})
      * @param Portal $portal
      * @param Request $request
      * @param Property $property

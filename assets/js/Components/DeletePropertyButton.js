@@ -9,14 +9,14 @@ import DeletePropertyFormModal from "./DeletePropertyFormModal";
 
 class DeletePropertyButton {
 
-    constructor($wrapper, globalEventDispatcher, portal, customObjectId, propertyId, label) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, propertyInternalName, label) {
 
         debugger;
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
-        this.portal = portal;
-        this.customObjectId = customObjectId;
-        this.propertyId = propertyId;
+        this.portalInternalIdentifier = portalInternalIdentifier;
+        this.customObjectInternalName = customObjectInternalName;
+        this.propertyInternalName= propertyInternalName;
         this.label = label;
 
         this.$wrapper.on(
@@ -31,7 +31,7 @@ class DeletePropertyButton {
         console.log("Delete Property Button Clicked");
         this.globalEventDispatcher.publish(Settings.Events.DELETE_PROPERTY_BUTTON_CLICKED);
         console.log(`Event Dispatched: ${Settings.Events.DELETE_PROPERTY_BUTTON_CLICKED}`);
-        new DeletePropertyFormModal(this.globalEventDispatcher, this.portal, this.customObjectId, this.propertyId);
+        new DeletePropertyFormModal(this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, this.propertyInternalName);
 
     }
 

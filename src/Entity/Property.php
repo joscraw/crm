@@ -29,15 +29,15 @@ class Property implements \JsonSerializable
     private $id;
 
     /**
-     * @Assert\NotBlank(message="Don't forget a label for your new Property!")
-     * @Assert\Regex("/^[a-zA-Z0-9_\s]*$/", message="Woah! Only use letters, numbers, underscores and spaces please!")
+     * @Assert\NotBlank(message="Don't forget a label for your new Property!", groups={"CREATE", "EDIT"})
+     * @Assert\Regex("/^[a-zA-Z0-9_\s]*$/", message="Woah! Only use letters, numbers, underscores and spaces please!", groups={"CREATE", "EDIT"})
      *
      * @ORM\Column(type="string", length=255)
      */
     private $label;
 
     /**
-     * @Assert\Regex("/^[a-zA-Z0-9_]*$/", message="Woah! Only use letters numbers and underscores please!")
+     * @Assert\Regex("/^[a-zA-Z0-9_]*$/", message="Woah! Only use letters numbers and underscores please!", groups={"CREATE", "EDIT"})
      *
      * @ORM\Column(type="string", length=255)
      */
@@ -49,7 +49,7 @@ class Property implements \JsonSerializable
     private $description;
 
     /**
-     * @Assert\NotBlank(message="Don't forget to select a field type for your new Property!")
+     * @Assert\NotBlank(message="Don't forget to select a field type for your new Property!", groups={"CREATE", "EDIT"})
      * @Assert\Choice(callback="getValidFieldTypes")
      *
      * @ORM\Column(type="string", length=255)

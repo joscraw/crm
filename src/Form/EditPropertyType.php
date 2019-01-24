@@ -154,7 +154,6 @@ class EditPropertyType extends AbstractType
         $options = [
             'auto_initialize' => false,
             'label' => false,
-            'help' => 'this is a help message',
         ];
 
         switch($data) {

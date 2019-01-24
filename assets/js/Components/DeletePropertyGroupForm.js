@@ -10,16 +10,17 @@ class DeletePropertyGroupForm {
     /**
      * @param $wrapper
      * @param globalEventDispatcher
-     * @param portal
-     * @param propertyGroupId
+     * @param portalInternalIdentifier
+     * @param customObjectInternalName
+     * @param propertyGroupInternalName
      */
-    constructor($wrapper, globalEventDispatcher, portal, propertyGroupId, customObject) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, propertyGroupInternalName) {
 
         debugger;
         this.$wrapper = $wrapper;
-        this.portal = portal;
-        this.propertyGroupId = propertyGroupId;
-        this.customObject = customObject;
+        this.portalInternalIdentifier = portalInternalIdentifier;
+        this.customObjectInternalName = customObjectInternalName;
+        this.propertyGroupInternalName= propertyGroupInternalName;
 
         /**
          * @type {EventDispatcher}
@@ -47,7 +48,7 @@ class DeletePropertyGroupForm {
     loadDeletePropertyGroupForm() {
         debugger;
         $.ajax({
-            url: Routing.generate('delete_property_group_form', {internalIdentifier: this.portal, propertyGroup: this.propertyGroupId}),
+            url: Routing.generate('delete_property_group_form', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName, propertyGroupInternalName: this.propertyGroupInternalName}),
         }).then(data => {
             this.$wrapper.html(data.formMarkup);
         })
@@ -58,13 +59,13 @@ class DeletePropertyGroupForm {
      */
     handleDeleteFormSubmit(e) {
 
+        debugger;
         if(e.cancelable) {
             e.preventDefault();
         }
 
         const $form = $(e.currentTarget);
         let formData = new FormData($form.get(0));
-        formData.append('custom_object_id', this.customObject);
 
         this._deletePropertyGroup(formData)
             .then((data) => {
@@ -87,7 +88,8 @@ class DeletePropertyGroupForm {
     _deletePropertyGroup(data) {
         return new Promise( (resolve, reject) => {
 
-            const url = Routing.generate('delete_property_group', {internalIdentifier: this.portal, propertyGroup: this.propertyGroupId});
+            debugger;
+            const url = Routing.generate('delete_property_group', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName, propertyGroupInternalName: this.propertyGroupInternalName});
 
             $.ajax({
                 url,

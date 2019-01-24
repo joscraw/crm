@@ -6,13 +6,11 @@ import $ from "jquery";
 
 class ColumnSearch {
 
-    constructor($wrapper, globalEventDispatcher, portal, customObject, customObjectLabel, placeholderText) {
-        debugger;
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, placeholderText) {
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
-        this.customObject = customObject;
-        this.customObjectLabel = customObjectLabel;
-        this.portal = portal;
+        this.portalInternalIdentifier = portalInternalIdentifier;
+        this.customObjectInternalName = customObjectInternalName;
         this.placeholderText = placeholderText;
 
         this.$wrapper.on(

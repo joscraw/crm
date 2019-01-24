@@ -9,8 +9,10 @@ use Gedmo\Timestampable\Traits\TimestampableEntity;
 use Symfony\Component\Validator\Constraints as Assert;
 use App\Validator\Constraints as CustomAssert;
 
+
 /**
  * @ORM\Entity(repositoryClass="App\Repository\PropertyGroupRepository")
+ * @ORM\HasLifecycleCallbacks()
  * @CustomAssert\PropertyGroupDeletion(groups={"DELETE"})
  * @CustomAssert\PropertyGroupNameAlreadyExists(groups={"CREATE", "EDIT"})
  */
@@ -33,6 +35,13 @@ class PropertyGroup
     private $name;
 
     /**
+     * @Assert\Regex("/^[a-zA-Z0-9_]*$/", message="Woah! Only use letters numbers and underscores please!")
+     *
+     * @ORM\Column(type="string", length=255)
+     */
+    private $internalName;
+
+    /**
      * @ORM\OneToMany(targetEntity="App\Entity\Property", mappedBy="propertyGroup", cascade={"persist", "remove"})
      */
     private $properties;
@@ -51,6 +60,27 @@ class PropertyGroup
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    /**
+     * @ORM\PrePersist
+     */
+    public function setInternalNameValue()
+    {
+        if(!$this->internalName) {
+            $this->internalName = $this->getInternalNameValue();
+        }
+    }
+
+    /**
+     * @return string
+     */
+    public function getInternalNameValue()
+    {
+        return strtolower(
+            preg_replace('/\s+/', '_', $this->getName())
+        );
+
     }
 
     public function getName(): ?string
@@ -104,6 +134,18 @@ class PropertyGroup
     public function setCustomObject(CustomObject $customObject): self
     {
         $this->customObject = $customObject;
+
+        return $this;
+    }
+
+    public function getInternalName(): ?string
+    {
+        return $this->internalName;
+    }
+
+    public function setInternalName(?string $internalName): self
+    {
+        $this->internalName = $internalName;
 
         return $this;
     }

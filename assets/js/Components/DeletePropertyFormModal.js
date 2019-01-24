@@ -11,15 +11,16 @@ class DeletePropertyFormModal {
 
     /**
      * @param globalEventDispatcher
-     * @param portal
-     * @param customObjectId
-     * @param propertyId
+     * @param portalInternalIdentifier
+     * @param customObjectInternalName
+     * @param propertyInternalName
      */
-    constructor(globalEventDispatcher, portal, customObjectId, propertyId) {
+    constructor(globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, propertyInternalName) {
+        debugger;
         this.globalEventDispatcher = globalEventDispatcher;
-        this.portal = portal;
-        this.customObjectId = customObjectId;
-        this.propertyId = propertyId;
+        this.portalInternalIdentifier = portalInternalIdentifier;
+        this.customObjectInternalName = customObjectInternalName;
+        this.propertyInternalName = propertyInternalName;
         this.render();
     }
 
@@ -33,9 +34,9 @@ class DeletePropertyFormModal {
         new DeletePropertyForm(
             $('#js-delete-property-modal-container'),
             this.globalEventDispatcher,
-            this.portal,
-            this.customObjectId,
-            this.propertyId
+            this.portalInternalIdentifier,
+            this.customObjectInternalName,
+            this.propertyInternalName
         );
     }
 

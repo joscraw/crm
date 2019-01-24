@@ -109,4 +109,23 @@ class PropertyGroupRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * @param $internalName
+     * @param $portalInternalIdentifier
+     * @return mixed
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     */
+    public function findByInternalNameAndPortalInternalIdentifier($internalName, $portalInternalIdentifier)
+    {
+        return $this->createQueryBuilder('propertyGroup')
+            ->join('propertyGroup.customObject', 'customObject')
+            ->join('customObject.portal', 'portal')
+            ->where('propertyGroup.internalName = :internalName')
+            ->andWhere('portal.internalIdentifier = :internalIdentifier')
+            ->setParameter('internalName', $internalName)
+            ->setParameter('internalIdentifier', $portalInternalIdentifier)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 }

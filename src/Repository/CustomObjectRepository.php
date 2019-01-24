@@ -193,4 +193,22 @@ class CustomObjectRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * @param $internalName
+     * @param $portalInternalIdentifier
+     * @return mixed
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     */
+    public function findByInternalNameAndPortalInternalIdentifier($internalName, $portalInternalIdentifier)
+    {
+        return $this->createQueryBuilder('customObject')
+            ->join('customObject.portal', 'portal')
+            ->where('customObject.internalName = :internalName')
+            ->andWhere('portal.internalIdentifier = :internalIdentifier')
+            ->setParameter('internalName', $internalName)
+            ->setParameter('internalIdentifier', $portalInternalIdentifier)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 }

@@ -9,14 +9,14 @@ import DeletePropertyGroupFormModal from "./DeletePropertyGroupFormModal";
 
 class DeletePropertyGroupButton {
 
-    constructor($wrapper, globalEventDispatcher, portal, customObject, propertyGroupId, label) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, propertyGroupInternalName, label) {
         debugger;
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
+        this.portalInternalIdentifier = portalInternalIdentifier;
+        this.customObjectInternalName = customObjectInternalName;
+        this.propertyGroupInternalName= propertyGroupInternalName;
         this.label = label;
-        this.portal = portal;
-        this.customObject = customObject;
-        this.propertyGroupId = propertyGroupId;
         debugger;
 
         this.$wrapper.on(
@@ -38,7 +38,7 @@ class DeletePropertyGroupButton {
         console.log("Delete Property Group Button Clicked");
         this.globalEventDispatcher.publish(Settings.Events.DELETE_PROPERTY_GROUP_BUTTON_CLICKED);
         console.log(`Event Dispatched: ${Settings.Events.DELETE_PROPERTY_GROUP_BUTTON_CLICKED}`);
-        new DeletePropertyGroupFormModal(this.globalEventDispatcher, this.portal, this.propertyGroupId, this.customObject);
+        new DeletePropertyGroupFormModal(this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, this.propertyGroupInternalName);
 
     }
 

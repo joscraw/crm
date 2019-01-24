@@ -11,30 +11,17 @@ class PropertyEditForm {
     /**
      * @param $wrapper
      * @param globalEventDispatcher
-     * @param portal
-     * @param customObject
+     * @param internalIdentifier
+     * @param internalName
      * @param propertyInternalName
      */
-    constructor($wrapper, globalEventDispatcher, portal, customObject, propertyInternalName) {
-
-        debugger;
+    constructor($wrapper, globalEventDispatcher, internalIdentifier, internalName, propertyInternalName) {
 
         this.$wrapper = $wrapper;
-        this.portal = portal;
-        this.customObject = customObject;
-        this.propertyInternalName = propertyInternalName;
-
-        /**
-         * @type {EventDispatcher}
-         */
         this.globalEventDispatcher = globalEventDispatcher;
-
-   /*     this.$wrapper.on(
-            'submit',
-            PropertyCreateForm._selectors.newPropertyForm,
-            this.handleNewFormSubmit.bind(this)
-        );*/
-
+        this.internalIdentifier = internalIdentifier;
+        this.internalName = internalName;
+        this.propertyInternalName = propertyInternalName;
 
 /*
         this.$wrapper.on(
@@ -104,7 +91,7 @@ class PropertyEditForm {
         return new Promise((resolve, reject) => {
             debugger;
             $.ajax({
-                url: Routing.generate('edit_property', {internalIdentifier: this.portal, internalName: this.propertyInternalName}),
+                url: Routing.generate('edit_property', {internalIdentifier: this.internalIdentifier, internalName: this.internalName, propertyInternalName: this.propertyInternalName}),
                 data: {custom_object_id: this.customObject}
             }).then(data => {
                 this.$wrapper.html(data.formMarkup);
@@ -120,15 +107,12 @@ class PropertyEditForm {
      */
     handleEditFormSubmit(e) {
 
-        console.log("form submitted");
-
         if(e.cancelable) {
             e.preventDefault();
         }
 
         const $form = $(e.currentTarget);
         let formData = new FormData($form.get(0));
-        formData.append('custom_object_id', this.customObject);
 
         this._saveProperty(formData)
             .then((data) => {
@@ -295,9 +279,7 @@ class PropertyEditForm {
      */
     _saveProperty(data) {
         return new Promise( (resolve, reject) => {
-            const url = Routing.generate('edit_property', {internalIdentifier: this.portal, internalName: this.propertyInternalName});
-
-            data.custom_object_id = this.customObject;
+            const url = Routing.generate('edit_property', {internalIdentifier: this.internalIdentifier, internalName: this.internalName, propertyInternalName: this.propertyInternalName});
 
             $.ajax({
                 url,

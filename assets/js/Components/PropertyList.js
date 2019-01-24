@@ -20,28 +20,20 @@ class PropertyList {
     /**
      * @param $wrapper
      * @param globalEventDispatcher
-     * @param portal
-     * @param customObject
+     * @param portalInternalIdentifier
      * @param customObjectInternalName
-     * @param internalIdentifier
-     * @param internalName
      */
-    constructor($wrapper, globalEventDispatcher, portal, customObject, customObjectInternalName, internalIdentifier, internalName) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName) {
 
         debugger;
-        this.portal = portal;
-        this.customObject = customObject;
-        this.$wrapper = $wrapper;
-        this.searchValue = '';
-        this.customObjectInternalName = customObjectInternalName;
-        this.collapseStatus = {};
-        this.internalIdentifier = internalIdentifier;
-        this.internalName = internalName;
 
-        /**
-         * @type {EventDispatcher}
-         */
+        this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
+        this.portalInternalIdentifier = portalInternalIdentifier;
+        this.customObjectInternalName = customObjectInternalName;
+        this.searchValue = '';
+        this.collapseStatus = {};
+
 
 
         this.globalEventDispatcher.subscribe(
@@ -177,7 +169,6 @@ class PropertyList {
     }
 
     redrawDataTable() {
-        debugger;
         this.loadProperties().then(data => {
             this.render(data);
             this.applyCollapseStatus();
@@ -188,11 +179,10 @@ class PropertyList {
     loadProperties() {
         return new Promise((resolve, reject) => {
             debugger;
-            const url = Routing.generate('properties_for_datatable', {internalIdentifier: this.portal, internalName: this.internalName});
+            const url = Routing.generate('properties_for_datatable', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
 
             $.ajax({
-                url: url,
-                data: {custom_object_id: this.customObject}
+                url: url
             }).then(data => {
                 resolve(data);
             }).catch(jqXHR => {
@@ -238,12 +228,12 @@ class PropertyList {
             "columns": [
                 { "data": "label", "name": "label", "title": "label", mRender: (data, type, row) => {
 
-                        let url = Routing.generate('property_settings', {internalIdentifier: this.portal, internalName: this.customObjectInternalName});
+                        let url = Routing.generate('property_settings', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
                         url = `${url}/${row['internalName']}`;
 
                         return `
                         ${row['label']} <span class="c-table__edit-button"><a href="${url}" role="button" class="btn btn-primary btn-sm">Edit</a></span>
-                        <span class="js-delete-property c-table__delete-button" data-property-id="${row['id']}"></span>
+                        <span class="js-delete-property c-table__delete-button" data-property-internal-name="${row['internalName']}"></span>
                          `;
 
                     } },
@@ -252,13 +242,14 @@ class PropertyList {
             "data": properties,
             "initComplete": (settings, json) => {
                 $row.find('.js-delete-property').each((index, element) => {
-                    new DeletePropertyButton($(element), this.globalEventDispatcher, this.portal, this.customObject, $(element).attr('data-property-id'), "Delete");
+                    new DeletePropertyButton($(element), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, $(element).attr('data-property-internal-name'), "Delete");
                 });
             }
         });
 
-        new EditPropertyGroupButton($row.find('.js-edit-property-group-button'), this.globalEventDispatcher, this.portal, propertyGroup.id, "Edit", this.customObject);
-        new DeletePropertyGroupButton($row.find('.js-delete-property-group-button'), this.globalEventDispatcher, this.portal, this.customObject, propertyGroup.id, "Delete");
+        debugger;
+        new EditPropertyGroupButton($row.find('.js-edit-property-group-button'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, propertyGroup.internalName, "Edit");
+        new DeletePropertyGroupButton($row.find('.js-delete-property-group-button'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, propertyGroup.internalName, "Delete");
     }
 }
 

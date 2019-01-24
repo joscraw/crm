@@ -17,7 +17,7 @@ $(document).ready(function() {
 
         propertyEdit: function(internalIdentifier, internalName, propertyInternalName) {
             debugger;
-            new EditProperty($('#app'), window.globalEventDispatcher, propertyInternalName);
+            new EditProperty($('#app'), window.globalEventDispatcher, internalIdentifier, internalName, propertyInternalName);
             console.log("property edit page");
         }
     });

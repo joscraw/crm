@@ -12,22 +12,23 @@ class RecordList {
     /**
      * @param $wrapper
      * @param globalEventDispatcher
+     * @param portalInternalIdentifier
+     * @param customObjectInternalName
      */
-    constructor($wrapper, globalEventDispatcher) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName) {
         debugger;
-        this.customObject = $wrapper.data('customObject');
-        this.portal = $wrapper.data('portal');
-        this.customObjectLabel = $wrapper.data('customObjectLabel');
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
+        this.portalInternalIdentifier = portalInternalIdentifier;
+        this.customObjectInternalName = customObjectInternalName;
 
         this.render();
     }
 
     render() {
         this.$wrapper.html(RecordList.markup(this));
-        new RecordListTopBar(this.$wrapper.find('.js-top-bar'), this.globalEventDispatcher, this.portal, this.customObject, this.customObjectLabel);
-        new RecordTable(this.$wrapper.find('.js-main-content'), this.globalEventDispatcher, this.portal, this.customObject, this.customObjectLabel);
+        new RecordListTopBar(this.$wrapper.find('.js-top-bar'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);
+        new RecordTable(this.$wrapper.find('.js-main-content'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);
     }
 
     static markup() {

@@ -102,17 +102,14 @@ class RecordController extends ApiController
     }
 
     /**
-     * @Route("/create-form", name="create_record_form", methods={"GET"}, options = { "expose" = true })
+     * @Route("/{internalName}/create-form", name="create_record_form", methods={"GET"}, options = { "expose" = true })
      * @param Portal $portal
+     * @param CustomObject $customObject
      * @return JsonResponse
-     * @throws \App\Controller\Exception\InvalidInputException
-     * @throws \App\Controller\Exception\MissingRequiredQueryParameterException
      */
-    public function getRecordFormAction(Portal $portal) {
+    public function getRecordFormAction(Portal $portal, CustomObject $customObject) {
 
         $records = $this->recordRepository->findAll();
-
-        $customObject = $this->getCustomObjectForRequest($this->customObjectRepository);
 
         $properties = $this->propertyRepository->findBy([
             'customObject' => $customObject->getId()
@@ -140,16 +137,13 @@ class RecordController extends ApiController
     }
 
     /**
-     * @Route("/create", name="create_record", methods={"POST"}, options = { "expose" = true })
+     * @Route("/{internalName}/create", name="create_record", methods={"POST"}, options = { "expose" = true })
      * @param Portal $portal
+     * @param CustomObject $customObject
      * @param Request $request
      * @return JsonResponse
-     * @throws \App\Controller\Exception\InvalidInputException
-     * @throws \App\Controller\Exception\MissingRequiredQueryParameterException
      */
-    public function createRecordAction(Portal $portal, Request $request) {
-
-        $customObject = $this->getCustomObjectForRequest($this->customObjectRepository);
+    public function createRecordAction(Portal $portal, CustomObject $customObject, Request $request) {
 
         $properties = $this->propertyRepository->findBy([
             'customObject' => $customObject->getId()
@@ -196,18 +190,17 @@ class RecordController extends ApiController
 
 
     /**
-     * @Route("/selectize", name="records_for_selectize", methods={"GET"}, options = { "expose" = true })
+     * @Route("/{internalName}/selectize", name="records_for_selectize", methods={"GET"}, options = { "expose" = true })
      * @see https://stackoverflow.com/questions/29444430/remote-data-loading-from-sql-with-selectize-js
      * @see https://selectize.github.io/selectize.js/
      * @param Request $request
+     * @param CustomObject $customObject
      * @return Response
      * @throws \App\Controller\Exception\InvalidInputException
      * @throws \App\Controller\Exception\MissingRequiredQueryParameterException
      * @throws \Doctrine\DBAL\DBALException
      */
-    public function getRecordsForSelectizeAction(Request $request) {
-
-        $customObject = $this->getCustomObjectForRequest($this->customObjectRepository);
+    public function getRecordsForSelectizeAction(Request $request, CustomObject $customObject) {
 
         $search = $request->query->get('search');
         $allowedCustomObjectToSearch = $this->customObjectRepository
@@ -263,16 +256,15 @@ class RecordController extends ApiController
      * DataTables passes unique params in the Request and expects a specific response payload
      * @see https://datatables.net/manual/server-side Documentation for ServerSide Implimentation for DataTables
      *
-     * @Route("/datatable", name="records_for_datatable", methods={"GET"}, options = { "expose" = true })
+     * @Route("{internalName}/datatable", name="records_for_datatable", methods={"GET"}, options = { "expose" = true })
      * @param Portal $portal
+     * @param CustomObject $customObject
      * @param Request $request
      * @return Response
-     * @throws \App\Controller\Exception\InvalidInputException
-     * @throws \App\Controller\Exception\MissingRequiredQueryParameterException
-     * @throws \Doctrine\ORM\NonUniqueResultException
      * @throws \Doctrine\DBAL\DBALException
+     * @throws \Doctrine\ORM\NonUniqueResultException
      */
-    public function getRecordsForDatatableAction(Portal $portal, Request $request) {
+    public function getRecordsForDatatableAction(Portal $portal, CustomObject $customObject, Request $request) {
 
         $draw = intval($request->query->get('draw'));
         $start = $request->query->get('start');
@@ -280,7 +272,6 @@ class RecordController extends ApiController
         $search = $request->query->get('search');
         $orders = $request->query->get('order');
         $columns = $request->query->get('columns');
-        $customObject = $this->getCustomObjectForRequest($this->customObjectRepository);
 
         $propertiesForDatatable = $this->propertyRepository->findColumnsForTable($customObject);
 

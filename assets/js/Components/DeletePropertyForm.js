@@ -10,17 +10,17 @@ class DeletePropertyForm {
     /**
      * @param $wrapper
      * @param globalEventDispatcher
-     * @param portal
-     * @param customObjectId
-     * @param propertyId
+     * @param portalInternalIdentifier
+     * @param customObjectInternalName
+     * @param propertyInternalName
      */
-    constructor($wrapper, globalEventDispatcher, portal, customObjectId, propertyId) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, propertyInternalName) {
 
         debugger;
         this.$wrapper = $wrapper;
-        this.portal = portal;
-        this.customObjectId = customObjectId;
-        this.propertyId = propertyId;
+        this.portalInternalIdentifier = portalInternalIdentifier;
+        this.customObjectInternalName = customObjectInternalName;
+        this.propertyInternalName = propertyInternalName;
 
         /**
          * @type {EventDispatcher}
@@ -47,7 +47,7 @@ class DeletePropertyForm {
     loadDeletePropertyForm() {
         debugger;
         $.ajax({
-            url: Routing.generate('delete_property_form', {internalIdentifier: this.portal, property: this.propertyId}),
+            url: Routing.generate('delete_property_form', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName, propertyInternalName: this.propertyInternalName}),
         }).then(data => {
             this.$wrapper.html(data.formMarkup);
         })
@@ -64,7 +64,6 @@ class DeletePropertyForm {
 
         const $form = $(e.currentTarget);
         let formData = new FormData($form.get(0));
-        formData.append('custom_object_id', this.customObjectId);
 
         this._deleteProperty(formData)
             .then((data) => {
@@ -73,9 +72,6 @@ class DeletePropertyForm {
             }).catch((errorData) => {
 
             this.$wrapper.html(errorData.formMarkup);
-
-            // Use for when the form is being generated on the JS side
-            /*this._mapErrorsToForm(errorData.errors);*/
         });
     }
 
@@ -87,7 +83,7 @@ class DeletePropertyForm {
     _deleteProperty(data) {
         return new Promise( (resolve, reject) => {
 
-            const url = Routing.generate('delete_property', {internalIdentifier: this.portal, property: this.propertyId});
+            const url = Routing.generate('delete_property', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName, propertyInternalName: this.propertyInternalName});
 
             $.ajax({
                 url,

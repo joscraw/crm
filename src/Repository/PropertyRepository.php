@@ -243,4 +243,23 @@ class PropertyRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    /**
+     * @param $internalName
+     * @param $portalInternalIdentifier
+     * @return mixed
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     */
+    public function findByInternalNameAndPortalInternalIdentifier($internalName, $portalInternalIdentifier)
+    {
+        return $this->createQueryBuilder('property')
+            ->join('property.customObject', 'customObject')
+            ->join('customObject.portal', 'portal')
+            ->where('property.internalName = :internalName')
+            ->andWhere('portal.internalIdentifier = :internalIdentifier')
+            ->setParameter('internalName', $internalName)
+            ->setParameter('internalIdentifier', $portalInternalIdentifier)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
 }

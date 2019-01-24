@@ -15,16 +15,15 @@ class RecordTable {
     /**
      * @param $wrapper
      * @param globalEventDispatcher
-     * @param portal
-     * @param customObject
+     * @param portalInternalIdentifier
+     * @param customObjectInternalName
      */
-    constructor($wrapper, globalEventDispatcher, portal, customObject, customObjectLabel) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName) {
 
-        this.portal = portal;
         this.$wrapper = $wrapper;
-        this.customObject = customObject;
-        this.customObjectLabel = customObjectLabel;
         this.globalEventDispatcher = globalEventDispatcher;
+        this.portalInternalIdentifier = portalInternalIdentifier;
+        this.customObjectInternalName = customObjectInternalName;
 
         this.globalEventDispatcher.subscribe(
             Settings.Events.DATATABLE_SEARCH_KEY_UP,
@@ -62,7 +61,7 @@ class RecordTable {
             "serverSide": true,
             /*"order": [],*/
             "language": {
-                "emptyTable": `No "${this.customObjectLabel}" records found.`,
+                "emptyTable": `No records found.`,
             },
             /*
             the "dom" property determines what components DataTables shows by default
@@ -86,9 +85,8 @@ class RecordTable {
             /*"iDisplayLength": 1,*/
             /*"order": [[1, 'asc']],*/
             "ajax": {
-                url: Routing.generate('records_for_datatable', {internalIdentifier: this.portal}),
+                url: Routing.generate('records_for_datatable', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName}),
                 type: "GET",
-                data: {'custom_object_id': this.customObject},
                 dataType: "json",
                 contentType: "application/json; charset=utf-8"
             }
@@ -98,11 +96,10 @@ class RecordTable {
     loadColumnsForTable() {
         return new Promise((resolve, reject) => {
             debugger;
-            const url = Routing.generate('get_columns_for_table', {internalIdentifier: this.portal});
+            const url = Routing.generate('get_columns_for_table', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
 
             $.ajax({
-                url: url,
-                data: {custom_object_id: this.customObject}
+                url: url
             }).then(data => {
                 resolve(data);
             }).catch(jqXHR => {

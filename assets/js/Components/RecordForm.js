@@ -16,21 +16,15 @@ class RecordForm {
     /**
      * @param $wrapper
      * @param globalEventDispatcher
-     * @param customObject
-     * @param customObjectLabel
-     * @param portal
+     * @param portalInternalIdentifier
+     * @param customObjectInternalName
      */
-    constructor($wrapper, globalEventDispatcher, customObject, customObjectLabel, portal) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName) {
 
         this.$wrapper = $wrapper;
-        this.customObjectLabel = customObjectLabel;
-        this.customObject = customObject;
-        this.portal = portal;
-
-        /**
-         * @type {EventDispatcher}
-         */
         this.globalEventDispatcher = globalEventDispatcher;
+        this.portalInternalIdentifier = portalInternalIdentifier;
+        this.customObjectInternalName = customObjectInternalName;
 
         this.$wrapper.on(
             'submit',
@@ -64,7 +58,7 @@ class RecordForm {
 
         debugger;
 
-        const url = Routing.generate('records_for_selectize', {internalIdentifier: this.portal});
+        const url = Routing.generate('records_for_selectize', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
 
         var $j = $('.js-allowed-selectize-search-result-properties').val();
 
@@ -77,8 +71,7 @@ class RecordForm {
                 labelField: 'labelField',
                 searchField: 'searchField',
                 load: (query, callback) => {
-                    console.log(this.customObject);
-                    debugger;
+
                     if (!query.length) return callback();
                     $.ajax({
                         url: url,
@@ -86,7 +79,6 @@ class RecordForm {
                         dataType: 'json',
                         data: {
                             search: query,
-                            custom_object_id: this.customObject,
                             allowed_custom_object_to_search: $(element).data('allowedCustomObjectToSearch'),
                             property_id: $(element).data('propertyId')
                         },
@@ -213,8 +205,7 @@ class RecordForm {
     loadForm() {
         return new Promise((resolve, reject) => {
             $.ajax({
-                url: Routing.generate('create_record_form', {internalIdentifier: this.portal}),
-                data: {custom_object_id: this.customObject}
+                url: Routing.generate('create_record_form', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName}),
             }).then(data => {
                 this.$wrapper.html(data.formMarkup);
                 resolve(data);
@@ -235,12 +226,11 @@ class RecordForm {
 
         const $form = $(e.currentTarget);
         let formData = new FormData($form.get(0));
-        formData.append('custom_object_id', this.customObject);
 
         this._saveRecord(formData)
             .then((data) => {
                 debugger;
-                swal("Hooray!", `Well done, you created a shiny brand new ${this.customObjectLabel}!`, "success");
+                swal("Hooray!", `Well done, you created a shiny brand new record!`, "success");
                 this.globalEventDispatcher.publish(Settings.Events.RECORD_CREATED);
             }).catch((errorData) => {
 
@@ -262,7 +252,7 @@ class RecordForm {
         debugger;
         return new Promise( (resolve, reject) => {
             debugger;
-            const url = Routing.generate('create_record', {internalIdentifier: this.portal});
+            const url = Routing.generate('create_record', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
 
             $.ajax({
                 url,
