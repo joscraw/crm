@@ -13,6 +13,7 @@ class MultipleCheckboxField extends AbstractChoiceField implements \JsonSerializ
     protected static $name = FieldCatalog::MULTIPLE_CHECKBOX;
 
     /**
+     *
      * @var string
      */
     protected static $description = 'Multiple Checkbox Field';

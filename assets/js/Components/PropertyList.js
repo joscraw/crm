@@ -52,6 +52,11 @@ class PropertyList {
         );
 
         this.globalEventDispatcher.subscribe(
+            Settings.Events.PROPERTY_EDITED,
+            this.redrawDataTable.bind(this)
+        );
+
+        this.globalEventDispatcher.subscribe(
             Settings.Events.PROPERTY_GROUP_EDITED,
             this.redrawDataTable.bind(this)
         );

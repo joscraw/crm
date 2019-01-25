@@ -27,20 +27,6 @@ class RecordListTopBar {
         this.render();
     }
 
-    handleKeyupEvent(e) {
-
-        if(e.cancelable) {
-            e.preventDefault();
-        }
-
-        const searchValue = $(e.target).val();
-        const searchObject = {
-          searchValue: searchValue
-        };
-
-        this.globalEventDispatcher.publish(Settings.Events.PROPERTY_SETTINGS_TOP_BAR_SEARCH_KEY_UP, searchObject);
-    }
-
     render() {
 
         this.$wrapper.html(RecordListTopBar.markup());

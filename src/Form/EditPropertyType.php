@@ -117,18 +117,42 @@ class EditPropertyType extends AbstractType
         $builder->addEventListener(
             FormEvents::PRE_SET_DATA,
             function (FormEvent $event) use ($portal, $property) {
-                // this would be your entity, i.e. SportMeetup
+
                 $data = $event->getData();
 
-                if($data->getFieldType() === FieldCatalog::CUSTOM_OBJECT) {
-                    $customObject = $data->getField()->getCustomObject();
-                    $form = $event->getForm();
+                switch($data->getFieldType()) {
 
-                    $form->add('field', CustomObjectFieldType::class, [
-                        'portal' => $portal,
-                        'customObject' => $customObject
-                        /*'data' => $property->getField()*/
-                    ]);
+                    case FieldCatalog::CUSTOM_OBJECT:
+                        $customObject = $data->getField()->getCustomObject();
+                        $form = $event->getForm();
+
+                        $form->add('field', CustomObjectFieldType::class, [
+                            'portal' => $portal,
+                            'customObject' => $customObject
+                        ]);
+                        break;
+
+                    case FieldCatalog::MULTIPLE_CHECKBOX:
+                        $form = $event->getForm();
+                        $form->add('field', MultipleCheckboxFieldType::class, [
+                            'label' => false
+                        ]);
+                        break;
+
+                    case FieldCatalog::RADIO_SELECT:
+                        $form = $event->getForm();
+                        $form->add('field', RadioSelectFieldType::class, [
+                            'label' => false
+                        ]);
+                        break;
+
+                    case FieldCatalog::DROPDOWN_SELECT:
+                        $form = $event->getForm();
+                        $form->add('field', DropdownSelectFieldType::class, [
+                            'label' => false
+                        ]);
+                        break;
+
                 }
             }
         );

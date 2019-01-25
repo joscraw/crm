@@ -53,6 +53,8 @@ class PropertyListener
      */
     private function serializePropertyField(Property $property)
     {
+        $name = "Josh";
+
         /*$propertyField = $property->getField();
         $property->setField($this->serializer->serialize($propertyField, 'json'));*/
     }

@@ -23,19 +23,17 @@ class PropertyEditForm {
         this.internalName = internalName;
         this.propertyInternalName = propertyInternalName;
 
-/*
         this.$wrapper.on(
             'click',
-            PropertyCreateForm._selectors.addItem,
+            PropertyEditForm._selectors.addItem,
             this.handleAddItemButtonClick.bind(this)
         );
 
         this.$wrapper.on(
             'click',
-            PropertyCreateForm._selectors.removeItem,
+            PropertyEditForm._selectors.removeItem,
             this.handleRemoveItemButtonClick.bind(this)
         );
-        */
 
         this.$wrapper.on(
             'submit',
@@ -117,7 +115,7 @@ class PropertyEditForm {
         this._saveProperty(formData)
             .then((data) => {
                 swal("Sweeeeet!", "You've edited your Property!", "success");
-                this.globalEventDispatcher.publish(Settings.Events.PROPERTY_CREATED);
+                this.globalEventDispatcher.publish(Settings.Events.PROPERTY_EDITED);
             }).catch((errorData) => {
 
             this.$wrapper.html(errorData.formMarkup);

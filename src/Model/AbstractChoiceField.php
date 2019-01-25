@@ -18,7 +18,7 @@ class AbstractChoiceField extends AbstractField implements \JsonSerializable
      *
      * @var FieldOption[]
      */
-    private $options;
+    protected $options;
 
     /**
      * Constructor.

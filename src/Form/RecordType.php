@@ -26,6 +26,7 @@ use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Constraints\NotNull;
 
 /**
  * Class RecordType
@@ -113,6 +114,15 @@ class RecordType extends AbstractType
                     $builder->add($property->getInternalName(), ChoiceType::class, $options);
                     break;
                 case FieldCatalog::SINGLE_CHECKBOX:
+
+                    // for a single checkbox you need to check for not null instead of not blank
+                    if($property->isRequired()) {
+                        $options['constraints'] = [
+                            new NotNull(),
+                        ];
+                        $options['required'] = true;
+                    }
+
                     $options = array_merge([
                         'choices'  => array(
                             'Yes' => true,

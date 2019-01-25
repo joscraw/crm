@@ -18,3 +18,13 @@ When in doubt, inspect the page and look at the ID of the form field
         </div>
 {% endblock %}
 
+{% block _edit_property_field_options_entry_label_widget %}
+    <div class="row">
+        <div class="col-md-11">
+            {{ form_widget(form.parent.label) }}
+        </div>
+        <div class="col-md-1">
+            <button type="button" class="btn btn-link js-removeItem"><i class="fa fa-trash" aria-hidden="true"></i></button>
+        </div>
+    </div>
+{% endblock %}

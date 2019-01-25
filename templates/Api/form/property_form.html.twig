@@ -1,8 +1,3 @@
-{#{% form_theme form _self %}
-
-{% block _property_field_options_entry_row %}
-   <p class="custom-yo">Custom Yo</p>
-{% endblock %}#}
 {% form_theme form with ['bootstrap_4_layout.html.twig', 'form/fields.html.twig'] %}
 
 
@@ -37,6 +32,8 @@
         </ul>
         {{ sharedButtonMarkup }}
     {% endif %}
+
+    {#{{ form_widget(form.field.options) }}#}
 
     {% if form.field.customObject is defined %}
         {{ form_row(form.field.customObject, {'attr': {novalidate: 'novalidate'}}) }}
