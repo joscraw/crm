@@ -157,6 +157,11 @@ class RecordController extends ApiController
         $form->handleRequest($request);
 
         if (!$form->isValid()) {
+
+            $data = $form->getData();
+
+            /*$data['school_attended'] = 85;*/
+
             $formMarkup = $this->renderView(
                 'Api/form/record_form.html.twig',
                 [

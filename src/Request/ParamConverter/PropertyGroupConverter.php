@@ -69,9 +69,10 @@ class PropertyGroupConverter implements ParamConverterInterface
         $customObjectInternalName = $request->attributes->get('internalName');
         $propertyGroupInternalName = $request->attributes->get('propertyGroupInternalName');
 
-        $propertyGroup = $this->propertyGroupRepository->findByInternalNameAndPortalInternalIdentifier(
+        $propertyGroup = $this->propertyGroupRepository->findByInternalNameAndPortalInternalIdentifierAndCustomObjectInternalName(
             $propertyGroupInternalName,
-            $portalInternalIdentifier
+            $portalInternalIdentifier,
+            $customObjectInternalName
         );
 
         if(!$propertyGroup) {

@@ -4,6 +4,8 @@ namespace App\Form;
 
 use App\Entity\CustomObject;
 use App\Entity\Record;
+use App\Form\DataTransformer\CustomTransformer;
+use App\Form\DataTransformer\IdToRecordTransformer;
 use App\Repository\RecordRepository;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\ChoiceList\ArrayChoiceList;
@@ -27,9 +29,17 @@ class RecordChoiceType extends AbstractType implements ChoiceLoaderInterface
      */
     private $recordRepository;
 
-    public function __construct(RecordRepository $recordRepository)
+    private $transformer;
+
+    public function __construct(RecordRepository $recordRepository, IdToRecordTransformer $transformer)
     {
         $this->recordRepository = $recordRepository;
+        $this->transformer = $transformer;
+    }
+
+    public function buildForm(FormBuilderInterface $builder, array $options)
+    {
+        $builder->addModelTransformer($this->transformer);
     }
 
     public function getParent()

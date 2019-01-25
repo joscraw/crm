@@ -42,11 +42,17 @@ class EditPropertyGroupForm {
 
     loadEditPropertyGroupForm() {
         debugger;
+        const url = Routing.generate('edit_property_group_form', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName, propertyGroupInternalName: this.propertyGroupInternalName});
+        debugger;
         $.ajax({
-            url: Routing.generate('edit_property_group_form', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName, propertyGroupInternalName: this.propertyGroupInternalName}),
+            url: url
         }).then(data => {
+            debugger;
             this.$wrapper.html(data.formMarkup);
-        })
+        }).catch((errorData) => {
+
+            debugger;
+        });
     }
 
     /**
@@ -67,6 +73,7 @@ class EditPropertyGroupForm {
                 this.globalEventDispatcher.publish(Settings.Events.PROPERTY_GROUP_EDITED);
             }).catch((errorData) => {
 
+                debugger;
             this.$wrapper.html(errorData.formMarkup);
 
             // Use for when the form is being generated on the JS side

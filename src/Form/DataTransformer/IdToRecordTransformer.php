@@ -25,10 +25,10 @@ class IdToRecordTransformer implements DataTransformerInterface
     public function transform($record)
     {
         if (null === $record) {
-            return '';
+            return [];
         }
 
-        return $record->getId();
+        return $record;
     }
 
     /**
@@ -37,12 +37,14 @@ class IdToRecordTransformer implements DataTransformerInterface
      * @param $recordId
      * @return Record|null
      */
-    public function reverseTransform($recordId)
+    public function reverseTransform($record)
     {
         // no issue number? It's optional, so that's ok
-        if (!$recordId) {
+        if (!$record) {
             return;
         }
+
+        return $record;
 
         $record = $this->entityManager
             ->getRepository(Record::class)
