@@ -113,6 +113,23 @@ class RecordChoiceLoader implements ChoiceLoaderInterface
             }
         }
 
+        // This is for use cases when you can't select multiple options in the form field
+        if(empty($choices)) {
+            return '';
+        }
+
+        // strip null values from array
+        $choices = array_filter($choices, function($choice) {
+            $isNull = is_null($choice);
+            $isEmpty = empty($choice);
+
+            return !($isNull || $isEmpty);
+        });
+
+        if(empty($choices)) {
+            return $choices;
+        }
+
         /** @var Property $property */
         $property = $this->options['property'];
 

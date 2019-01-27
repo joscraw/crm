@@ -37,7 +37,7 @@
         </ul>
         {{ sharedButtonMarkup }}
     {% endif %}
-    
+
     {% if form.field.customObject is defined %}
         {{ form_row(form.field.customObject, {'attr': {novalidate: 'novalidate'}}) }}
     {% endif %}
