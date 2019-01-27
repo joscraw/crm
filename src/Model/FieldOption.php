@@ -9,7 +9,7 @@ class FieldOption implements \JsonSerializable
 {
 
     /**
-     * @Assert\NotBlank(message="Don't forget to set a value for each one of your options!")
+     * @Assert\NotBlank(message="Don't forget to set a value for each one of your options!", groups={"CREATE", "EDIT"})
      *
      * @var string
      */

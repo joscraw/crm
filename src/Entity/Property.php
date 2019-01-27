@@ -16,6 +16,7 @@ use App\Validator\Constraints as CustomAssert;
  * @ORM\EntityListeners({"App\EntityListener\PropertyListener"})
  * @CustomAssert\PropertyInternalNameAlreadyExists(groups={"CREATE", "EDIT"})
  * @CustomAssert\PropertyLabelAlreadyExists(groups={"CREATE", "EDIT"})
+ * @CustomAssert\ChoiceField(groups={"CREATE", "EDIT"})
  */
 class Property implements \JsonSerializable
 {

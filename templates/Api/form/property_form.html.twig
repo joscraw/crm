@@ -6,6 +6,9 @@
 {#{% form_theme form 'bootstrap_4_layout.html.twig' %}#}
 
 {{ form_start(form, {'attr': {class: 'js-new-property-form', novalidate: 'novalidate'}}) }}
+
+{#{{ form_errors(form) }}#}
+
 {{ form_row(form.label) }}
 {{ form_row(form.internalName) }}
 {{ form_row(form.description) }}
@@ -26,15 +29,15 @@
         <ul class="list-group list-group-flush js-parent-container" data-template="{{ form_widget(form.field.options.vars.prototype)|replace({'__prototype_one__': '${index}'})|e }}">
             {% for optionItem in form.field.options %}
                 <li class="list-group-item js-child-item">
+
+                    {{ form_errors(optionItem) }}
                     {{ form_widget(optionItem) }}
                 </li>
             {% endfor %}
         </ul>
         {{ sharedButtonMarkup }}
     {% endif %}
-
-    {#{{ form_widget(form.field.options) }}#}
-
+    
     {% if form.field.customObject is defined %}
         {{ form_row(form.field.customObject, {'attr': {novalidate: 'novalidate'}}) }}
     {% endif %}
