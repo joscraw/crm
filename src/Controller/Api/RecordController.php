@@ -159,8 +159,11 @@ class RecordController extends ApiController
         if (!$form->isValid()) {
 
             $data = $form->getData();
+            /*$data['favorite_events'] = [93];
 
-            /*$data['school_attended'] = 85;*/
+            $form->setData($data);
+
+            $data['favorite_events'] = [93];*/
 
             $formMarkup = $this->renderView(
                 'Api/form/record_form.html.twig',

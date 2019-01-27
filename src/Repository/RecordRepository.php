@@ -76,6 +76,56 @@ class RecordRepository extends ServiceEntityRepository
         return $results;
     }
 
+
+    /**
+     * @param $recordId
+     * @param $selectizeAllowedSearchableProperties
+     * @return mixed[]
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    public function getSelectizeAllowedSearchablePropertiesById($recordId, $selectizeAllowedSearchableProperties) {
+        $jsonExtract = "properties->>'$.%s' as %s";
+        $resultStr = [];
+        foreach($selectizeAllowedSearchableProperties as $allowedSearchableProperty) {
+            $resultStr[] = sprintf($jsonExtract, $allowedSearchableProperty->getInternalName(), $allowedSearchableProperty->getInternalName());
+        }
+        $resultStr = empty($resultStr) ? '' : ',' . implode(",",$resultStr);
+        $query = sprintf("SELECT id, properties %s from record WHERE id='%s'", $resultStr, $recordId);
+
+        $em = $this->getEntityManager();
+        $stmt = $em->getConnection()->prepare($query);
+        $stmt->execute();
+        $results = $stmt->fetchAll();
+
+        return $results;
+    }
+
+    /**
+     * @param $recordIds
+     * @param $selectizeAllowedSearchableProperties
+     * @return mixed[]
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    public function getSelectizeAllowedSearchablePropertiesByArrayOfIds($recordIds, $selectizeAllowedSearchableProperties) {
+        $jsonExtract = "properties->>'$.%s' as %s";
+        $resultStr = [];
+        foreach($selectizeAllowedSearchableProperties as $allowedSearchableProperty) {
+            $resultStr[] = sprintf($jsonExtract, $allowedSearchableProperty->getInternalName(), $allowedSearchableProperty->getInternalName());
+        }
+        $resultStr = empty($resultStr) ? '' : ',' . implode(",",$resultStr);
+
+        $recordIds = implode(',', $recordIds);
+
+        $query = sprintf("SELECT id, properties %s from record WHERE id IN (%s)", $resultStr, $recordIds);
+
+        $em = $this->getEntityManager();
+        $stmt = $em->getConnection()->prepare($query);
+        $stmt->execute();
+        $results = $stmt->fetchAll();
+
+        return $results;
+    }
+
     /**
      * @param $start
      * @param $length
