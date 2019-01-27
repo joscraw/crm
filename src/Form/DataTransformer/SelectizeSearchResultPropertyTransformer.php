@@ -8,7 +8,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Form\DataTransformerInterface;
 use Symfony\Component\Form\Exception\TransformationFailedException;
 
-class CustomTransformer implements DataTransformerInterface
+class SelectizeSearchResultPropertyTransformer implements DataTransformerInterface
 {
     private $entityManager;
 

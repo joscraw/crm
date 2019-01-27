@@ -5,7 +5,7 @@ namespace App\Form;
 use App\Entity\CustomObject;
 use App\Entity\Property;
 use App\Entity\Record;
-use App\Form\DataTransformer\CustomTransformer;
+use App\Form\DataTransformer\SelectizeSearchResultPropertyTransformer;
 use App\Form\DataTransformer\IdToRecordTransformer;
 use App\Form\Loader\RecordChoiceLoader;
 use App\Repository\PropertyRepository;
