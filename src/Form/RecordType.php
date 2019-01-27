@@ -6,6 +6,7 @@ use App\Entity\CustomObject;
 use App\Entity\Portal;
 use App\Entity\Property;
 use App\Entity\Record;
+use App\Form\DataTransformer\IdArrayToRecordArrayTransformer;
 use App\Form\DataTransformer\IdToRecordTransformer;
 use App\Model\FieldCatalog;
 use App\Repository\RecordRepository;
@@ -41,15 +42,31 @@ class RecordType extends AbstractType
     private $transformer;
 
     /**
+     * @var IdArrayToRecordArrayTransformer
+     */
+    private $idArrayToRecordArrayTransformer;
+
+    /**
      * @var RecordRepository
      */
     private $recordRepository;
 
-    public function __construct(IdToRecordTransformer $transformer, RecordRepository $recordRepository)
-    {
+    /**
+     * RecordType constructor.
+     * @param IdToRecordTransformer $transformer
+     * @param IdArrayToRecordArrayTransformer $idArrayToRecordArrayTransformer
+     * @param RecordRepository $recordRepository
+     */
+    public function __construct(
+        IdToRecordTransformer $transformer,
+        IdArrayToRecordArrayTransformer $idArrayToRecordArrayTransformer,
+        RecordRepository $recordRepository
+    ) {
         $this->transformer = $transformer;
+        $this->idArrayToRecordArrayTransformer = $idArrayToRecordArrayTransformer;
         $this->recordRepository = $recordRepository;
     }
+
 
     /**
      * @param FormBuilderInterface $builder
@@ -234,9 +251,13 @@ class RecordType extends AbstractType
 
                     $builder->add($property->getInternalName(), RecordChoiceType::class, $options);
 
-                   /* $builder->get($property->getInternalName())
-                        ->addModelTransformer($this->transformer);*/
-
+                    if($property->getField()->isMultiple()) {
+                         $builder->get($property->getInternalName())
+                        ->addModelTransformer($this->idArrayToRecordArrayTransformer);
+                    } else {
+                         $builder->get($property->getInternalName())
+                        ->addModelTransformer($this->transformer);
+                    }
 
                     break;
             }

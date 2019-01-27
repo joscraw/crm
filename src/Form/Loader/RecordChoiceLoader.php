@@ -194,7 +194,10 @@ class RecordChoiceLoader implements ChoiceLoaderInterface
 
         // strip null values from array
         $values = array_filter($values, function($value) {
-            return !is_null($value);
+            $isNull = is_null($value);
+            $isEmpty = empty($value);
+
+            return !($isNull || $isEmpty);
         });
 
         if(empty($values)) {

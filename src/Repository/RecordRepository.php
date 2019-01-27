@@ -140,9 +140,10 @@ class RecordRepository extends ServiceEntityRepository
      */
     public function getDataTableData($start, $length, $search, $orders, $columns, $propertiesForDatatable, CustomObject $customObject)
     {
-        $jsonExtract = "properties->>'$.%s' as %s";
         $resultStr = [];
         foreach($propertiesForDatatable as $property) {
+
+            $jsonExtract = "properties->>'$.%s' as %s";
 
             // custom objects are nested json structures. Let's just grab the id out of it
             if($property->getFieldType() === FieldCatalog::CUSTOM_OBJECT) {

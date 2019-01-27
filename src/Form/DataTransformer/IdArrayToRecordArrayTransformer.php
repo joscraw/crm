@@ -9,7 +9,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Form\DataTransformerInterface;
 use Symfony\Component\Form\Exception\TransformationFailedException;
 
-class IdToRecordTransformer implements DataTransformerInterface
+class IdArrayToRecordArrayTransformer implements DataTransformerInterface
 {
     private $entityManager;
 
@@ -31,7 +31,7 @@ class IdToRecordTransformer implements DataTransformerInterface
     {
 
         if($properties === null) {
-            return '';
+            return [];
         }
 
         /*if(!$properties) {
@@ -53,17 +53,21 @@ class IdToRecordTransformer implements DataTransformerInterface
     /**
      * Transforms an id (record) to an object (issue).
      * @param $record
-     * @return Record
+     * @return array|ArrayCollection
      */
-    public function reverseTransform($record)
+    public function reverseTransform($records)
     {
         // no issue number? It's optional, so that's ok
-        if (empty($record)) {
+        if (empty($records)) {
             return;
         }
 
-        $record = $this->recordRepository->find($record);
+        $results = [];
+        foreach($records as $record) {
+            $record = $this->recordRepository->find($record);
+            $results[] = $record;
+        }
 
-        return $record;
+        return $results;
     }
 }
