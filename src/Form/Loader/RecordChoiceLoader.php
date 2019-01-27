@@ -113,12 +113,6 @@ class RecordChoiceLoader implements ChoiceLoaderInterface
             }
         }
 
-        // This is for use cases when you can't select multiple options in the form field
-        if(empty($choices)) {
-            return '';
-        }
-
-        // strip null values from array
         $choices = array_filter($choices, function($choice) {
             $isNull = is_null($choice);
             $isEmpty = empty($choice);
@@ -127,7 +121,8 @@ class RecordChoiceLoader implements ChoiceLoaderInterface
         });
 
         if(empty($choices)) {
-            return $choices;
+            $this->choiceList = new ArrayChoiceList([], $callback);
+            return [];
         }
 
         /** @var Property $property */
@@ -204,11 +199,6 @@ class RecordChoiceLoader implements ChoiceLoaderInterface
             }
         }
 
-        // This is for use cases when you can't select multiple options in the form field
-        if(empty($values)) {
-            return '';
-        }
-
         // strip null values from array
         $values = array_filter($values, function($value) {
             $isNull = is_null($value);
@@ -218,7 +208,8 @@ class RecordChoiceLoader implements ChoiceLoaderInterface
         });
 
         if(empty($values)) {
-            return $values;
+            $this->choiceList = new ArrayChoiceList([], $callback);
+            return [];
         }
 
         /** @var Property $property */

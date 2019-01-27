@@ -34,10 +34,6 @@ class IdToRecordTransformer implements DataTransformerInterface
             return '';
         }
 
-        /*if(!$properties) {
-            return;
-        }*/
-
         if(!$properties) {
             return [];
         }
@@ -57,7 +53,6 @@ class IdToRecordTransformer implements DataTransformerInterface
      */
     public function reverseTransform($record)
     {
-        // no issue number? It's optional, so that's ok
         if (empty($record)) {
             return;
         }

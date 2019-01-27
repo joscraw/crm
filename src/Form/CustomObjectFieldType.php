@@ -67,35 +67,14 @@ class CustomObjectFieldType extends AbstractType
         /** @var Portal $portal */
         $portal = $options['portal'];
 
-        /** @var  $customObject */
-        $customObject = $options['customObject'];
-
-        $c = $this->customObjectRepository->findByPortal($portal);
-
         $builder->add('customObject', ChoiceType::class, array(
-            /*'class' => CustomObject::class,*/
             'choices'  => $this->customObjectRepository->findByPortal($portal),
-           /* 'query_builder' => function (EntityRepository $er) use ($portal) {
-                return $er->createQueryBuilder('customObject')
-                    ->where('customObject.portal = :portal')
-                    ->setParameter('portal', $portal)
-                    ->orderBy('customObject.label', 'ASC');
-            },*/
-            /*'choice_label' => 'label',
-            'data' => 2,*/
-            /*'choices'  => [
-                'Maybe' => null,
-                'Yes' => true,
-                'No' => false,
-            ],
-            'data' => 'Yes',*/
             'choice_value' => function ($choice) {
                 return $choice !== null ? $choice->getId() : '';
             },
             'choice_label' => function($choice, $key, $value) {
                 return $choice->getLabel();
             },
-            /*'data' => $customObject,*/
             'expanded' => false,
             'multiple' => false,
             'required' => false,

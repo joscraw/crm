@@ -2,6 +2,7 @@
 
 namespace App\Validator\Constraints;
 
+use App\Model\FieldCatalog;
 use App\Repository\PropertyGroupRepository;
 use App\Repository\PropertyRepository;
 use App\Utils\ArrayCheckForDuplicates;
@@ -38,6 +39,13 @@ class ChoiceFieldValidator extends ConstraintValidator
      */
     public function validate($protocol, Constraint $constraint)
     {
+
+        if(!in_array($protocol->getFieldType(), [
+            FieldCatalog::DROPDOWN_SELECT,
+            FieldCatalog::MULTIPLE_CHECKBOX,
+            FieldCatalog::RADIO_SELECT])) {
+            return;
+        }
 
         if(empty($protocol->getField()->getOptions())) {
             return;
