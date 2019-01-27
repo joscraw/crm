@@ -11,6 +11,12 @@ use Symfony\Component\Form\ChoiceList\ChoiceListInterface;
 use Symfony\Component\Form\ChoiceList\Loader\ChoiceLoaderInterface;
 use Symfony\Component\OptionsResolver\Options;
 
+/**
+ * Class RecordChoiceLoader
+ * @package App\Form\Loader
+ * @see https://stackoverflow.com/questions/35456199/symfony-2-8-dynamic-choicetype-options
+ * @see 
+ */
 class RecordChoiceLoader implements ChoiceLoaderInterface
 {
 
