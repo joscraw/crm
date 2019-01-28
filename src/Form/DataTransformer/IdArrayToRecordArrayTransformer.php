@@ -4,6 +4,7 @@ namespace App\Form\DataTransformer;
 
 use App\Entity\Record;
 use App\Repository\RecordRepository;
+use App\Utils\ArrayHelper;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Form\DataTransformerInterface;
@@ -11,6 +12,8 @@ use Symfony\Component\Form\Exception\TransformationFailedException;
 
 class IdArrayToRecordArrayTransformer implements DataTransformerInterface
 {
+    use ArrayHelper;
+
     private $entityManager;
 
     private $recordRepository;
@@ -24,13 +27,13 @@ class IdArrayToRecordArrayTransformer implements DataTransformerInterface
     /**
      * Transforms an object (record) to a string (number).
      *
-     * @param $properties[]
+     * @param $records[]
      * @return array
      */
-    public function transform($properties)
+    public function transform($records)
     {
 
-        if($properties === null) {
+        if($records === null) {
             return [];
         }
 
@@ -38,16 +41,14 @@ class IdArrayToRecordArrayTransformer implements DataTransformerInterface
             return;
         }*/
 
-        if(!$properties) {
+        if(!$records) {
             return [];
         }
 
-        $propertiesArray =[];
-        foreach($properties as $property) {
-            $propertiesArray[] = $property;
-        }
+        $records = $this->getArrayValuesRecursive($records);
 
-        return $propertiesArray;
+
+        return $records;
     }
 
     /**

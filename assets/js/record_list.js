@@ -1,5 +1,6 @@
 import $ from 'jquery';
 import RecordList from './Components/Page/RecordList';
+import EditRecord from "./Components/Page/EditRecord";
 require('backbone/backbone.js');
 
 $(document).ready(function() {
@@ -7,20 +8,17 @@ $(document).ready(function() {
     var Router = Backbone.Router.extend({
         routes: {
             ":internalIdentifier/records/:internalName": "index",
-            /*":internalIdentifier/properties/:internalName/:propertyInternalName": "propertyEdit",*/
+            ":internalIdentifier/records/:internalName/:recordId": "recordEdit"
         },
 
         index: function(internalIdentifier, internalName) {
-            debugger;
-            /*new PropertySettings($('#app'), window.globalEventDispatcher, internalIdentifier, internalName);*/
             new RecordList($('#app'), window.globalEventDispatcher, internalIdentifier, internalName);
             console.log('hello world');
         },
 
-        propertyEdit: function(internalIdentifier, internalName, propertyInternalName) {
-            debugger;
-            new EditProperty($('#app'), window.globalEventDispatcher, internalIdentifier, internalName, propertyInternalName);
-            console.log("property edit page");
+        recordEdit: function(internalIdentifier, internalName, recordId) {
+            new EditRecord($('#app'), window.globalEventDispatcher, internalIdentifier, internalName, recordId);
+            console.log("record edit page");
         }
     });
 

@@ -6,36 +6,26 @@ import Routing from '../Routing';
 import Settings from '../Settings';
 import FormCollectionPrototypeUpdater from '../FormCollectionPrototypeUpdater';
 
-class PropertyEditForm {
+class RecordEditForm {
 
     /**
      * @param $wrapper
      * @param globalEventDispatcher
      * @param internalIdentifier
      * @param internalName
-     * @param propertyInternalName
+     * @param recordId
      */
-    constructor($wrapper, globalEventDispatcher, internalIdentifier, internalName, propertyInternalName) {
+    constructor($wrapper, globalEventDispatcher, internalIdentifier, internalName, recordId) {
 
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
         this.internalIdentifier = internalIdentifier;
         this.internalName = internalName;
-        this.propertyInternalName = propertyInternalName;
+        this.recordId = recordId;
+        this.collapseStatus = {};
 
-        this.$wrapper.on(
-            'click',
-            PropertyEditForm._selectors.addItem,
-            this.handleAddItemButtonClick.bind(this)
-        );
 
-        this.$wrapper.on(
-            'click',
-            PropertyEditForm._selectors.removeItem,
-            this.handleRemoveItemButtonClick.bind(this)
-        );
-
-        this.$wrapper.on(
+/*        this.$wrapper.on(
             'submit',
             PropertyEditForm._selectors.newPropertyForm,
             this.handleEditFormSubmit.bind(this)
@@ -51,11 +41,16 @@ class PropertyEditForm {
             'change',
             PropertyEditForm._selectors.customObject,
             this.handleCustomObjectChange.bind(this)
+        );*/
+
+        this.$wrapper.on('click',
+            RecordEditForm._selectors.collapseTitle,
+            this.handleTitleClick.bind(this)
         );
 
-        this.loadEditPropertyForm().then(() => { this.activatePlugins(); });
+        this.loadEditRecordForm().then(() => { /*this.activatePlugins();*/ });
 
-        this.activatePlugins();
+       /* this.activatePlugins();*/
 
     }
 
@@ -68,8 +63,41 @@ class PropertyEditForm {
             fieldType: '.js-field-type',
             customObject: '.js-custom-object',
             addItem: '.js-addItem',
-            removeItem: '.js-removeItem'
+            removeItem: '.js-removeItem',
+            collapse: '.js-collapse',
+            collapseTitle: '.js-collapse__title',
+            collapseBody: '.js-collapse__body'
         }
+    }
+
+    handleTitleClick(e) {
+
+        debugger;
+        let $collapseBody = $(e.target).closest(RecordEditForm._selectors.collapse)
+            .find(RecordEditForm._selectors.collapseBody);
+
+        let $collapseTitle = $(e.target).closest(RecordEditForm._selectors.collapse)
+            .find(RecordEditForm._selectors.collapseTitle);
+
+        let propertyGroupId = $(e.target).closest(RecordEditForm._selectors.collapse).data('property-group-id');
+
+        $collapseBody.on('hidden.bs.collapse', (e) => {
+            this.collapseStatus[propertyGroupId] = 'hide';
+        });
+
+        $collapseBody.on('shown.bs.collapse', (e) => {
+            this.collapseStatus[propertyGroupId] = 'show';
+        });
+
+        $collapseBody.on('show.bs.collapse', (e) => {
+            $collapseTitle.find('i').addClass('is-active');
+        });
+
+        $collapseBody.on('hide.bs.collapse', (e) => {
+            $collapseTitle.find('i').removeClass('is-active');
+        });
+
+        $collapseBody.collapse('toggle');
     }
 
 
@@ -85,11 +113,11 @@ class PropertyEditForm {
         });
     }
 
-    loadEditPropertyForm() {
+    loadEditRecordForm() {
         return new Promise((resolve, reject) => {
             debugger;
             $.ajax({
-                url: Routing.generate('edit_property', {internalIdentifier: this.internalIdentifier, internalName: this.internalName, propertyInternalName: this.propertyInternalName}),
+                url: Routing.generate('edit_record_form', {internalIdentifier: this.internalIdentifier, internalName: this.internalName, recordId: this.recordId}),
             }).then(data => {
                 this.$wrapper.html(data.formMarkup);
                 resolve(data);
@@ -294,4 +322,4 @@ class PropertyEditForm {
     }
 }
 
-export default PropertyEditForm;
+export default RecordEditForm;

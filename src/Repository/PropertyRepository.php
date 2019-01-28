@@ -110,6 +110,21 @@ class PropertyRepository extends ServiceEntityRepository
     }
 
     /**
+     * @param PropertyGroup $propertyGroup
+     * @return mixed
+     */
+    public function findAllInternalNamesForPropertiesByPropertyGroup(PropertyGroup $propertyGroup)
+    {
+        return $this->createQueryBuilder('property')
+            ->select('property.internalName')
+            ->innerJoin('property.propertyGroup', 'propertyGroup')
+            ->where('propertyGroup = :propertyGroup')
+            ->setParameter('propertyGroup', $propertyGroup)
+            ->getQuery()
+            ->getArrayResult();
+    }
+
+    /**
      * @param $label
      * @return mixed
      * @throws \Doctrine\ORM\NonUniqueResultException

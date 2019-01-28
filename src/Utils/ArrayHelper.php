@@ -3,10 +3,10 @@
 namespace App\Utils;
 
 /**
- * Trait ArrayCheckForDuplicates
+ * Trait ArrayHelper
  * @package App\Utils
  */
-trait ArrayCheckForDuplicates
+trait ArrayHelper
 {
     private function arrayHasDupes($array) {
         return count($array) !== count(array_unique($array));
@@ -38,5 +38,35 @@ trait ArrayCheckForDuplicates
             }
         }
         return $dups;
+    }
+
+    public function getArrayValuesRecursive($array) {
+        $flat = array();
+
+        foreach($array as $value) {
+            if (is_array($value)) {
+                $flat = array_merge($flat, $this->getArrayValuesRecursive($value));
+            }
+            else {
+                $flat[] = $value;
+            }
+        }
+        return $flat;
+    }
+
+    public function arrayFlatten($array) {
+        if (!is_array($array)) {
+            return FALSE;
+        }
+        $result = array();
+        foreach ($array as $key => $value) {
+            if (is_array($value)) {
+                $result = array_merge($result, $this->arrayFlatten($value));
+            }
+            else {
+                $result[$key] = $value;
+            }
+        }
+        return $result;
     }
 }

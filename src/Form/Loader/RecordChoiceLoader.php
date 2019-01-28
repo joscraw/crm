@@ -6,6 +6,7 @@ namespace App\Form\Loader;
 use App\Entity\Property;
 use App\Repository\PropertyRepository;
 use App\Repository\RecordRepository;
+use App\Utils\ArrayHelper;
 use Symfony\Component\Form\ChoiceList\ArrayChoiceList;
 use Symfony\Component\Form\ChoiceList\ChoiceListInterface;
 use Symfony\Component\Form\ChoiceList\Loader\ChoiceLoaderInterface;
@@ -19,6 +20,7 @@ use Symfony\Component\OptionsResolver\Options;
  */
 class RecordChoiceLoader implements ChoiceLoaderInterface
 {
+    use ArrayHelper;
 
     /**
      * @var Options
@@ -212,11 +214,13 @@ class RecordChoiceLoader implements ChoiceLoaderInterface
             return [];
         }
 
+        $values = $this->getArrayValuesRecursive($values);
+
         /** @var Property $property */
         $property = $this->options['property'];
 
         $selectizeAllowedSearchableProperties = $property->getField()->getSelectizeSearchResultProperties();
-        $results = $this->recordRepository->getSelectizeAllowedSearchablePropertiesByArrayOfIds($choices, $selectizeAllowedSearchableProperties);
+        $results = $this->recordRepository->getSelectizeAllowedSearchablePropertiesByArrayOfIds($values, $selectizeAllowedSearchableProperties);
         $allowedCustomObjectToSearch = $property->getField()->getCustomObject();
 
         $internalNameToLabelMap = $this->propertyRepository->findAllInternalNamesAndLabelsForCustomObject($allowedCustomObjectToSearch);

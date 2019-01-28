@@ -17,6 +17,7 @@ use App\Repository\PropertyGroupRepository;
 use App\Repository\PropertyRepository;
 use App\Repository\RecordRepository;
 use App\Service\MessageGenerator;
+use App\Utils\ArrayHelper;
 use App\Utils\MultiDimensionalArrayExtractor;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
@@ -45,6 +46,7 @@ use Symfony\Component\Serializer\SerializerInterface;
 class RecordController extends ApiController
 {
     use MultiDimensionalArrayExtractor;
+    use ArrayHelper;
 
     /**
      * @var EntityManagerInterface
@@ -137,6 +139,54 @@ class RecordController extends ApiController
     }
 
     /**
+     * @Route("/{internalName}/{recordId}/edit-form", name="edit_record_form", methods={"GET"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param CustomObject $customObject
+     * @param Record $record
+     * @return JsonResponse
+     */
+    public function getEditRecordFormAction(Portal $portal, CustomObject $customObject, Record $record) {
+
+        $properties = $this->propertyRepository->findBy([
+            'customObject' => $customObject->getId()
+        ]);
+
+        $recordProperties = $record->getProperties();
+
+        $form = $this->createForm(RecordType::class, $recordProperties, [
+            'properties' => $properties,
+            'portal' => $portal
+        ]);
+
+        $propertyGroups = $customObject->getPropertyGroups();
+
+        $formFieldMap = [];
+        foreach($propertyGroups as $propertyGroup) {
+            $formFieldMap[$propertyGroup->getInternalName()] = [];
+            $internalNames = $this->propertyRepository->findAllInternalNamesForPropertiesByPropertyGroup($propertyGroup);
+            $internalNames = $this->getArrayValuesRecursive($internalNames);
+            $formFieldMap[$propertyGroup->getInternalName()] = $internalNames;
+        }
+
+        $formMarkup = $this->renderView(
+            'Api/form/edit_record_form.html.twig',
+            [
+                'form' => $form->createView(),
+                'formFieldMap' => $formFieldMap,
+                'propertyGroups' => $propertyGroups
+            ]
+        );
+
+        return new JsonResponse(
+            [
+                'success' => true,
+                'formMarkup' => $formMarkup
+            ],
+            Response::HTTP_OK
+        );
+    }
+
+    /**
      * @Route("/{internalName}/create", name="create_record", methods={"POST"}, options = { "expose" = true })
      * @param Portal $portal
      * @param CustomObject $customObject
@@ -188,6 +238,8 @@ class RecordController extends ApiController
             Response::HTTP_OK
         );
     }
+
+
 
 
     /**

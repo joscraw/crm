@@ -1,0 +1,25 @@
+{% form_theme form 'bootstrap_4_layout.html.twig' %}
+
+{{ form_start(form, {'attr': {class: 'js-edit-record-form', novalidate: 'novalidate'}}) }}
+
+
+{% for propertyGroup in propertyGroups %}
+    <div class="c-collapse js-collapse" data-property-group-id="{{ propertyGroup.id }}">
+        <div class="is-active c-collapse__title js-collapse__title clearfix">
+            <h2 class="c-collapse__header"><i class="fa fa-angle-right c-collapse__title-icon"></i> {{ propertyGroup.name }}</h2>
+        </div>
+        <div class="collapse c-collapse__body js-collapse__body">
+            <div class="card card-body">
+                {% for property in propertyGroup.properties %}
+                    {% if (attribute(form, property.internalName) is defined) %}
+                        {{ form_row(attribute(form, property.internalName)) }}
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endfor %}
+
+<br>
+{#{{ form_rest(form) }}#}
+{{ form_end(form) }}
