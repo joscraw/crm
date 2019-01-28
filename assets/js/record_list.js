@@ -1,6 +1,7 @@
 import $ from 'jquery';
 import RecordList from './Components/Page/RecordList';
 import EditRecord from "./Components/Page/EditRecord";
+import SideNavigationMenu from "./Components/SideNavigationMenu";
 require('backbone/backbone.js');
 
 $(document).ready(function() {
@@ -13,11 +14,13 @@ $(document).ready(function() {
 
         index: function(internalIdentifier, internalName) {
             new RecordList($('#app'), window.globalEventDispatcher, internalIdentifier, internalName);
+            new SideNavigationMenu($('#side-nav'), window.globalEventDispatcher, internalIdentifier);
             console.log('hello world');
         },
 
         recordEdit: function(internalIdentifier, internalName, recordId) {
             new EditRecord($('#app'), window.globalEventDispatcher, internalIdentifier, internalName, recordId);
+            new SideNavigationMenu($('#side-nav'), window.globalEventDispatcher, internalIdentifier);
             console.log("record edit page");
         }
     });

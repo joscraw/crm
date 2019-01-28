@@ -1,6 +1,7 @@
 import $ from 'jquery';
 import PropertySettings from './Components/Page/PropertySettings';
 import EditProperty from "./Components/Page/EditProperty";
+import SideNavigationMenu from "./Components/SideNavigationMenu";
 require('backbone/backbone.js');
 
 $(document).ready(function() {
@@ -12,12 +13,15 @@ $(document).ready(function() {
         },
 
         index: function(internalIdentifier, internalName) {
+            debugger;
             new PropertySettings($('#app'), window.globalEventDispatcher, internalIdentifier, internalName);
+            new SideNavigationMenu($('#side-nav'), window.globalEventDispatcher, internalIdentifier);
         },
 
         propertyEdit: function(internalIdentifier, internalName, propertyInternalName) {
             debugger;
             new EditProperty($('#app'), window.globalEventDispatcher, internalIdentifier, internalName, propertyInternalName);
+            new SideNavigationMenu($('#side-nav'), window.globalEventDispatcher, internalIdentifier);
             console.log("property edit page");
         }
     });
