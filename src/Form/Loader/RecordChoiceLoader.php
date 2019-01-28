@@ -214,8 +214,6 @@ class RecordChoiceLoader implements ChoiceLoaderInterface
             return [];
         }
 
-        $values = $this->getArrayValuesRecursive($values);
-
         /** @var Property $property */
         $property = $this->options['property'];
 

@@ -33,18 +33,13 @@ class IdToRecordTransformer implements DataTransformerInterface
     public function transform($records)
     {
 
-        if($records === null) {
+        if($records === null || empty($records)) {
             return '';
-        }
-
-        if(!$records) {
-            return [];
         }
 
         $records = $this->getArrayValuesRecursive($records);
 
-
-        return $records;
+        return $records[0];
     }
 
     /**
