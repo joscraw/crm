@@ -60,8 +60,6 @@ class RecordForm {
 
         const url = Routing.generate('records_for_selectize', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
 
-        var $j = $('.js-allowed-selectize-search-result-properties').val();
-
         debugger;
 
         $('.js-selectize-single-select-with-search').each((index, element) => {
@@ -96,6 +94,7 @@ class RecordForm {
                 render: {
                     option: function(record, escape) {
 
+                        debugger;
                         let rows = ``,
                             items = record.items;
                         debugger;

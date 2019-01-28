@@ -11,16 +11,17 @@ class RecordEditForm {
     /**
      * @param $wrapper
      * @param globalEventDispatcher
-     * @param internalIdentifier
-     * @param internalName
+     * @param portalInternalIdentifier
+     * @param customObjectInternalName
      * @param recordId
      */
-    constructor($wrapper, globalEventDispatcher, internalIdentifier, internalName, recordId) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, recordId) {
 
+        debugger;
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
-        this.internalIdentifier = internalIdentifier;
-        this.internalName = internalName;
+        this.portalInternalIdentifier = portalInternalIdentifier;
+        this.customObjectInternalName = customObjectInternalName;
         this.recordId = recordId;
         this.collapseStatus = {};
 
@@ -48,7 +49,7 @@ class RecordEditForm {
             this.handleTitleClick.bind(this)
         );
 
-        this.loadEditRecordForm().then(() => { /*this.activatePlugins();*/ });
+        this.loadEditRecordForm().then(() => { this.activatePlugins(); });
 
        /* this.activatePlugins();*/
 
@@ -102,7 +103,6 @@ class RecordEditForm {
 
 
     activatePlugins() {
-
         $('.js-selectize-multiple-select').selectize({
             plugins: ['remove_button'],
             sortField: 'text'
@@ -111,13 +111,72 @@ class RecordEditForm {
         $('.js-selectize-single-select').selectize({
             sortField: 'text'
         });
+
+        debugger;
+
+        const url = Routing.generate('records_for_selectize', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
+
+        debugger;
+
+        $('.js-selectize-single-select-with-search').each((index, element) => {
+
+            let select = $(element).selectize({
+                valueField: 'valueField',
+                labelField: 'labelField',
+                searchField: 'searchField',
+                load: (query, callback) => {
+
+                    if (!query.length) return callback();
+                    $.ajax({
+                        url: url,
+                        type: 'GET',
+                        dataType: 'json',
+                        data: {
+                            search: query,
+                            allowed_custom_object_to_search: $(element).data('allowedCustomObjectToSearch'),
+                            property_id: $(element).data('propertyId')
+                        },
+                        error: () => {
+                            debugger;
+                            callback();
+                        },
+                        success: (res) => {
+                            debugger;
+                            select.options = res;
+                            callback(res);
+                        }
+                    })
+                },
+                render: {
+                    option: function(record, escape) {
+
+                        debugger;
+                        let rows = ``,
+                            items = record.items;
+                        debugger;
+                        for(let i = 0; i < items.length; i++) {
+                            debugger;
+                            let item = items[i];
+                            rows += `<li class="c-selectize__list-item">${item.label}: ${item.value}</li>`;
+                        }
+                        return `<div class="c-selectize"><ul class="c-selectize__list">${rows}</ul></div>`;
+                    }
+                }
+            });
+
+
+        });
+
+        $('.js-datepicker').datepicker({
+            format: 'yyyy-MM-dd'
+        });
     }
 
     loadEditRecordForm() {
         return new Promise((resolve, reject) => {
             debugger;
             $.ajax({
-                url: Routing.generate('edit_record_form', {internalIdentifier: this.internalIdentifier, internalName: this.internalName, recordId: this.recordId}),
+                url: Routing.generate('edit_record_form', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName, recordId: this.recordId}),
             }).then(data => {
                 this.$wrapper.html(data.formMarkup);
                 resolve(data);

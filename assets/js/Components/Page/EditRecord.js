@@ -11,16 +11,16 @@ class EditRecord {
     /**
      * @param $wrapper
      * @param globalEventDispatcher
-     * @param internalIdentifier
-     * @param internalName
+     * @param portalInternalIdentifier
+     * @param customObjectInternalName
      * @param recordId
      */
-    constructor($wrapper, globalEventDispatcher, internalIdentifier, internalName, recordId) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, recordId) {
         debugger;
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
-        this.internalIdentifier = internalIdentifier;
-        this.internalName = internalName;
+        this.portalInternalIdentifier = portalInternalIdentifier;
+        this.customObjectInternalName = customObjectInternalName;
         this.recordId = recordId;
 
         this.render();
@@ -30,7 +30,7 @@ class EditRecord {
         this.$wrapper.html(EditRecord.markup());
 
         debugger;
-        new RecordEditForm($('.js-main-content'), this.globalEventDispatcher, this.internalIdentifier, this.internalName, this.recordId);
+        new RecordEditForm($('.js-main-content'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, this.recordId);
 
 /*        new PropertySettingsTopBar(this.$wrapper.find('.js-top-bar'), this.globalEventDispatcher, this.portal, this.customObject);
         new PropertyList(this.$wrapper.find('.js-main-content'), this.globalEventDispatcher, this.portal, this.customObject, this.customObjectInternalName);*/

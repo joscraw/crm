@@ -47,6 +47,7 @@ class IdArrayToRecordArrayTransformer implements DataTransformerInterface
 
         $records = $this->getArrayValuesRecursive($records);
 
+        $records = array_map('strval', $records);
 
         return $records;
     }

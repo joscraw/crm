@@ -28,7 +28,7 @@ class IdToRecordTransformer implements DataTransformerInterface
      * Transforms an object (record) to a string (number).
      *
      * @param $records
-     * @return array
+     * @return string
      */
     public function transform($records)
     {
@@ -39,7 +39,7 @@ class IdToRecordTransformer implements DataTransformerInterface
 
         $records = $this->getArrayValuesRecursive($records);
 
-        return $records[0];
+        return (string) $records[0];
     }
 
     /**

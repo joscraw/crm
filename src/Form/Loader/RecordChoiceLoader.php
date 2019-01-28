@@ -41,6 +41,8 @@ class RecordChoiceLoader implements ChoiceLoaderInterface
     /** @var ChoiceListInterface */
     private $choiceList;
 
+    private $j;
+
     /**
      * RecordChoiceLoader constructor.
      * @param Options $options
@@ -165,7 +167,6 @@ class RecordChoiceLoader implements ChoiceLoaderInterface
             $labeledValues[implode(', ', $labels)] = $result['id'];
         }
 
-
         $this->choiceList = new ArrayChoiceList($labeledValues, $callback);
 
         return $choices;
@@ -217,8 +218,9 @@ class RecordChoiceLoader implements ChoiceLoaderInterface
         /** @var Property $property */
         $property = $this->options['property'];
 
+        $recordIds = $this->getArrayValuesRecursive($values);
         $selectizeAllowedSearchableProperties = $property->getField()->getSelectizeSearchResultProperties();
-        $results = $this->recordRepository->getSelectizeAllowedSearchablePropertiesByArrayOfIds($values, $selectizeAllowedSearchableProperties);
+        $results = $this->recordRepository->getSelectizeAllowedSearchablePropertiesByArrayOfIds($recordIds, $selectizeAllowedSearchableProperties);
         $allowedCustomObjectToSearch = $property->getField()->getCustomObject();
 
         $internalNameToLabelMap = $this->propertyRepository->findAllInternalNamesAndLabelsForCustomObject($allowedCustomObjectToSearch);
