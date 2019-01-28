@@ -141,9 +141,8 @@ class RecordChoiceLoader implements ChoiceLoaderInterface
         $labeledValues = [];
         foreach($results as $result) {
 
-            $items = [];
+            $labels = [];
             foreach ($result as $internalName => $value) {
-                $item = [];
                 $key = array_search($internalName, array_column($internalNameToLabelMap, 'internalName'));
                 if ($key !== false) {
                     $label = $internalNameToLabelMap[$key]['label'];
@@ -153,15 +152,7 @@ class RecordChoiceLoader implements ChoiceLoaderInterface
                     continue;
                 }
 
-                $item['internalName'] = $internalName;
-                $item['label'] = $label;
-                $item['value'] = $value;
-                $items[] = $item;
-            }
-
-            $labels = [];
-            foreach ($items as $item) {
-                $labels[] = sprintf("%s: %s", $item['label'], $item['value']);
+                $labels[] = sprintf("%s: %s", $label, $value);
             }
 
             $labeledValues[implode(', ', $labels)] = $result['id'];
@@ -228,9 +219,8 @@ class RecordChoiceLoader implements ChoiceLoaderInterface
         $labeledValues = [];
         foreach($results as $result) {
 
-            $items = [];
+            $labels = [];
             foreach ($result as $internalName => $value) {
-                $item = [];
                 $key = array_search($internalName, array_column($internalNameToLabelMap, 'internalName'));
                 if ($key !== false) {
                     $label = $internalNameToLabelMap[$key]['label'];
@@ -240,15 +230,7 @@ class RecordChoiceLoader implements ChoiceLoaderInterface
                     continue;
                 }
 
-                $item['internalName'] = $internalName;
-                $item['label'] = $label;
-                $item['value'] = $value;
-                $items[] = $item;
-            }
-
-            $labels = [];
-            foreach ($items as $item) {
-                $labels[] = sprintf("%s: %s", $item['label'], $item['value']);
+                $labels[] = sprintf("%s: %s", $label, $value);
             }
 
             $labeledValues[implode(', ', $labels)] = $result['id'];

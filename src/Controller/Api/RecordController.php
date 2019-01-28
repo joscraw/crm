@@ -271,9 +271,8 @@ class RecordController extends ApiController
             $selectizeRecord = [];
             $selectizeRecord['valueField'] = $result['id'];
 
-            $items = [];
+            $labels = [];
             foreach($result as $internalName => $value) {
-                $item = [];
                 $key = array_search($internalName, array_column($internalNameToLabelMap, 'internalName'));
                 if($key !== false) {
                     $label = $internalNameToLabelMap[$key]['label'];
@@ -283,18 +282,9 @@ class RecordController extends ApiController
                     continue;
                 }
 
-                $item['internalName'] = $internalName;
-                $item['label'] = $label;
-                $item['value'] = $value;
-                $items[] = $item;
+                $labels[] = sprintf("%s: %s", $label, $value);
             }
 
-            $selectizeRecord['items'] = $items;
-
-            $labels = [];
-            foreach($items as $item) {
-                $labels[] = sprintf("%s: %s", $item['label'], $item['value']);
-            }
             $selectizeRecord['labelField'] = implode(', ', $labels);
 
             $selectizeRecord['searchField'] = 'id:' . $result['id'] . ' ' . json_encode($properties);
