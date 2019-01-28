@@ -228,7 +228,8 @@ class RecordController extends ApiController
         $record->setProperties($properties);
         $record->setCustomObject($customObject);
 
-        $this->entityManager->persist($record);
+        $this->entityManager->clear();
+        $this->entityManager->merge($record);
         $this->entityManager->flush();
 
         return new JsonResponse(

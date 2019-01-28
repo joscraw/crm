@@ -53,6 +53,8 @@ class IdToRecordTransformer implements DataTransformerInterface
             return;
         }
 
+        return $record;
+
         $record = $this->recordRepository->find($record);
 
         return $record;

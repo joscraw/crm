@@ -11,16 +11,16 @@ class PropertyEditForm {
     /**
      * @param $wrapper
      * @param globalEventDispatcher
-     * @param internalIdentifier
-     * @param internalName
+     * @param portalInternalIdentifier
+     * @param customObjectInternalName
      * @param propertyInternalName
      */
-    constructor($wrapper, globalEventDispatcher, internalIdentifier, internalName, propertyInternalName) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, propertyInternalName) {
 
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
-        this.internalIdentifier = internalIdentifier;
-        this.internalName = internalName;
+        this.portalInternalIdentifier = portalInternalIdentifier;
+        this.customObjectInternalName = customObjectInternalName;
         this.propertyInternalName = propertyInternalName;
 
         this.$wrapper.on(
@@ -89,7 +89,7 @@ class PropertyEditForm {
         return new Promise((resolve, reject) => {
             debugger;
             $.ajax({
-                url: Routing.generate('edit_property', {internalIdentifier: this.internalIdentifier, internalName: this.internalName, propertyInternalName: this.propertyInternalName}),
+                url: Routing.generate('edit_property', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName, propertyInternalName: this.propertyInternalName}),
             }).then(data => {
                 this.$wrapper.html(data.formMarkup);
                 resolve(data);
@@ -193,9 +193,7 @@ class PropertyEditForm {
     _changeCustomObject(data) {
         return new Promise((resolve, reject) => {
             debugger;
-            const url = Routing.generate('edit_property', {internalIdentifier: this.portal, internalName: this.propertyInternalName});
-
-            data.custom_object_id = this.customObject;
+            const url = Routing.generate('edit_property', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName, propertyInternalName: this.propertyInternalName});
 
             $.ajax({
                 url,
@@ -215,9 +213,7 @@ class PropertyEditForm {
     _changeFieldType(data) {
         return new Promise((resolve, reject) => {
             debugger;
-            const url = Routing.generate('edit_property', {internalIdentifier: this.portal, internalName: this.propertyInternalName});
-
-            data.custom_object_id = this.customObject;
+            const url = Routing.generate('edit_property', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName, propertyInternalName: this.propertyInternalName});
 
             $.ajax({
                 url,
@@ -276,7 +272,7 @@ class PropertyEditForm {
      */
     _saveProperty(data) {
         return new Promise( (resolve, reject) => {
-            const url = Routing.generate('edit_property', {internalIdentifier: this.internalIdentifier, internalName: this.internalName, propertyInternalName: this.propertyInternalName});
+            const url = Routing.generate('edit_property', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName, propertyInternalName: this.propertyInternalName});
 
             $.ajax({
                 url,

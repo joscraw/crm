@@ -64,6 +64,8 @@ class IdArrayToRecordArrayTransformer implements DataTransformerInterface
             return;
         }
 
+        return $records;
+
         $results = [];
         foreach($records as $record) {
             $record = $this->recordRepository->find($record);

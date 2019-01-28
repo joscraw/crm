@@ -16,16 +16,16 @@ class EditProperty {
     /**
      * @param $wrapper
      * @param globalEventDispatcher
-     * @param internalIdentifier
-     * @param internalName
+     * @param portalInternalIdentifier
+     * @param customObjectInternalName
      * @param propertyInternalName
      */
-    constructor($wrapper, globalEventDispatcher, internalIdentifier, internalName, propertyInternalName) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, propertyInternalName) {
         debugger;
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
-        this.internalIdentifier = internalIdentifier;
-        this.internalName = internalName;
+        this.portalInternalIdentifier = portalInternalIdentifier;
+        this.customObjectInternalName = customObjectInternalName;
         this.propertyInternalName = propertyInternalName;
 
         this.render();
@@ -35,7 +35,7 @@ class EditProperty {
         this.$wrapper.html(EditProperty.markup());
 
         debugger;
-        new PropertyEditForm($('.js-main-content'), this.globalEventDispatcher, this.internalIdentifier, this.internalName, this.propertyInternalName);
+        new PropertyEditForm($('.js-main-content'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, this.propertyInternalName);
 
 /*        new PropertySettingsTopBar(this.$wrapper.find('.js-top-bar'), this.globalEventDispatcher, this.portal, this.customObject);
         new PropertyList(this.$wrapper.find('.js-main-content'), this.globalEventDispatcher, this.portal, this.customObject, this.customObjectInternalName);*/

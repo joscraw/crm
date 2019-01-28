@@ -42,7 +42,7 @@ class PropertyGroup
     private $internalName;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Property", mappedBy="propertyGroup", cascade={"persist", "remove"})
+     * @ORM\OneToMany(targetEntity="App\Entity\Property", mappedBy="propertyGroup", cascade={"remove"})
      */
     private $properties;
 

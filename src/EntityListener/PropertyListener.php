@@ -7,7 +7,6 @@ use App\Entity\Property;
 use App\Model\AbstractField;
 use App\Model\CustomObjectField;
 use App\Repository\PropertyRepository;
-use App\Serializer\FieldNormalizer;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Event\LifecycleEventArgs;
 use Doctrine\ORM\Event\PreUpdateEventArgs;

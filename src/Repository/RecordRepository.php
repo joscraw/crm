@@ -146,14 +146,14 @@ class RecordRepository extends ServiceEntityRepository
             $jsonExtract = "properties->>'$.%s' as %s";
 
             // custom objects are nested json structures. Let's just grab the id out of it
-            if($property->getFieldType() === FieldCatalog::CUSTOM_OBJECT) {
+          /*  if($property->getFieldType() === FieldCatalog::CUSTOM_OBJECT) {
                 $jsonExtract = "properties->>'$.%s.id' as %s";
             }
 
             // custom objects that allow multiple are arrays of nested json structures. Let's just grab each id out of they array
             if($property->getFieldType() === FieldCatalog::CUSTOM_OBJECT && $property->getField()->isMultiple()) {
                 $jsonExtract = "properties->>'$.%s[*].id' as %s";
-            }
+            }*/
 
             if($property->getFieldType() === FieldCatalog::DATE_PICKER) {
                 $jsonExtract = "properties->>'$.%s.date' as %s";

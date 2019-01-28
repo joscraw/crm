@@ -51,12 +51,12 @@ class CustomObject implements \JsonSerializable
     private $internalName;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Property", mappedBy="customObject", cascade={"persist", "remove"})
+     * @ORM\OneToMany(targetEntity="App\Entity\Property", mappedBy="customObject", cascade={"remove"})
      */
     private $properties;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\PropertyGroup", mappedBy="customObject", cascade={"persist", "remove"})
+     * @ORM\OneToMany(targetEntity="App\Entity\PropertyGroup", mappedBy="customObject", cascade={"remove"})
      */
     private $propertyGroups;
 
