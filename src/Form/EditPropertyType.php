@@ -152,7 +152,10 @@ class EditPropertyType extends AbstractType
                             'label' => false
                         ]);
                         break;
-
+                    case FieldCatalog::NUMBER:
+                        $form = $event->getForm();
+                        $form->add('field', NumberFieldType::class, []);
+                        break;
                 }
             }
         );

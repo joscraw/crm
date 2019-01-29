@@ -28,3 +28,18 @@ When in doubt, inspect the page and look at the ID of the form field
         </div>
     </div>
 {% endblock %}
+
+{% block number_format_widget %}
+    {% spaceless %}
+        {% for child in form if not child.rendered %}
+                {{ form_widget(child) }}
+                {{ form_label(child) }}
+            {% if child.vars.value == 'UNFORMATTED_NUMBER' %}
+                <small class="form-text text-muted">Enable this option if you would like for the property to not be formatted.</small>
+            {% endif %}
+            {% if child.vars.value == 'CURRENCY' %}
+                <small class="form-text text-muted">Enable this option if you would like for the property to be formatted as currency.</small>
+            {% endif %}
+        {% endfor %}
+    {% endspaceless %}
+{% endblock %}

@@ -42,6 +42,10 @@
         {{ form_row(form.field.customObject, {'attr': {novalidate: 'novalidate'}}) }}
     {% endif %}
 
+    {% if form.field.type is defined %}
+        {{ form_row(form.field.type, {'attr': {novalidate: 'novalidate'}}) }}
+    {% endif %}
+
     <div class="js-selectize-search-result-properties-container">
         {% if form.field.selectizeSearchResultProperties is defined %}
             {{ form_row(form.field.selectizeSearchResultProperties, {'attr': {novalidate: 'novalidate'}}) }}

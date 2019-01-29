@@ -208,6 +208,7 @@ class PropertyList {
         this.$wrapper.append($row);
 
         $('#table' + propertyGroup.id).DataTable({
+            "paging": false,
             "destroy": true,
             "responsive": true,
             "searching":true,
