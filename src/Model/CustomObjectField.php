@@ -5,41 +5,48 @@ namespace App\Model;
 use App\Entity\CustomObject;
 use Doctrine\Common\Collections\ArrayCollection;
 use App\Entity\Property;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * Class CustomObjectField
  * @package App\Model
  */
-class CustomObjectField extends AbstractField implements \JsonSerializable
+class CustomObjectField extends AbstractField /*implements \JsonSerializable*/
 {
     /**
+     * @Groups({"PROPERTY_FIELD_NORMALIZER"})
      * @var string
      */
     protected static $name = FieldCatalog::CUSTOM_OBJECT;
 
     /**
+     * @Groups({"PROPERTY_FIELD_NORMALIZER"})
      * @var string
      */
     protected static $description = 'Custom object field';
 
     /**
+     * @Groups({"PROPERTY_FIELD_NORMALIZER"})
      * @var CustomObject
      */
-    private $customObject;
+    protected $customObject;
 
     /**
+     * @Groups({"PROPERTY_FIELD_NORMALIZER"})
      * @var boolean
      */
-    private $multiple = false;
+    protected $multiple = false;
 
     /**
+     * @Groups({"PROPERTY_FIELD_NORMALIZER"})
+     *
      * When searching for a record to assign to this field when using selectize.js
      * you have the ability to control what properties you see back
      * in the search results response. This allows for a more intuitive search
      *
      * @var Property[] $selectizeSearchResultProperties
      */
-    private $selectizeSearchResultProperties;
+    protected $selectizeSearchResultProperties;
 
     public function __construct()
     {
@@ -53,11 +60,12 @@ class CustomObjectField extends AbstractField implements \JsonSerializable
      * @return mixed data which can be serialized by <b>json_encode</b>,
      * which is a value of any type other than a resource.
      */
-    public function jsonSerialize()
+/*    public function jsonSerialize()
     {
         return array_merge(
             parent::jsonSerialize(),
             [
+
                 'name'          => $this->getName(),
                 'description'   => $this->getDescription(),
                 'customObject'  => $this->getCustomObject(),
@@ -65,7 +73,7 @@ class CustomObjectField extends AbstractField implements \JsonSerializable
                 'selectizeSearchResultProperties' => $this->getSelectizeSearchResultProperties()->toArray()
             ]
         );
-    }
+    }*/
 
     /**
      * @return CustomObject

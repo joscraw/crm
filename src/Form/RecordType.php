@@ -220,23 +220,13 @@ class RecordType extends AbstractType
                 case FieldCatalog::CUSTOM_OBJECT:
 
                     $customObject = $property->getField()->getCustomObject();
-                    /*$choices = $this->recordRepository->findAll();*/
 
                     $options = array_merge([
                         'required' => false,
                         'label' => $property->getLabel(),
-                       /* 'choices' => $choices,
-                        'choice_value' => function ($choice) {
-                            return !empty($choice) ? $choice->getId() : '';
-                        },
-                        'choice_label' => function($choice, $key, $value) {
-                            return !empty($choice) ? $choice->getId() : '';
-                        },*/
-                        /*'data' => [],*/
                         'attr' => [
                             'class' => 'js-selectize-single-select-with-search',
                             'placeholder' => 'Start typing to search..',
-                            'data-allowed-custom-object-to-search' => $customObject->getId(),
                             'data-property-id' => $property->getId(),
                             'autocomplete' => 'off'
                         ],

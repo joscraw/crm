@@ -224,12 +224,14 @@ class RecordController extends ApiController
         }
 
         $record = new Record();
-        $properties = $form->getData();
-        $record->setProperties($properties);
+        /*$properties = $form->getData();*/
+        $record->setProperties($form->getData());
         $record->setCustomObject($customObject);
 
-        $this->entityManager->clear();
-        $this->entityManager->merge($record);
+        /*$this->entityManager->clear();
+        $this->entityManager->merge($record);*/
+        /*$this->entityManager->detach($properties[0]);*/
+        $this->entityManager->persist($record);
         $this->entityManager->flush();
 
         return new JsonResponse(
@@ -257,10 +259,8 @@ class RecordController extends ApiController
     public function getRecordsForSelectizeAction(Request $request, CustomObject $customObject) {
 
         $search = $request->query->get('search');
-        $allowedCustomObjectToSearch = $this->customObjectRepository
-            ->find($request->query->get('allowed_custom_object_to_search'));
-
         $property = $this->getPropertyForRequest($this->propertyRepository);
+        $allowedCustomObjectToSearch = $property->getField()->getCustomObject();
         $selectizeAllowedSearchableProperties = $property->getField()->getSelectizeSearchResultProperties();
 
         $results = $this->recordRepository->getSelectizeData($search, $allowedCustomObjectToSearch, $selectizeAllowedSearchableProperties);

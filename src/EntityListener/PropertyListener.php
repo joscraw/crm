@@ -54,8 +54,9 @@ class PropertyListener
     {
         $name = "Josh";
 
-        /*$propertyField = $property->getField();
-        $property->setField($this->serializer->serialize($propertyField, 'json'));*/
+        $propertyField = $property->getField();
+        $data = $this->serializer->serialize($propertyField, 'json');
+        $property->setField(json_decode($data, true));
     }
 
     /**
@@ -138,5 +139,18 @@ class PropertyListener
     public function postLoad(Property $property, LifecycleEventArgs $args)
     {
         $this->deserializePropertyField($property);
+    }
+
+    /**
+     * Serialize the content again if it gets updated
+     *
+     * @param Property $property
+     * @param LifecycleEventArgs $args
+     */
+    public function preUpdate(Property $property, LifecycleEventArgs $args)
+    {
+        $this->serializePropertyField($property);
+        $this->setWhetherOrNotIsColumn($property);
+        $this->setColumnOrder($property);
     }
 }

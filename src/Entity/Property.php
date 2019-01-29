@@ -9,6 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 use Symfony\Component\Validator\Constraints as Assert;
 use App\Validator\Constraints as CustomAssert;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\PropertyRepository")
@@ -18,11 +19,13 @@ use App\Validator\Constraints as CustomAssert;
  * @CustomAssert\PropertyLabelAlreadyExists(groups={"CREATE", "EDIT"})
  * @CustomAssert\ChoiceField(groups={"CREATE", "EDIT"})
  */
-class Property implements \JsonSerializable
+class Property /*implements \JsonSerializable*/
 {
     use TimestampableEntity;
 
     /**
+     * @Groups({"PROPERTY_FIELD_NORMALIZER"})
+     *
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
@@ -30,6 +33,8 @@ class Property implements \JsonSerializable
     private $id;
 
     /**
+     * @Groups({"PROPERTY_FIELD_NORMALIZER"})
+     *
      * @Assert\NotBlank(message="Don't forget a label for your new Property!", groups={"CREATE", "EDIT"})
      * @Assert\Regex("/^[a-zA-Z0-9_\s]*$/", message="Woah! Only use letters, numbers, underscores and spaces please!", groups={"CREATE", "EDIT"})
      *
@@ -38,6 +43,8 @@ class Property implements \JsonSerializable
     private $label;
 
     /**
+     * @Groups({"PROPERTY_FIELD_NORMALIZER"})
+     *
      * @Assert\Regex("/^[a-zA-Z0-9_]*$/", message="Woah! Only use letters numbers and underscores please!", groups={"CREATE", "EDIT"})
      *
      * @ORM\Column(type="string", length=255)
@@ -50,6 +57,8 @@ class Property implements \JsonSerializable
     private $description;
 
     /**
+     * @Groups({"PROPERTY_FIELD_NORMALIZER"})
+     *
      * @Assert\NotBlank(message="Don't forget to select a field type for your new Property!", groups={"CREATE", "EDIT"})
      * @Assert\Choice(callback="getValidFieldTypes")
      *
@@ -241,7 +250,7 @@ class Property implements \JsonSerializable
      * which is a value of any type other than a resource.
      * @since 5.4.0
      */
-    public function jsonSerialize()
+ /*   public function jsonSerialize()
     {
        return [
            'id' => $this->getId(),
@@ -249,7 +258,7 @@ class Property implements \JsonSerializable
            'label' => $this->getLabel(),
            'fieldType' => $this->getFieldType()
        ];
-    }
+    }*/
 
     public function setId($id) {
         $this->id = $id;
