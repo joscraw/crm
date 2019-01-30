@@ -156,7 +156,16 @@ class RecordRepository extends ServiceEntityRepository
             }*/
 
             if($property->getFieldType() === FieldCatalog::DATE_PICKER) {
-                $jsonExtract = "properties->>'$.%s.date' as %s";
+                $jsonExtract = "CAST( JSON_UNQUOTE( properties->>'$.%s.date' ) as DATETIME ) as %s";
+            }
+
+            if($property->getFieldType() === FieldCatalog::NUMBER) {
+                $field = $property->getField();
+                if($field->isCurrency()) {
+                    $jsonExtract = "CAST( properties->>'$.%s' AS DECIMAL(15,2) ) as %s";
+                } elseif($field->isUnformattedNumber()) {
+                    $jsonExtract = "properties->>'$.%s' as %s";
+                }
             }
 
             $resultStr[] = sprintf($jsonExtract, $property->getInternalName(), $property->getInternalName());

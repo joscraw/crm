@@ -59,7 +59,7 @@ class RecordTable {
         this.table = $('#table_id').DataTable({
             "processing": true,
             "serverSide": true,
-            /*"order": [],*/
+            "scrollX": true,
             "language": {
                 "emptyTable": `No records found.`,
             },
@@ -80,10 +80,7 @@ class RecordTable {
             */
             "dom": "lpirt",
             "columns": columns,
-            // num of results per page
             "pageLength": 10,
-            /*"iDisplayLength": 1,*/
-            /*"order": [[1, 'asc']],*/
             "ajax": {
                 url: Routing.generate('records_for_datatable', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName}),
                 type: "GET",

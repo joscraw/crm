@@ -56,6 +56,11 @@ class NumberField extends AbstractField
         $this->type = $type;
     }
 
+    public function isCurrency() {
+        return $this->type === NumberField::$types['Currency'];
+    }
 
-
+    public function isUnformattedNumber() {
+        return $this->type === NumberField::$types['Unformatted Number'];
+    }
 }
