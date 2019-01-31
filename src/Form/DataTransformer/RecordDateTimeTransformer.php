@@ -30,6 +30,7 @@ class RecordDateTimeTransformer implements DataTransformerInterface
      *
      * @param $date
      * @return string
+     * @throws \Exception
      */
     public function transform($date)
     {
@@ -39,8 +40,6 @@ class RecordDateTimeTransformer implements DataTransformerInterface
         }
 
         $date = \DateTime::createFromFormat(DatePickerField::$storedFormat, $date);
-        $date = $date->format('m-d-Y');
-        $date = \DateTime::createFromFormat('m-d-Y', $date);
         return $date;
 
     }

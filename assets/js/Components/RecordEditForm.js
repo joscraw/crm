@@ -5,7 +5,7 @@ import swal from 'sweetalert2';
 import Routing from '../Routing';
 import Settings from '../Settings';
 import FormCollectionPrototypeUpdater from '../FormCollectionPrototypeUpdater';
-import List from 'list.js';
+
 
 class RecordEditForm {
 
@@ -27,23 +27,11 @@ class RecordEditForm {
         this.collapseStatus = {};
 
 
-/*        this.$wrapper.on(
+        this.$wrapper.on(
             'submit',
-            PropertyEditForm._selectors.newPropertyForm,
+            RecordEditForm._selectors.editRecordForm,
             this.handleEditFormSubmit.bind(this)
         );
-
-        this.$wrapper.on(
-            'change',
-            PropertyEditForm._selectors.fieldType,
-            this.handleFieldTypeChange.bind(this)
-        );
-
-        this.$wrapper.on(
-            'change',
-            PropertyEditForm._selectors.customObject,
-            this.handleCustomObjectChange.bind(this)
-        );*/
 
         this.globalEventDispatcher.subscribe(
             Settings.Events.PROPERTY_OR_VALUE_TOP_BAR_SEARCH_KEY_UP,
@@ -66,11 +54,7 @@ class RecordEditForm {
      */
     static get _selectors() {
         return {
-            newPropertyForm: '.js-new-property-form',
-            fieldType: '.js-field-type',
-            customObject: '.js-custom-object',
-            addItem: '.js-addItem',
-            removeItem: '.js-removeItem',
+            editRecordForm: '.js-edit-record-form',
             collapse: '.js-collapse',
             collapseTitle: '.js-collapse__title',
             collapseBody: '.js-collapse__body'
@@ -163,14 +147,8 @@ class RecordEditForm {
 
     activatePlugins() {
 
-        var options = {
-            valueNames: [ 'field' ]
-        };
 
-        var userList = new List('fields', options);
-
-
-  /*      $('.js-selectize-multiple-select').selectize({
+        $('.js-selectize-multiple-select').selectize({
             plugins: ['remove_button'],
             sortField: 'text'
         });
@@ -193,9 +171,6 @@ class RecordEditForm {
                 searchField: 'searchField',
                 load: (query, callback) => {
 
-                    debugger;
-
-                    debugger;
                     if (!query.length) return callback();
                     $.ajax({
                         url: url,
@@ -207,22 +182,14 @@ class RecordEditForm {
                             property_id: $(element).data('propertyId')
                         },
                         error: () => {
-                            debugger;
                             callback();
                         },
                         success: (res) => {
                             select.selectize()[0].selectize.clearOptions();
                             select.options = res;
                             callback(res);
-
                         }
                     })
-                },
-                render: {
-                    option: function(record, escape) {
-                        debugger;
-                        return `<div class="c-selectize"><ul class="c-selectize__list"><li class="c-selectize__list-item">${record.labelField}</li></ul></div>`
-                    }
                 }
             });
 
@@ -230,8 +197,8 @@ class RecordEditForm {
         });
 
         $('.js-datepicker').datepicker({
-            format: 'yyyy-MM-dd'
-        });*/
+            format: 'mm-dd-yyyy'
+        });
     }
 
     loadEditRecordForm() {
@@ -253,6 +220,8 @@ class RecordEditForm {
      */
     handleEditFormSubmit(e) {
 
+        debugger;
+
         if(e.cancelable) {
             e.preventDefault();
         }
@@ -260,9 +229,9 @@ class RecordEditForm {
         const $form = $(e.currentTarget);
         let formData = new FormData($form.get(0));
 
-        this._saveProperty(formData)
+        this._editRecord(formData)
             .then((data) => {
-                swal("Sweeeeet!", "You've edited your Property!", "success");
+                swal("Sweeeeet!", "You've edited your Record!", "success");
                 this.globalEventDispatcher.publish(Settings.Events.PROPERTY_EDITED);
             }).catch((errorData) => {
 
@@ -270,152 +239,7 @@ class RecordEditForm {
 
             this.activatePlugins();
 
-            // Use for when the form is being generated on the JS side
-            /*this._mapErrorsToForm(errorData.errors);*/
         });
-    }
-
-    handleCustomObjectChange(e) {
-
-        if(e.cancelable) {
-            e.preventDefault();
-        }
-
-        debugger;
-
-        const formData = {};
-
-        formData[$(e.target).attr('name')] = $(e.target).val();
-        formData[$(PropertyEditForm._selectors.customObject).attr('name')] = $(PropertyEditForm._selectors.customObject).val();
-        formData[$(PropertyEditForm._selectors.fieldType).attr('name')] = $(PropertyEditForm._selectors.fieldType).val();
-
-        formData['validate'] = false;
-
-        debugger;
-        this._changeCustomObject(formData)
-            .then((data) => {
-                debugger;
-                console.log("hi");
-            }).catch((errorData) => {
-
-                debugger;
-            $('.js-selectize-search-result-properties-container').replaceWith(
-                // ... with the returned one from the AJAX response.
-                $(errorData.formMarkup).find('.js-selectize-search-result-properties-container')
-            );
-
-            this.activatePlugins();
-
-        });
-
-    }
-
-    handleFieldTypeChange(e) {
-
-        debugger;
-        if(e.cancelable) {
-            e.preventDefault();
-        }
-
-        const formData = {};
-        formData[$(e.target).attr('name')] = $(e.target).val();
-        formData['validate'] = false;
-
-        this._changeFieldType(formData)
-            .then((data) => {
-                debugger;
-                console.log("hi");
-            }).catch((errorData) => {
-
-                debugger;
-            $('.js-field-container').replaceWith(
-                // ... with the returned one from the AJAX response.
-                $(errorData.formMarkup).find('.js-field-container')
-            );
-
-            this.activatePlugins();
-
-        });
-
-    }
-
-    _changeCustomObject(data) {
-        return new Promise((resolve, reject) => {
-            debugger;
-            const url = Routing.generate('edit_property', {internalIdentifier: this.portal, internalName: this.propertyInternalName});
-
-            data.custom_object_id = this.customObject;
-
-            $.ajax({
-                url,
-                method: 'POST',
-                data: data
-            }).then((data, textStatus, jqXHR) => {
-                debugger;
-                resolve(data);
-            }).catch((jqXHR) => {
-                debugger;
-                const errorData = JSON.parse(jqXHR.responseText);
-                reject(errorData);
-            });
-        });
-    }
-
-    _changeFieldType(data) {
-        return new Promise((resolve, reject) => {
-            debugger;
-            const url = Routing.generate('edit_property', {internalIdentifier: this.portal, internalName: this.propertyInternalName});
-
-            data.custom_object_id = this.customObject;
-
-            $.ajax({
-                url,
-                method: 'POST',
-                data: data
-            }).then((data, textStatus, jqXHR) => {
-                resolve(data);
-            }).catch((jqXHR) => {
-                const errorData = JSON.parse(jqXHR.responseText);
-                reject(errorData);
-            });
-        });
-    }
-
-    handleAddItemButtonClick(e) {
-
-        if(e.cancelable) {
-            e.preventDefault();
-        }
-
-        let $parentContainer = $('.js-parent-container');
-        let index = $parentContainer.children('.js-child-item').length;
-        let template = $parentContainer.data('template');
-        let tpl = eval('`'+template+'`');
-        let $container = $('<li>').addClass('list-group-item js-child-item');
-        $container.append(tpl);
-        $parentContainer.append($container);
-    }
-
-    handleRemoveItemButtonClick(e) {
-
-        if(e.cancelable) {
-            e.preventDefault();
-        }
-
-        let $item = $(e.currentTarget).parents('.js-child-item');
-        let $container = $item.closest('.js-parent-container');
-        let fieldPrefix = FormCollectionPrototypeUpdater.getFieldPrefix($item);
-        let index = $item.index();
-        $item.remove();
-        $container.children().slice(index).each(this.updateListElementGenerator(index, fieldPrefix));
-    }
-
-    updateListElementGenerator(offset, fieldPrefix) {
-        debugger;
-        return function(index, el) {
-            debugger;
-            FormCollectionPrototypeUpdater.updateAttributes($(el), fieldPrefix, offset + index + 1)
-        }
     }
 
     /**
@@ -423,9 +247,10 @@ class RecordEditForm {
      * @return {Promise<any>}
      * @private
      */
-    _saveProperty(data) {
+    _editRecord(data) {
         return new Promise( (resolve, reject) => {
-            const url = Routing.generate('edit_property', {internalIdentifier: this.internalIdentifier, internalName: this.internalName, propertyInternalName: this.propertyInternalName});
+            debugger;
+            const url = Routing.generate('edit_record', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName, recordId: this.recordId});
 
             $.ajax({
                 url,

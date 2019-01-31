@@ -187,6 +187,70 @@ class RecordController extends ApiController
     }
 
     /**
+     * @Route("/{internalName}/{recordId}/edit", name="edit_record", methods={"POST"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param CustomObject $customObject
+     * @param Record $record
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function editRecordAction(Portal $portal, CustomObject $customObject, Record $record, Request $request) {
+
+        $properties = $this->propertyRepository->findBy([
+            'customObject' => $customObject->getId()
+        ]);
+
+        $recordProperties = $record->getProperties();
+
+        $form = $this->createForm(RecordType::class, $recordProperties, [
+            'properties' => $properties,
+            'portal' => $portal
+        ]);
+
+        $propertyGroups = $customObject->getPropertyGroups();
+
+        $formFieldMap = [];
+        foreach($propertyGroups as $propertyGroup) {
+            $formFieldMap[$propertyGroup->getInternalName()] = [];
+            $internalNames = $this->propertyRepository->findAllInternalNamesForPropertiesByPropertyGroup($propertyGroup);
+            $internalNames = $this->getArrayValuesRecursive($internalNames);
+            $formFieldMap[$propertyGroup->getInternalName()] = $internalNames;
+        }
+
+        $form->handleRequest($request);
+
+        if (!$form->isValid()) {
+
+            $formMarkup = $this->renderView(
+                'Api/form/edit_record_form.html.twig',
+                [
+                    'form' => $form->createView(),
+                    'formFieldMap' => $formFieldMap,
+                    'propertyGroups' => $propertyGroups
+                ]
+            );
+
+            return new JsonResponse(
+                [
+                    'success' => false,
+                    'formMarkup' => $formMarkup,
+                ], Response::HTTP_BAD_REQUEST
+            );
+        }
+
+        $record->setProperties($form->getData());
+        $this->entityManager->persist($record);
+        $this->entityManager->flush();
+
+        return new JsonResponse(
+            [
+                'success' => true,
+            ],
+            Response::HTTP_OK
+        );
+    }
+
+    /**
      * @Route("/{internalName}/create", name="create_record", methods={"POST"}, options = { "expose" = true })
      * @param Portal $portal
      * @param CustomObject $customObject
