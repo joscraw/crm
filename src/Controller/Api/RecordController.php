@@ -160,19 +160,10 @@ class RecordController extends ApiController
 
         $propertyGroups = $customObject->getPropertyGroups();
 
-        $formFieldMap = [];
-        foreach($propertyGroups as $propertyGroup) {
-            $formFieldMap[$propertyGroup->getInternalName()] = [];
-            $internalNames = $this->propertyRepository->findAllInternalNamesForPropertiesByPropertyGroup($propertyGroup);
-            $internalNames = $this->getArrayValuesRecursive($internalNames);
-            $formFieldMap[$propertyGroup->getInternalName()] = $internalNames;
-        }
-
         $formMarkup = $this->renderView(
             'Api/form/edit_record_form.html.twig',
             [
                 'form' => $form->createView(),
-                'formFieldMap' => $formFieldMap,
                 'propertyGroups' => $propertyGroups
             ]
         );

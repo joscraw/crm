@@ -2,35 +2,43 @@
 
 {{ form_start(form, {'attr': {class: 'js-edit-record-form', novalidate: 'novalidate'}}) }}
 
+<div class="card">
+    <div class="card-body">
+        {% for propertyGroup in propertyGroups %}
+            <div class="c-collapse js-collapse" data-property-group-id="{{ propertyGroup.id }}">
+                <div class="is-active c-collapse__title js-collapse__title clearfix">
+                    <h2 class="c-collapse__header"><i class="fa fa-angle-right c-collapse__title-icon"></i> {{ propertyGroup.name }}</h2>
+                </div>
+                <div class="collapse c-collapse__body js-collapse__body">
+                    <div class="card card-body">
+                        {% for property in propertyGroup.properties %}
+                            <div class="js-form-item">
+                                {% if (attribute(form, property.internalName) is defined) %}
 
-{% for propertyGroup in propertyGroups %}
-    <div class="c-collapse js-collapse" data-property-group-id="{{ propertyGroup.id }}">
-        <div class="is-active c-collapse__title js-collapse__title clearfix">
-            <h2 class="c-collapse__header"><i class="fa fa-angle-right c-collapse__title-icon"></i> {{ propertyGroup.name }}</h2>
-        </div>
-        <div class="collapse c-collapse__body js-collapse__body">
-            <div class="card card-body">
-                {% for property in propertyGroup.properties %}
-                    <div class="js-form-item">
-                        {% if (attribute(form, property.internalName) is defined) %}
+                                    {% set value = '' %}
 
+                                    {% if attribute(form.vars.value, property.internalName) is defined %}
+                                        {% if isArray(attribute(form.vars.value, property.internalName)) %}
+                                            {% set value = attribute(form.vars.value, property.internalName)|json_encode() %}
+                                        {% else %}
+                                            {% set value = attribute(form.vars.value, property.internalName) %}
+                                        {% endif %}
+                                    {% endif %}
 
-                            {% if isArray(attribute(form.vars.value, property.internalName)) %}
-                                 {% set value = attribute(form.vars.value, property.internalName)|json_encode() %}
-                            {% else %}
-                                {% set value = attribute(form.vars.value, property.internalName) %}
-                            {% endif %}
+                                    <div class="js-search-item" style="display: none" data-label="{{ property.label }}" data-value="{{ value }}"></div>
 
-                            <div class="js-search-item" style="display: none" data-label="{{ property.label }}" data-value="{{ value }}"></div>
-
-                            {{ form_row(attribute(form, property.internalName)) }}
-                        {% endif %}
+                                    {{ form_row(attribute(form, property.internalName)) }}
+                                {% endif %}
+                            </div>
+                        {% endfor %}
                     </div>
-                {% endfor %}
+                </div>
             </div>
-        </div>
+        {% endfor %}
+        <br>
+        {{ form_row(form.submit) }}
     </div>
-{% endfor %}
+</div>
 
 <br>
 {{ form_rest(form) }}

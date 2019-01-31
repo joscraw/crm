@@ -79,12 +79,18 @@ class RecordEditForm {
 
             $formItems.each((index, element) => {
 
+                debugger;
                 let $search = $(element).find('.js-search-item');
                 let label = $search.data('label');
                 let value = $search.data('value');
 
+                console.log(value);
+                console.log(this.searchValue);
+
                 if (Array.isArray(value)) {
                     value = JSON.stringify(value);
+                } else if(Number.isInteger(value)) {
+                    value = value.toString();
                 }
 
                 if((value === null || value.toLowerCase().indexOf(this.searchValue.toLowerCase()) === -1) && (label === null || label.toLowerCase().indexOf(this.searchValue.toLowerCase()) === -1)) {
