@@ -110,6 +110,24 @@ class PropertyRepository extends ServiceEntityRepository
     }
 
     /**
+     * @param CustomObject $customObject
+     * @param $fieldType
+     * @return mixed
+     */
+    public function findAllInternalNamesByFieldTypeForCustomObject(CustomObject $customObject, $fieldType)
+    {
+        return $this->createQueryBuilder('property')
+            ->select('property.internalName')
+            ->innerJoin('property.customObject', 'customObject')
+            ->where('customObject = :customObject')
+            ->andWhere('property.fieldType = :fieldType')
+            ->setParameter('customObject', $customObject)
+            ->setParameter('fieldType', $fieldType)
+            ->getQuery()
+            ->getArrayResult();
+    }
+
+    /**
      * @param PropertyGroup $propertyGroup
      * @return mixed
      */

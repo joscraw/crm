@@ -8,6 +8,8 @@ use App\Entity\Property;
 use App\Entity\Record;
 use App\Form\DataTransformer\IdArrayToRecordArrayTransformer;
 use App\Form\DataTransformer\IdToRecordTransformer;
+use App\Form\DataTransformer\RecordDateTimeTransformer;
+use App\Model\DatePickerField;
 use App\Model\FieldCatalog;
 use App\Repository\RecordRepository;
 use Doctrine\ORM\EntityRepository;
@@ -47,6 +49,11 @@ class RecordType extends AbstractType
     private $idArrayToRecordArrayTransformer;
 
     /**
+     * @var RecordDateTimeTransformer
+     */
+    private $recordDateTimeTransformer;
+
+    /**
      * @var RecordRepository
      */
     private $recordRepository;
@@ -55,15 +62,18 @@ class RecordType extends AbstractType
      * RecordType constructor.
      * @param IdToRecordTransformer $transformer
      * @param IdArrayToRecordArrayTransformer $idArrayToRecordArrayTransformer
+     * @param RecordDateTimeTransformer $recordDateTimeTransformer
      * @param RecordRepository $recordRepository
      */
     public function __construct(
         IdToRecordTransformer $transformer,
         IdArrayToRecordArrayTransformer $idArrayToRecordArrayTransformer,
+        RecordDateTimeTransformer $recordDateTimeTransformer,
         RecordRepository $recordRepository
     ) {
         $this->transformer = $transformer;
         $this->idArrayToRecordArrayTransformer = $idArrayToRecordArrayTransformer;
+        $this->recordDateTimeTransformer = $recordDateTimeTransformer;
         $this->recordRepository = $recordRepository;
     }
 
@@ -205,7 +215,7 @@ class RecordType extends AbstractType
                         'required' => false,
                         'label' => $property->getLabel(),
                         'widget' => 'single_text',
-                        'format' => 'yyyy-MM-dd',
+                        'format' => DatePickerField::$displayFormat,
                         // prevents rendering it as type="date", to avoid HTML5 date pickers
                         'html5' => false,
                         // adds a class that can be selected in JavaScript
@@ -216,6 +226,9 @@ class RecordType extends AbstractType
                         ],
                     ], $options);
                     $builder->add($property->getInternalName(), DateType::class, $options);
+
+                    $builder->get($property->getInternalName())
+                        ->addModelTransformer($this->recordDateTimeTransformer);
                     break;
                 case FieldCatalog::CUSTOM_OBJECT:
 

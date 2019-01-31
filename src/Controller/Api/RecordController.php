@@ -321,19 +321,67 @@ class RecordController extends ApiController
 
         $results = $this->recordRepository->getDataTableData($start, $length, $search, $orders, $columns, $propertiesForDatatable, $customObject);
 
+        $customObjectInternalNames = $this->propertyRepository->findAllInternalNamesByFieldTypeForCustomObject($customObject, FieldCatalog::CUSTOM_OBJECT);
+        $customObjectInternalNames = $this->getArrayValuesRecursive($customObjectInternalNames);
+
+        $properties = $customObject->getProperties()->toArray();
+
         foreach($results['results'] as &$result) {
+
             foreach($result as $key => $value) {
 
-                // 'null' values are columns that exist and you leave empty
-                // null valus are columns that don't exist
-                if(in_array($value, ['null', null])) {
-                    $result[$key] = '-';
+                $customObjectProperty = array_filter($properties, function($property) use($key) {
+                    $isCustomObjectProperty = $property->getFieldType() === FieldCatalog::CUSTOM_OBJECT;
+                    $internalNameMatches = $property->getInternalName() === $key;
+
+                    return $isCustomObjectProperty && $internalNameMatches;
+                });
+
+                if(!empty($customObjectProperty)) {
+                    $customObjectProperty = array_values($customObjectProperty);
+
+                    if(in_array($value, ['-', ''])) {
+                        continue;
+                    }
+
+                    $value = json_decode($value);
+                    $value = is_array($value) ? $value : [$value];
+
+                    $urls = [];
+                    foreach($value as $v) {
+                        $url = sprintf("%s/%s",
+                            $this->generateUrl('record_list', [
+                                'internalIdentifier' => $portal->getInternalIdentifier(),
+                                'internalName' => $customObjectProperty[0]->getField()->getCustomObject()->getInternalName()
+                            ]),
+                            $v
+                        );
+                        $urls[] = "<a href='$url'>$v</a>";
+                    }
+                    $result[$key] = implode(',', $urls);
                 }
 
-                if(in_array($value, ['true'])) {
-                    $result[$key] = 'yes';
-                } else if(in_array($value, ['false'])) {
-                    $result[$key] = 'no';
+                $choiceFieldProperty = array_filter($properties, function($property) use($key) {
+                    $isChoiceFieldProperty = $property->getFieldType() === FieldCatalog::MULTIPLE_CHECKBOX;
+                    $internalNameMatches = $property->getInternalName() === $key;
+
+                    return $isChoiceFieldProperty && $internalNameMatches;
+                });
+
+                if(!empty($choiceFieldProperty)) {
+                    
+                    if(in_array($value, ['-', ''])) {
+                        continue;
+                    }
+
+                    $value = json_decode($value);
+                    $value = is_array($value) ? $value : [$value];
+
+                    $items = [];
+                    foreach($value as $v) {
+                        $items[] = $v;
+                    }
+                    $result[$key] = implode(',', $items);
                 }
             }
         }

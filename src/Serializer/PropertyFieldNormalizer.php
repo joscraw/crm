@@ -107,22 +107,5 @@ class PropertyFieldNormalizer implements NormalizerInterface, NormalizationAware
         }
 
         return false;
-
-        /*$field = null;
-        switch($data['name']) {
-            case FieldCatalog::CUSTOM_OBJECT:
-                $field = $this->denormalizer->denormalize(
-                    $data,
-                    CustomObjectField::class,
-                    $format,
-                    $context
-                );
-                $customObject = $this->customObjectRepository->find($field->getCustomObject()->getId());
-                $field->setCustomObject($customObject);
-
-                break;
-        }
-
-        return $field;*/
     }
 }

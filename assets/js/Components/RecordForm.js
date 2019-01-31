@@ -96,7 +96,7 @@ class RecordForm {
         });
 
         $('.js-datepicker').datepicker({
-            format: 'yyyy-MM-dd'
+            format: 'mm-dd-yyyy'
         });
     }
 

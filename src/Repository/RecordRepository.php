@@ -143,32 +143,33 @@ class RecordRepository extends ServiceEntityRepository
         $resultStr = [];
         foreach($propertiesForDatatable as $property) {
 
-            $jsonExtract = "properties->>'$.%s' as %s";
+            switch($property->getFieldType()) {
 
-            // custom objects are nested json structures. Let's just grab the id out of it
-          /*  if($property->getFieldType() === FieldCatalog::CUSTOM_OBJECT) {
-                $jsonExtract = "properties->>'$.%s.id' as %s";
+                case FieldCatalog::DATE_PICKER:
+                    $jsonExtract = $this->getDatePickerQuery();
+                    $resultStr[] = sprintf($jsonExtract, $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $property->getInternalName());
+                    break;
+                case FieldCatalog::SINGLE_CHECKBOX:
+                    $jsonExtract = $this->getSingleCheckboxQuery();
+                    $resultStr[] = sprintf($jsonExtract, $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $property->getInternalName());
+                    break;
+                case FieldCatalog::NUMBER:
+                    $field = $property->getField();
+                    if($field->isCurrency()) {
+                        $jsonExtract = $this->getNumberIsCurrencyQuery();
+                        $resultStr[] = sprintf($jsonExtract, $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $property->getInternalName());
+                    } elseif($field->isUnformattedNumber()) {
+                        $jsonExtract = $this->getNumberIsUnformattedQuery();
+                    }
+                    $resultStr[] = sprintf($jsonExtract, $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $property->getInternalName());
+                    break;
+                default:
+                    $jsonExtract = $this->getDefaultQuery();
+                    $resultStr[] = sprintf($jsonExtract, $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $property->getInternalName());
+                    break;
+
             }
 
-            // custom objects that allow multiple are arrays of nested json structures. Let's just grab each id out of they array
-            if($property->getFieldType() === FieldCatalog::CUSTOM_OBJECT && $property->getField()->isMultiple()) {
-                $jsonExtract = "properties->>'$.%s[*].id' as %s";
-            }*/
-
-            if($property->getFieldType() === FieldCatalog::DATE_PICKER) {
-                $jsonExtract = "CAST( JSON_UNQUOTE( properties->>'$.%s.date' ) as DATETIME ) as %s";
-            }
-
-            if($property->getFieldType() === FieldCatalog::NUMBER) {
-                $field = $property->getField();
-                if($field->isCurrency()) {
-                    $jsonExtract = "CAST( properties->>'$.%s' AS DECIMAL(15,2) ) as %s";
-                } elseif($field->isUnformattedNumber()) {
-                    $jsonExtract = "properties->>'$.%s' as %s";
-                }
-            }
-
-            $resultStr[] = sprintf($jsonExtract, $property->getInternalName(), $property->getInternalName());
         }
         $resultStr = implode(",",$resultStr);
         $query = sprintf("SELECT id, %s from record WHERE custom_object_id='%s'", $resultStr, $customObject->getId());
@@ -207,69 +208,6 @@ class RecordRepository extends ServiceEntityRepository
             "results"  => $results,
             "countResult"	=> count($results)
         );
-
- /*       return $results;
-
-
-
-        // Main Query
-        $mainQuerySelectColumns = ['dt.label', 'dt.createdAt'];
-        $searchQuery = null;
-        $query = $this->createQueryBuilder('dt')
-            ->select($mainQuerySelectColumns);
-
-        // Search
-        if(!empty($search['value'])) {
-            $searchItem = $search['value'];
-            $searchQuery = 'dt.label LIKE \'%'.$searchItem.'%\'';
-        }
-
-        if ($searchQuery) {
-            $query->andWhere($searchQuery);
-        }
-
-        // Limit
-        $query->setFirstResult($start)->setMaxResults($length);
-
-        // Order
-        foreach ($orders as $key => $order) {
-            // Orders does not contain the name of the column, but its number,
-            // so add the name so we can handle it just like the $columns array
-            $orders[$key]['name'] = $columns[$order['column']]['name'];
-        }
-
-        foreach ($orders as $key => $order) {
-            // $order['name'] is the name of the order column as sent by the JS
-            if ($order['name'] != '') {
-                $orderColumn = null;
-
-                switch($order['name']) {
-                    case 'label':
-                        $orderColumn = 'dt.label';
-                        break;
-                    case 'createdAt':
-                        $orderColumn = 'dt.createdAt';
-                        break;
-                }
-                if ($orderColumn !== null) {
-                    $query->orderBy($orderColumn, $order['dir']);
-                }
-            }
-        }*/
-
-        $results = $query->getQuery()->getResult();
-        $arrayResults = $query->getQuery()->getArrayResult();
-
-        // Count Query
-        $countQuery = $this->createQueryBuilder('dt');
-        $countQuery->select('COUNT(dt)');
-        $countResult = $countQuery->getQuery()->getSingleScalarResult();
-
-        return array(
-            "results" 		=> $results,
-            "arrayResults"  => $arrayResults,
-            "countResult"	=> $countResult
-        );
     }
 
     /**
@@ -284,5 +222,57 @@ class RecordRepository extends ServiceEntityRepository
             ->setParameter('customObject', $customObject->getId())
             ->getQuery()
             ->getResult();
+    }
+
+    private function getDatePickerQuery() {
+        return <<<HERE
+    CASE 
+        WHEN properties->>'$.%s' IS NULL THEN "-" 
+        WHEN properties->>'$.%s' = 'null' THEN "-"
+        ELSE DATE_FORMAT( CAST( JSON_UNQUOTE( properties->>'$.%s' ) as DATETIME ), '%%m/%%d/%%Y' )
+    END AS %s
+HERE;
+    }
+
+    private function getNumberIsCurrencyQuery() {
+        return <<<HERE
+    CASE 
+        WHEN properties->>'$.%s' IS NULL THEN "-" 
+        WHEN properties->>'$.%s' = 'null' THEN "-"
+        ELSE CAST( properties->>'$.%s' AS DECIMAL(15,2) ) 
+    END AS %s
+HERE;
+    }
+
+    private function getNumberIsUnformattedQuery() {
+        return <<<HERE
+    CASE
+        WHEN properties->>'$.%s' IS NULL THEN "-" 
+        WHEN properties->>'$.%s' = 'null' THEN "-"
+        ELSE properties->>'$.%s'
+    END AS %s
+HERE;
+    }
+
+    private function getDefaultQuery() {
+        return <<<HERE
+    CASE
+        WHEN properties->>'$.%s' IS NULL THEN "-" 
+        WHEN properties->>'$.%s' = 'null' THEN "-"
+        ELSE properties->>'$.%s'
+    END AS %s
+HERE;
+    }
+
+    private function getSingleCheckboxQuery() {
+        return <<<HERE
+    CASE
+        WHEN properties->>'$.%s' IS NULL THEN "-" 
+        WHEN properties->>'$.%s' = 'null' THEN "-"
+        WHEN properties->>'$.%s' = 'true' THEN "yes"
+        WHEN properties->>'$.%s' = 'false' THEN "no"
+        ELSE properties->>'$.%s'
+    END AS %s
+HERE;
     }
 }
