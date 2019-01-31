@@ -5,6 +5,7 @@ import swal from 'sweetalert2';
 import Routing from '../Routing';
 import Settings from '../Settings';
 import FormCollectionPrototypeUpdater from '../FormCollectionPrototypeUpdater';
+import List from 'list.js';
 
 class RecordEditForm {
 
@@ -44,6 +45,11 @@ class RecordEditForm {
             this.handleCustomObjectChange.bind(this)
         );*/
 
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.PROPERTY_OR_VALUE_TOP_BAR_SEARCH_KEY_UP,
+            this.applySearch.bind(this)
+        );
+
         this.$wrapper.on('click',
             RecordEditForm._selectors.collapseTitle,
             this.handleTitleClick.bind(this)
@@ -69,6 +75,59 @@ class RecordEditForm {
             collapseTitle: '.js-collapse__title',
             collapseBody: '.js-collapse__body'
         }
+    }
+
+    /**
+     * @param args
+     */
+    applySearch(args = {}) {
+
+        debugger;
+        if(typeof args.searchValue !== 'undefined') {
+            this.searchValue = args.searchValue;
+        }
+
+        let $collapsePanels = this.$wrapper.find('.js-collapse');
+
+        $collapsePanels.each((index, element) => {
+            debugger;
+            let $formItems = $(element).find('.js-form-item');
+
+            $formItems.each((index, element) => {
+
+                let $search = $(element).find('.js-search-item');
+                let label = $search.data('label');
+                let value = $search.data('value');
+
+                if (Array.isArray(value)) {
+                    value = JSON.stringify(value);
+                }
+
+                if((value === null || value.toLowerCase().indexOf(this.searchValue.toLowerCase()) === -1) && (label === null || label.toLowerCase().indexOf(this.searchValue.toLowerCase()) === -1)) {
+                    debugger;
+                    if(!$(element).hasClass('d-none')) {
+                        $(element).addClass('d-none');
+                    }
+                } else {
+                    if($(element).hasClass('d-none')) {
+                        $(element).removeClass('d-none');
+                    }
+                }
+
+            });
+
+            if($(element).find('.js-form-item').not('.d-none').length === 0) {
+                if(!$(element).hasClass('d-none')) {
+                    $(element).addClass('d-none');
+                }
+            } else {
+                if($(element).hasClass('d-none')) {
+                    $(element).removeClass('d-none');
+                }
+            }
+
+        });
+
     }
 
     handleTitleClick(e) {
@@ -103,7 +162,15 @@ class RecordEditForm {
 
 
     activatePlugins() {
-        $('.js-selectize-multiple-select').selectize({
+
+        var options = {
+            valueNames: [ 'field' ]
+        };
+
+        var userList = new List('fields', options);
+
+
+  /*      $('.js-selectize-multiple-select').selectize({
             plugins: ['remove_button'],
             sortField: 'text'
         });
@@ -164,7 +231,7 @@ class RecordEditForm {
 
         $('.js-datepicker').datepicker({
             format: 'yyyy-MM-dd'
-        });
+        });*/
     }
 
     loadEditRecordForm() {

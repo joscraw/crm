@@ -11,9 +11,21 @@
         <div class="collapse c-collapse__body js-collapse__body">
             <div class="card card-body">
                 {% for property in propertyGroup.properties %}
-                    {% if (attribute(form, property.internalName) is defined) %}
-                        {{ form_row(attribute(form, property.internalName)) }}
-                    {% endif %}
+                    <div class="js-form-item">
+                        {% if (attribute(form, property.internalName) is defined) %}
+
+
+                            {% if isArray(attribute(form.vars.value, property.internalName)) %}
+                                 {% set value = attribute(form.vars.value, property.internalName)|json_encode() %}
+                            {% else %}
+                                {% set value = attribute(form.vars.value, property.internalName) %}
+                            {% endif %}
+
+                            <div class="js-search-item" style="display: none" data-label="{{ property.label }}" data-value="{{ value }}"></div>
+
+                            {{ form_row(attribute(form, property.internalName)) }}
+                        {% endif %}
+                    </div>
                 {% endfor %}
             </div>
         </div>
@@ -21,5 +33,5 @@
 {% endfor %}
 
 <br>
-{#{{ form_rest(form) }}#}
+{{ form_rest(form) }}
 {{ form_end(form) }}

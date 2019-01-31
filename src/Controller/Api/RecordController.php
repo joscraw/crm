@@ -369,7 +369,7 @@ class RecordController extends ApiController
                 });
 
                 if(!empty($choiceFieldProperty)) {
-                    
+
                     if(in_array($value, ['-', ''])) {
                         continue;
                     }

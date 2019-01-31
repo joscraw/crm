@@ -28,34 +28,35 @@ class RecordDateTimeTransformer implements DataTransformerInterface
     /**
      * Transforms an object (record) to a string (number).
      *
-     * @param $records
+     * @param $date
      * @return string
-     * @throws \Exception
      */
-    public function transform($records)
+    public function transform($date)
     {
 
-        if($records === null || empty($records)) {
+        if($date === null || empty($date)) {
             return;
         }
 
-        $records = $this->getArrayValuesRecursive($records);
+        $date = \DateTime::createFromFormat(DatePickerField::$storedFormat, $date);
+        $date = $date->format('m-d-Y');
+        $date = \DateTime::createFromFormat('m-d-Y', $date);
+        return $date;
 
-        return (string) $records[0];
     }
 
     /**
      * Transforms an id (record) to an object (issue).
-     * @param $record
+     * @param $date
      * @return Record
      */
-    public function reverseTransform($record)
+    public function reverseTransform($date)
     {
-        if (empty($record) || !($record instanceof \DateTime)) {
+        if (empty($date) || !($date instanceof \DateTime)) {
             return;
         }
 
-        return $record->format(DatePickerField::$storedFormat);
+        return $date->format(DatePickerField::$storedFormat);
 
     }
 }

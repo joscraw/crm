@@ -4,6 +4,7 @@ import $ from 'jquery';
 import Settings from '../../Settings';
 
 import RecordEditForm from "../RecordEditForm";
+import EditRecordTopBar from "../EditRecordTopBar";
 
 
 class EditRecord {
@@ -31,6 +32,8 @@ class EditRecord {
 
         debugger;
         new RecordEditForm($('.js-main-content'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, this.recordId);
+        new EditRecordTopBar(this.$wrapper.find('.js-top-bar'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, this.recordId);
+
 
 /*        new PropertySettingsTopBar(this.$wrapper.find('.js-top-bar'), this.globalEventDispatcher, this.portal, this.customObject);
         new PropertyList(this.$wrapper.find('.js-main-content'), this.globalEventDispatcher, this.portal, this.customObject, this.customObjectInternalName);*/
