@@ -249,6 +249,18 @@ class PropertyRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    public function getHighestDefaultPropertyOrder(CustomObject $customObject) {
+        return $this->createQueryBuilder('property')
+            ->select('max(property.defaultPropertyOrder) as default_property_order')
+            ->where('property.customObject = :customObject')
+            ->andWhere('property.isDefaultProperty = :bool')
+            ->setParameter('bool', true)
+            ->setParameter('customObject', $customObject->getId())
+            ->orderBy('property.defaultPropertyOrder', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
     public function getCountWherePropertyIsColumn(CustomObject $customObject) {
         return $this->createQueryBuilder('property')
             ->select('count(property.id) as count')
@@ -257,6 +269,29 @@ class PropertyRepository extends ServiceEntityRepository
             ->setParameter('bool', true)
             ->setParameter('customObject', $customObject->getId())
             ->orderBy('property.columnOrder', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findDefaultProperties(CustomObject $customObject) {
+        return $this->createQueryBuilder('property')
+            ->where('property.customObject = :customObject')
+            ->andWhere('property.isDefaultProperty  = :bool')
+            ->setParameter('bool', true)
+            ->setParameter('customObject', $customObject->getId())
+            ->orderBy('property.defaultPropertyOrder', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function getCountWherePropertyIsDefaultProperty(CustomObject $customObject) {
+        return $this->createQueryBuilder('property')
+            ->select('count(property.id) as count')
+            ->where('property.customObject = :customObject')
+            ->andWhere('property.isDefaultProperty = :bool')
+            ->setParameter('bool', true)
+            ->setParameter('customObject', $customObject->getId())
+            ->orderBy('property.defaultPropertyOrder', 'ASC')
             ->getQuery()
             ->getResult();
     }

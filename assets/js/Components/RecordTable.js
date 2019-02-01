@@ -51,6 +51,21 @@ class RecordTable {
     }
 
     activatePlugins(columns) {
+
+        if(columns.length !== 0) {
+            columns[0].mRender = (data, type, row) => {
+                
+                let url = Routing.generate('record_list', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
+                url = `${url}/${row['id']}`;
+
+                return `
+                        ${data} <span class="c-table__edit-button"><a href="${url}" role="button" class="btn btn-primary btn-sm">Edit</a></span>
+                        <span class="js-delete-property c-table__delete-button" data-record-id="${row['id']}"></span>
+                         `;
+
+            }
+        }
+
         debugger;
         $('#table_id thead').empty();
         $('#table_id tbody').empty();
@@ -139,7 +154,7 @@ class RecordTable {
 
     static markup() {
         return `
-            <table id="table_id" class="table table-striped table-bordered" style="width:100%">
+            <table id="table_id" class="table table-striped table-bordered c-table" style="width:100%">
                 <thead>
                 <tr><th></th></tr>
                 </thead>

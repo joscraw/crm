@@ -269,12 +269,55 @@ class PropertyController extends ApiController
 
             $properties = $propertyGroup->getProperties();
 
+            $payload['properties'][$propertyGroupId] = [];
             foreach($properties as $property) {
                 $payload['properties'][$propertyGroupId][] = [
                     'id' => $property->getId(),
                     'label' => $property->getLabel(),
                     'isColumn' => $property->getIsColumn(),
                     'columnOrder' => $property->getColumnOrder()
+                ];
+            }
+        }
+
+        $response = new JsonResponse([
+            'success' => true,
+            'data'  => $payload
+        ], Response::HTTP_OK);
+
+        return $response;
+    }
+
+    /**
+     * @Route("/{internalName}/get-default-properties", name="get_default_properties", methods={"GET"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param CustomObject $customObject
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getDefaultPropertiesAction(Portal $portal, CustomObject $customObject, Request $request) {
+
+        $propertyGroups = $this->propertyGroupRepository->getDefaultPropertyData($customObject);
+        $payload = [];
+        $payload['property_groups'] = [];
+        $payload['properties']= [];
+
+        foreach($propertyGroups as $propertyGroup) {
+            $propertyGroupId = $propertyGroup->getId();
+            $payload['property_groups'][$propertyGroupId] = [
+                'id' => $propertyGroupId,
+                'label' => $propertyGroup->getName()
+            ];
+
+            $properties = $propertyGroup->getProperties();
+
+            $payload['properties'][$propertyGroupId] = [];
+            foreach($properties as $property) {
+                $payload['properties'][$propertyGroupId][] = [
+                    'id' => $property->getId(),
+                    'label' => $property->getLabel(),
+                    'isDefaultProperty' => $property->getIsDefaultProperty(),
+                    'propertyOrder' => $property->getDefaultPropertyOrder()
                 ];
             }
         }
@@ -308,6 +351,40 @@ class PropertyController extends ApiController
             } else {
                 $property->setIsColumn(false);
                 $property->setColumnOrder(null);
+            }
+
+            $this->entityManager->persist($property);
+            $this->entityManager->flush();
+        }
+
+        $response = new JsonResponse([
+            'success' => true
+        ], Response::HTTP_OK);
+
+        return $response;
+    }
+
+    /**
+     * @Route("/{internalName}/set-default-properties", name="set_default_properties", methods={"POST"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param CustomObject $customObject
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function setDefaultPropertiesAction(Portal $portal, CustomObject $customObject, Request $request) {
+
+        $selectedProperties = $request->request->get('selected_properties', []);
+        $allProperties = $this->propertyRepository->findByCustomObject($customObject);
+
+        foreach($allProperties as $property) {
+            $key = array_search($property->getId(), $selectedProperties);
+
+            if($key !== false) {
+                $property->setIsDefaultProperty(true);
+                $property->setDefaultPropertyOrder($key);
+            } else {
+                $property->setIsDefaultProperty(false);
+                $property->setDefaultPropertyOrder(null);
             }
 
             $this->entityManager->persist($property);

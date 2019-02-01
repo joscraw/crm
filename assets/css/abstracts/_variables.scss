@@ -19,10 +19,16 @@ $color-white-97: hsl(204, 33%, 97%);
 $color-blue-25: hsl(210, 27%, 25%);
 $color-blue-20: hsl(210, 27%, 20%);
 $color-blue-60: hsl(210, 27%, 60%);
+$color-blue-94: hsl(210, 40%, 94%);
+$color-blue-44: hsl(212, 29%, 44%);
 $color-blue-84: hsl(211, 28%, 84%);
 $color-blue-97: hsl(204, 33%, 97%);
 $color-orange-61: hsl(12, 75%, 61%);
 
+
+
+$pagination-active-bg: $color-blue-25;
+$pagination-active-border-color: $color-blue-25;
 
 
 $nav-tabs-border-color: $color-blue-84;

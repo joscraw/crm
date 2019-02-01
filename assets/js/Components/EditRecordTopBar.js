@@ -58,19 +58,24 @@ class EditRecordTopBar {
     static markup() {
         return `
         <div class="row">
-            <div class="col-md-6 js-top-bar-search-container">
+            <div class="col-md-4"></div>
+            <div class="col-md-5 js-top-bar-search-container">
                 <div class="input-group c-search-control">
                   <input class="form-control c-search-control__input js-property-value-search-input" type="search" placeholder="Search for a property or value">
                   <span class="c-search-control__foreground"><i class="fa fa-search"></i></span>
                 </div>
             </div>
-        <div class="col-md-6 text-right js-top-bar-button-container"></div>
+            
+            <div class="col-md-3"></div>
+            
+            
+        <!--<div class="col-md-6 text-right js-top-bar-button-container"></div>-->
         </div>
-        <br>
+       <!-- <br>
         <br>
         <div class="row">
             <div class="col-md-12 js-custom-object-navigation"></div>
-        </div>
+        </div>-->
     `;
     }
 }

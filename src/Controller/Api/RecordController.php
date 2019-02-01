@@ -111,11 +111,7 @@ class RecordController extends ApiController
      */
     public function getRecordFormAction(Portal $portal, CustomObject $customObject) {
 
-        $records = $this->recordRepository->findAll();
-
-        $properties = $this->propertyRepository->findBy([
-            'customObject' => $customObject->getId()
-        ]);
+        $properties = $this->propertyRepository->findDefaultProperties($customObject);
 
         $form = $this->createForm(RecordType::class, null, [
             'properties' => $properties,
@@ -250,9 +246,7 @@ class RecordController extends ApiController
      */
     public function createRecordAction(Portal $portal, CustomObject $customObject, Request $request) {
 
-        $properties = $this->propertyRepository->findBy([
-            'customObject' => $customObject->getId()
-        ]);
+        $properties = $this->propertyRepository->findDefaultProperties($customObject);
 
         $form = $this->createForm(RecordType::class, null, [
             'properties' => $properties,
@@ -279,13 +273,9 @@ class RecordController extends ApiController
         }
 
         $record = new Record();
-        /*$properties = $form->getData();*/
         $record->setProperties($form->getData());
         $record->setCustomObject($customObject);
 
-        /*$this->entityManager->clear();
-        $this->entityManager->merge($record);*/
-        /*$this->entityManager->detach($properties[0]);*/
         $this->entityManager->persist($record);
         $this->entityManager->flush();
 

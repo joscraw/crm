@@ -5,10 +5,10 @@ import swal from 'sweetalert2';
 import Routing from '../Routing';
 import Settings from '../Settings';
 import List from 'list.js';
-import ColumnSearch from "./ColumnSearch";
+import PropertySearch from "./PropertySearch";
 require('jquery-ui-dist/jquery-ui');
 
-class ColumnsForm {
+class DefaultPropertiesForm {
 
     /**
      * @param $wrapper
@@ -18,7 +18,6 @@ class ColumnsForm {
      */
     constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName) {
 
-        debugger;
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
@@ -28,30 +27,30 @@ class ColumnsForm {
 
         this.$wrapper.on(
             'submit',
-            ColumnsForm._selectors.selectedPropertiesForm,
+            DefaultPropertiesForm._selectors.selectedPropertiesForm,
             this.handleNewFormSubmit.bind(this)
         );
 
         this.$wrapper.on(
             'change',
-            ColumnsForm._selectors.propertyCheckbox,
+            DefaultPropertiesForm._selectors.propertyCheckbox,
             this.handlePropertyCheckboxChanged.bind(this)
         );
 
         this.$wrapper.on(
             'click',
-            ColumnsForm._selectors.removeSelectedColumnIcon,
-            this.handleRemoveSelectedColumnIconClicked.bind(this)
+            DefaultPropertiesForm._selectors.removeSelectedPropertyIcon,
+            this.handleRemoveSelectedPropertyIconClicked.bind(this)
         );
 
         this.globalEventDispatcher.subscribe(
-            Settings.Events.COLUMN_SEARCH_KEY_UP,
+            Settings.Events.PROPERTY_SEARCH_KEY_UP,
             this.applySearch.bind(this)
         );
 
         this.loadProperties().then(data => {
             this.render(data).then(() => {
-                this._setSelectedColumnsCount();
+                this._setSelectedPropertyCount();
             })
         });
 
@@ -66,29 +65,29 @@ class ColumnsForm {
         return {
             selectedPropertiesForm: '.js-selected-properties-form',
             propertyCheckbox: '.js-property-checkbox',
-            selectedColumnsContainer: '.js-selected-columns-container',
-            removeSelectedColumnIcon: '.js-remove-selected-column-icon',
-            selectedColumnsCount: '.js-selected-columns-count'
+            selectedPropertiesContainer: '.js-selected-properties-container',
+            removeSelectedPropertyIcon: '.js-remove-selected-property-icon',
+            selectedPropertyCount: '.js-selected-properties-count'
         }
     }
 
     activatePlugins() {
-        const $selectedColumnsContainer = $(ColumnsForm._selectors.selectedColumnsContainer);
-        $selectedColumnsContainer.sortable({
+        const $selectedPropertiesContainer = $(DefaultPropertiesForm._selectors.selectedPropertiesContainer);
+        $selectedPropertiesContainer.sortable({
             placeholder: "ui-state-highlight",
             cursor: 'crosshair'
         });
-        $selectedColumnsContainer.disableSelection();
+        $selectedPropertiesContainer.disableSelection();
     }
 
-    handleRemoveSelectedColumnIconClicked(e) {
+    handleRemoveSelectedPropertyIconClicked(e) {
 
         if(e.cancelable) {
             e.preventDefault();
         }
 
         let propertyId = $(e.target).data('propertyId');
-        this._removeSelectedColumn(propertyId);
+        this._removeSelectedProperty(propertyId);
 
         this.$wrapper.find('.js-property-list').find(`[data-property-id="${propertyId}"]`).prop('checked', false);
 
@@ -122,7 +121,7 @@ class ColumnsForm {
     loadProperties() {
         return new Promise((resolve, reject) => {
             debugger;
-            const url = Routing.generate('properties_for_columns', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
+            const url = Routing.generate('get_default_properties', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
 
             $.ajax({
                 url: url
@@ -137,12 +136,12 @@ class ColumnsForm {
 
     render(data) {
         return new Promise((resolve, reject) => {
+            debugger;
             const html = mainTemplate();
             const $mainTemplate = $($.parseHTML(html));
             this.$wrapper.append($mainTemplate);
 
             for(let key in data.data.property_groups) {
-                debugger;
                 if(data.data.property_groups.hasOwnProperty(key)) {
                     let propertyGroup = data.data.property_groups[key];
                     let properties = data.data.properties[key];
@@ -150,8 +149,7 @@ class ColumnsForm {
                 }
             }
 
-            debugger;
-            new ColumnSearch(this.$wrapper.find('.js-search-container'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, "Search for a column...");
+            new PropertySearch(this.$wrapper.find('.js-search-container'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, "Search for a property...");
 
             resolve();
         });
@@ -166,9 +164,9 @@ class ColumnsForm {
             e.preventDefault();
         }
 
-        const $selectedColumnsContainer = $(ColumnsForm._selectors.selectedColumnsContainer);
+        const $selectedPropertiesContainer = $(DefaultPropertiesForm._selectors.selectedPropertiesContainer);
 
-        let newOrderArray = $selectedColumnsContainer.sortable('toArray');
+        let newOrderArray = $selectedPropertiesContainer.sortable('toArray');
 
         const $form = $(e.currentTarget);
         let formData = new FormData($form.get(0));
@@ -177,11 +175,11 @@ class ColumnsForm {
             formData.append('selected_properties[]', newOrderArray[i]);
         }
 
-        this._saveColumns(formData)
+        this._saveProperties(formData)
             .then((data) => {
                 debugger;
-                swal("Whoop whoop!", `Columns successfully updated!`, "success");
-                this.globalEventDispatcher.publish(Settings.Events.COLUMNS_UPDATED);
+                swal("Whoop whoop!", `Default Properties successfully updated!`, "success");
+                this.globalEventDispatcher.publish(Settings.Events.DEFAULT_PROPERTIES_UPDATED);
             }).catch((errorData) => {
 
             /*this.$wrapper.html(errorData.formMarkup);
@@ -196,9 +194,9 @@ class ColumnsForm {
         let label = $(e.target).attr('data-label');
         let propertyId = $(e.target).attr('data-property-id');
         if($(e.target).is(":checked")) {
-            this._addSelectedColumn(label, propertyId);
+            this._addSelectedProperty(label, propertyId);
         } else {
-            this._removeSelectedColumn(propertyId);
+            this._removeSelectedProperty(propertyId);
         }
     }
 
@@ -207,11 +205,11 @@ class ColumnsForm {
      * @return {Promise<any>}
      * @private
      */
-    _saveColumns(data) {
+    _saveProperties(data) {
 
         return new Promise( (resolve, reject) => {
 
-            const url = Routing.generate('set_property_columns', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
+            const url = Routing.generate('set_default_properties', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
 
             $.ajax({
                 url,
@@ -234,11 +232,13 @@ class ColumnsForm {
      * @private
      */
     _addList(propertyGroup, properties) {
+        debugger;
         let $propertyList = this.$wrapper.find('.js-property-list');
         const html = listTemplate(propertyGroup);
         const $list = $($.parseHTML(html));
         $propertyList.append($list);
 
+        // List.js is used to render the list on the left and to allow searching of said list
         var options = {
             valueNames: [ 'label' ],
             // Since there are no elements in the list, this will be used as template.
@@ -256,50 +256,49 @@ class ColumnsForm {
             $(element).next().attr('for', `property-${properties[index].id}`);
         });
 
-        let selectedColumns = {};
+        // Make sure the checkboxes are either checked or not checked
         debugger;
+        let selectedProperties = {};
         for(let i = 0; i < properties.length; i++) {
             debugger;
             let property = properties[i];
-
-            if(property.isColumn) {
-                debugger;
+            if(property.isDefaultProperty) {
                 $( `#list-${propertyGroup.id} li [data-property-id='${property.id}']` ).prop('checked', true);
-                selectedColumns[property.columnOrder] = {'label': property.label, 'id': property.id};
+                selectedProperties[property.propertyOrder] = {'label': property.label, 'id': property.id};
             } else {
                 $( `#list-${propertyGroup.id} li [data-property-id='${property.id}']` ).prop('checked', false);
             }
         }
 
-        // make sure the selected columns appear in the correct order
-        debugger;
-        for(let order in selectedColumns) {
-            this._addSelectedColumn(selectedColumns[order].label, selectedColumns[order].id);
+        // make sure the selected properties appear in the correct order on the right side of the modal
+        for(let order in selectedProperties) {
+            debugger;
+            this._addSelectedProperty(selectedProperties[order].label, selectedProperties[order].id);
         }
 
     }
 
-    _addSelectedColumn(label, propertyId) {
+    _addSelectedProperty(label, propertyId) {
         debugger;
-        const $selectedColumnsContainer = $(ColumnsForm._selectors.selectedColumnsContainer);
+        const $container = $(DefaultPropertiesForm._selectors.selectedPropertiesContainer);
         const html = selectedColumnTemplate(label, propertyId);
-        const $selectedColumnTemplate = $($.parseHTML(html));
-        $selectedColumnsContainer.append($selectedColumnTemplate);
+        const $template = $($.parseHTML(html));
+        $container.append($template);
 
         this.activatePlugins();
-        this._setSelectedColumnsCount();
+        this._setSelectedPropertyCount();
     }
 
-    _removeSelectedColumn(propertyId) {
-        const $selectedColumnsContainer = $(ColumnsForm._selectors.selectedColumnsContainer);
-        $selectedColumnsContainer.find(`[data-property-id="${propertyId}"]`).closest('.js-selected-column').remove();
-        this._setSelectedColumnsCount();
+    _removeSelectedProperty(propertyId) {
+        const $container = $(DefaultPropertiesForm._selectors.selectedPropertiesContainer);
+        $container.find(`[data-property-id="${propertyId}"]`).closest('.js-selected-property').remove();
+        this._setSelectedPropertyCount();
     }
 
-    _setSelectedColumnsCount() {
-        const $selectedColumnsContainer = $(ColumnsForm._selectors.selectedColumnsContainer);
-        let count = $selectedColumnsContainer.find('.js-selected-column').length;
-        $(ColumnsForm._selectors.selectedColumnsCount).html(`Selected Columns: ${count}`);
+    _setSelectedPropertyCount() {
+        const $container = $(DefaultPropertiesForm._selectors.selectedPropertiesContainer);
+        let count = $container.find('.js-selected-property').length;
+        $(DefaultPropertiesForm._selectors.selectedPropertyCount).html(`Selected Properties: ${count}`);
     }
 }
 
@@ -318,8 +317,8 @@ const mainTemplate = () => `
             <div class="js-property-list c-column-editor__property-list"></div>
         </div>
         <div class="col-md-6">
-            <div class="js-selected-columns-count c-column-editor__selected-columns-count"></div>
-            <div class="js-selected-columns-container c-column-editor__selected-columns"></div>
+            <div class="js-selected-properties-count c-column-editor__selected-columns-count"></div>
+            <div class="js-selected-properties-container c-column-editor__selected-columns"></div>
         </div>
         
         <div class="col-md-6 c-column-editor__footer">
@@ -334,9 +333,9 @@ const mainTemplate = () => `
 
 
 const selectedColumnTemplate = (label, id) => `
-    <div class="card js-selected-column" id="${id}">
-        <div class="card-body">${label}<span><i class="fa fa-times js-remove-selected-column-icon c-column-editor__remove-icon" data-property-id="${id}" aria-hidden="true"></i></span></div>
+    <div class="card js-selected-property" id="${id}">
+        <div class="card-body">${label}<span><i class="fa fa-times js-remove-selected-property-icon c-column-editor__remove-icon" data-property-id="${id}" aria-hidden="true"></i></span></div>
     </div>
 `;
 
-export default ColumnsForm;
+export default DefaultPropertiesForm;

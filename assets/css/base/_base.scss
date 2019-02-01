@@ -14,9 +14,20 @@ body {
   font-family: Avenir Next W02,Helvetica,Arial,sans-serif !important;
 }
 
-table {
+h1, h2, h3, h4, h5, h6, p {
+  font-family: Avenir Next W02,Helvetica,Arial,sans-serif !important;
+  color: $color-blue-25;
+  font-weight: lighter;
+}
+
+table, p, span {
   font-size: 14px;
 }
+
+p {
+  line-height: 1.8;
+}
+
 
 /**
  * Make all elements from the DOM inherit from the parent box-sizing

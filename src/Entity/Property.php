@@ -104,6 +104,16 @@ class Property /*implements \JsonSerializable*/
      */
     private $columnOrder;
 
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $isDefaultProperty = false;
+
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private $defaultPropertyOrder;
+
 
     /**
      * @ORM\PrePersist
@@ -286,5 +296,37 @@ class Property /*implements \JsonSerializable*/
         $this->columnOrder = $columnOrder;
 
         return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getIsDefaultProperty()
+    {
+        return $this->isDefaultProperty;
+    }
+
+    /**
+     * @param mixed $isDefaultProperty
+     */
+    public function setIsDefaultProperty($isDefaultProperty): void
+    {
+        $this->isDefaultProperty = $isDefaultProperty;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getDefaultPropertyOrder()
+    {
+        return $this->defaultPropertyOrder;
+    }
+
+    /**
+     * @param mixed $defaultPropertyOrder
+     */
+    public function setDefaultPropertyOrder($defaultPropertyOrder): void
+    {
+        $this->defaultPropertyOrder = $defaultPropertyOrder;
     }
 }

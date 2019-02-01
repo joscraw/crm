@@ -15,6 +15,11 @@
                             <div class="js-form-item">
                                 {% if (attribute(form, property.internalName) is defined) %}
 
+                                    {#{% set formField = attribute(form, property.internalName) %}
+                                    {% if formField.vars.choices is defined %}
+                                        {{ dump(formField.vars) }}
+                                    {% endif %}#}
+
                                     {% set value = '' %}
 
                                     {% if attribute(form.vars.value, property.internalName) is defined %}
