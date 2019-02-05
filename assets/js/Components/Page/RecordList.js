@@ -6,6 +6,7 @@ import RecordListTopBar from './../RecordListTopBar';
 import PropertyList from "./../PropertyList";
 import PropertyGroupFormModal from "./../PropertyGroupFormModal";
 import RecordTable from "../RecordTable";
+import FilterWidget from "../FilterWidget";
 
 class RecordList {
 
@@ -16,7 +17,6 @@ class RecordList {
      * @param customObjectInternalName
      */
     constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName) {
-        debugger;
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
@@ -28,7 +28,8 @@ class RecordList {
     render() {
         this.$wrapper.html(RecordList.markup(this));
         new RecordListTopBar(this.$wrapper.find('.js-top-bar'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);
-        new RecordTable(this.$wrapper.find('.js-main-content'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);
+        new RecordTable(this.$wrapper.find('.js-record-table'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);
+        new FilterWidget(this.$wrapper.find('.js-record-filter-widget'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);
     }
 
     static markup() {
@@ -38,7 +39,16 @@ class RecordList {
         <div class="l-grid">
             <div class="l-grid__top-bar js-top-bar"></div>
             <div class="l-grid__sub-bar js-sub-bar"></div>
-            <div class="l-grid__main-content js-main-content"></div>
+            <div class="l-grid__main-content js-main-content">
+                <div class="row">
+                    <div class="col-md-3 js-record-filter-widget"></div>
+                    <div class="col-md-9 js-record-table"></div>
+                    <div class="col-md-3"></div>
+                    <div class="col-md-3"></div>
+                    <div class="col-md-3"></div>
+                    <div class="col-md-3"></div>
+                </div>            
+            </div> 
         </div>
       </div>
     `;

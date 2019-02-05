@@ -7,7 +7,6 @@ import EditColumnsButton from "./EditColumnsButton";
 class Dropdown {
 
     constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, title) {
-        debugger;
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
@@ -18,15 +17,12 @@ class Dropdown {
     }
 
     render() {
-        debugger;
         this.$wrapper.html(Dropdown.markup(this));
         new EditColumnsButton(this.$wrapper.find('.js-edit-columns'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);
 
     }
 
     static markup({title}) {
-
-        debugger;
 
         return `
       <div class="dropdown">

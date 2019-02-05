@@ -18,7 +18,6 @@ class RecordListTopBar {
      * @param customObjectInternalName
      */
     constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName) {
-        debugger;
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;

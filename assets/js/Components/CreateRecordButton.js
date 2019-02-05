@@ -6,7 +6,6 @@ import RecordFormModal from './RecordFormModal';
 class CreateRecordButton {
 
     constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName) {
-        debugger;
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
@@ -29,13 +28,10 @@ class CreateRecordButton {
     }
 
     render() {
-        debugger;
         this.$wrapper.html(CreateRecordButton.markup(this));
     }
 
     static markup() {
-
-        debugger;
 
         return `
       <button type="button" class="js-open-create-custom-object-modal-btn btn btn-secondary">Create Record</button>

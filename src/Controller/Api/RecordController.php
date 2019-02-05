@@ -361,10 +361,11 @@ class RecordController extends ApiController
         $search = $request->query->get('search');
         $orders = $request->query->get('order');
         $columns = $request->query->get('columns');
+        $customFilters = $request->query->get('customFilters', []);
 
         $propertiesForDatatable = $this->propertyRepository->findColumnsForTable($customObject);
 
-        $results = $this->recordRepository->getDataTableData($start, $length, $search, $orders, $columns, $propertiesForDatatable, $customObject);
+        $results = $this->recordRepository->getDataTableData($start, $length, $search, $orders, $columns, $propertiesForDatatable, $customFilters, $customObject);
 
         $customObjectInternalNames = $this->propertyRepository->findAllInternalNamesByFieldTypeForCustomObject($customObject, FieldCatalog::CUSTOM_OBJECT);
         $customObjectInternalNames = $this->getArrayValuesRecursive($customObjectInternalNames);

@@ -15,7 +15,6 @@ class DatatableSearch {
      * @param placeholderText
      */
     constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, placeholderText) {
-        debugger;
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;

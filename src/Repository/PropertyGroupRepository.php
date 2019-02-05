@@ -68,7 +68,7 @@ class PropertyGroupRepository extends ServiceEntityRepository
      * @param CustomObject $customObject
      * @return mixed
      */
-    public function getDataTableData(CustomObject $customObject)
+    public function getPropertyGroupsAndProperties(CustomObject $customObject)
     {
 
         return $this->createQueryBuilder('propertyGroup')

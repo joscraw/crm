@@ -8,7 +8,7 @@ import EditColumnsModal from "./EditColumnsModal";
 class EditColumnsButton {
 
     constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName) {
-        debugger;
+
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
@@ -31,13 +31,10 @@ class EditColumnsButton {
     }
 
     render() {
-        debugger;
         this.$wrapper.html(EditColumnsButton.markup(this));
     }
 
     static markup() {
-
-        debugger;
 
         return `
       <button type="button" class="dropdown-item js-edit-columns-button">Edit Columns</button>

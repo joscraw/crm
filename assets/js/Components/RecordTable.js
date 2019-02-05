@@ -24,6 +24,7 @@ class RecordTable {
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
         this.customObjectInternalName = customObjectInternalName;
+        this.customFilters = [];
 
         this.globalEventDispatcher.subscribe(
             Settings.Events.DATATABLE_SEARCH_KEY_UP,
@@ -40,18 +41,28 @@ class RecordTable {
             this.reloadTable.bind(this)
         );
 
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.CUSTOM_FILTER_ADDED,
+            this.customFilterAddedHandler.bind(this)
+        );
+
         this.render();
 
         this.loadColumnsForTable().then((data) => {
-            debugger;
             this.activatePlugins(data.data);
-        }).catch(() => {
-            debugger;
-        });
+        }).catch(() => {});
+    }
+
+    customFilterAddedHandler(filter) {
+        debugger;
+        this.customFilters.push(filter);
+        this.reloadTable();
+        debugger;
     }
 
     activatePlugins(columns) {
 
+        debugger;
         if(columns.length !== 0) {
             columns[0].mRender = (data, type, row) => {
                 
@@ -67,9 +78,10 @@ class RecordTable {
         }
 
         debugger;
+        console.log(this.customFilters);
+
         $('#table_id thead').empty();
         $('#table_id tbody').empty();
-        debugger;
 
         this.table = $('#table_id').DataTable({
             "processing": true,
@@ -99,6 +111,7 @@ class RecordTable {
             "ajax": {
                 url: Routing.generate('records_for_datatable', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName}),
                 type: "GET",
+                data: {'customFilters': this.customFilters},
                 dataType: "json",
                 contentType: "application/json; charset=utf-8"
             }
@@ -107,7 +120,6 @@ class RecordTable {
 
     loadColumnsForTable() {
         return new Promise((resolve, reject) => {
-            debugger;
             const url = Routing.generate('get_columns_for_table', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
 
             $.ajax({
@@ -126,7 +138,6 @@ class RecordTable {
      */
     applySearch(args = {}) {
 
-        debugger;
         if(typeof args.searchValue !== 'undefined') {
             this.searchValue = args.searchValue;
         }
@@ -138,13 +149,9 @@ class RecordTable {
 
     reloadTable() {
         this.loadColumnsForTable().then((data) => {
-            debugger;
             this.table.destroy();
-            /*$('#table_id').DataTable().destroy();*/
-            debugger;
             this.activatePlugins(data.data);
         }).catch(errorData => {
-            debugger;
         });
     }
 

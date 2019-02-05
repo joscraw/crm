@@ -37,17 +37,14 @@ class SideNavigationMenu {
     }
 
     reloadSideNavigationMenu() {
-        debugger;
         this.loadSideNavigationMenu();
     }
 
     loadSideNavigationMenu() {
         return new Promise((resolve, reject) => {
-            debugger;
             $.ajax({
                 url: Routing.generate('get_side_navigation_menu', {internalIdentifier: this.internalIdentifier}),
             }).then(data => {
-                debugger;
                 this.$wrapper.html(data.markup);
                 resolve(data);
             }).catch(errorData => {

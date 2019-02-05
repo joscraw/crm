@@ -8,6 +8,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 use Symfony\Component\Validator\Constraints as Assert;
 use App\Validator\Constraints as CustomAssert;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 
 /**
@@ -21,6 +22,8 @@ class PropertyGroup
     use TimestampableEntity;
 
     /**
+     * @Groups({"PROPERTIES_FOR_FILTER"})
+     *
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
@@ -28,6 +31,8 @@ class PropertyGroup
     private $id;
 
     /**
+     * @Groups({"PROPERTIES_FOR_FILTER"})
+     *
      * @Assert\NotBlank(message="Don't forget a name for your super cool Property Group!", groups={"CREATE", "EDIT"})
      *
      * @ORM\Column(type="string", length=255)
@@ -35,6 +40,8 @@ class PropertyGroup
     private $name;
 
     /**
+     * @Groups({"PROPERTIES_FOR_FILTER"})
+     *
      * @Assert\Regex("/^[a-zA-Z0-9_]*$/", message="Woah! Only use letters numbers and underscores please!")
      *
      * @ORM\Column(type="string", length=255)
@@ -42,6 +49,8 @@ class PropertyGroup
     private $internalName;
 
     /**
+     * @Groups({"PROPERTIES_FOR_FILTER"})
+     * 
      * @ORM\OneToMany(targetEntity="App\Entity\Property", mappedBy="propertyGroup", cascade={"remove"})
      */
     private $properties;

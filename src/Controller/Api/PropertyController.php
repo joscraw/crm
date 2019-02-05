@@ -31,6 +31,7 @@ use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
+use Symfony\Component\Serializer\SerializerInterface;
 
 
 /**
@@ -63,23 +64,32 @@ class PropertyController extends ApiController
     private $propertyGroupRepository;
 
     /**
-     * PropertySettingsController constructor.
+     * @var SerializerInterface
+     */
+    private $serializer;
+
+    /**
+     * PropertyController constructor.
      * @param EntityManagerInterface $entityManager
      * @param CustomObjectRepository $customObjectRepository
      * @param PropertyRepository $propertyRepository
      * @param PropertyGroupRepository $propertyGroupRepository
+     * @param SerializerInterface $serializer
      */
     public function __construct(
         EntityManagerInterface $entityManager,
         CustomObjectRepository $customObjectRepository,
         PropertyRepository $propertyRepository,
-        PropertyGroupRepository $propertyGroupRepository
+        PropertyGroupRepository $propertyGroupRepository,
+        SerializerInterface $serializer
     ) {
         $this->entityManager = $entityManager;
         $this->customObjectRepository = $customObjectRepository;
         $this->propertyRepository = $propertyRepository;
         $this->propertyGroupRepository = $propertyGroupRepository;
+        $this->serializer = $serializer;
     }
+
 
     /**
      * @Route("{internalName}/create", name="create_property", methods={"GET", "POST"}, options = { "expose" = true })
@@ -214,7 +224,7 @@ class PropertyController extends ApiController
      */
     public function getPropertiesForDatatableAction(Portal $portal, CustomObject $customObject, Request $request) {
 
-        $propertyGroups = $this->propertyGroupRepository->getDataTableData($customObject);
+        $propertyGroups = $this->propertyGroupRepository->getPropertyGroupsAndProperties($customObject);
         $payload = [];
         $payload['property_groups'] = [];
         $payload['properties']= [];
@@ -244,6 +254,29 @@ class PropertyController extends ApiController
         ], Response::HTTP_OK);
 
         return $response;
+    }
+
+    /**
+     * @Route("/{internalName}/get-for-filter", name="properties_for_filter", methods={"GET"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param CustomObject $customObject
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getPropertiesForFilter(Portal $portal, CustomObject $customObject, Request $request) {
+
+        $propertyGroups = $this->propertyGroupRepository->getPropertyGroupsAndProperties($customObject);
+
+        $payload['property_groups'] = [];
+        foreach($propertyGroups as $propertyGroup) {
+            $json = $this->serializer->serialize($propertyGroup, 'json', ['groups' => ['PROPERTIES_FOR_FILTER']]);
+            $payload['property_groups'][] = json_decode($json, true);
+        }
+
+        return new JsonResponse([
+            'success' => true,
+            'data'  => $payload
+        ], Response::HTTP_OK);
     }
 
     /**
