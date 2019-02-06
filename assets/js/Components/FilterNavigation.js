@@ -76,6 +76,8 @@ class FilterNavigation {
             sortField: 'text'
         });
 
+        this.$selectedProperties.selectize()[0].selectize.off('item_remove');
+
         this.$selectedProperties.selectize()[0].selectize.on('item_remove', (key) => {
             debugger;
             this.customFilters.splice(key, 1);
