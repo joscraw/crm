@@ -8,9 +8,8 @@ import List from "list.js";
 import SingleLineTextFieldFilterForm from "./SingleLineTextFieldFilterForm";
 import EditSingleLineTextFieldFilter from "./EditSingleLineTextFieldFilter";
 import FilterList from "./FilterList";
-import FilterNavigation from "./FilterNavigation";
 
-class FilterWidget {
+class FilterNavigation {
 
     constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName) {
         debugger;
@@ -22,12 +21,21 @@ class FilterWidget {
         this.lists = [];
         this.customFilters = [];
 
-        this.globalEventDispatcher.subscribe(
+        this.unbindEvents();
+
+        this.$wrapper.on(
+            'click',
+            FilterNavigation._selectors.addFilterButton,
+            this.handleAddFilterButtonClicked.bind(this)
+        );
+
+ /*       this.globalEventDispatcher.subscribe(
             Settings.Events.APPLY_CUSTOM_FILTER_BUTTON_PRESSED,
             this.applyCustomFilterButtonPressedHandler.bind(this)
         );
+*/
 
-/*        this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.subscribe(
             Settings.Events.PROPERTY_SEARCH_KEY_UP,
             this.applySearch.bind(this)
         );
@@ -35,26 +43,6 @@ class FilterWidget {
         this.globalEventDispatcher.subscribe(
             Settings.Events.FILTER_LIST_BACK_BUTTON_CLICKED,
             this.handleFilterListBackButtonClicked.bind(this)
-        );*/
-
-        this.globalEventDispatcher.subscribe(
-            Settings.Events.ADD_FILTER_BUTTON_CLICKED,
-            this.handleAddFilterButtonClicked.bind(this)
-        );
-
-        this.globalEventDispatcher.subscribe(
-            Settings.Events.FILTER_BACK_TO_HOME_BUTTON_CLICKED,
-            this.handleBackToHomeButtonClicked.bind(this)
-        );
-
-        this.globalEventDispatcher.subscribe(
-            Settings.Events.FILTER_PROPERTY_LIST_ITEM_CLICKED,
-            this.handlePropertyListItemClicked.bind(this)
-        );
-
-        this.globalEventDispatcher.subscribe(
-            Settings.Events.FILTER_BACK_TO_LIST_BUTTON_CLICKED,
-            this.filterFormBackToListButtonClickedHandler.bind(this)
         );
 
         this.render();
@@ -70,39 +58,21 @@ class FilterWidget {
             propertyForm: '.js-property-form',
             editPropertyForm: '.js-edit-property-form',
             searchContainer: '.js-search-container',
-            selectizedPropertyContainer: '.js-selectized-property-container',
-            filterNavigation: '.js-filter-navigation'
+            selectizedPropertyContainer: '.js-selectized-property-container'
         }
     }
 
-    filterFormBackToListButtonClickedHandler() {
-        this.$wrapper.find(FilterWidget._selectors.propertyList).removeClass('d-none');
-        this.$wrapper.find(FilterWidget._selectors.propertyForm).addClass('d-none');
+    /**
+     * Because this component can keep getting run each time a filter is added
+     * you need to remove the handlers otherwise they will keep stacking up
+     */
+    unbindEvents() {
+        this.$wrapper.off('click', FilterNavigation._selectors.addFilterButton);
     }
 
     handleFilterListBackButtonClicked() {
         this.$wrapper.find(FilterWidget._selectors.propertyList).addClass('d-none');
-        this.$wrapper.find(FilterWidget._selectors.filterNavigation).removeClass('d-none');
-    }
-
-    applyCustomFilterButtonPressedHandler(customFilter) {
-
-        debugger;
-        this.customFilters = $.grep(this.customFilters, function(cf){
-            return cf.id !== customFilter.id;
-        });
-
-        this.customFilters.push(customFilter);
-
-        this.globalEventDispatcher.publish(Settings.Events.CUSTOM_FILTER_ADDED, this.customFilters);
-
-        this.activatePlugins();
-
-        this.$wrapper.find(FilterWidget._selectors.propertyList).addClass('d-none');
-        this.$wrapper.find(FilterWidget._selectors.filterNavigation).removeClass('d-none');
-        this.$wrapper.find(FilterWidget._selectors.propertyForm).addClass('d-none');
-
-
+        this.$wrapper.find(FilterWidget._selectors.addFilterButton).removeClass('d-none');
     }
 
     handleKeyupEvent(e) {
@@ -213,86 +183,19 @@ class FilterWidget {
 
     render() {
         debugger;
-        this.$wrapper.html(FilterWidget.markup(this));
-        new FilterNavigation(this.$wrapper.find('.js-filter-navigation'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);
-    }
-
-    renderProperties(propertyGroups) {
-
-        debugger;
-        return new Promise((resolve, reject) => {
-
-            for(let i = 0; i < propertyGroups.length; i++) {
-                let propertyGroup = propertyGroups[i];
-                let properties = propertyGroup.properties;
-                this._addList(propertyGroup, properties);
-
-            }
-            resolve();
-        });
-    }
-
-    _addList(propertyGroup, properties) {
-        debugger;
-        let $propertyList = this.$wrapper.find('.js-property-list');
-        const html = listTemplate(propertyGroup);
-        const $list = $($.parseHTML(html));
-        $propertyList.append($list);
-
-        // List.js is used to render the list on the left and to allow searching of said list
-        let options = {
-            valueNames: [ 'label' ],
-            // Since there are no elements in the list, this will be used as template.
-            item: `<li class="js-property-list-item"><p class="label"></p></li>`
-        };
-
-        this.lists.push(new List(`list-${propertyGroup.id}`, options, properties));
-
-        $( `#list-${propertyGroup.id} li` ).each((index, element) => {
-            $(element).attr('data-property-id', properties[index].id);
-        });
-
-    }
-
-    loadPropertiesForFilter() {
-        debugger;
-        return new Promise((resolve, reject) => {
-            const url = Routing.generate('properties_for_filter', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
-
-            $.ajax({
-                url: url
-            }).then(data => {
-                resolve(data);
-            }).catch(jqXHR => {
-                const errorData = JSON.parse(jqXHR.responseText);
-                reject(errorData);
-            });
-        });
+        this.$wrapper.html(FilterNavigation.markup(this));
+        /*new FilterList(this.$wrapper.find('.js-property-list'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);*/
     }
 
     handleAddFilterButtonClicked() {
+
+        this.globalEventDispatcher.publish(Settings.Events.ADD_FILTER_BUTTON_CLICKED);
         debugger;
-       /* this.$wrapper.find(FilterWidget._selectors.addFilterButton).addClass('d-none');
+/*        this.$wrapper.find(FilterWidget._selectors.addFilterButton).addClass('d-none');
         this.$wrapper.find(FilterWidget._selectors.propertyList).removeClass('d-none');
-        this.$wrapper.find(FilterWidget._selectors.selectizedPropertyContainer).addClass('d-none');*/
+        this.$wrapper.find(FilterWidget._selectors.selectizedPropertyContainer).addClass('d-none');
 
-
-
-/*        this.$wrapper.find(FilterWidget._selectors.backToHomeButton).removeClass('d-none');
-        this.$wrapper.find(FilterWidget._selectors.propertyList).removeClass('d-none');
-        this.$wrapper.find(FilterWidget._selectors.searchContainer).removeClass('d-none');
-        this.$wrapper.find(FilterWidget._selectors.backToListButton).addClass('d-none');*/
-
-
-
-        this.$wrapper.find(FilterWidget._selectors.filterNavigation).addClass('d-none');
-        this.$wrapper.find(FilterWidget._selectors.propertyList).removeClass('d-none');
-        new FilterList(this.$wrapper.find('.js-property-list'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);
-    }
-
-    handleBackToHomeButtonClicked() {
-        this.$wrapper.find(FilterWidget._selectors.filterNavigation).removeClass('d-none');
-        this.$wrapper.find(FilterWidget._selectors.propertyList).addClass('d-none');
+        new FilterList(this.$wrapper.find('.js-property-list'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);*/
     }
 
     handleBackButtonClicked() {
@@ -313,51 +216,64 @@ class FilterWidget {
         this.$wrapper.find(FilterWidget._selectors.propertyForm).addClass('d-none');
     }
 
-    handlePropertyListItemClicked(property) {
+    handlePropertyListItemClicked(e) {
+
+        if(e.cancelable) {
+            e.preventDefault();
+        }
+
+        this.$wrapper.find(FilterWidget._selectors.backToListButton).removeClass('d-none');
+        this.$wrapper.find(FilterWidget._selectors.backToHomeButton).addClass('d-none');
+        this.$wrapper.find(FilterWidget._selectors.propertyList).removeClass('d-none');
 
         debugger;
+        const $listItem = $(e.currentTarget);
+        let propertyGroupId = $listItem.closest('.js-list').attr('data-property-group');
+        let propertyId = $listItem.attr('data-property-id');
 
-        this.$wrapper.find(FilterWidget._selectors.propertyList).addClass('d-none');
-        this.$wrapper.find(FilterWidget._selectors.propertyForm).removeClass('d-none');
 
-        this.renderFilterForm(property);
+        let propertyGroup = this.propertyGroups.filter(propertyGroup => {
+           return parseInt(propertyGroup.id) === parseInt(propertyGroupId);
+        });
+
+        debugger;
+        let properties = propertyGroup[0].properties;
+
+        debugger;
+        let property = properties.filter(property => {
+            return parseInt(property.id) === parseInt(propertyId);
+        });
+
+        this.renderEditFilterForm(property[0]);
+
+        this.$wrapper.find('.js-property-form').removeClass('d-none');
+        this.$wrapper.find('.js-property-list').addClass('d-none');
     }
 
-    renderFilterForm(property) {
+    renderEditFilterForm(property) {
         debugger;
 
-       /* this.$wrapper.find('.js-property-list').addClass('d-none');
-        this.$wrapper.find('.js-search-container').addClass('d-none');*/
+        this.$wrapper.find('.js-property-list').addClass('d-none');
+        this.$wrapper.find('.js-search-container').addClass('d-none');
 
         switch (property.fieldType) {
             case 'single_line_text_field':
-                new SingleLineTextFieldFilterForm($(FilterWidget._selectors.propertyForm), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, property);
+                new SingleLineTextFieldFilterForm(this.$wrapper.find('.js-property-form'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, property);
                 break;
 
         }
-
     }
 
     static markup() {
-
-        debugger;
         return `
-      <div class="js-filter-widget c-filter-widget">
-            <div class="js-filter-navigation"></div>
-            <div class="js-property-list d-none"></div>
-            <div class="js-property-form d-none"></div>
-            <div class="js-edit-property-form d-none"></div>
-      </div>
+    
+        <div class="js-selectized-property-container">
+            <input type="text" id="js-selected-properties">
+        </div>
+        <button type="button" class="btn btn-link js-add-filter-button"><i class="fa fa-plus"></i> Add Filter</button>
+
     `;
     }
 }
 
-const listTemplate = ({id, name}) => `
-    <div id="list-${id}" class="js-list" data-property-group="${id}">
-      <p>${name}</p>
-      <ul class="list"></ul>
-    </div>
-    
-`;
-
-export default FilterWidget;
+export default FilterNavigation;

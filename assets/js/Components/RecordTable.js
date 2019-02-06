@@ -46,6 +46,11 @@ class RecordTable {
             this.customFilterAddedHandler.bind(this)
         );
 
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.CUSTOM_FILTER_REMOVED,
+            this.customFilterRemovedHandler.bind(this)
+        );
+
         this.render();
 
         this.loadColumnsForTable().then((data) => {
@@ -53,11 +58,17 @@ class RecordTable {
         }).catch(() => {});
     }
 
-    customFilterAddedHandler(filter) {
+    customFilterAddedHandler(customFilters) {
         debugger;
-        this.customFilters.push(filter);
+        this.customFilters = customFilters;
         this.reloadTable();
         debugger;
+    }
+
+    customFilterRemovedHandler(customFilters) {
+        debugger;
+        this.customFilters = customFilters;
+        this.reloadTable();
     }
 
     activatePlugins(columns) {

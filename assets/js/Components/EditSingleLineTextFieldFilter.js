@@ -4,17 +4,19 @@ import Settings from '../Settings';
 import RecordFormModal from './RecordFormModal';
 import $ from "jquery";
 
-class SingleLineTextFieldFilter {
+class EditSingleLineTextFieldFilter {
 
-    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, property) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, customFilter) {
         debugger;
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
         this.customObjectInternalName = customObjectInternalName;
-        this.property = property;
+        this.customFilter = customFilter;
 
-        this.$wrapper.on(
+        /*this.unbindEvents();*/
+
+/*        this.$wrapper.on(
             'click',
             '.js-radio-button',
             this.handleOperatorRadioButtonClicked.bind(this)
@@ -22,17 +24,32 @@ class SingleLineTextFieldFilter {
 
         this.$wrapper.on(
             'submit',
-            '.js-apply-filter-form',
+            '#js-apply-filter-form',
             this.handleNewFilterFormSubmit.bind(this)
-        );
+        );*/
 
         this.render();
     }
 
-    render() {
-        this.$wrapper.html(SingleLineTextFieldFilter.markup(this));
+    /**
+     * Because this component can keep getting run each time a filter is added
+     * you need to remove the handlers otherwise they will keep stacking up
+     */
+    unbindEvents() {
+        this.$wrapper.off('submit', '#js-apply-filter-form');
+        this.$wrapper.off('click', '.js-radio-button');
+    }
 
-        this.$wrapper.find('.js-radio-button').first().click();
+    render() {
+        debugger;
+        let $operator = this.$wrapper.find(`input[value="${this.customFilter['operator']}"]`);
+        this.$wrapper.html(EditSingleLineTextFieldFilter.markup(this));
+
+        const html = textFieldTemplate();
+        const $textField = $($.parseHTML(html));
+        $operator.closest('div').after($textField);
+
+        /*this.$wrapper.find('.js-radio-button').first().click();*/
     }
 
     handleNewFilterFormSubmit(e) {
@@ -49,9 +66,9 @@ class SingleLineTextFieldFilter {
             formData[fieldData.name] = fieldData.value
         }
 
-        console.log("Custom filter added.");
-        this.globalEventDispatcher.publish(Settings.Events.CUSTOM_FILTER_ADDED, formData);
-        console.log(`Event Dispatched: ${Settings.Events.CUSTOM_FILTER_ADDED}`);
+        this.globalEventDispatcher.publish(Settings.Events.APPLY_CUSTOM_FILTER_BUTTON_PRESSED, formData);
+        console.log(`Event Dispatched: ${Settings.Events.APPLY_CUSTOM_FILTER_BUTTON_PRESSED}`);
+
     }
 
     handleOperatorRadioButtonClicked(e) {
@@ -66,35 +83,39 @@ class SingleLineTextFieldFilter {
         }
     }
 
-    static markup({property}) {
+    static markup({customFilter}) {
 
+        debugger;
         return `
-        <form name="filter" method="post" class="js-apply-filter-form" novalidate="novalidate">
-            <input type="hidden" name="property" value="${property.internalName}">
-            <input type="hidden" name="fieldType" value="${property.fieldType}">
+        <p><small>${customFilter.label}</small></p>
+        <form name="filter" id="js-apply-filter-form" novalidate="novalidate" class="test">
+            <input type="hidden" name="property" value="${customFilter.property}">
+            <input type="hidden" name="fieldType" value="${customFilter.fieldType}">
+            <input type="hidden" name="label" value="${customFilter.label}">
+            <input type="hidden" name="id" value="${customFilter.id}">
             <div style="height: 200px; overflow-y: auto">
                 <div class="form-check">
                     <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator1" value="EQ" checked data-has-text-input="true">
                     <label class="form-check-label" for="operator1">
-                     contains exactly
+                     <p>contains exactly</p>
                     </label>
                 </div>
                 <div class="form-check">
                     <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator2" value="NEQ" data-has-text-input="true">
                     <label class="form-check-label" for="operator2">
-                    doesn't contain exactly
+                    <p>doesn't contain exactly</p>
                     </label>
                 </div>
                 <div class="form-check">
                     <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator3" value="HAS_PROPERTY">
                     <label class="form-check-label" for="operator3">
-                    is known
+                    <p>is known</p>
                     </label>
                 </div>
                 <div class="form-check">
                     <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator4" value="NOT_HAS_PROPERTY">
                     <label class="form-check-label" for="operator4">
-                    is unknown
+                    <p>is unknown</p>
                     </label>
                 </div>
             </div>
@@ -112,4 +133,4 @@ const textFieldTemplate = () => `
     
 `;
 
-export default SingleLineTextFieldFilter;
+export default EditSingleLineTextFieldFilter;
