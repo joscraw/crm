@@ -40,11 +40,6 @@ class FilterList {
             this.handleKeyupEvent.bind(this)
         );
 
-        this.globalEventDispatcher.subscribe(
-            Settings.Events.FILTER_FORM_BACK_BUTTON_CLICKED,
-            this.filterFormBackButtonClickedHandler.bind(this)
-        );
-
         this.render();
 
         this.loadPropertiesForFilter().then((data) => {
@@ -54,14 +49,6 @@ class FilterList {
         }).catch(() => {
             debugger;
         });
-    }
-
-    filterFormBackButtonClickedHandler() {
-        debugger;
-        this.$wrapper.find('.js-filter-list').removeClass('d-none');
-        this.$wrapper.find('.js-search-container').removeClass('d-none');
-        this.$wrapper.find('.js-back-button').removeClass('d-none');
-        this.$wrapper.find(FilterList._selectors.propertyForm).addClass('d-none');
     }
 
     /**
@@ -80,12 +67,6 @@ class FilterList {
     static get _selectors() {
         return {
             backToHomeButton: '.js-back-to-home-button',
-            backToListButton: '.js-back-to-list-button',
-            addFilterButton: '.js-add-filter-button',
-            propertyList: '.js-property-list',
-            propertyForm: '.js-property-form',
-            editPropertyForm: '.js-edit-property-form',
-            searchContainer: '.js-search-container',
             propertyListItem: '.js-property-list-item',
             search: '.js-search'
         }
@@ -93,7 +74,6 @@ class FilterList {
 
     handleKeyupEvent(e) {
 
-        debugger;
         if(e.cancelable) {
             e.preventDefault();
         }
@@ -111,7 +91,6 @@ class FilterList {
      */
     applySearch(args = {}) {
 
-        debugger;
         if(typeof args.searchValue !== 'undefined') {
             this.searchValue = args.searchValue;
         }
@@ -139,7 +118,6 @@ class FilterList {
 
     renderProperties(propertyGroups) {
 
-        debugger;
         return new Promise((resolve, reject) => {
 
             for(let i = 0; i < propertyGroups.length; i++) {
@@ -153,7 +131,7 @@ class FilterList {
     }
 
     _addList(propertyGroup, properties) {
-        debugger;
+
         const html = listTemplate(propertyGroup);
         const $list = $($.parseHTML(html));
         this.$wrapper.find('.js-filter-list').append($list);
@@ -174,7 +152,7 @@ class FilterList {
     }
 
     loadPropertiesForFilter() {
-        debugger;
+
         return new Promise((resolve, reject) => {
             const url = Routing.generate('properties_for_filter', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
 
@@ -215,20 +193,6 @@ class FilterList {
         });
 
         this.globalEventDispatcher.publish(Settings.Events.FILTER_PROPERTY_LIST_ITEM_CLICKED, property[0]);
-    }
-
-    renderFilterForm(property) {
-
-        this.$wrapper.find('.js-property-list').addClass('d-none');
-        this.$wrapper.find('.js-search-container').addClass('d-none');
-        this.$wrapper.find(FilterList._selectors.propertyForm).removeClass('d-none');
-
-        switch (property.fieldType) {
-            case 'single_line_text_field':
-                new SingleLineTextFieldFilterForm(this.$wrapper.find(FilterList._selectors.propertyForm), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, property);
-                break;
-
-        }
     }
 
     static markup() {

@@ -29,20 +29,9 @@ class FilterNavigation {
             this.handleAddFilterButtonClicked.bind(this)
         );
 
- /*       this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.subscribe(
             Settings.Events.APPLY_CUSTOM_FILTER_BUTTON_PRESSED,
             this.applyCustomFilterButtonPressedHandler.bind(this)
-        );
-*/
-
-        this.globalEventDispatcher.subscribe(
-            Settings.Events.PROPERTY_SEARCH_KEY_UP,
-            this.applySearch.bind(this)
-        );
-
-        this.globalEventDispatcher.subscribe(
-            Settings.Events.FILTER_LIST_BACK_BUTTON_CLICKED,
-            this.handleFilterListBackButtonClicked.bind(this)
         );
 
         this.render();
@@ -54,11 +43,7 @@ class FilterNavigation {
     static get _selectors() {
         return {
             addFilterButton: '.js-add-filter-button',
-            propertyList: '.js-property-list',
-            propertyForm: '.js-property-form',
-            editPropertyForm: '.js-edit-property-form',
-            searchContainer: '.js-search-container',
-            selectizedPropertyContainer: '.js-selectized-property-container'
+            propertyList: '.js-property-list'
         }
     }
 
@@ -70,50 +55,18 @@ class FilterNavigation {
         this.$wrapper.off('click', FilterNavigation._selectors.addFilterButton);
     }
 
-    handleFilterListBackButtonClicked() {
-        this.$wrapper.find(FilterWidget._selectors.propertyList).addClass('d-none');
-        this.$wrapper.find(FilterWidget._selectors.addFilterButton).removeClass('d-none');
-    }
+    applyCustomFilterButtonPressedHandler(customFilter) {
 
-    handleKeyupEvent(e) {
-
-        debugger;
-        if(e.cancelable) {
-            e.preventDefault();
-        }
-
-        const searchValue = $(e.target).val();
-        const searchObject = {
-            searchValue: searchValue
-        };
-
-        this.applySearch(searchObject);
-    }
-
-    /**
-     * @param args
-     */
-    applySearch(args = {}) {
-
-        debugger;
-        if(typeof args.searchValue !== 'undefined') {
-            this.searchValue = args.searchValue;
-        }
-
-        for(let i = 0; i < this.lists.length; i++) {
-            this.lists[i].search(this.searchValue);
-        }
-
-        this.$wrapper.find('.js-list').each((index, element) => {
-            if($(element).find('.list').is(':empty') && this.searchValue !== '') {
-                $(element).addClass('d-none');
-
-            } else {
-                if($(element).hasClass('d-none')) {
-                    $(element).removeClass('d-none');
-                }
-            }
+        this.customFilters = $.grep(this.customFilters, function(cf){
+            return cf.id !== customFilter.id;
         });
+
+        this.customFilters.push(customFilter);
+
+        this.globalEventDispatcher.publish(Settings.Events.CUSTOM_FILTER_ADDED, this.customFilters);
+
+        this.activatePlugins();
+
     }
 
     activatePlugins() {
@@ -149,8 +102,6 @@ class FilterNavigation {
         this.$wrapper.find('.remove').attr('data-bypass', true);
 
 
-
-
         $('.item').click((e) => {
             debugger;
             let $element = $(e.target);
@@ -162,9 +113,9 @@ class FilterNavigation {
             let index = $element.index();
             let customFilter = this.customFilters[index];
 
-            this.$wrapper.find(FilterWidget._selectors.addFilterButton).addClass('d-none');
+            /*this.$wrapper.find(FilterWidget._selectors.addFilterButton).addClass('d-none');
             this.$wrapper.find(FilterWidget._selectors.searchContainer).addClass('d-none');
-            this.$wrapper.find(FilterWidget._selectors.backToListButton).removeClass('d-none');
+            this.$wrapper.find(FilterWidget._selectors.backToListButton).removeClass('d-none');*/
 
             switch (customFilter.fieldType) {
                 case 'single_line_text_field':
@@ -174,80 +125,15 @@ class FilterNavigation {
 
             debugger;
         }) ;
-
-        /*$('.remove').click(function(e) {
-            debugger;
-            e.stopPropagation();
-        });*/
     }
 
     render() {
         debugger;
         this.$wrapper.html(FilterNavigation.markup(this));
-        /*new FilterList(this.$wrapper.find('.js-property-list'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);*/
     }
 
     handleAddFilterButtonClicked() {
-
         this.globalEventDispatcher.publish(Settings.Events.ADD_FILTER_BUTTON_CLICKED);
-        debugger;
-/*        this.$wrapper.find(FilterWidget._selectors.addFilterButton).addClass('d-none');
-        this.$wrapper.find(FilterWidget._selectors.propertyList).removeClass('d-none');
-        this.$wrapper.find(FilterWidget._selectors.selectizedPropertyContainer).addClass('d-none');
-
-        new FilterList(this.$wrapper.find('.js-property-list'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);*/
-    }
-
-    handleBackButtonClicked() {
-        debugger;
-        this.$wrapper.find(FilterWidget._selectors.addFilterButton).removeClass('d-none');
-        this.$wrapper.find(FilterWidget._selectors.backToHomeButton).addClass('d-none');
-        this.$wrapper.find(FilterWidget._selectors.backToListButton).addClass('d-none');
-        this.$wrapper.find(FilterWidget._selectors.propertyList).addClass('d-none');
-        this.$wrapper.find(FilterWidget._selectors.propertyForm).addClass('d-none');
-        this.$wrapper.find(FilterWidget._selectors.searchContainer).addClass('d-none');
-        this.$wrapper.find(FilterWidget._selectors.editPropertyForm).addClass('d-none');
-    }
-
-    handleBackToListButtonClicked() {
-        this.$wrapper.find(FilterWidget._selectors.backToListButton).addClass('d-none');
-        this.$wrapper.find(FilterWidget._selectors.backToHomeButton).removeClass('d-none');
-        this.$wrapper.find(FilterWidget._selectors.propertyList).removeClass('d-none');
-        this.$wrapper.find(FilterWidget._selectors.propertyForm).addClass('d-none');
-    }
-
-    handlePropertyListItemClicked(e) {
-
-        if(e.cancelable) {
-            e.preventDefault();
-        }
-
-        this.$wrapper.find(FilterWidget._selectors.backToListButton).removeClass('d-none');
-        this.$wrapper.find(FilterWidget._selectors.backToHomeButton).addClass('d-none');
-        this.$wrapper.find(FilterWidget._selectors.propertyList).removeClass('d-none');
-
-        debugger;
-        const $listItem = $(e.currentTarget);
-        let propertyGroupId = $listItem.closest('.js-list').attr('data-property-group');
-        let propertyId = $listItem.attr('data-property-id');
-
-
-        let propertyGroup = this.propertyGroups.filter(propertyGroup => {
-           return parseInt(propertyGroup.id) === parseInt(propertyGroupId);
-        });
-
-        debugger;
-        let properties = propertyGroup[0].properties;
-
-        debugger;
-        let property = properties.filter(property => {
-            return parseInt(property.id) === parseInt(propertyId);
-        });
-
-        this.renderEditFilterForm(property[0]);
-
-        this.$wrapper.find('.js-property-form').removeClass('d-none');
-        this.$wrapper.find('.js-property-list').addClass('d-none');
     }
 
     renderEditFilterForm(property) {
