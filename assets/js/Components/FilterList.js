@@ -6,7 +6,6 @@ import $ from "jquery";
 import PropertySearch from "./PropertySearch";
 import List from "list.js";
 import SingleLineTextFieldFilterForm from "./SingleLineTextFieldFilterForm";
-import EditSingleLineTextFieldFilter from "./EditSingleLineTextFieldFilter";
 
 class FilterList {
 

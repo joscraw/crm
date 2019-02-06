@@ -55,6 +55,7 @@ class SingleLineTextFieldFilterForm {
     unbindEvents() {
         this.$wrapper.off('submit', '#js-apply-filter-form');
         this.$wrapper.off('click', '.js-radio-button');
+        this.$wrapper.off('click', SingleLineTextFieldFilterForm._selectors.backToListButton);
     }
 
     handleBackButtonClicked() {

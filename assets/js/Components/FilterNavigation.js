@@ -6,7 +6,6 @@ import $ from "jquery";
 import PropertySearch from "./PropertySearch";
 import List from "list.js";
 import SingleLineTextFieldFilterForm from "./SingleLineTextFieldFilterForm";
-import EditSingleLineTextFieldFilter from "./EditSingleLineTextFieldFilter";
 import FilterList from "./FilterList";
 
 class FilterNavigation {
@@ -113,17 +112,8 @@ class FilterNavigation {
             let index = $element.index();
             let customFilter = this.customFilters[index];
 
-            /*this.$wrapper.find(FilterWidget._selectors.addFilterButton).addClass('d-none');
-            this.$wrapper.find(FilterWidget._selectors.searchContainer).addClass('d-none');
-            this.$wrapper.find(FilterWidget._selectors.backToListButton).removeClass('d-none');*/
+            this.globalEventDispatcher.publish(Settings.Events.EDIT_FILTER_BUTTON_CLICKED, customFilter);
 
-            switch (customFilter.fieldType) {
-                case 'single_line_text_field':
-                    new EditSingleLineTextFieldFilter(this.$wrapper.find('.js-edit-property-form'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, customFilter);
-                    break;
-            }
-
-            debugger;
         }) ;
     }
 

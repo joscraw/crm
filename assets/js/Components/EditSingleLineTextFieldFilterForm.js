@@ -4,7 +4,7 @@ import Settings from '../Settings';
 import RecordFormModal from './RecordFormModal';
 import $ from "jquery";
 
-class EditSingleLineTextFieldFilter {
+class EditSingleLineTextFieldFilterForm {
 
     constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, customFilter) {
         debugger;
@@ -14,21 +14,38 @@ class EditSingleLineTextFieldFilter {
         this.customObjectInternalName = customObjectInternalName;
         this.customFilter = customFilter;
 
-        /*this.unbindEvents();*/
+        this.unbindEvents();
 
-/*        this.$wrapper.on(
+        this.$wrapper.on(
             'click',
-            '.js-radio-button',
+            EditSingleLineTextFieldFilterForm._selectors.radioButton,
             this.handleOperatorRadioButtonClicked.bind(this)
         );
 
         this.$wrapper.on(
             'submit',
-            '#js-apply-filter-form',
+            EditSingleLineTextFieldFilterForm._selectors.applyFilterForm,
             this.handleNewFilterFormSubmit.bind(this)
-        );*/
+        );
+
+        this.$wrapper.on(
+            'click',
+            EditSingleLineTextFieldFilterForm._selectors.backToListButton,
+            this.handleBackButtonClicked.bind(this)
+        );
 
         this.render();
+    }
+
+    /**
+     * Call like this.selectors
+     */
+    static get _selectors() {
+        return {
+            backToListButton: '.js-back-to-list-button',
+            applyFilterForm: '#js-apply-filter-form',
+            radioButton: '.js-radio-button',
+        }
     }
 
     /**
@@ -38,23 +55,34 @@ class EditSingleLineTextFieldFilter {
     unbindEvents() {
         this.$wrapper.off('submit', '#js-apply-filter-form');
         this.$wrapper.off('click', '.js-radio-button');
+        this.$wrapper.off('click', EditSingleLineTextFieldFilterForm._selectors.backToListButton);
+    }
+
+    handleBackButtonClicked() {
+        this.globalEventDispatcher.publish(Settings.Events.FILTER_BACK_TO_LIST_BUTTON_CLICKED);
     }
 
     render() {
-        debugger;
-        let $operator = this.$wrapper.find(`input[value="${this.customFilter['operator']}"]`);
-        this.$wrapper.html(EditSingleLineTextFieldFilter.markup(this));
+        this.$wrapper.html(EditSingleLineTextFieldFilterForm.markup(this));
+        this.setRadioOption();
+    }
 
-        const html = textFieldTemplate();
-        const $textField = $($.parseHTML(html));
-        $operator.closest('div').after($textField);
+    setRadioOption() {
+        this.$wrapper.find('.js-radio-button').each((index, element) => {
+            let value = $(element).val();
+            let $radioButton = $(element);
+            if(this.customFilter.operator === value) {
+                $(element).click();
+                if($radioButton.attr('data-has-text-input')) {
+                    this.$wrapper.find('.js-operator-value input[type="text"]').val(this.customFilter.value);
+                }
+            }
 
-        /*this.$wrapper.find('.js-radio-button').first().click();*/
+        });
     }
 
     handleNewFilterFormSubmit(e) {
 
-        debugger;
         if(e.cancelable) {
             e.preventDefault();
         }
@@ -85,10 +113,10 @@ class EditSingleLineTextFieldFilter {
 
     static markup({customFilter}) {
 
-        debugger;
         return `
+        <button type="button" class="btn btn-link js-back-to-list-button"><i class="fa fa-chevron-left"></i> Back</button>
         <p><small>${customFilter.label}</small></p>
-        <form name="filter" id="js-apply-filter-form" novalidate="novalidate" class="test">
+        <form name="filter" id="js-apply-filter-form" novalidate="novalidate">
             <input type="hidden" name="property" value="${customFilter.property}">
             <input type="hidden" name="fieldType" value="${customFilter.fieldType}">
             <input type="hidden" name="label" value="${customFilter.label}">
@@ -133,4 +161,4 @@ const textFieldTemplate = () => `
     
 `;
 
-export default EditSingleLineTextFieldFilter;
+export default EditSingleLineTextFieldFilterForm;

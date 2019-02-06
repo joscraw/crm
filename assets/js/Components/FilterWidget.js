@@ -6,9 +6,9 @@ import $ from "jquery";
 import PropertySearch from "./PropertySearch";
 import List from "list.js";
 import SingleLineTextFieldFilterForm from "./SingleLineTextFieldFilterForm";
-import EditSingleLineTextFieldFilter from "./EditSingleLineTextFieldFilter";
 import FilterList from "./FilterList";
 import FilterNavigation from "./FilterNavigation";
+import EditSingleLineTextFieldFilterForm from "./EditSingleLineTextFieldFilterForm";
 
 class FilterWidget {
 
@@ -47,6 +47,11 @@ class FilterWidget {
             this.filterFormBackToListButtonClickedHandler.bind(this)
         );
 
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.EDIT_FILTER_BUTTON_CLICKED,
+            this.handleEditFilterButtonClickedHandler.bind(this)
+        );
+
         this.render();
     }
 
@@ -72,8 +77,7 @@ class FilterWidget {
         this.$wrapper.find(FilterWidget._selectors.propertyList).addClass('d-none');
         this.$wrapper.find(FilterWidget._selectors.filterNavigation).removeClass('d-none');
         this.$wrapper.find(FilterWidget._selectors.propertyForm).addClass('d-none');
-
-
+        this.$wrapper.find(FilterWidget._selectors.editPropertyForm).addClass('d-none');
     }
 
     render() {
@@ -107,9 +111,6 @@ class FilterWidget {
     renderFilterForm(property) {
         debugger;
 
-       /* this.$wrapper.find('.js-property-list').addClass('d-none');
-        this.$wrapper.find('.js-search-container').addClass('d-none');*/
-
         switch (property.fieldType) {
             case 'single_line_text_field':
                 new SingleLineTextFieldFilterForm($(FilterWidget._selectors.propertyForm), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, property);
@@ -117,6 +118,21 @@ class FilterWidget {
 
         }
 
+    }
+
+    handleEditFilterButtonClickedHandler(customFilter) {
+        debugger;
+
+        this.$wrapper.find(FilterWidget._selectors.filterNavigation).addClass('d-none');
+        this.$wrapper.find(FilterWidget._selectors.propertyList).addClass('d-none');
+        this.$wrapper.find(FilterWidget._selectors.editPropertyForm).removeClass('d-none');
+
+        switch (customFilter.fieldType) {
+            case 'single_line_text_field':
+                new EditSingleLineTextFieldFilterForm($(FilterWidget._selectors.editPropertyForm), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, customFilter);
+                break;
+
+        }
     }
 
     static markup() {
@@ -132,13 +148,5 @@ class FilterWidget {
     `;
     }
 }
-
-const listTemplate = ({id, name}) => `
-    <div id="list-${id}" class="js-list" data-property-group="${id}">
-      <p>${name}</p>
-      <ul class="list"></ul>
-    </div>
-    
-`;
 
 export default FilterWidget;
