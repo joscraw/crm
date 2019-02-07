@@ -121,14 +121,26 @@ class NumberFieldFilterForm {
                     </label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator3" value="HAS_PROPERTY">
+                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator3" value="LT" checked data-has-text-input="true">
                     <label class="form-check-label" for="operator3">
+                     <p>is less than</p>
+                    </label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator4" value="GT" data-has-text-input="true">
+                    <label class="form-check-label" for="operator4">
+                    <p>is greater than</p>
+                    </label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator5" value="HAS_PROPERTY">
+                    <label class="form-check-label" for="operator5">
                     <p>is known</p>
                     </label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator4" value="NOT_HAS_PROPERTY">
-                    <label class="form-check-label" for="operator4">
+                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator6" value="NOT_HAS_PROPERTY">
+                    <label class="form-check-label" for="operator6">
                     <p>is unknown</p>
                     </label>
                 </div>

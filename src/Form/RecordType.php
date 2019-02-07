@@ -9,6 +9,7 @@ use App\Entity\Record;
 use App\Form\DataTransformer\IdArrayToRecordArrayTransformer;
 use App\Form\DataTransformer\IdToRecordTransformer;
 use App\Form\DataTransformer\RecordDateTimeTransformer;
+use App\Form\DataTransformer\RecordNumberCurrencyTransformer;
 use App\Model\DatePickerField;
 use App\Model\FieldCatalog;
 use App\Repository\RecordRepository;
@@ -54,6 +55,11 @@ class RecordType extends AbstractType
     private $recordDateTimeTransformer;
 
     /**
+     * @var RecordNumberCurrencyTransformer
+     */
+    private $recordNumberCurrencyTranformer;
+
+    /**
      * @var RecordRepository
      */
     private $recordRepository;
@@ -63,20 +69,22 @@ class RecordType extends AbstractType
      * @param IdToRecordTransformer $transformer
      * @param IdArrayToRecordArrayTransformer $idArrayToRecordArrayTransformer
      * @param RecordDateTimeTransformer $recordDateTimeTransformer
+     * @param RecordNumberCurrencyTransformer $recordNumberCurrencyTranformer
      * @param RecordRepository $recordRepository
      */
     public function __construct(
         IdToRecordTransformer $transformer,
         IdArrayToRecordArrayTransformer $idArrayToRecordArrayTransformer,
         RecordDateTimeTransformer $recordDateTimeTransformer,
+        RecordNumberCurrencyTransformer $recordNumberCurrencyTranformer,
         RecordRepository $recordRepository
     ) {
         $this->transformer = $transformer;
         $this->idArrayToRecordArrayTransformer = $idArrayToRecordArrayTransformer;
         $this->recordDateTimeTransformer = $recordDateTimeTransformer;
+        $this->recordNumberCurrencyTranformer = $recordNumberCurrencyTranformer;
         $this->recordRepository = $recordRepository;
     }
-
 
     /**
      * @param FormBuilderInterface $builder
@@ -208,7 +216,14 @@ class RecordType extends AbstractType
                             'autocomplete' => 'off'
                         ]
                     ], $options);
+
                     $builder->add($property->getInternalName(), NumberType::class, $options);
+
+                    $field = $property->getField();
+                    if($field->isCurrency()) {
+                        $builder->get($property->getInternalName())
+                            ->addModelTransformer($this->recordNumberCurrencyTranformer);
+                    }
                     break;
                 case FieldCatalog::DATE_PICKER:
                     $options = array_merge([

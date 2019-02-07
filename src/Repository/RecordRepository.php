@@ -160,8 +160,8 @@ class RecordRepository extends ServiceEntityRepository
                         $resultStr[] = sprintf($jsonExtract, $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $property->getInternalName());
                     } elseif($field->isUnformattedNumber()) {
                         $jsonExtract = $this->getNumberIsUnformattedQuery();
+                        $resultStr[] = sprintf($jsonExtract, $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $property->getInternalName());
                     }
-                    $resultStr[] = sprintf($jsonExtract, $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $property->getInternalName());
                     break;
                 default:
                     $jsonExtract = $this->getDefaultQuery();
@@ -185,30 +185,85 @@ class RecordRepository extends ServiceEntityRepository
         // that new properties can be created after records are created we need to do an IF check cause WHERE/LIKE statements
         // don't work on keys/values (columns) that don't exist
         foreach($customFilters as $customFilter) {
-            switch($customFilter['operator']) {
-                case 'EQ':
 
-                    if(trim($customFilter['value']) === '') {
-                        $query .= sprintf(' and IF(properties->>\'$.%s\' IS NOT NULL, LOWER(properties->>\'$.%s\'), \'\') = \'\'', $customFilter['property'], $customFilter['property']);
-                    } else {
-                        $query .= sprintf(' and IF(properties->>\'$.%s\' IS NOT NULL, LOWER(properties->>\'$.%s\'), \'\') LIKE \'%%%s%%\'', $customFilter['property'], $customFilter['property'], strtolower($customFilter['value']));
+            switch($customFilter['fieldType']) {
+                case 'number_field':
+                    switch($customFilter['operator']) {
+                        case 'EQ':
+
+                            if(trim($customFilter['value']) === '') {
+                                $query .= sprintf(' and IF(properties->>\'$.%s\' IS NOT NULL, properties->>\'$.%s\', \'\') = \'\'', $customFilter['property'], $customFilter['property']);
+                            } else {
+                                $query .= sprintf(' and IF(properties->>\'$.%s\' IS NOT NULL, properties->>\'$.%s\', \'\') = \'%s\'', $customFilter['property'], $customFilter['property'], $customFilter['value']);
+                            }
+
+                            break;
+                        case 'NEQ':
+
+                            if(trim($customFilter['value']) === '') {
+                                $query .= sprintf(' and IF(properties->>\'$.%s\' IS NOT NULL, properties->>\'$.%s\', \'\') != \'\'', $customFilter['property'], $customFilter['property']);
+                            } else {
+                                $query .= sprintf(' and IF(properties->>\'$.%s\' IS NOT NULL, properties->>\'$.%s\', \'\') != \'%s\'', $customFilter['property'], $customFilter['property'], $customFilter['value']);
+                            }
+
+                            break;
+                        case 'LT':
+
+                            if(trim($customFilter['value']) === '') {
+                                $query .= sprintf(' and IF(properties->>\'$.%s\' IS NOT NULL, properties->>\'$.%s\', \'\') < \'\'', $customFilter['property'], $customFilter['property']);
+                            } else {
+                                $query .= sprintf(' and IF(properties->>\'$.%s\' IS NOT NULL, properties->>\'$.%s\', \'\') < \'%s\'', $customFilter['property'], $customFilter['property'], $customFilter['value']);
+                            }
+
+                            break;
+                        case 'GT':
+
+                            if(trim($customFilter['value']) === '') {
+                                $query .= sprintf(' and IF(properties->>\'$.%s\' IS NOT NULL, properties->>\'$.%s\', \'\') > \'\'', $customFilter['property'], $customFilter['property']);
+                            } else {
+                                $query .= sprintf(' and IF(properties->>\'$.%s\' IS NOT NULL, properties->>\'$.%s\', \'\') > \'%s\'', $customFilter['property'], $customFilter['property'], $customFilter['value']);
+                            }
+
+                            break;
+                        case 'HAS_PROPERTY':
+
+                            $query .= sprintf(' and (properties->>\'$.%s\') is not null', $customFilter['property']);
+
+                            break;
+                        case 'NOT_HAS_PROPERTY':
+
+                            $query .= sprintf(' and (properties->>\'$.%s\') is null', $customFilter['property']);
+
+                            break;
                     }
-
                     break;
-                case 'NEQ':
+                case 'single_line_text_field':
+                    switch($customFilter['operator']) {
+                        case 'EQ':
 
-                    if(trim($customFilter['value']) === '') {
-                        $query .= sprintf(' and IF(properties->>\'$.%s\' IS NOT NULL, LOWER(properties->>\'$.%s\'), \'\') != \'\'', $customFilter['property'], $customFilter['property']);
-                    } else {
-                        $query .= sprintf(' and IF(properties->>\'$.%s\' IS NOT NULL, LOWER(properties->>\'$.%s\'), \'\') NOT LIKE \'%%%s%%\'', $customFilter['property'], $customFilter['property'], strtolower($customFilter['value']));
+                            if(trim($customFilter['value']) === '') {
+                                $query .= sprintf(' and IF(properties->>\'$.%s\' IS NOT NULL, LOWER(properties->>\'$.%s\'), \'\') = \'\'', $customFilter['property'], $customFilter['property']);
+                            } else {
+                                $query .= sprintf(' and IF(properties->>\'$.%s\' IS NOT NULL, LOWER(properties->>\'$.%s\'), \'\') LIKE \'%%%s%%\'', $customFilter['property'], $customFilter['property'], strtolower($customFilter['value']));
+                            }
+
+                            break;
+                        case 'NEQ':
+
+                            if(trim($customFilter['value']) === '') {
+                                $query .= sprintf(' and IF(properties->>\'$.%s\' IS NOT NULL, LOWER(properties->>\'$.%s\'), \'\') != \'\'', $customFilter['property'], $customFilter['property']);
+                            } else {
+                                $query .= sprintf(' and IF(properties->>\'$.%s\' IS NOT NULL, LOWER(properties->>\'$.%s\'), \'\') NOT LIKE \'%%%s%%\'', $customFilter['property'], $customFilter['property'], strtolower($customFilter['value']));
+                            }
+
+                            break;
+                        case 'HAS_PROPERTY':
+                            $query .= sprintf(' and (properties->>\'$.%s\') is not null', $customFilter['property']);
+                            break;
+                        case 'NOT_HAS_PROPERTY':
+                            $query .= sprintf(' and (properties->>\'$.%s\') is null', $customFilter['property']);
+                            break;
                     }
-
-                    break;
-                case 'HAS_PROPERTY':
-                    $query .= sprintf(' and (properties->>\'$.%s\') is not null', $customFilter['property']);
-                    break;
-                case 'NOT_HAS_PROPERTY':
-                    $query .= sprintf(' and (properties->>\'$.%s\') is null', $customFilter['property']);
                     break;
             }
         }

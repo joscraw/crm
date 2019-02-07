@@ -123,6 +123,16 @@ class FilterNavigation {
                     this.$selectedProperties.selectize()[0].selectize.addOption({value:i, text: `${customFilter.label} doesn't contain exactly ${value}`});
                     this.$selectedProperties.selectize()[0].selectize.addItem(i);
                     break;
+                case 'LT':
+                    value = customFilter.value.trim() === '' ? '""' : `"${customFilter.value.trim()}"`;
+                    this.$selectedProperties.selectize()[0].selectize.addOption({value:i, text: `${customFilter.label} is less than ${value}`});
+                    this.$selectedProperties.selectize()[0].selectize.addItem(i);
+                    break;
+                case 'GT':
+                    value = customFilter.value.trim() === '' ? '""' : `"${customFilter.value.trim()}"`;
+                    this.$selectedProperties.selectize()[0].selectize.addOption({value:i, text: `${customFilter.label} is greater than ${value}`});
+                    this.$selectedProperties.selectize()[0].selectize.addItem(i);
+                    break;
                 case 'HAS_PROPERTY':
                     this.$selectedProperties.selectize()[0].selectize.addOption({value:i, text: `${customFilter.label} is known`});
                     this.$selectedProperties.selectize()[0].selectize.addItem(i);
