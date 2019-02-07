@@ -9,6 +9,7 @@ import SingleLineTextFieldFilterForm from "./SingleLineTextFieldFilterForm";
 import FilterList from "./FilterList";
 import FilterNavigation from "./FilterNavigation";
 import EditSingleLineTextFieldFilterForm from "./EditSingleLineTextFieldFilterForm";
+import NumberFieldFilterForm from "./NumberFieldFilterForm";
 
 class FilterWidget {
 
@@ -115,6 +116,9 @@ class FilterWidget {
         switch (property.fieldType) {
             case 'single_line_text_field':
                 new SingleLineTextFieldFilterForm($(FilterWidget._selectors.propertyForm), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, property);
+                break;
+            case 'number_field':
+                new NumberFieldFilterForm($(FilterWidget._selectors.propertyForm), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, property);
                 break;
 
         }
