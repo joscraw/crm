@@ -28,6 +28,12 @@ class FilterNavigation {
             this.handleAddFilterButtonClicked.bind(this)
         );
 
+        this.$wrapper.on(
+            'click',
+            FilterNavigation._selectors.allRecordsButton,
+            this.handleAllRecordsButtonClicked.bind(this)
+        );
+
         this.globalEventDispatcher.subscribe(
             Settings.Events.APPLY_CUSTOM_FILTER_BUTTON_PRESSED,
             this.applyCustomFilterButtonPressedHandler.bind(this)
@@ -42,7 +48,8 @@ class FilterNavigation {
     static get _selectors() {
         return {
             addFilterButton: '.js-add-filter-button',
-            propertyList: '.js-property-list'
+            propertyList: '.js-property-list',
+            allRecordsButton: '.js-all-records-button'
         }
     }
 
@@ -52,6 +59,7 @@ class FilterNavigation {
      */
     unbindEvents() {
         this.$wrapper.off('click', FilterNavigation._selectors.addFilterButton);
+        this.$wrapper.off('click', FilterNavigation._selectors.allRecordsButton);
     }
 
     applyCustomFilterButtonPressedHandler(customFilter) {
@@ -65,7 +73,19 @@ class FilterNavigation {
         this.globalEventDispatcher.publish(Settings.Events.CUSTOM_FILTER_ADDED, this.customFilters);
 
         this.activatePlugins();
+    }
 
+    handleAllRecordsButtonClicked(e) {
+
+        if(e.cancelable) {
+            e.preventDefault();
+        }
+
+        this.customFilters = [];
+
+        this.globalEventDispatcher.publish(Settings.Events.CUSTOM_FILTER_ADDED, this.customFilters);
+
+        this.activatePlugins();
     }
 
     activatePlugins() {
@@ -91,10 +111,24 @@ class FilterNavigation {
         for(let i = 0; i < this.customFilters.length; i++) {
             debugger;
             let customFilter = this.customFilters[i];
+            let value = "";
             switch(customFilter['operator']) {
                 case 'EQ':
-                    let value = customFilter.value.trim() === '' ? '""' : `"${customFilter.value.trim()}"`;
+                    value = customFilter.value.trim() === '' ? '""' : `"${customFilter.value.trim()}"`;
                     this.$selectedProperties.selectize()[0].selectize.addOption({value:i, text: `${customFilter.label} contains exactly ${value}`});
+                    this.$selectedProperties.selectize()[0].selectize.addItem(i);
+                    break;
+                case 'NEQ':
+                    value = customFilter.value.trim() === '' ? '""' : `"${customFilter.value.trim()}"`;
+                    this.$selectedProperties.selectize()[0].selectize.addOption({value:i, text: `${customFilter.label} doesn't contain exactly ${value}`});
+                    this.$selectedProperties.selectize()[0].selectize.addItem(i);
+                    break;
+                case 'HAS_PROPERTY':
+                    this.$selectedProperties.selectize()[0].selectize.addOption({value:i, text: `${customFilter.label} is known`});
+                    this.$selectedProperties.selectize()[0].selectize.addItem(i);
+                    break;
+                case 'NOT_HAS_PROPERTY':
+                    this.$selectedProperties.selectize()[0].selectize.addOption({value:i, text: `${customFilter.label} is unknown`});
                     this.$selectedProperties.selectize()[0].selectize.addItem(i);
                     break;
             }
@@ -144,12 +178,22 @@ class FilterNavigation {
 
     static markup() {
         return `
-    
+    <ul class="nav nav-pills flex-column">
+      <li class="nav-item">
+        <a class="nav-link active js-all-records-button" href="#">All Records</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link disabled" href="javascript:void(0)">All Records</a>
+      </li>
+      <li class="nav-item js-selectized-property-container">
         <div class="js-selectized-property-container">
             <input type="text" id="js-selected-properties">
         </div>
+      </li>
+      <li class="nav-item">
         <button type="button" class="btn btn-link js-add-filter-button"><i class="fa fa-plus"></i> Add Filter</button>
-
+      </li>
+    </ul>
     `;
     }
 }

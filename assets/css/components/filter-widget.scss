@@ -15,22 +15,12 @@
     outline: none;
   }
 
-  .selectize-input input {
-    box-shadow: none;
-    outline: none;
-  }
-
   .selectize-input .item {
     background-color: $color-blue-94 !important;
   }
 
-  .selectize-input.focus {
-    box-shadow: none;
-    outline: none;
-  }
-
-  *:focus {
-    outline: none;
+  .selectize-input .item:hover {
+    text-decoration: underline;
   }
 
   #js-selected-properties {
@@ -39,10 +29,13 @@
     pointer-events:none;
   }
 
-}
+  .nav-link.active {
+    font-weight: bold;
+  }
 
-.form-control:focus {
-  border-color: inherit;
-  -webkit-box-shadow: none;
-  box-shadow: none;
+  .nav-link.disabled {
+    cursor: auto;
+    pointer-events: auto;
+  }
+
 }
