@@ -70,6 +70,7 @@ class FilterWidget {
     filterFormBackToListButtonClickedHandler() {
         this.$wrapper.find(FilterWidget._selectors.propertyList).removeClass('d-none');
         this.$wrapper.find(FilterWidget._selectors.propertyForm).addClass('d-none');
+        this.$wrapper.find(FilterWidget._selectors.editPropertyForm).addClass('d-none');
     }
 
     applyCustomFilterButtonPressedHandler(customFilter) {

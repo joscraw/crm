@@ -162,20 +162,6 @@ class FilterNavigation {
         this.globalEventDispatcher.publish(Settings.Events.ADD_FILTER_BUTTON_CLICKED);
     }
 
-    renderEditFilterForm(property) {
-        debugger;
-
-        this.$wrapper.find('.js-property-list').addClass('d-none');
-        this.$wrapper.find('.js-search-container').addClass('d-none');
-
-        switch (property.fieldType) {
-            case 'single_line_text_field':
-                new SingleLineTextFieldFilterForm(this.$wrapper.find('.js-property-form'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, property);
-                break;
-
-        }
-    }
-
     static markup() {
         return `
     <ul class="nav nav-pills flex-column">
