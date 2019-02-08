@@ -399,6 +399,32 @@ class RecordRepository extends ServiceEntityRepository
                             $query .= sprintf(' and (properties->>\'$.%s\') is null', $customFilter['property']);
 
                             break;
+
+                    }
+                    break;
+                case 'dropdown_select_field':
+
+                    switch($customFilter['operator']) {
+                        case 'IN':
+
+                            if(trim($customFilter['value']) === '') {
+                                $query .= sprintf(' and IF(properties->>\'$.%s\' IS NOT NULL, LOWER(properties->>\'$.%s\'), null) = \'\'', $customFilter['property'], $customFilter['property']);
+                            } else {
+                                $values = explode(',', $customFilter['value']);
+
+                                $conditions = [];
+                                foreach($values as $value) {
+                                    $conditions[] = sprintf(' IF(properties->>\'$.%s\' IS NOT NULL, LOWER(properties->>\'$.%s\'), \'\') = \'%s\'', $customFilter['property'], $customFilter['property'], $value);
+                                }
+
+                                $query .= ' and' . implode(" OR ", $conditions);
+
+                                $name = "Josh";
+
+                            }
+
+                            break;
+
                     }
                     break;
             }
