@@ -8,7 +8,9 @@ use App\Entity\Property;
 use App\Entity\Record;
 use App\Form\DataTransformer\IdArrayToRecordArrayTransformer;
 use App\Form\DataTransformer\IdToRecordTransformer;
+use App\Form\DataTransformer\RecordCheckboxTransformer;
 use App\Form\DataTransformer\RecordDateTimeTransformer;
+use App\Form\DataTransformer\RecordGenericTransformer;
 use App\Form\DataTransformer\RecordNumberCurrencyTransformer;
 use App\Model\DatePickerField;
 use App\Model\FieldCatalog;
@@ -57,7 +59,17 @@ class RecordType extends AbstractType
     /**
      * @var RecordNumberCurrencyTransformer
      */
-    private $recordNumberCurrencyTranformer;
+    private $recordNumberCurrencyTransformer;
+
+    /**
+     * @var RecordGenericTransformer
+     */
+    private $recordGenericTransformer;
+
+    /**
+     * @var RecordCheckboxTransformer
+     */
+    private $recordCheckboxTranformer;
 
     /**
      * @var RecordRepository
@@ -69,22 +81,29 @@ class RecordType extends AbstractType
      * @param IdToRecordTransformer $transformer
      * @param IdArrayToRecordArrayTransformer $idArrayToRecordArrayTransformer
      * @param RecordDateTimeTransformer $recordDateTimeTransformer
-     * @param RecordNumberCurrencyTransformer $recordNumberCurrencyTranformer
+     * @param RecordNumberCurrencyTransformer $recordNumberCurrencyTransformer
+     * @param RecordGenericTransformer $recordGenericTransformer
+     * @param RecordCheckboxTransformer $recordCheckboxTranformer
      * @param RecordRepository $recordRepository
      */
     public function __construct(
         IdToRecordTransformer $transformer,
         IdArrayToRecordArrayTransformer $idArrayToRecordArrayTransformer,
         RecordDateTimeTransformer $recordDateTimeTransformer,
-        RecordNumberCurrencyTransformer $recordNumberCurrencyTranformer,
+        RecordNumberCurrencyTransformer $recordNumberCurrencyTransformer,
+        RecordGenericTransformer $recordGenericTransformer,
+        RecordCheckboxTransformer $recordCheckboxTranformer,
         RecordRepository $recordRepository
     ) {
         $this->transformer = $transformer;
         $this->idArrayToRecordArrayTransformer = $idArrayToRecordArrayTransformer;
         $this->recordDateTimeTransformer = $recordDateTimeTransformer;
-        $this->recordNumberCurrencyTranformer = $recordNumberCurrencyTranformer;
+        $this->recordNumberCurrencyTransformer = $recordNumberCurrencyTransformer;
+        $this->recordGenericTransformer = $recordGenericTransformer;
+        $this->recordCheckboxTranformer = $recordCheckboxTranformer;
         $this->recordRepository = $recordRepository;
     }
+
 
     /**
      * @param FormBuilderInterface $builder
@@ -120,6 +139,9 @@ class RecordType extends AbstractType
                         ]
                     ], $options);
                     $builder->add($property->getInternalName(), TextType::class, $options);
+                    $builder->get($property->getInternalName())
+                        ->addModelTransformer($this->recordGenericTransformer);
+
                     break;
                 case FieldCatalog::MULTI_LINE_TEXT:
                     $options = array_merge([
@@ -131,6 +153,8 @@ class RecordType extends AbstractType
                         ]
                     ], $options);
                     $builder->add($property->getInternalName(), TextareaType::class, $options);
+                    $builder->get($property->getInternalName())
+                        ->addModelTransformer($this->recordGenericTransformer);
                     break;
                 case FieldCatalog::DROPDOWN_SELECT:
                     $choices = $property->getField()->getOptionsForChoiceTypeField();
@@ -147,6 +171,8 @@ class RecordType extends AbstractType
                         ]
                     ], $options);
                     $builder->add($property->getInternalName(), ChoiceType::class, $options);
+                    $builder->get($property->getInternalName())
+                        ->addModelTransformer($this->recordGenericTransformer);
                     break;
                 case FieldCatalog::SINGLE_CHECKBOX:
 
@@ -174,6 +200,8 @@ class RecordType extends AbstractType
                         ]
                     ], $options);
                     $builder->add($property->getInternalName(), ChoiceType::class, $options);
+                    $builder->get($property->getInternalName())
+                        ->addModelTransformer($this->recordCheckboxTranformer);
                     break;
                 case FieldCatalog::MULTIPLE_CHECKBOX:
                     $choices = $property->getField()->getOptionsForChoiceTypeField();
@@ -206,6 +234,8 @@ class RecordType extends AbstractType
                         ]
                     ], $options);
                     $builder->add($property->getInternalName(), ChoiceType::class, $options);
+                    $builder->get($property->getInternalName())
+                        ->addModelTransformer($this->recordGenericTransformer);
                     break;
                 case FieldCatalog::NUMBER:
                     $options = array_merge([
@@ -222,7 +252,7 @@ class RecordType extends AbstractType
                     $field = $property->getField();
                     if($field->isCurrency()) {
                         $builder->get($property->getInternalName())
-                            ->addModelTransformer($this->recordNumberCurrencyTranformer);
+                            ->addModelTransformer($this->recordNumberCurrencyTransformer);
                     }
                     break;
                 case FieldCatalog::DATE_PICKER:

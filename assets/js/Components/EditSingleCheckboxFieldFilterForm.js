@@ -4,7 +4,7 @@ import Settings from '../Settings';
 import RecordFormModal from './RecordFormModal';
 import $ from "jquery";
 
-class EditSingleLineTextFieldFilterForm {
+class EditSingleCheckboxFieldFilterForm {
 
     constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, customFilter) {
         debugger;
@@ -18,23 +18,24 @@ class EditSingleLineTextFieldFilterForm {
 
         this.$wrapper.on(
             'click',
-            EditSingleLineTextFieldFilterForm._selectors.radioButton,
+            EditSingleCheckboxFieldFilterForm._selectors.radioButton,
             this.handleOperatorRadioButtonClicked.bind(this)
         );
 
         this.$wrapper.on(
             'submit',
-            EditSingleLineTextFieldFilterForm._selectors.applyFilterForm,
+            EditSingleCheckboxFieldFilterForm._selectors.applyFilterForm,
             this.handleNewFilterFormSubmit.bind(this)
         );
 
         this.$wrapper.on(
             'click',
-            EditSingleLineTextFieldFilterForm._selectors.backToListButton,
+            EditSingleCheckboxFieldFilterForm._selectors.backToListButton,
             this.handleBackButtonClicked.bind(this)
         );
 
         this.render();
+       /* this.$wrapper.find('.js-radio-button').first().click();*/
     }
 
     /**
@@ -48,6 +49,19 @@ class EditSingleLineTextFieldFilterForm {
         }
     }
 
+    activatePlugins() {
+        this.s = this.$wrapper.find('.js-selectize-multiple-select').selectize({
+            plugins: ['remove_button'],
+            valueField: 'value',
+            labelField: 'name',
+            searchField: ['name'],
+            options: [
+                {value: 0, name: 'No'},
+                {value: 1, name: 'Yes'}
+            ],
+        });
+    }
+
     /**
      * Because this component can keep getting run each time a filter is added
      * you need to remove the handlers otherwise they will keep stacking up
@@ -55,7 +69,7 @@ class EditSingleLineTextFieldFilterForm {
     unbindEvents() {
         this.$wrapper.off('submit', '#js-apply-filter-form');
         this.$wrapper.off('click', '.js-radio-button');
-        this.$wrapper.off('click', EditSingleLineTextFieldFilterForm._selectors.backToListButton);
+        this.$wrapper.off('click', EditSingleCheckboxFieldFilterForm._selectors.backToListButton);
     }
 
     handleBackButtonClicked() {
@@ -63,23 +77,31 @@ class EditSingleLineTextFieldFilterForm {
     }
 
     render() {
-        this.$wrapper.html(EditSingleLineTextFieldFilterForm.markup(this));
+        debugger;
+        this.$wrapper.html(EditSingleCheckboxFieldFilterForm.markup(this));
         this.setRadioOption();
     }
 
     setRadioOption() {
+
+        debugger;
         this.$wrapper.find('.js-radio-button').each((index, element) => {
+
             let value = $(element).val();
             let $radioButton = $(element);
             if(this.customFilter.operator === value) {
-                $(element).click();
-                if($radioButton.attr('data-has-text-input')) {
-                    this.$wrapper.find('.js-operator-value input[type="text"]').val(this.customFilter.value);
-                }
-            }
 
+                this.activatePlugins();
+
+                $(element).click();
+
+                let values = this.customFilter.value.split(",");
+                this.s.selectize()[0].selectize.setValue(values);
+            }
         });
     }
+
+
 
     handleNewFilterFormSubmit(e) {
 
@@ -101,6 +123,7 @@ class EditSingleLineTextFieldFilterForm {
 
     handleOperatorRadioButtonClicked(e) {
 
+        debugger;
         this.$wrapper.find('.js-operator-value').remove();
 
         let $radioButton = $(e.currentTarget);
@@ -109,6 +132,8 @@ class EditSingleLineTextFieldFilterForm {
             const $textField = $($.parseHTML(html));
             $radioButton.closest('div').after($textField);
         }
+
+        this.activatePlugins();
     }
 
     static markup({customFilter}) {
@@ -123,15 +148,15 @@ class EditSingleLineTextFieldFilterForm {
             <input type="hidden" name="id" value="${customFilter.id}">
             <div style="height: 200px; overflow-y: auto">
                 <div class="form-check">
-                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator1" value="EQ" checked data-has-text-input="true">
+                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator1" value="IN" checked data-has-text-input="true">
                     <label class="form-check-label" for="operator1">
-                     <p>contains exactly</p>
+                     <p>is any of</p>
                     </label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator2" value="NEQ" data-has-text-input="true">
+                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator2" value="NOT_IN" data-has-text-input="true">
                     <label class="form-check-label" for="operator2">
-                    <p>doesn't contain exactly</p>
+                    <p>is none of</p>
                     </label>
                 </div>
                 <div class="form-check">
@@ -156,9 +181,9 @@ class EditSingleLineTextFieldFilterForm {
 
 const textFieldTemplate = () => `
   <div class="form-group js-operator-value">
-    <input type="text" name="value" class="form-control" autocomplete="off">
+    <input type="text" name="value" class="form-control js-selectize-multiple-select">
   </div>
     
 `;
 
-export default EditSingleLineTextFieldFilterForm;
+export default EditSingleCheckboxFieldFilterForm;

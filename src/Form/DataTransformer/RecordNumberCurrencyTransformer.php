@@ -51,7 +51,7 @@ class RecordNumberCurrencyTransformer implements DataTransformerInterface
     public function reverseTransform($number)
     {
         if (empty($number)) {
-            return;
+            return '';
         }
 
         $formattedNumber = number_format((float)$number, 2, '.', '');

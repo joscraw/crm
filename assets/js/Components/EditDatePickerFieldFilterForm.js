@@ -4,7 +4,12 @@ import Settings from '../Settings';
 import RecordFormModal from './RecordFormModal';
 import $ from "jquery";
 
-class EditSingleLineTextFieldFilterForm {
+require('jquery-ui-dist/jquery-ui');
+require('jquery-ui-dist/jquery-ui.css');
+require('bootstrap-datepicker');
+require('bootstrap-datepicker/dist/css/bootstrap-datepicker.css');
+
+class EditDatePickerFieldFilterForm {
 
     constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, customFilter) {
         debugger;
@@ -18,23 +23,24 @@ class EditSingleLineTextFieldFilterForm {
 
         this.$wrapper.on(
             'click',
-            EditSingleLineTextFieldFilterForm._selectors.radioButton,
+            EditDatePickerFieldFilterForm._selectors.radioButton,
             this.handleOperatorRadioButtonClicked.bind(this)
         );
 
         this.$wrapper.on(
             'submit',
-            EditSingleLineTextFieldFilterForm._selectors.applyFilterForm,
+            EditDatePickerFieldFilterForm._selectors.applyFilterForm,
             this.handleNewFilterFormSubmit.bind(this)
         );
 
         this.$wrapper.on(
             'click',
-            EditSingleLineTextFieldFilterForm._selectors.backToListButton,
+            EditDatePickerFieldFilterForm._selectors.backToListButton,
             this.handleBackButtonClicked.bind(this)
         );
 
         this.render();
+        this.activatePlugins();
     }
 
     /**
@@ -48,6 +54,12 @@ class EditSingleLineTextFieldFilterForm {
         }
     }
 
+    activatePlugins() {
+        $('.js-datepicker').datepicker({
+            format: 'mm-dd-yyyy'
+        });
+    }
+
     /**
      * Because this component can keep getting run each time a filter is added
      * you need to remove the handlers otherwise they will keep stacking up
@@ -55,7 +67,7 @@ class EditSingleLineTextFieldFilterForm {
     unbindEvents() {
         this.$wrapper.off('submit', '#js-apply-filter-form');
         this.$wrapper.off('click', '.js-radio-button');
-        this.$wrapper.off('click', EditSingleLineTextFieldFilterForm._selectors.backToListButton);
+        this.$wrapper.off('click', EditDatePickerFieldFilterForm._selectors.backToListButton);
     }
 
     handleBackButtonClicked() {
@@ -63,21 +75,29 @@ class EditSingleLineTextFieldFilterForm {
     }
 
     render() {
-        this.$wrapper.html(EditSingleLineTextFieldFilterForm.markup(this));
+        this.$wrapper.html(EditDatePickerFieldFilterForm.markup(this));
         this.setRadioOption();
+        /*this.$wrapper.find('.js-radio-button').first().click();*/
     }
 
     setRadioOption() {
+        debugger;
         this.$wrapper.find('.js-radio-button').each((index, element) => {
+            debugger;
             let value = $(element).val();
             let $radioButton = $(element);
             if(this.customFilter.operator === value) {
                 $(element).click();
                 if($radioButton.attr('data-has-text-input')) {
-                    this.$wrapper.find('.js-operator-value input[type="text"]').val(this.customFilter.value);
+                    this.$wrapper.find('.js-operator-value input[type="text"]').datepicker('setDate', new Date(this.customFilter.value));
+                    this.$wrapper.find('.js-operator-value input[type="text"]').datepicker('update');
+                } else if($radioButton.attr('data-has-number-in-between-input')) {
+                    this.$wrapper.find('.js-operator-value input[name="low_value"]').datepicker('setDate', new Date(this.customFilter.low_value));
+                    this.$wrapper.find('.js-operator-value input[name="high_value"]').datepicker('setDate', new Date(this.customFilter.high_value));
+                    this.$wrapper.find('.js-operator-value input[name="low_value"]').datepicker('update');
+                    this.$wrapper.find('.js-operator-value input[name="high_value"]').datepicker('update');
                 }
             }
-
         });
     }
 
@@ -101,6 +121,7 @@ class EditSingleLineTextFieldFilterForm {
 
     handleOperatorRadioButtonClicked(e) {
 
+        debugger;
         this.$wrapper.find('.js-operator-value').remove();
 
         let $radioButton = $(e.currentTarget);
@@ -108,7 +129,13 @@ class EditSingleLineTextFieldFilterForm {
             const html = textFieldTemplate();
             const $textField = $($.parseHTML(html));
             $radioButton.closest('div').after($textField);
+        } else if($radioButton.attr('data-has-number-in-between-input')) {
+            const html = dateInBetweenTemplate();
+            const $textField = $($.parseHTML(html));
+            $radioButton.closest('div').after($textField);
         }
+
+        this.activatePlugins();
     }
 
     static markup({customFilter}) {
@@ -117,7 +144,7 @@ class EditSingleLineTextFieldFilterForm {
         <button type="button" class="btn btn-link js-back-to-list-button"><i class="fa fa-chevron-left"></i> Back</button>
         <p><small>${customFilter.label}*</small></p>
         <form name="filter" id="js-apply-filter-form" novalidate="novalidate">
-            <input type="hidden" name="property" value="${customFilter.property}">
+            <input type="hidden" name="property" value="${customFilter.propertye}">
             <input type="hidden" name="fieldType" value="${customFilter.fieldType}">
             <input type="hidden" name="label" value="${customFilter.label}">
             <input type="hidden" name="id" value="${customFilter.id}">
@@ -125,24 +152,42 @@ class EditSingleLineTextFieldFilterForm {
                 <div class="form-check">
                     <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator1" value="EQ" checked data-has-text-input="true">
                     <label class="form-check-label" for="operator1">
-                     <p>contains exactly</p>
+                     <p>is equal to</p>
                     </label>
                 </div>
                 <div class="form-check">
                     <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator2" value="NEQ" data-has-text-input="true">
                     <label class="form-check-label" for="operator2">
-                    <p>doesn't contain exactly</p>
+                    <p>is not equal to</p>
                     </label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator3" value="HAS_PROPERTY">
+                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator3" value="LT" checked data-has-text-input="true">
                     <label class="form-check-label" for="operator3">
+                     <p>is before</p>
+                    </label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator4" value="GT" data-has-text-input="true">
+                    <label class="form-check-label" for="operator4">
+                    <p>is after</p>
+                    </label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator5" value="BETWEEN" data-has-number-in-between-input="true">
+                    <label class="form-check-label" for="operator5">
+                    <p>is between</p>
+                    </label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator6" value="HAS_PROPERTY">
+                    <label class="form-check-label" for="operator6">
                     <p>is known</p>
                     </label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator4" value="NOT_HAS_PROPERTY">
-                    <label class="form-check-label" for="operator4">
+                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator7" value="NOT_HAS_PROPERTY">
+                    <label class="form-check-label" for="operator7">
                     <p>is unknown</p>
                     </label>
                 </div>
@@ -156,9 +201,19 @@ class EditSingleLineTextFieldFilterForm {
 
 const textFieldTemplate = () => `
   <div class="form-group js-operator-value">
-    <input type="text" name="value" class="form-control" autocomplete="off">
+    <input type="text" name="value" class="form-control js-datepicker" autocomplete="off">
   </div>
     
 `;
 
-export default EditSingleLineTextFieldFilterForm;
+const dateInBetweenTemplate = () => `
+  <div class="form-group js-operator-value">
+    <input type="text" name="low_value" class="form-control js-datepicker" autocomplete="off">
+  </div>
+  <span>and</span>
+  <div class="form-group js-operator-value">
+    <input type="text" name="high_value" class="form-control js-datepicker" autocomplete="off">
+  </div>
+`;
+
+export default EditDatePickerFieldFilterForm;

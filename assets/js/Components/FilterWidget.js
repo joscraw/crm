@@ -10,6 +10,11 @@ import FilterList from "./FilterList";
 import FilterNavigation from "./FilterNavigation";
 import EditSingleLineTextFieldFilterForm from "./EditSingleLineTextFieldFilterForm";
 import NumberFieldFilterForm from "./NumberFieldFilterForm";
+import EditNumberFieldFilterForm from "./EditNumberFieldFilterForm";
+import DatePickerFieldFilterForm from "./DatePickerFieldFilterForm";
+import SingleCheckboxFieldFilterForm from "./SingleCheckboxFieldFilterForm";
+import EditDatePickerFieldFilterForm from "./EditDatePickerFieldFilterForm";
+import EditSingleCheckboxFieldFilterForm from "./EditSingleCheckboxFieldFilterForm";
 
 class FilterWidget {
 
@@ -120,7 +125,12 @@ class FilterWidget {
             case 'number_field':
                 new NumberFieldFilterForm($(FilterWidget._selectors.propertyForm), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, property);
                 break;
-
+            case 'date_picker_field':
+                new DatePickerFieldFilterForm($(FilterWidget._selectors.propertyForm), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, property);
+                break;
+            case 'single_checkbox_field':
+                new SingleCheckboxFieldFilterForm($(FilterWidget._selectors.propertyForm), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, property);
+                break;
         }
 
     }
@@ -136,7 +146,15 @@ class FilterWidget {
             case 'single_line_text_field':
                 new EditSingleLineTextFieldFilterForm($(FilterWidget._selectors.editPropertyForm), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, customFilter);
                 break;
-
+            case 'number_field':
+                new EditNumberFieldFilterForm($(FilterWidget._selectors.editPropertyForm), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, customFilter);
+                break;
+            case 'date_picker_field':
+                new EditDatePickerFieldFilterForm($(FilterWidget._selectors.editPropertyForm), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, customFilter);
+                break;
+            case 'single_checkbox_field':
+                new EditSingleCheckboxFieldFilterForm($(FilterWidget._selectors.editPropertyForm), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, customFilter);
+                break;
         }
     }
 

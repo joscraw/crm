@@ -4,7 +4,7 @@ import Settings from '../Settings';
 import RecordFormModal from './RecordFormModal';
 import $ from "jquery";
 
-class EditSingleLineTextFieldFilterForm {
+class EditNumberFieldFilterForm {
 
     constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, customFilter) {
         debugger;
@@ -18,19 +18,19 @@ class EditSingleLineTextFieldFilterForm {
 
         this.$wrapper.on(
             'click',
-            EditSingleLineTextFieldFilterForm._selectors.radioButton,
+            EditNumberFieldFilterForm._selectors.radioButton,
             this.handleOperatorRadioButtonClicked.bind(this)
         );
 
         this.$wrapper.on(
             'submit',
-            EditSingleLineTextFieldFilterForm._selectors.applyFilterForm,
+            EditNumberFieldFilterForm._selectors.applyFilterForm,
             this.handleNewFilterFormSubmit.bind(this)
         );
 
         this.$wrapper.on(
             'click',
-            EditSingleLineTextFieldFilterForm._selectors.backToListButton,
+            EditNumberFieldFilterForm._selectors.backToListButton,
             this.handleBackButtonClicked.bind(this)
         );
 
@@ -55,7 +55,7 @@ class EditSingleLineTextFieldFilterForm {
     unbindEvents() {
         this.$wrapper.off('submit', '#js-apply-filter-form');
         this.$wrapper.off('click', '.js-radio-button');
-        this.$wrapper.off('click', EditSingleLineTextFieldFilterForm._selectors.backToListButton);
+        this.$wrapper.off('click', EditNumberFieldFilterForm._selectors.backToListButton);
     }
 
     handleBackButtonClicked() {
@@ -63,11 +63,12 @@ class EditSingleLineTextFieldFilterForm {
     }
 
     render() {
-        this.$wrapper.html(EditSingleLineTextFieldFilterForm.markup(this));
+        this.$wrapper.html(EditNumberFieldFilterForm.markup(this));
         this.setRadioOption();
     }
 
     setRadioOption() {
+        debugger;
         this.$wrapper.find('.js-radio-button').each((index, element) => {
             let value = $(element).val();
             let $radioButton = $(element);
@@ -75,9 +76,11 @@ class EditSingleLineTextFieldFilterForm {
                 $(element).click();
                 if($radioButton.attr('data-has-text-input')) {
                     this.$wrapper.find('.js-operator-value input[type="text"]').val(this.customFilter.value);
+                } else if($radioButton.attr('data-has-number-in-between-input')) {
+                    this.$wrapper.find('.js-operator-value input[name="low_value"]').val(this.customFilter.low_value);
+                    this.$wrapper.find('.js-operator-value input[name="high_value"]').val(this.customFilter.high_value);
                 }
             }
-
         });
     }
 
@@ -108,6 +111,10 @@ class EditSingleLineTextFieldFilterForm {
             const html = textFieldTemplate();
             const $textField = $($.parseHTML(html));
             $radioButton.closest('div').after($textField);
+        } else if($radioButton.attr('data-has-number-in-between-input')) {
+            const html = numberInBetweenTemplate();
+            const $textField = $($.parseHTML(html));
+            $radioButton.closest('div').after($textField);
         }
     }
 
@@ -121,28 +128,48 @@ class EditSingleLineTextFieldFilterForm {
             <input type="hidden" name="fieldType" value="${customFilter.fieldType}">
             <input type="hidden" name="label" value="${customFilter.label}">
             <input type="hidden" name="id" value="${customFilter.id}">
+            <input type="hidden" name="numberType" value="${customFilter.field.type}">
+            
             <div style="height: 200px; overflow-y: auto">
                 <div class="form-check">
                     <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator1" value="EQ" checked data-has-text-input="true">
                     <label class="form-check-label" for="operator1">
-                     <p>contains exactly</p>
+                     <p>is equal to</p>
                     </label>
                 </div>
                 <div class="form-check">
                     <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator2" value="NEQ" data-has-text-input="true">
                     <label class="form-check-label" for="operator2">
-                    <p>doesn't contain exactly</p>
+                    <p>is not equal to</p>
                     </label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator3" value="HAS_PROPERTY">
+                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator3" value="LT" checked data-has-text-input="true">
                     <label class="form-check-label" for="operator3">
+                     <p>is less than</p>
+                    </label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator4" value="GT" data-has-text-input="true">
+                    <label class="form-check-label" for="operator4">
+                    <p>is greater than</p>
+                    </label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator5" value="BETWEEN" data-has-number-in-between-input="true">
+                    <label class="form-check-label" for="operator5">
+                    <p>is between</p>
+                    </label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator6" value="HAS_PROPERTY">
+                    <label class="form-check-label" for="operator6">
                     <p>is known</p>
                     </label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator4" value="NOT_HAS_PROPERTY">
-                    <label class="form-check-label" for="operator4">
+                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator7" value="NOT_HAS_PROPERTY">
+                    <label class="form-check-label" for="operator7">
                     <p>is unknown</p>
                     </label>
                 </div>
@@ -161,4 +188,14 @@ const textFieldTemplate = () => `
     
 `;
 
-export default EditSingleLineTextFieldFilterForm;
+const numberInBetweenTemplate = () => `
+  <div class="form-group js-operator-value">
+    <input type="text" name="low_value" class="form-control" autocomplete="off">
+  </div>
+  <span>and</span>
+  <div class="form-group js-operator-value">
+    <input type="text" name="high_value" class="form-control" autocomplete="off">
+  </div>
+`;
+
+export default EditNumberFieldFilterForm;

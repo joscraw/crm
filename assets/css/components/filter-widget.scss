@@ -2,7 +2,8 @@
 // This file contains all styles related to the filter widget component.
 // -----------------------------------------------------------------------------
 
-.c-filter-widget {
+
+.c-filter-widget__selected-filters {
 
   .selectize-dropdown {
     display: none !important;
@@ -29,6 +30,10 @@
     pointer-events:none;
   }
 
+}
+
+.c-filter-widget {
+
   .nav-link.active {
     font-weight: bold;
   }
@@ -38,4 +43,23 @@
     pointer-events: auto;
   }
 
+}
+
+.c-filter-widget__list {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+.c-filter-widget__name {
+  font-weight: bold;
+}
+
+.c-filter-widget__list-item:hover {
+  background-color: $color-blue-94;
+}
+
+.c-filter-widget__list-item {
+  cursor: pointer;
+  padding: 10px 10px 10px 10px;
 }

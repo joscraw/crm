@@ -33,8 +33,6 @@ class RecordForm {
         );
 
         this.loadForm().then(()=> {this.activatePlugins();});
-
-        /*this.activatePlugins();*/
     }
 
     /**

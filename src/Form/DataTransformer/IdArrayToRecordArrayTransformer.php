@@ -37,14 +37,6 @@ class IdArrayToRecordArrayTransformer implements DataTransformerInterface
             return [];
         }
 
-        /*if(!$properties) {
-            return;
-        }*/
-
-        if(!$records) {
-            return [];
-        }
-
         $records = $this->getArrayValuesRecursive($records);
 
         $records = array_map('strval', $records);
@@ -54,14 +46,14 @@ class IdArrayToRecordArrayTransformer implements DataTransformerInterface
 
     /**
      * Transforms an id (record) to an object (issue).
-     * @param $record
+     * @param $records
      * @return array|ArrayCollection
      */
     public function reverseTransform($records)
     {
         // no issue number? It's optional, so that's ok
         if (empty($records)) {
-            return;
+            return [];
         }
 
         return $records;

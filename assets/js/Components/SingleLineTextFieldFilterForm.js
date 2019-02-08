@@ -101,7 +101,7 @@ class SingleLineTextFieldFilterForm {
 
         return `
         <button type="button" class="btn btn-link js-back-to-list-button"><i class="fa fa-chevron-left"></i> Back</button>
-        <p><small>${property.label}</small></p>
+        <p><small>${property.label}*</small></p>
         <form name="filter" id="js-apply-filter-form" novalidate="novalidate">
             <input type="hidden" name="property" value="${property.internalName}">
             <input type="hidden" name="fieldType" value="${property.fieldType}">

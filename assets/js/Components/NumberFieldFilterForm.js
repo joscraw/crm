@@ -76,9 +76,12 @@ class NumberFieldFilterForm {
         const $form = $(e.currentTarget);
         const formData = {};
 
+        debugger;
         for (let fieldData of $form.serializeArray()) {
             formData[fieldData.name] = fieldData.value
         }
+
+        debugger;
 
         this.globalEventDispatcher.publish(Settings.Events.APPLY_CUSTOM_FILTER_BUTTON_PRESSED, formData);
         console.log(`Event Dispatched: ${Settings.Events.APPLY_CUSTOM_FILTER_BUTTON_PRESSED}`);
@@ -94,6 +97,10 @@ class NumberFieldFilterForm {
             const html = textFieldTemplate();
             const $textField = $($.parseHTML(html));
             $radioButton.closest('div').after($textField);
+        } else if($radioButton.attr('data-has-number-in-between-input')) {
+            const html = numberInBetweenTemplate();
+            const $textField = $($.parseHTML(html));
+            $radioButton.closest('div').after($textField);
         }
     }
 
@@ -101,12 +108,14 @@ class NumberFieldFilterForm {
 
         return `
         <button type="button" class="btn btn-link js-back-to-list-button"><i class="fa fa-chevron-left"></i> Back</button>
-        <p><small>${property.label}</small></p>
+        <p><small>${property.label}*</small></p>
         <form name="filter" id="js-apply-filter-form" novalidate="novalidate">
             <input type="hidden" name="property" value="${property.internalName}">
             <input type="hidden" name="fieldType" value="${property.fieldType}">
             <input type="hidden" name="label" value="${property.label}">
             <input type="hidden" name="id" value="${property.id}">
+            <input type="hidden" name="numberType" value="${property.field.type}">
+            
             <div style="height: 200px; overflow-y: auto">
                 <div class="form-check">
                     <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator1" value="EQ" checked data-has-text-input="true">
@@ -133,14 +142,20 @@ class NumberFieldFilterForm {
                     </label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator5" value="HAS_PROPERTY">
+                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator5" value="BETWEEN" data-has-number-in-between-input="true">
                     <label class="form-check-label" for="operator5">
+                    <p>is between</p>
+                    </label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator6" value="HAS_PROPERTY">
+                    <label class="form-check-label" for="operator6">
                     <p>is known</p>
                     </label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator6" value="NOT_HAS_PROPERTY">
-                    <label class="form-check-label" for="operator6">
+                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator7" value="NOT_HAS_PROPERTY">
+                    <label class="form-check-label" for="operator7">
                     <p>is unknown</p>
                     </label>
                 </div>
@@ -157,6 +172,16 @@ const textFieldTemplate = () => `
     <input type="text" name="value" class="form-control" autocomplete="off">
   </div>
     
+`;
+
+const numberInBetweenTemplate = () => `
+  <div class="form-group js-operator-value">
+    <input type="text" name="low_value" class="form-control" autocomplete="off">
+  </div>
+  <span>and</span>
+  <div class="form-group js-operator-value">
+    <input type="text" name="high_value" class="form-control" autocomplete="off">
+  </div>
 `;
 
 export default NumberFieldFilterForm;

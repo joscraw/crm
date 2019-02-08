@@ -47,12 +47,12 @@ class RecordDateTimeTransformer implements DataTransformerInterface
     /**
      * Transforms an id (record) to an object (issue).
      * @param $date
-     * @return Record
+     * @return string
      */
     public function reverseTransform($date)
     {
         if (empty($date) || !($date instanceof \DateTime)) {
-            return;
+            return '';
         }
 
         return $date->format(DatePickerField::$storedFormat);

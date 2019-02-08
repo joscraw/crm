@@ -131,6 +131,7 @@ class FilterList {
 
     _addList(propertyGroup, properties) {
 
+        debugger;
         const html = listTemplate(propertyGroup);
         const $list = $($.parseHTML(html));
         this.$wrapper.find('.js-filter-list').append($list);
@@ -139,7 +140,7 @@ class FilterList {
         let options = {
             valueNames: [ 'label' ],
             // Since there are no elements in the list, this will be used as template.
-            item: `<li class="js-property-list-item"><p class="label"></p></li>`
+            item: `<li class="js-property-list-item c-filter-widget__list-item"><span class="label"></span></li>`
         };
 
         this.lists.push(new List(`list-${propertyGroup.id}`, options, properties));
@@ -210,8 +211,8 @@ class FilterList {
 
 const listTemplate = ({id, name}) => `
     <div id="list-${id}" class="js-list" data-property-group="${id}">
-      <p>${name}</p>
-      <ul class="list"></ul>
+      <p class="c-filter-widget__name">${name}</p>
+      <ul class="list c-filter-widget__list"></ul>
     </div>
     
 `;

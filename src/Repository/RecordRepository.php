@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\CustomObject;
 use App\Entity\Record;
 use App\Model\FieldCatalog;
+use App\Model\NumberField;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
@@ -210,6 +211,7 @@ class RecordRepository extends ServiceEntityRepository
                         case 'LT':
 
                             if(trim($customFilter['value']) === '') {
+                                // TODO revisit this one. how do you compare less than to an empty string? What should we do? Right now this is just returning 0 results
                                 $query .= sprintf(' and IF(properties->>\'$.%s\' IS NOT NULL, properties->>\'$.%s\', \'\') < \'\'', $customFilter['property'], $customFilter['property']);
                             } else {
                                 $query .= sprintf(' and IF(properties->>\'$.%s\' IS NOT NULL, properties->>\'$.%s\', \'\') < \'%s\'', $customFilter['property'], $customFilter['property'], $customFilter['value']);
@@ -219,9 +221,28 @@ class RecordRepository extends ServiceEntityRepository
                         case 'GT':
 
                             if(trim($customFilter['value']) === '') {
+                                // TODO revisit this one. how do you compare greater than to an empty string? What should we do? Right now this is just returning 0 results
                                 $query .= sprintf(' and IF(properties->>\'$.%s\' IS NOT NULL, properties->>\'$.%s\', \'\') > \'\'', $customFilter['property'], $customFilter['property']);
                             } else {
                                 $query .= sprintf(' and IF(properties->>\'$.%s\' IS NOT NULL, properties->>\'$.%s\', \'\') > \'%s\'', $customFilter['property'], $customFilter['property'], $customFilter['value']);
+                            }
+
+                            break;
+                        case 'BETWEEN':
+
+                            if($customFilter['numberType'] === NumberField::$types['Currency']) {
+                                $lowValue = number_format((float)$customFilter['low_value'], 2, '.', '');
+                                $highValue = number_format((float)$customFilter['high_value'], 2, '.', '');
+                            } else {
+                                $lowValue = $customFilter['low_value'];
+                                $highValue = $customFilter['high_value'];
+                            }
+
+                            if(trim($customFilter['low_value']) === '' || trim($customFilter['high_value']) === '') {
+                                // TODO revisit this one. IF the low value or high value is empty, what should we do? Right now this is just returning 0 results
+                                $query .= sprintf(' and IF(properties->>\'$.%s\' IS NOT NULL, properties->>\'$.%s\', \'\') BETWEEN \'%s\' AND \'%s\'', $customFilter['property'], $customFilter['property'], '', '');
+                            } else {
+                                $query .= sprintf(' and IF(properties->>\'$.%s\' IS NOT NULL, properties->>\'$.%s\', \'\') BETWEEN \'%s\' AND \'%s\'', $customFilter['property'], $customFilter['property'], $lowValue, $highValue);
                             }
 
                             break;
@@ -258,10 +279,125 @@ class RecordRepository extends ServiceEntityRepository
 
                             break;
                         case 'HAS_PROPERTY':
+
                             $query .= sprintf(' and (properties->>\'$.%s\') is not null', $customFilter['property']);
+
                             break;
                         case 'NOT_HAS_PROPERTY':
+
                             $query .= sprintf(' and (properties->>\'$.%s\') is null', $customFilter['property']);
+
+                            break;
+                    }
+                    break;
+                case 'date_picker_field':
+                    switch($customFilter['operator']) {
+                        case 'EQ':
+
+                            if(trim($customFilter['value']) === '') {
+                                $query .= sprintf(' and IF(properties->>\'$.%s\' IS NOT NULL, LOWER(properties->>\'$.%s\'), null) = \'\'', $customFilter['property'], $customFilter['property']);
+                            } else {
+                                $query .= sprintf(' and IF(DATE_FORMAT( CAST( JSON_UNQUOTE( properties->>\'$.%s\' ) as DATETIME ), \'%%m-%%d-%%Y\' ), DATE_FORMAT( CAST( JSON_UNQUOTE( properties->>\'$.%s\' ) as DATETIME ), \'%%m-%%d-%%Y\' ), null) = \'%s\'', $customFilter['property'], $customFilter['property'], $customFilter['value']);
+                            }
+
+                            break;
+                        case 'NEQ':
+
+                            if(trim($customFilter['value']) === '') {
+                                $query .= sprintf(' and IF(properties->>\'$.%s\' IS NOT NULL, LOWER(properties->>\'$.%s\'), null) != \'\'', $customFilter['property'], $customFilter['property']);
+                            } else {
+                                $query .= sprintf(' and IF(DATE_FORMAT( CAST( JSON_UNQUOTE( properties->>\'$.%s\' ) as DATETIME ), \'%%m-%%d-%%Y\' ), DATE_FORMAT( CAST( JSON_UNQUOTE( properties->>\'$.%s\' ) as DATETIME ), \'%%m-%%d-%%Y\' ), null) != \'%s\'', $customFilter['property'], $customFilter['property'], $customFilter['value']);
+                            }
+
+                            break;
+                        case 'LT':
+
+                            if(trim($customFilter['value']) === '') {
+                                // TODO revisit this one. how do you compare less than to an empty string? What should we do? Right now this is just returning 0 results
+                                $query .= sprintf(' and IF(properties->>\'$.%s\' IS NOT NULL, LOWER(properties->>\'$.%s\'), \'\') < \'\'', $customFilter['property'], $customFilter['property']);
+                            } else {
+                                $query .= sprintf(' and IF(DATE_FORMAT( CAST( JSON_UNQUOTE( properties->>\'$.%s\' ) as DATETIME ), \'%%m-%%d-%%Y\' ), DATE_FORMAT( CAST( JSON_UNQUOTE( properties->>\'$.%s\' ) as DATETIME ), \'%%m-%%d-%%Y\' ), null) < \'%s\'', $customFilter['property'], $customFilter['property'], $customFilter['value']);
+                            }
+
+                            break;
+                        case 'GT':
+
+                            if(trim($customFilter['value']) === '') {
+                                // TODO revisit this one. how do you compare greater than to an empty string? What should we do? Right now this is just returning 0 results
+                                $query .= sprintf(' and IF(properties->>\'$.%s\' IS NOT NULL, LOWER(properties->>\'$.%s\'), \'\') > \'\'', $customFilter['property'], $customFilter['property']);
+                            } else {
+                                $query .= sprintf(' and IF(DATE_FORMAT( CAST( JSON_UNQUOTE( properties->>\'$.%s\' ) as DATETIME ), \'%%m-%%d-%%Y\' ), DATE_FORMAT( CAST( JSON_UNQUOTE( properties->>\'$.%s\' ) as DATETIME ), \'%%m-%%d-%%Y\' ), null) > \'%s\'', $customFilter['property'], $customFilter['property'], $customFilter['value']);
+                            }
+
+                            break;
+
+                        case 'BETWEEN':
+
+                            if(trim($customFilter['low_value']) === '' || trim($customFilter['high_value']) === '') {
+                                // TODO revisit this one. IF the low value or high value is empty, what should we do? Right now this is just returning 0 results
+                                $query .= sprintf(' and IF(properties->>\'$.%s\' IS NOT NULL, properties->>\'$.%s\', \'\') BETWEEN \'%s\' AND \'%s\'', $customFilter['property'], $customFilter['property'], '', '');
+                            } else {
+                                $query .= sprintf(' and IF(DATE_FORMAT( CAST( JSON_UNQUOTE( properties->>\'$.%s\' ) as DATETIME ), \'%%m-%%d-%%Y\' ), DATE_FORMAT( CAST( JSON_UNQUOTE( properties->>\'$.%s\' ) as DATETIME ), \'%%m-%%d-%%Y\' ), null) BETWEEN \'%s\' AND \'%s\'', $customFilter['property'], $customFilter['property'], $customFilter['low_value'], $customFilter['high_value']);
+                            }
+
+                            break;
+
+                        case 'HAS_PROPERTY':
+
+                            $query .= sprintf(' and (properties->>\'$.%s\') is not null', $customFilter['property']);
+
+                            break;
+                        case 'NOT_HAS_PROPERTY':
+
+                            $query .= sprintf(' and (properties->>\'$.%s\') is null', $customFilter['property']);
+
+                            break;
+                    }
+                    break;
+                case 'single_checkbox_field':
+
+                    switch($customFilter['operator']) {
+                        case 'IN':
+
+                            if(trim($customFilter['value']) === '') {
+                                $query .= sprintf(' and IF(properties->>\'$.%s\' IS NOT NULL, LOWER(properties->>\'$.%s\'), null) = \'\'', $customFilter['property'], $customFilter['property']);
+                            } else {
+                                $values = explode(',', $customFilter['value']);
+                                if($values == ['0','1']) {
+                                    $query .= sprintf(' and IF(properties->>\'$.%s\' IS NOT NULL, LOWER(properties->>\'$.%s\'), \'\') = \'%s\' OR IF(properties->>\'$.%s\' IS NOT NULL, LOWER(properties->>\'$.%s\'), \'\') = \'%s\'', $customFilter['property'], $customFilter['property'], 'true', $customFilter['property'], $customFilter['property'], 'false');
+                                } elseif ($values == ['0']) {
+                                    $query .= sprintf(' and IF(properties->>\'$.%s\' IS NOT NULL, LOWER(properties->>\'$.%s\'), \'\') = \'%s\'', $customFilter['property'], $customFilter['property'], 'false');
+                                } elseif ($values == ['1']) {
+                                    $query .= sprintf(' and IF(properties->>\'$.%s\' IS NOT NULL, LOWER(properties->>\'$.%s\'), \'\') = \'%s\'', $customFilter['property'], $customFilter['property'], 'true');
+                                }
+                            }
+
+                            break;
+                        case 'NOT_IN':
+
+                            if(trim($customFilter['value']) === '') {
+                                $query .= sprintf(' and IF(properties->>\'$.%s\' IS NOT NULL, LOWER(properties->>\'$.%s\'), null) != \'\'', $customFilter['property'], $customFilter['property']);
+                            } else {
+                                $values = explode(',', $customFilter['value']);
+                                if($values == ['0','1']) {
+                                    $query .= sprintf(' and IF(properties->>\'$.%s\' IS NOT NULL, LOWER(properties->>\'$.%s\'), \'\') != \'%s\' AND IF(properties->>\'$.%s\' IS NOT NULL, LOWER(properties->>\'$.%s\'), \'\') != \'%s\'', $customFilter['property'], $customFilter['property'], 'true', $customFilter['property'], $customFilter['property'], 'false');
+                                } elseif ($values == ['0']) {
+                                    $query .= sprintf(' and IF(properties->>\'$.%s\' IS NOT NULL, LOWER(properties->>\'$.%s\'), \'\') != \'%s\'', $customFilter['property'], $customFilter['property'], 'false');
+                                } elseif ($values == ['1']) {
+                                    $query .= sprintf(' and IF(properties->>\'$.%s\' IS NOT NULL, LOWER(properties->>\'$.%s\'), \'\') != \'%s\'', $customFilter['property'], $customFilter['property'], 'true');
+                                }
+                            }
+
+                            break;
+                        case 'HAS_PROPERTY':
+
+                            $query .= sprintf(' and (properties->>\'$.%s\') is not null', $customFilter['property']);
+
+                            break;
+                        case 'NOT_HAS_PROPERTY':
+
+                            $query .= sprintf(' and (properties->>\'$.%s\') is null', $customFilter['property']);
+
                             break;
                     }
                     break;
@@ -316,8 +452,8 @@ class RecordRepository extends ServiceEntityRepository
         return <<<HERE
     CASE 
         WHEN properties->>'$.%s' IS NULL THEN "-" 
-        WHEN properties->>'$.%s' = 'null' THEN "-"
-        ELSE DATE_FORMAT( CAST( JSON_UNQUOTE( properties->>'$.%s' ) as DATETIME ), '%%m/%%d/%%Y' )
+        WHEN properties->>'$.%s' = '' THEN ""
+        ELSE DATE_FORMAT( CAST( JSON_UNQUOTE( properties->>'$.%s' ) as DATETIME ), '%%m-%%d-%%Y' )
     END AS %s
 HERE;
     }
@@ -326,7 +462,7 @@ HERE;
         return <<<HERE
     CASE 
         WHEN properties->>'$.%s' IS NULL THEN "-" 
-        WHEN properties->>'$.%s' = 'null' THEN "-"
+        WHEN properties->>'$.%s' = '' THEN ""
         ELSE CAST( properties->>'$.%s' AS DECIMAL(15,2) ) 
     END AS %s
 HERE;
@@ -336,7 +472,7 @@ HERE;
         return <<<HERE
     CASE
         WHEN properties->>'$.%s' IS NULL THEN "-" 
-        WHEN properties->>'$.%s' = 'null' THEN "-"
+        WHEN properties->>'$.%s' = '' THEN ""
         ELSE properties->>'$.%s'
     END AS %s
 HERE;
@@ -346,7 +482,7 @@ HERE;
         return <<<HERE
     CASE
         WHEN properties->>'$.%s' IS NULL THEN "-" 
-        WHEN properties->>'$.%s' = 'null' THEN "-"
+        WHEN properties->>'$.%s' = '' THEN ""
         ELSE properties->>'$.%s'
     END AS %s
 HERE;
@@ -356,7 +492,7 @@ HERE;
         return <<<HERE
     CASE
         WHEN properties->>'$.%s' IS NULL THEN "-" 
-        WHEN properties->>'$.%s' = 'null' THEN "-"
+        WHEN properties->>'$.%s' = '' THEN ""
         WHEN properties->>'$.%s' = 'true' THEN "yes"
         WHEN properties->>'$.%s' = 'false' THEN "no"
         ELSE properties->>'$.%s'
