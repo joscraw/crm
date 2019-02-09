@@ -2,6 +2,9 @@
 
 import Routing from '../Routing';
 import Settings from '../Settings';
+import EditCustomObjectButton from "./EditCustomObjectButton";
+import $ from "jquery";
+import DeleteCustomObjectButton from "./DeleteCustomObjectButton";
 
 require( 'datatables.net-bs4' );
 require( 'datatables.net-responsive-bs4' );
@@ -14,6 +17,7 @@ class CustomObjectList {
     /**
      * @param $wrapper
      * @param globalEventDispatcher
+     * @param portal
      */
     constructor($wrapper, globalEventDispatcher, portal) {
 
@@ -26,21 +30,63 @@ class CustomObjectList {
          */
         this.globalEventDispatcher = globalEventDispatcher;
 
-        this.render();
+        this.render().then(() => {this.activatePlugins();});
 
         this.globalEventDispatcher.subscribe(
             Settings.Events.CUSTOM_OBJECT_CREATED,
             this.reloadList.bind(this)
         );
 
-        $('#table_id').DataTable({
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.CUSTOM_OBJECT_EDITED,
+            this.reloadList.bind(this)
+        );
+
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.CUSTOM_OBJECT_DELETED,
+            this.reloadList.bind(this)
+        );
+
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.CUSTOM_OBJECT_SEARCH_KEY_UP,
+            this.applySearch.bind(this)
+        );
+
+    }
+
+    activatePlugins() {
+
+        this.table = $('#table_id').DataTable({
 
             "pageLength": 10,
             "processing": true,
             "serverSide": true,
             "responsive": true,
+            "language": {
+                "emptyTable": `No "${this.customObjectLabel}" custom objects found.`,
+            },
+            /*
+            the "dom" property determines what components DataTables shows by default
+
+            Possible Flags:
+
+            l - length changing input control
+            f - filtering input
+            t - The table!
+            i - Table information summary
+            p - pagination control
+            r - processing display element
+
+            For more information on the "dom" property and how to use it
+            https://datatables.net/reference/option/dom
+            */
+            "dom": "lpirt",
             "columns": [
-                { "data": "label", "name": "label", "title": "label" },
+                { "data": "label", "name": "label", "title": "label", mRender: (data, type, row) => {
+                        return `
+                        ${row['label']} <span class="js-edit-custom-object c-table__edit-button" data-custom-object-id="${row['id']}"></span>
+                        <span class="js-delete-custom-object c-table__delete-button" data-custom-object-id="${row['id']}"></span>`;
+                    }},
                 //repeat for each of my 20 or so fields
             ],
             "ajax": {
@@ -48,48 +94,61 @@ class CustomObjectList {
                 type: "GET",
                 dataType: "json",
                 contentType: "application/json; charset=utf-8"
+            },
+            "drawCallback": (settings)  => {
+                this.addEditCustomObjectButton();
+                this.addDeleteCustomObjectButton();
             }
         });
     }
 
+    addEditCustomObjectButton() {
+        this.$wrapper.find('.js-edit-custom-object').each((index, element) => {
+            new EditCustomObjectButton($(element), this.globalEventDispatcher, this.portal, $(element).data('customObjectId'), "Edit");
+        });
+    }
+
+    addDeleteCustomObjectButton() {
+        this.$wrapper.find('.js-delete-custom-object').each((index, element) => {
+            new DeleteCustomObjectButton($(element), this.globalEventDispatcher, this.portal, $(element).data('customObjectId'), "Delete");
+        });
+    }
+
+
+    /**
+     * @param args
+     */
+    applySearch(args = {}) {
+
+        if(typeof args.searchValue !== 'undefined') {
+            this.searchValue = args.searchValue;
+        }
+
+        $('#table_id').DataTable().search(
+            this.searchValue
+        ).draw();
+    }
+
 
     reloadList() {
-        $('#table_id').DataTable().ajax.reload();
+        this.table.destroy();
+        this.activatePlugins();
     }
 
-    loadCustomObjects() {
-
-    }
 
     render() {
-        this.$wrapper.html(CustomObjectList.markup(this));
+        return new Promise((resolve, reject) => {
+            this.$wrapper.html(CustomObjectList.markup(this));
+            resolve();
+        });
     }
 
     static markup() {
         return `
-            <table id="table_id" class="table table-striped table-bordered" style="width:100%">
+            <table id="table_id" class="table table-striped table-bordered c-table" style="width:100%">
                 <thead>
-               <!-- <tr><td>hye</td>
-                <td>bye</td>
-                </tr>-->
-             
                 </thead>
                 <tbody>
-            <!--    <tr>
-             <td>Josh</td>
-                <td>Beth</td>
-                </tr>
-                
-                   <tr>
-             <td>1</td>
-                <td>2</td>
-                </tr>
-                
-                   <tr>
-             <td>3</td>
-                <td>4</td>
-                </tr>
-             -->
                 </tbody>
             </table>
         `;

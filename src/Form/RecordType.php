@@ -6,7 +6,13 @@ use App\Entity\CustomObject;
 use App\Entity\Portal;
 use App\Entity\Property;
 use App\Entity\Record;
+use App\Form\DataTransformer\IdArrayToRecordArrayTransformer;
 use App\Form\DataTransformer\IdToRecordTransformer;
+use App\Form\DataTransformer\RecordCheckboxTransformer;
+use App\Form\DataTransformer\RecordDateTimeTransformer;
+use App\Form\DataTransformer\RecordGenericTransformer;
+use App\Form\DataTransformer\RecordNumberCurrencyTransformer;
+use App\Model\DatePickerField;
 use App\Model\FieldCatalog;
 use App\Repository\RecordRepository;
 use Doctrine\ORM\EntityRepository;
@@ -26,6 +32,7 @@ use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Constraints\NotNull;
 
 /**
  * Class RecordType
@@ -40,15 +47,63 @@ class RecordType extends AbstractType
     private $transformer;
 
     /**
+     * @var IdArrayToRecordArrayTransformer
+     */
+    private $idArrayToRecordArrayTransformer;
+
+    /**
+     * @var RecordDateTimeTransformer
+     */
+    private $recordDateTimeTransformer;
+
+    /**
+     * @var RecordNumberCurrencyTransformer
+     */
+    private $recordNumberCurrencyTransformer;
+
+    /**
+     * @var RecordGenericTransformer
+     */
+    private $recordGenericTransformer;
+
+    /**
+     * @var RecordCheckboxTransformer
+     */
+    private $recordCheckboxTranformer;
+
+    /**
      * @var RecordRepository
      */
     private $recordRepository;
 
-    public function __construct(IdToRecordTransformer $transformer, RecordRepository $recordRepository)
-    {
+    /**
+     * RecordType constructor.
+     * @param IdToRecordTransformer $transformer
+     * @param IdArrayToRecordArrayTransformer $idArrayToRecordArrayTransformer
+     * @param RecordDateTimeTransformer $recordDateTimeTransformer
+     * @param RecordNumberCurrencyTransformer $recordNumberCurrencyTransformer
+     * @param RecordGenericTransformer $recordGenericTransformer
+     * @param RecordCheckboxTransformer $recordCheckboxTranformer
+     * @param RecordRepository $recordRepository
+     */
+    public function __construct(
+        IdToRecordTransformer $transformer,
+        IdArrayToRecordArrayTransformer $idArrayToRecordArrayTransformer,
+        RecordDateTimeTransformer $recordDateTimeTransformer,
+        RecordNumberCurrencyTransformer $recordNumberCurrencyTransformer,
+        RecordGenericTransformer $recordGenericTransformer,
+        RecordCheckboxTransformer $recordCheckboxTranformer,
+        RecordRepository $recordRepository
+    ) {
         $this->transformer = $transformer;
+        $this->idArrayToRecordArrayTransformer = $idArrayToRecordArrayTransformer;
+        $this->recordDateTimeTransformer = $recordDateTimeTransformer;
+        $this->recordNumberCurrencyTransformer = $recordNumberCurrencyTransformer;
+        $this->recordGenericTransformer = $recordGenericTransformer;
+        $this->recordCheckboxTranformer = $recordCheckboxTranformer;
         $this->recordRepository = $recordRepository;
     }
+
 
     /**
      * @param FormBuilderInterface $builder
@@ -79,20 +134,27 @@ class RecordType extends AbstractType
                         'required' => false,
                         'label' => $property->getLabel(),
                         'attr' => [
-                            'data-property-id' => $property->getId()
+                            'data-property-id' => $property->getId(),
+                            'autocomplete' => 'off'
                         ]
                     ], $options);
                     $builder->add($property->getInternalName(), TextType::class, $options);
+                    $builder->get($property->getInternalName())
+                        ->addModelTransformer($this->recordGenericTransformer);
+
                     break;
                 case FieldCatalog::MULTI_LINE_TEXT:
                     $options = array_merge([
                         'required' => false,
                         'label' => $property->getLabel(),
                         'attr' => [
-                            'data-property-id' => $property->getId()
+                            'data-property-id' => $property->getId(),
+                            'autocomplete' => 'off'
                         ]
                     ], $options);
                     $builder->add($property->getInternalName(), TextareaType::class, $options);
+                    $builder->get($property->getInternalName())
+                        ->addModelTransformer($this->recordGenericTransformer);
                     break;
                 case FieldCatalog::DROPDOWN_SELECT:
                     $choices = $property->getField()->getOptionsForChoiceTypeField();
@@ -104,12 +166,24 @@ class RecordType extends AbstractType
                         'multiple' => false,
                         'attr' => [
                             'class' => 'js-selectize-single-select',
-                            'data-property-id' => $property->getId()
+                            'data-property-id' => $property->getId(),
+                            'autocomplete' => 'off'
                         ]
                     ], $options);
                     $builder->add($property->getInternalName(), ChoiceType::class, $options);
+                    $builder->get($property->getInternalName())
+                        ->addModelTransformer($this->recordGenericTransformer);
                     break;
                 case FieldCatalog::SINGLE_CHECKBOX:
+
+                    // for a single checkbox you need to check for not null instead of not blank
+                    if($property->isRequired()) {
+                        $options['constraints'] = [
+                            new NotNull(),
+                        ];
+                        $options['required'] = true;
+                    }
+
                     $options = array_merge([
                         'choices'  => array(
                             'Yes' => true,
@@ -121,10 +195,13 @@ class RecordType extends AbstractType
                         'required' => false,
                         'attr' => [
                             'class' => 'js-selectize-single-select',
-                            'data-property-id' => $property->getId()
+                            'data-property-id' => $property->getId(),
+                            'autocomplete' => 'off'
                         ]
                     ], $options);
                     $builder->add($property->getInternalName(), ChoiceType::class, $options);
+                    $builder->get($property->getInternalName())
+                        ->addModelTransformer($this->recordCheckboxTranformer);
                     break;
                 case FieldCatalog::MULTIPLE_CHECKBOX:
                     $choices = $property->getField()->getOptionsForChoiceTypeField();
@@ -136,7 +213,8 @@ class RecordType extends AbstractType
                         'required' => false,
                         'attr' => [
                             'class' => 'js-selectize-multiple-select',
-                            'data-property-id' => $property->getId()
+                            'data-property-id' => $property->getId(),
+                            'autocomplete' => 'off'
                         ]
                     ], $options);
                     $builder->add($property->getInternalName(), ChoiceType::class, $options);
@@ -151,35 +229,51 @@ class RecordType extends AbstractType
                         'multiple' => false,
                         'attr' => [
                             'class' => 'js-selectize-single-select',
-                            'data-property-id' => $property->getId()
+                            'data-property-id' => $property->getId(),
+                            'autocomplete' => 'off'
                         ]
                     ], $options);
                     $builder->add($property->getInternalName(), ChoiceType::class, $options);
+                    $builder->get($property->getInternalName())
+                        ->addModelTransformer($this->recordGenericTransformer);
                     break;
                 case FieldCatalog::NUMBER:
                     $options = array_merge([
                         'required' => false,
                         'label' => $property->getLabel(),
                         'attr' => [
-                            'data-property-id' => $property->getId()
+                            'data-property-id' => $property->getId(),
+                            'autocomplete' => 'off'
                         ]
                     ], $options);
+
                     $builder->add($property->getInternalName(), NumberType::class, $options);
+
+                    $field = $property->getField();
+                    if($field->isCurrency()) {
+                        $builder->get($property->getInternalName())
+                            ->addModelTransformer($this->recordNumberCurrencyTransformer);
+                    }
                     break;
                 case FieldCatalog::DATE_PICKER:
                     $options = array_merge([
                         'required' => false,
                         'label' => $property->getLabel(),
                         'widget' => 'single_text',
+                        'format' => 'MM-dd-yyyy',
                         // prevents rendering it as type="date", to avoid HTML5 date pickers
                         'html5' => false,
                         // adds a class that can be selected in JavaScript
                         'attr' => [
                             'class' => 'js-datepicker',
-                            'data-property-id' => $property->getId()
+                            'data-property-id' => $property->getId(),
+                            'autocomplete' => 'off'
                         ],
                     ], $options);
                     $builder->add($property->getInternalName(), DateType::class, $options);
+
+                    $builder->get($property->getInternalName())
+                        ->addModelTransformer($this->recordDateTimeTransformer);
                     break;
                 case FieldCatalog::CUSTOM_OBJECT:
 
@@ -191,8 +285,8 @@ class RecordType extends AbstractType
                         'attr' => [
                             'class' => 'js-selectize-single-select-with-search',
                             'placeholder' => 'Start typing to search..',
-                            'data-allowed-custom-object-to-search' => $customObject->getId(),
-                            'data-property-id' => $property->getId()
+                            'data-property-id' => $property->getId(),
+                            'autocomplete' => 'off'
                         ],
                         'expanded' => false,
                     ], $options);
@@ -201,7 +295,18 @@ class RecordType extends AbstractType
                         $options['multiple'] = true;
                     }
 
+                    $options['property'] = $property;
+
                     $builder->add($property->getInternalName(), RecordChoiceType::class, $options);
+
+                    if($property->getField()->isMultiple()) {
+                         $builder->get($property->getInternalName())
+                        ->addModelTransformer($this->idArrayToRecordArrayTransformer);
+                    } else {
+                         $builder->get($property->getInternalName())
+                        ->addModelTransformer($this->transformer);
+                    }
+
                     break;
             }
         }
@@ -212,7 +317,7 @@ class RecordType extends AbstractType
     public function configureOptions(OptionsResolver $resolver)
     {
         $resolver->setRequired([
-           'properties',
+            'properties',
             'portal'
         ]);
     }

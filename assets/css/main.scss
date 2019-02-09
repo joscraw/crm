@@ -30,7 +30,8 @@ todo figure out which libraries to load for datatables
   'vendors/selectize/_selectize.bootstrap4',
   '~selectize/dist/css/selectize',
   'vendors/sweetalert2/override',
-  'vendors/selectize/override';
+  'vendors/selectize/override',
+  'vendors-extensions/bootstrap';
 
 // 3. Base stuff
 @import
@@ -52,6 +53,8 @@ todo figure out which libraries to load for datatables
   'components/button',
   'components/collapse',
   'components/column-editor',
+  'components/table',
+  'components/filter-widget',
   'components/forms',
   'components/modals',
   'components/search',

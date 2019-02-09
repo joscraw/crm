@@ -35,7 +35,7 @@ use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
  * Class RecordController
  * @package App\Controller
  *
- * @Route("/{internalIdentifier}")
+ * @Route("/{internalIdentifier}/records")
  *
  */
 class RecordController extends AbstractController
@@ -89,7 +89,7 @@ class RecordController extends AbstractController
 
 
     /**
-     * @Route("/{internalName}/list", name="record_list", methods={"GET"}, options = { "expose" = true })
+     * @Route("/{internalName}/{routing}", name="record_list", requirements={"routing"=".+"}, defaults={"routing": null}, methods={"GET"}, options = { "expose" = true })
      * @param Portal $portal
      * @param CustomObject $customObject
      * @return \Symfony\Component\HttpFoundation\Response

@@ -9,18 +9,22 @@ use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 use Symfony\Component\Validator\Constraints as Assert;
 use App\Validator\Constraints as CustomAssert;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\CustomObjectRepository")
  * @ORM\HasLifecycleCallbacks()
- * @CustomAssert\CustomObjectAlreadyExists
+ * @CustomAssert\CustomObjectLabelAlreadyExists(groups={"CREATE", "EDIT"})
+ * @CustomAssert\CustomObjectInternalNameAlreadyExists(groups={"CREATE", "EDIT"})
+ * @CustomAssert\CustomObjectDeletion(groups={"DELETE"})
  */
-class CustomObject implements \JsonSerializable
+class CustomObject /*implements \JsonSerializable*/
 {
 
     use TimestampableEntity;
 
     /**
+     * @Groups({"PROPERTY_FIELD_NORMALIZER"})
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
@@ -28,8 +32,9 @@ class CustomObject implements \JsonSerializable
     private $id;
 
     /**
-     * @Assert\NotBlank(message="Don't forget a label for your brand new sweeeeet Custom Object!")
-     * @Assert\Regex("/^[a-zA-Z0-9_\s]*$/", message="Woah! Only use letters, numbers, underscores and spaces please!")
+     * @Groups({"PROPERTY_FIELD_NORMALIZER"})
+     * @Assert\NotBlank(message="Don't forget a label for your super cool sweeeeet Custom Object!", groups={"CREATE", "EDIT"})
+     * @Assert\Regex("/^[a-zA-Z0-9_\s]*$/", message="Woah! Only use letters, numbers, underscores and spaces please!", groups={"CREATE", "EDIT"})
      *
      * @ORM\Column(name="label", type="string", length=255, nullable=false)
      *
@@ -38,9 +43,11 @@ class CustomObject implements \JsonSerializable
     private $label;
 
     /**
+     * @Groups({"PROPERTY_FIELD_NORMALIZER"})
+     *
      * internal name
      *
-     * @Assert\Regex("/^[a-zA-Z0-9_]*$/", message="Woah! Only use letters numbers and underscores please!")
+     * @Assert\Regex("/^[a-zA-Z0-9_]*$/", message="Woah! Only use letters numbers and underscores please!", groups={"CREATE"})
      *
      * @ORM\Column(name="internal_name", type="string", length=255, nullable=false)
      *
@@ -49,12 +56,12 @@ class CustomObject implements \JsonSerializable
     private $internalName;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Property", mappedBy="customObject", cascade={"persist", "remove"})
+     * @ORM\OneToMany(targetEntity="App\Entity\Property", mappedBy="customObject", cascade={"remove"})
      */
     private $properties;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\PropertyGroup", mappedBy="customObject", cascade={"persist", "remove"})
+     * @ORM\OneToMany(targetEntity="App\Entity\PropertyGroup", mappedBy="customObject", cascade={"remove"})
      */
     private $propertyGroups;
 
@@ -104,7 +111,7 @@ class CustomObject implements \JsonSerializable
     /**
      * @param string $label
      */
-    public function setLabel(string $label): void
+    public function setLabel($label): void
     {
         $this->label = $label;
     }
@@ -120,7 +127,7 @@ class CustomObject implements \JsonSerializable
     /**
      * @param string $internalName
      */
-    public function setInternalName(string $internalName)
+    public function setInternalName($internalName)
     {
         $this->internalName = $internalName;
     }
@@ -237,14 +244,14 @@ class CustomObject implements \JsonSerializable
      * @return mixed data which can be serialized by <b>json_encode</b>,
      * which is a value of any type other than a resource.
      */
-    public function jsonSerialize()
+/*    public function jsonSerialize()
     {
         return [
             'id' => $this->getId(),
             'label' => $this->getLabel(),
             'internalName' => $this->getInternalName()
         ];
-    }
+    }*/
 
     public function setId($id) {
         $this->id = $id;

@@ -19,14 +19,16 @@
 }
 
 .btn-light {
-  @include button-variant($color-white-100, $color-orange-61, lighten($color-orange-61, 35%), $color-orange-61, lighten($color-white-100, 10%), $color-orange-61);
+  @include button-variant($color-blue-84, $color-blue-84, lighten($color-blue-84, 5%), $color-blue-84, lighten($color-blue-84, 5%), $color-blue-84);
 }
 
 .btn-outline-light {
-  @include button-outline-variant($color-orange-61, #222222, lighten($color-orange-61,5%), $color-orange-61);
+  @include button-outline-variant($color-blue-44, #222222, lighten($color-blue-44,5%), $color-blue-44);
 }
 
 .btn {
+  font-size: 14px;
+  font-weight: lighter;
   &.is-active {
     display:block;
   }

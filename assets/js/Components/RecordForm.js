@@ -6,26 +6,25 @@ import Routing from '../Routing';
 import Settings from '../Settings';
 import FormHelper from '../FormHelper';
 
+require('jquery-ui-dist/jquery-ui');
+require('jquery-ui-dist/jquery-ui.css');
+require('bootstrap-datepicker');
+require('bootstrap-datepicker/dist/css/bootstrap-datepicker.css');
+
 class RecordForm {
 
     /**
      * @param $wrapper
      * @param globalEventDispatcher
-     * @param customObject
-     * @param customObjectLabel
-     * @param portal
+     * @param portalInternalIdentifier
+     * @param customObjectInternalName
      */
-    constructor($wrapper, globalEventDispatcher, customObject, customObjectLabel, portal) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName) {
 
         this.$wrapper = $wrapper;
-        this.customObjectLabel = customObjectLabel;
-        this.customObject = customObject;
-        this.portal = portal;
-
-        /**
-         * @type {EventDispatcher}
-         */
         this.globalEventDispatcher = globalEventDispatcher;
+        this.portalInternalIdentifier = portalInternalIdentifier;
+        this.customObjectInternalName = customObjectInternalName;
 
         this.$wrapper.on(
             'submit',
@@ -34,8 +33,6 @@ class RecordForm {
         );
 
         this.loadForm().then(()=> {this.activatePlugins();});
-
-        this.activatePlugins();
     }
 
     /**
@@ -59,9 +56,7 @@ class RecordForm {
 
         debugger;
 
-        const url = Routing.generate('records_for_selectize', {internalIdentifier: this.portal});
-
-        var $j = $('.js-allowed-selectize-search-result-properties').val();
+        const url = Routing.generate('records_for_selectize', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
 
         debugger;
 
@@ -72,8 +67,7 @@ class RecordForm {
                 labelField: 'labelField',
                 searchField: 'searchField',
                 load: (query, callback) => {
-                    console.log(this.customObject);
-                    debugger;
+
                     if (!query.length) return callback();
                     $.ajax({
                         url: url,
@@ -81,135 +75,33 @@ class RecordForm {
                         dataType: 'json',
                         data: {
                             search: query,
-                            custom_object_id: this.customObject,
                             allowed_custom_object_to_search: $(element).data('allowedCustomObjectToSearch'),
                             property_id: $(element).data('propertyId')
                         },
                         error: () => {
-                            debugger;
                             callback();
                         },
                         success: (res) => {
-                            debugger;
+                            select.selectize()[0].selectize.clearOptions();
                             select.options = res;
                             callback(res);
                         }
                     })
-                },
-                render: {
-                    option: function(record, escape) {
-
-                        let rows = ``,
-                            items = record.items;
-                        debugger;
-                        for(let i = 0; i < items.length; i++) {
-                            debugger;
-                            let item = items[i];
-                            rows += `<li class="c-selectize__list-item">${item.label}: ${item.value}</li>`;
-                        }
-                        return `<div class="c-selectize"><ul class="c-selectize__list">${rows}</ul></div>`;
-                    }
                 }
             });
 
 
         });
 
-
-  /*      this.$select = $('.js-selectize-single-select-with-search').selectize({
-            valueField: 'valueField',
-            labelField: 'labelField',
-            searchField: 'searchField',
-            load: (query, callback) => {
-                console.log(this.customObject);
-                debugger;
-                if (!query.length) return callback();
-                $.ajax({
-                    url: url,
-                    type: 'GET',
-                    dataType: 'json',
-                    data: {
-                        search: query,
-                        custom_object_id: this.customObject,
-                        allowed_custom_object_to_search: $(this).data('allowedCustomObjectToSearch'),
-                        property_id: $(this).data('propertyId')
-                    },
-                    error: () => {
-                        debugger;
-                        callback();
-                    },
-                    success: (res) => {
-                        debugger;
-                        this.$select.options = res;
-                        callback(res);
-                    }
-                })
-            },
-            render: {
-                option: function(record, escape) {
-
-                    let rows = ``,
-                        items = record.items;
-                    debugger;
-                    for(let i = 0; i < items.length; i++) {
-                        debugger;
-                        let item = items[i];
-                        rows += `<li class="c-selectize__list-item">${item.label}: ${item.value}</li>`;
-                    }
-                    return `<div class="c-selectize"><ul class="c-selectize__list">${rows}</ul></div>`;
-                }
-            }
-        });
-*/
-
-        debugger;
-
-/*        var $name = $('.js-selectize-single-select-with-search').selectize({
-            valueField: 'Id',
-            labelField: 'Name',
-            searchField: 'Name',
-            options: [],
-            persist: false,
-            loadThrottle: 600,
-            create: false,
-            allowEmptyOption: true,
-            load: function(query, callback) {
-                if (!query.length) return callback();
-                $.ajax({
-                    url: url,
-                    type: 'GET',
-                    dataType: 'json',
-                    data: {
-                        name: query,
-                        additionalDataIfRequired: 'Additional Data'
-                    },
-                    error: function() {
-                        debugger;
-                        callback();
-                    },
-                    success: function(res) {
-                        debugger;
-                        // you can apply any modification to data before passing it to selectize
-                        callback(res);
-                        // res is json response from server
-                        // it contains array of objects. Each object has two properties. In this case 'id' and 'Name'
-                        // if array is inside some other property of res like 'response' or something. than use this
-                        //callback(res.response);
-                    }
-                });
-            }
-        })[0].selectize;*/
-
         $('.js-datepicker').datepicker({
-            format: 'yyyy-mm-dd'
+            format: 'mm-dd-yyyy'
         });
     }
 
     loadForm() {
         return new Promise((resolve, reject) => {
             $.ajax({
-                url: Routing.generate('create_record_form', {internalIdentifier: this.portal}),
-                data: {custom_object_id: this.customObject}
+                url: Routing.generate('create_record_form', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName}),
             }).then(data => {
                 this.$wrapper.html(data.formMarkup);
                 resolve(data);
@@ -230,12 +122,11 @@ class RecordForm {
 
         const $form = $(e.currentTarget);
         let formData = new FormData($form.get(0));
-        formData.append('custom_object_id', this.customObject);
 
         this._saveRecord(formData)
             .then((data) => {
                 debugger;
-                swal("Hooray!", `Well done, you created a shiny brand new ${this.customObjectLabel}!`, "success");
+                swal("Hooray!", `Well done, you created a shiny brand new record!`, "success");
                 this.globalEventDispatcher.publish(Settings.Events.RECORD_CREATED);
             }).catch((errorData) => {
 
@@ -257,7 +148,7 @@ class RecordForm {
         debugger;
         return new Promise( (resolve, reject) => {
             debugger;
-            const url = Routing.generate('create_record', {internalIdentifier: this.portal});
+            const url = Routing.generate('create_record', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
 
             $.ajax({
                 url,

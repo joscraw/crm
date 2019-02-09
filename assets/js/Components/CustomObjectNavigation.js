@@ -9,20 +9,15 @@ class CustomObjectNavigation {
     /**
      * @param $wrapper
      * @param globalEventDispatcher
-     * @param portal
-     * @param customObject
+     * @param portalInternalIdentifier
+     * @param customObjectInternalName
      */
-    constructor($wrapper, globalEventDispatcher, portal, customObject) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName) {
 
-        debugger;
-        this.portal = portal;
-        this.customObject = customObject;
         this.$wrapper = $wrapper;
-
-        /**
-         * @type {EventDispatcher}
-         */
         this.globalEventDispatcher = globalEventDispatcher;
+        this.portalInternalIdentifier = portalInternalIdentifier;
+        this.customObjectInternalName = customObjectInternalName;
 
         this.loadCustomObjects().then(data => {
             this.render(data);
@@ -33,21 +28,28 @@ class CustomObjectNavigation {
         const $ul = $("<ul>", {"class": "nav nav-tabs c-tab-nav"});
         for(let key in data.data.custom_objects) {
             if(data.data.custom_objects.hasOwnProperty(key)) {
+
                 let customObject = data.data.custom_objects[key];
-                let route = Routing.generate('property_settings', {internalIdentifier: this.portal, internalName: customObject.internalName});
+                let route = Routing.generate('property_settings', {internalIdentifier: this.portalInternalIdentifier, internalName: customObject.internalName});
+
                 const html = pillTemplate(customObject, route);
                 const $row = $($.parseHTML(html));
                 $ul.append($row);
+
+                if(this.customObjectInternalName === customObject.internalName) {
+
+                    $ul.find("[data-custom-object-id='" + customObject.id + "']").find('a').addClass('active');
+                }
+
             }
         }
 
-        $ul.find("[data-custom-object-id='" + this.customObject + "']").find('a').addClass('active');
         this.$wrapper.html($ul);
     }
 
     loadCustomObjects() {
         return new Promise((resolve, reject) => {
-            let url = Routing.generate('get_custom_objects', {internalIdentifier: this.portal});
+            let url = Routing.generate('get_custom_objects', {internalIdentifier: this.portalInternalIdentifier});
 
             $.ajax({
                 url: url,

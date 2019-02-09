@@ -8,14 +8,15 @@ class OpenCreatePropertyGroupModalButton {
     /**
      * @param $wrapper
      * @param globalEventDispatcher
-     * @param portal
-     * @param customObject
+     * @param portalInternalIdentifier
+     * @param customObjectInternalName
      */
-    constructor($wrapper, globalEventDispatcher, portal, customObject) {
-        this.portal = portal;
-        this.customObject = customObject;
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName) {
+
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
+        this.portalInternalIdentifier = portalInternalIdentifier;
+        this.customObjectInternalName = customObjectInternalName;
 
         this.$wrapper.on(
             'click',
@@ -30,7 +31,7 @@ class OpenCreatePropertyGroupModalButton {
         console.log("Create Custom Object Button Clicked");
         this.globalEventDispatcher.publish(Settings.Events.CREATE_PROPERTY_GROUP_BUTTON_CLICKED);
         console.log(`Event Dispatched: ${Settings.Events.CREATE_PROPERTY_GROUP_BUTTON_CLICKED}`);
-        new PropertyGroupFormModal(this.globalEventDispatcher, this.portal, this.customObject);
+        new PropertyGroupFormModal(this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);
     }
 
     render() {

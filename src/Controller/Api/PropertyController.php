@@ -7,6 +7,8 @@ use App\Entity\Portal;
 use App\Entity\Property;
 use App\Entity\PropertyGroup;
 use App\Form\CustomObjectType;
+use App\Form\DeletePropertyType;
+use App\Form\EditPropertyType;
 use App\Form\PropertyGroupType;
 use App\Form\PropertyType;
 use App\Model\FieldCatalog;
@@ -29,6 +31,7 @@ use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
+use Symfony\Component\Serializer\SerializerInterface;
 
 
 /**
@@ -61,36 +64,41 @@ class PropertyController extends ApiController
     private $propertyGroupRepository;
 
     /**
-     * PropertySettingsController constructor.
+     * @var SerializerInterface
+     */
+    private $serializer;
+
+    /**
+     * PropertyController constructor.
      * @param EntityManagerInterface $entityManager
      * @param CustomObjectRepository $customObjectRepository
      * @param PropertyRepository $propertyRepository
      * @param PropertyGroupRepository $propertyGroupRepository
+     * @param SerializerInterface $serializer
      */
     public function __construct(
         EntityManagerInterface $entityManager,
         CustomObjectRepository $customObjectRepository,
         PropertyRepository $propertyRepository,
-        PropertyGroupRepository $propertyGroupRepository
+        PropertyGroupRepository $propertyGroupRepository,
+        SerializerInterface $serializer
     ) {
         $this->entityManager = $entityManager;
         $this->customObjectRepository = $customObjectRepository;
         $this->propertyRepository = $propertyRepository;
         $this->propertyGroupRepository = $propertyGroupRepository;
+        $this->serializer = $serializer;
     }
 
+
     /**
-     * @Route("/create", name="create_property", methods={"GET", "POST"}, options = { "expose" = true })
+     * @Route("{internalName}/create", name="create_property", methods={"GET", "POST"}, options = { "expose" = true })
      * @param Portal $portal
      * @param CustomObject $customObject
      * @param Request $request
      * @return JsonResponse
-     * @throws \App\Controller\Exception\InvalidInputException
-     * @throws \App\Controller\Exception\MissingRequiredQueryParameterException
      */
     public function createPropertyAction(Portal $portal, CustomObject $customObject, Request $request) {
-
-        $customObject = $this->getCustomObjectForRequest($this->customObjectRepository);
 
         $property = new Property();
         $property->setCustomObject($customObject);
@@ -144,18 +152,79 @@ class PropertyController extends ApiController
     }
 
     /**
-     * @Route("/get-for-datatable", name="properties_for_datatable", methods={"GET"}, options = { "expose" = true })
+     * @Route("/{internalName}/{propertyInternalName}/edit", name="edit_property", methods={"GET", "POST"}, options = { "expose" = true })
      * @param Portal $portal
+     * @param CustomObject $customObject
+     * @param Property $property
      * @param Request $request
      * @return JsonResponse
-     * @throws \App\Controller\Exception\InvalidInputException
-     * @throws \App\Controller\Exception\MissingRequiredQueryParameterException
      */
-    public function getPropertiesForDatatableAction(Portal $portal, Request $request) {
+    public function editPropertyAction(Portal $portal, CustomObject $customObject, Property $property, Request $request) {
 
-        $customObject = $this->getCustomObjectForRequest($this->customObjectRepository);
+        $property->setCustomObject($customObject);
 
-        $propertyGroups = $this->propertyGroupRepository->getDataTableData($customObject);
+        $form = $this->createForm(EditPropertyType::class, $property, [
+            'portal' => $portal,
+            'customObject' => $customObject,
+            'property' => $property
+        ]);
+
+        $form->handleRequest($request);
+
+        $fieldHelpMessage = FieldCatalog::getOptionsForFieldType(FieldCatalog::SINGLE_LINE_TEXT)['description'];
+        if($property->getFieldType()) {
+            $fieldHelpMessage = FieldCatalog::getOptionsForFieldType($property->getFieldType())['description'];
+        }
+
+        $formMarkup = $this->renderView(
+            'Api/form/property_form.html.twig',
+            [
+                'form' => $form->createView(),
+                'fieldHelpMessage' => $fieldHelpMessage
+            ]
+        );
+
+
+        $j = $form->getData();
+
+        if ($form->isSubmitted() && !$form->isValid()) {
+
+            if(!$form->isValid()) {
+                return new JsonResponse(
+                    [
+                        'success' => false,
+                        'formMarkup' => $formMarkup,
+                    ], Response::HTTP_BAD_REQUEST
+                );
+            }
+        }
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            /** @var $property Property */
+            $property = $form->getData();
+            $this->entityManager->persist($property);
+            $this->entityManager->flush();
+        }
+
+        return new JsonResponse(
+            [
+                'success' => true,
+                'formMarkup' => $formMarkup,
+            ],
+            Response::HTTP_OK
+        );
+    }
+
+    /**
+     * @Route("/{internalName}/get-for-datatable", name="properties_for_datatable", methods={"GET"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param CustomObject $customObject
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getPropertiesForDatatableAction(Portal $portal, CustomObject $customObject, Request $request) {
+
+        $propertyGroups = $this->propertyGroupRepository->getPropertyGroupsAndProperties($customObject);
         $payload = [];
         $payload['property_groups'] = [];
         $payload['properties']= [];
@@ -164,7 +233,8 @@ class PropertyController extends ApiController
             $propertyGroupId = $propertyGroup->getId();
             $payload['property_groups'][$propertyGroupId] = [
                 'id' => $propertyGroupId,
-                'label' => $propertyGroup->getName()
+                'label' => $propertyGroup->getName(),
+                'internalName' => $propertyGroup->getInternalName()
             ];
 
             $properties = $propertyGroup->getProperties();
@@ -172,6 +242,8 @@ class PropertyController extends ApiController
             foreach($properties as $property) {
                 $payload['properties'][$propertyGroupId][] = [
                     'label' => $property->getLabel(),
+                    'internalName' => $property->getInternalName(),
+                    'id' => $property->getId()
                 ];
             }
         }
@@ -185,16 +257,36 @@ class PropertyController extends ApiController
     }
 
     /**
-     * @Route("/get-for-columns", name="properties_for_columns", methods={"GET"}, options = { "expose" = true })
+     * @Route("/{internalName}/get-for-filter", name="properties_for_filter", methods={"GET"}, options = { "expose" = true })
      * @param Portal $portal
+     * @param CustomObject $customObject
      * @param Request $request
      * @return JsonResponse
-     * @throws \App\Controller\Exception\InvalidInputException
-     * @throws \App\Controller\Exception\MissingRequiredQueryParameterException
      */
-    public function getPropertiesForColumnsAction(Portal $portal, Request $request) {
+    public function getPropertiesForFilter(Portal $portal, CustomObject $customObject, Request $request) {
 
-        $customObject = $this->getCustomObjectForRequest($this->customObjectRepository);
+        $propertyGroups = $this->propertyGroupRepository->getPropertyGroupsAndProperties($customObject);
+
+        $payload['property_groups'] = [];
+        foreach($propertyGroups as $propertyGroup) {
+            $json = $this->serializer->serialize($propertyGroup, 'json', ['groups' => ['PROPERTIES_FOR_FILTER']]);
+            $payload['property_groups'][] = json_decode($json, true);
+        }
+
+        return new JsonResponse([
+            'success' => true,
+            'data'  => $payload
+        ], Response::HTTP_OK);
+    }
+
+    /**
+     * @Route("/{internalName}/get-for-columns", name="properties_for_columns", methods={"GET"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param CustomObject $customObject
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getPropertiesForColumnsAction(Portal $portal, CustomObject $customObject, Request $request) {
 
         $propertyGroups = $this->propertyGroupRepository->getColumnsData($customObject);
         $payload = [];
@@ -210,6 +302,7 @@ class PropertyController extends ApiController
 
             $properties = $propertyGroup->getProperties();
 
+            $payload['properties'][$propertyGroupId] = [];
             foreach($properties as $property) {
                 $payload['properties'][$propertyGroupId][] = [
                     'id' => $property->getId(),
@@ -229,16 +322,56 @@ class PropertyController extends ApiController
     }
 
     /**
-     * @Route("/set-columns", name="set_property_columns", methods={"POST"}, options = { "expose" = true })
+     * @Route("/{internalName}/get-default-properties", name="get_default_properties", methods={"GET"}, options = { "expose" = true })
      * @param Portal $portal
+     * @param CustomObject $customObject
      * @param Request $request
      * @return JsonResponse
-     * @throws \App\Controller\Exception\InvalidInputException
-     * @throws \App\Controller\Exception\MissingRequiredQueryParameterException
      */
-    public function setColumnsAction(Portal $portal, Request $request) {
+    public function getDefaultPropertiesAction(Portal $portal, CustomObject $customObject, Request $request) {
 
-        $customObject = $this->getCustomObjectForRequest($this->customObjectRepository);
+        $propertyGroups = $this->propertyGroupRepository->getDefaultPropertyData($customObject);
+        $payload = [];
+        $payload['property_groups'] = [];
+        $payload['properties']= [];
+
+        foreach($propertyGroups as $propertyGroup) {
+            $propertyGroupId = $propertyGroup->getId();
+            $payload['property_groups'][$propertyGroupId] = [
+                'id' => $propertyGroupId,
+                'label' => $propertyGroup->getName()
+            ];
+
+            $properties = $propertyGroup->getProperties();
+
+            $payload['properties'][$propertyGroupId] = [];
+            foreach($properties as $property) {
+                $payload['properties'][$propertyGroupId][] = [
+                    'id' => $property->getId(),
+                    'label' => $property->getLabel(),
+                    'isDefaultProperty' => $property->getIsDefaultProperty(),
+                    'propertyOrder' => $property->getDefaultPropertyOrder()
+                ];
+            }
+        }
+
+        $response = new JsonResponse([
+            'success' => true,
+            'data'  => $payload
+        ], Response::HTTP_OK);
+
+        return $response;
+    }
+
+    /**
+     * @Route("/{internalName}/set-columns", name="set_property_columns", methods={"POST"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param CustomObject $customObject
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function setColumnsAction(Portal $portal, CustomObject $customObject, Request $request) {
+
         $selectedProperties = $request->request->get('selected_properties', []);
         $allProperties = $this->propertyRepository->findByCustomObject($customObject);
 
@@ -265,16 +398,47 @@ class PropertyController extends ApiController
     }
 
     /**
-     * @Route("/get-columns-for-datatable", name="get_columns_for_table", methods={"GET"}, options = { "expose" = true })
+     * @Route("/{internalName}/set-default-properties", name="set_default_properties", methods={"POST"}, options = { "expose" = true })
      * @param Portal $portal
+     * @param CustomObject $customObject
      * @param Request $request
      * @return JsonResponse
-     * @throws \App\Controller\Exception\InvalidInputException
-     * @throws \App\Controller\Exception\MissingRequiredQueryParameterException
      */
-    public function getColumnsForDataTableAction(Portal $portal, Request $request) {
+    public function setDefaultPropertiesAction(Portal $portal, CustomObject $customObject, Request $request) {
 
-        $customObject = $this->getCustomObjectForRequest($this->customObjectRepository);
+        $selectedProperties = $request->request->get('selected_properties', []);
+        $allProperties = $this->propertyRepository->findByCustomObject($customObject);
+
+        foreach($allProperties as $property) {
+            $key = array_search($property->getId(), $selectedProperties);
+
+            if($key !== false) {
+                $property->setIsDefaultProperty(true);
+                $property->setDefaultPropertyOrder($key);
+            } else {
+                $property->setIsDefaultProperty(false);
+                $property->setDefaultPropertyOrder(null);
+            }
+
+            $this->entityManager->persist($property);
+            $this->entityManager->flush();
+        }
+
+        $response = new JsonResponse([
+            'success' => true
+        ], Response::HTTP_OK);
+
+        return $response;
+    }
+
+    /**
+     * @Route("/{internalName}/get-columns-for-datatable", name="get_columns_for_table", methods={"GET"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param CustomObject $customObject
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getColumnsForDataTableAction(Portal $portal, CustomObject $customObject, Request $request) {
 
         $properties = $this->propertyRepository->findColumnsForTable($customObject);
 
@@ -294,5 +458,77 @@ class PropertyController extends ApiController
         ], Response::HTTP_OK);
 
         return $response;
+    }
+
+    /**
+     * @Route("/{internalName}/{propertyInternalName}/delete-form", name="delete_property_form", methods={"GET"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param CustomObject $customObject
+     * @param Property $property
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getDeletePropertyFormAction(Portal $portal, CustomObject $customObject, Property $property, Request $request) {
+
+        $form = $this->createForm(DeletePropertyType::class, $property);
+
+        $formMarkup = $this->renderView(
+            'Api/form/delete_property_form.html.twig',
+            [
+                'form' => $form->createView(),
+            ]
+        );
+
+        return new JsonResponse(
+            [
+                'success' => true,
+                'formMarkup' => $formMarkup
+            ],
+            Response::HTTP_OK
+        );
+    }
+
+    /**
+     * @Route("/{internalName}/{propertyInternalName}/delete", name="delete_property", methods={"POST"}, options={"expose" = true})
+     * @param Portal $portal
+     * @param Request $request
+     * @param Property $property
+     * @return JsonResponse
+     */
+    public function deletePropertyAction(Portal $portal, Request $request, Property $property)
+    {
+
+        $form = $this->createForm(DeletePropertyType::class, $property);
+
+        $form->handleRequest($request);
+
+        if (!$form->isValid()) {
+            $formMarkup = $this->renderView(
+                'Api/form/delete_property_form.html.twig',
+                [
+                    'form' => $form->createView(),
+                ]
+            );
+
+            return new JsonResponse(
+                [
+                    'success' => false,
+                    'formMarkup' => $formMarkup,
+                ], Response::HTTP_BAD_REQUEST
+            );
+        }
+
+        // delete custom object here
+        /** @var $property Property */
+        $property = $form->getData();
+        $this->entityManager->remove($property);
+        $this->entityManager->flush();
+
+        return new JsonResponse(
+            [
+                'success' => true,
+            ],
+            Response::HTTP_OK
+        );
     }
 }

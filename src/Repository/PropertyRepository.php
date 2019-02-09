@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\CustomObject;
 use App\Entity\Portal;
 use App\Entity\Property;
+use App\Entity\PropertyGroup;
 use App\Model\FieldCatalog;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
@@ -109,6 +110,39 @@ class PropertyRepository extends ServiceEntityRepository
     }
 
     /**
+     * @param CustomObject $customObject
+     * @param $fieldType
+     * @return mixed
+     */
+    public function findAllInternalNamesByFieldTypeForCustomObject(CustomObject $customObject, $fieldType)
+    {
+        return $this->createQueryBuilder('property')
+            ->select('property.internalName')
+            ->innerJoin('property.customObject', 'customObject')
+            ->where('customObject = :customObject')
+            ->andWhere('property.fieldType = :fieldType')
+            ->setParameter('customObject', $customObject)
+            ->setParameter('fieldType', $fieldType)
+            ->getQuery()
+            ->getArrayResult();
+    }
+
+    /**
+     * @param PropertyGroup $propertyGroup
+     * @return mixed
+     */
+    public function findAllInternalNamesForPropertiesByPropertyGroup(PropertyGroup $propertyGroup)
+    {
+        return $this->createQueryBuilder('property')
+            ->select('property.internalName')
+            ->innerJoin('property.propertyGroup', 'propertyGroup')
+            ->where('propertyGroup = :propertyGroup')
+            ->setParameter('propertyGroup', $propertyGroup)
+            ->getQuery()
+            ->getArrayResult();
+    }
+
+    /**
      * @param $label
      * @return mixed
      * @throws \Doctrine\ORM\NonUniqueResultException
@@ -116,10 +150,42 @@ class PropertyRepository extends ServiceEntityRepository
     public function findByLabel($label)
     {
         return $this->createQueryBuilder('property')
-            ->orWhere('property.label = :label')
+            ->where('property.label = :label')
             ->setParameter('label', $label)
             ->getQuery()
             ->getOneOrNullResult();
+    }
+
+    /**
+     * @param $label
+     * @param CustomObject $customObject
+     * @return mixed
+     */
+    public function findByLabelAndCustomObject($label, CustomObject $customObject)
+    {
+        return $this->createQueryBuilder('property')
+            ->where('property.label = :label')
+            ->andWhere('property.customObject = :customObject')
+            ->setParameter('label', $label)
+            ->setParameter('customObject', $customObject->getId())
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * @param $internalName
+     * @param CustomObject $customObject
+     * @return mixed
+     */
+    public function findByInternalNameAndCustomObject($internalName, CustomObject $customObject)
+    {
+        return $this->createQueryBuilder('property')
+            ->where('property.internalName = :internalName')
+            ->andWhere('property.customObject = :customObject')
+            ->setParameter('internalName', $internalName)
+            ->setParameter('customObject', $customObject->getId())
+            ->getQuery()
+            ->getResult();
     }
 
     /**
@@ -183,6 +249,18 @@ class PropertyRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    public function getHighestDefaultPropertyOrder(CustomObject $customObject) {
+        return $this->createQueryBuilder('property')
+            ->select('max(property.defaultPropertyOrder) as default_property_order')
+            ->where('property.customObject = :customObject')
+            ->andWhere('property.isDefaultProperty = :bool')
+            ->setParameter('bool', true)
+            ->setParameter('customObject', $customObject->getId())
+            ->orderBy('property.defaultPropertyOrder', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
     public function getCountWherePropertyIsColumn(CustomObject $customObject) {
         return $this->createQueryBuilder('property')
             ->select('count(property.id) as count')
@@ -193,6 +271,63 @@ class PropertyRepository extends ServiceEntityRepository
             ->orderBy('property.columnOrder', 'ASC')
             ->getQuery()
             ->getResult();
+    }
+
+    public function findDefaultProperties(CustomObject $customObject) {
+        return $this->createQueryBuilder('property')
+            ->where('property.customObject = :customObject')
+            ->andWhere('property.isDefaultProperty  = :bool')
+            ->setParameter('bool', true)
+            ->setParameter('customObject', $customObject->getId())
+            ->orderBy('property.defaultPropertyOrder', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function getCountWherePropertyIsDefaultProperty(CustomObject $customObject) {
+        return $this->createQueryBuilder('property')
+            ->select('count(property.id) as count')
+            ->where('property.customObject = :customObject')
+            ->andWhere('property.isDefaultProperty = :bool')
+            ->setParameter('bool', true)
+            ->setParameter('customObject', $customObject->getId())
+            ->orderBy('property.defaultPropertyOrder', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * @param PropertyGroup $propertyGroup
+     * @return mixed
+     */
+    public function getCountByPropertyGroup(PropertyGroup $propertyGroup)
+    {
+        return $this->createQueryBuilder('property')
+            ->select('count(property.id) as count')
+            ->join('property.propertyGroup', 'propertyGroup')
+            ->where('propertyGroup = :propertyGroup')
+            ->setParameter('propertyGroup', $propertyGroup->getId())
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * @param $internalName
+     * @param $portalInternalIdentifier
+     * @return mixed
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     */
+    public function findByInternalNameAndPortalInternalIdentifier($internalName, $portalInternalIdentifier)
+    {
+        return $this->createQueryBuilder('property')
+            ->join('property.customObject', 'customObject')
+            ->join('customObject.portal', 'portal')
+            ->where('property.internalName = :internalName')
+            ->andWhere('portal.internalIdentifier = :internalIdentifier')
+            ->setParameter('internalName', $internalName)
+            ->setParameter('internalIdentifier', $portalInternalIdentifier)
+            ->getQuery()
+            ->getOneOrNullResult();
     }
 
 }

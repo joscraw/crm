@@ -24,6 +24,9 @@ class PropertyGroupType extends AbstractType
         $builder
             ->add('name', TextType::class, [
                 'required' => true,
+                'attr' => [
+                    'autocomplete' => 'off'
+                ]
             ])
             ->add('submit', SubmitType::class);
     }
@@ -35,6 +38,7 @@ class PropertyGroupType extends AbstractType
     {
         $resolver->setDefaults(array(
             'data_class' => PropertyGroup::class,
+            'validation_groups' => ['CREATE'],
         ));
     }
 }

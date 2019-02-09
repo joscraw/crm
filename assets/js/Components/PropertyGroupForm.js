@@ -10,19 +10,15 @@ class PropertyGroupForm {
     /**
      * @param $wrapper
      * @param globalEventDispatcher
-     * @param portalId
-     * @param customObjectId
+     * @param portalInternalIdentifier
+     * @param customObjectInternalName
      */
-    constructor($wrapper, globalEventDispatcher, portalId, customObjectId) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName) {
 
         this.$wrapper = $wrapper;
-        this.portalId = portalId;
-        this.customObjectId = customObjectId;
-
-        /**
-         * @type {EventDispatcher}
-         */
         this.globalEventDispatcher = globalEventDispatcher;
+        this.portalInternalIdentifier = portalInternalIdentifier;
+        this.customObjectInternalName = customObjectInternalName;
 
         this.$wrapper.on(
             'submit',
@@ -43,7 +39,7 @@ class PropertyGroupForm {
     }
 
     loadPropertyGroupForm() {
-        const url = Routing.generate('property_group_form', {internalIdentifier: this.portalId});
+        const url = Routing.generate('property_group_form', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
         $.ajax({
             url: url,
         }).then(data => {
@@ -55,8 +51,6 @@ class PropertyGroupForm {
      * @param e
      */
     handleNewFormSubmit(e) {
-
-        debugger;
 
         if(e.cancelable) {
             e.preventDefault();
@@ -76,9 +70,6 @@ class PropertyGroupForm {
             }).catch((errorData) => {
 
             this.$wrapper.html(errorData.formMarkup);
-
-            // Use for when the form is being generated on the JS side
-            /*this._mapErrorsToForm(errorData.errors);*/
         });
     }
 
@@ -90,9 +81,7 @@ class PropertyGroupForm {
     _savePropertyGroup(data) {
         return new Promise( (resolve, reject) => {
             console.log(this.portalId);
-            const url = Routing.generate('property_group_new', {internalIdentifier: this.portalId});
-
-            data.custom_object_id = this.customObjectId;
+            const url = Routing.generate('property_group_new', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
 
             $.ajax({
                 url,

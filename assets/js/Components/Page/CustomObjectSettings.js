@@ -6,6 +6,7 @@ import CustomObjectFormModal from './../CustomObjectFormModal';
 import CustomObjectList from './../CustomObjectList';
 import OpenCreateCustomObjectModalButton from './../OpenCreateCustomObjectModalButton';
 import CustomObjectSettingsTopBar from './../CustomObjectSettingsTopBar';
+import SideNavigationMenu from "../SideNavigationMenu";
 
 
 class CustomObjectSettings {
@@ -26,7 +27,6 @@ class CustomObjectSettings {
         this.$wrapper.html(CustomObjectSettings.markup());
         new CustomObjectSettingsTopBar(this.$wrapper.find('.js-top-bar'), this.globalEventDispatcher, this.portal);
         new CustomObjectList(this.$wrapper.find('.js-main-content'), this.globalEventDispatcher, this.portal);
-
     }
 
     static markup() {

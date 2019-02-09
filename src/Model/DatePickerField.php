@@ -2,39 +2,37 @@
 
 namespace App\Model;
 
+use Symfony\Component\Serializer\Annotation\Groups;
+
 /**
  * Class DatePickerField
  * @package App\Model
  */
-class DatePickerField extends AbstractField implements \JsonSerializable
+class DatePickerField extends AbstractField
 {
     /**
+     * Used in the DateFieldType form and in the Transformer for the deserializer. This format
+     * matches the format set on the front end with the DatePicker jQuery plugin
+     * @var string
+     */
+    public static $displayFormat = 'm-d-Y';
+
+    /**
+     * Needs to be stored in different format  mysql to be able to CAST() into a DateTime Format
+     * @var string
+     */
+    public static $storedFormat = 'Y-m-d';
+
+    /**
+     * @Groups({"PROPERTY_FIELD_NORMALIZER"})
      * @var string
      */
     protected static $name = FieldCatalog::DATE_PICKER;
 
     /**
+     * @Groups({"PROPERTY_FIELD_NORMALIZER"})
      * @var string
      */
     protected static $description = 'Date picker field';
-
-    /**
-     * (PHP 5 &gt;= 5.4.0)<br/>
-     * Specify data which should be serialized to JSON
-     * @link http://php.net/manual/en/jsonserializable.jsonserialize.php
-     * @return mixed data which can be serialized by <b>json_encode</b>,
-     * which is a value of any type other than a resource.
-     */
-    public function jsonSerialize()
-    {
-        return array_merge(
-            parent::jsonSerialize(),
-            [
-                'name'          => $this->getName(),
-                'description'   => $this->getDescription()
-            ]
-        );
-    }
-
 
 }

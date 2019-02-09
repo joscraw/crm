@@ -44,7 +44,7 @@ class Portal
     }
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\CustomObject", mappedBy="portal", cascade={"persist", "remove"})
+     * @ORM\OneToMany(targetEntity="App\Entity\CustomObject", mappedBy="portal", cascade={"remove"})
      */
     private $customObjects;
 

@@ -4,6 +4,7 @@ namespace App\Model;
 
 use JsonSerializable;
 use Symfony\Component\Serializer\Annotation\DiscriminatorMap;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * @DiscriminatorMap(typeProperty="name", mapping={
@@ -21,6 +22,7 @@ use Symfony\Component\Serializer\Annotation\DiscriminatorMap;
 abstract class AbstractField implements JsonSerializable
 {
     /**
+     * @Groups({"PROPERTIES_FOR_FILTER"})
      * @var string
      */
     protected static $name = 'abstract_field';

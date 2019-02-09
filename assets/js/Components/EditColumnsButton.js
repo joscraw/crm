@@ -7,13 +7,12 @@ import EditColumnsModal from "./EditColumnsModal";
 
 class EditColumnsButton {
 
-    constructor($wrapper, globalEventDispatcher, portal, customObject, customObjectLabel) {
-        debugger;
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName) {
+
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
-        this.customObject = customObject;
-        this.customObjectLabel = customObjectLabel;
-        this.portal = portal;
+        this.portalInternalIdentifier = portalInternalIdentifier;
+        this.customObjectInternalName = customObjectInternalName;
 
         this.$wrapper.on(
             'click',
@@ -28,17 +27,14 @@ class EditColumnsButton {
         console.log("Edit Columns Button Clicked");
         this.globalEventDispatcher.publish(Settings.Events.EDIT_COLUMNS_BUTTON_CLICKED);
         console.log(`Event Dispatched: ${Settings.Events.EDIT_COLUMNS_BUTTON_CLICKED}`);
-        new EditColumnsModal(this.globalEventDispatcher, this.portal, this.customObject, this.customObjectLabel);
+        new EditColumnsModal(this.globalEventDispatcher,  this.portalInternalIdentifier, this.customObjectInternalName);
     }
 
     render() {
-        debugger;
         this.$wrapper.html(EditColumnsButton.markup(this));
     }
 
     static markup() {
-
-        debugger;
 
         return `
       <button type="button" class="dropdown-item js-edit-columns-button">Edit Columns</button>

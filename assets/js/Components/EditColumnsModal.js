@@ -9,27 +9,26 @@ class EditColumnsModal {
 
     /**
      * @param globalEventDispatcher
-     * @param portal
-     * @param customObject
-     * @param customObjectLabel
+     * @param portalInternalIdentifier
+     * @param customObjectInternalName
      */
-    constructor(globalEventDispatcher, portal, customObject, customObjectLabel) {
+    constructor(globalEventDispatcher,  portalInternalIdentifier, customObjectInternalName) {
         this.globalEventDispatcher = globalEventDispatcher;
-        this.portal = portal;
-        this.customObject = customObject;
-        this.customObjectLabel = customObjectLabel;
+        this.portalInternalIdentifier = portalInternalIdentifier;
+        this.customObjectInternalName = customObjectInternalName;
+
         this.render();
     }
 
     render() {
         swal({
-            title: `Edit ${this.customObjectLabel} table columns`,
+            title: `Edit table columns`,
             showConfirmButton: false,
             html: EditColumnsModal.markup(),
             customClass: "swal2-modal--left-align swal2-modal--swal-wide"
         });
 
-        new ColumnsForm($('#js-edit-columns-modal'), this.globalEventDispatcher, this.customObject, this.customObjectLabel, this.portal);
+        new ColumnsForm($('#js-edit-columns-modal'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);
     }
 
     static markup() {

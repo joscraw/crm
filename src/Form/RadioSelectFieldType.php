@@ -30,7 +30,7 @@ class RadioSelectFieldType extends AbstractType
                 'allow_add' => true,
                 'prototype' => true,
                 'prototype_name' => '__prototype_one__',
-                'label' => false
+                'label' => false,
             ));
     }
 

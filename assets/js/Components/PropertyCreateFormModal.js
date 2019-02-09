@@ -8,13 +8,13 @@ class PropertyCreateFormModal {
 
     /**
      * @param globalEventDispatcher
-     * @param portal
-     * @param customObject
+     * @param portalInternalIdentifier
+     * @param customObjectInternalName
      */
-    constructor(globalEventDispatcher, portal, customObject) {
-        this.portal = portal;
-        this.customObject = customObject;
+    constructor(globalEventDispatcher, portalInternalIdentifier, customObjectInternalName) {
         this.globalEventDispatcher = globalEventDispatcher;
+        this.portalInternalIdentifier = portalInternalIdentifier;
+        this.customObjectInternalName = customObjectInternalName;
         this.render();
     }
 
@@ -26,7 +26,6 @@ class PropertyCreateFormModal {
     }
 
     render() {
-        debugger;
         swal({
             title: 'Create Property',
             showConfirmButton: false,
@@ -34,7 +33,7 @@ class PropertyCreateFormModal {
             html: PropertyCreateFormModal.markup()
         });
 
-        new PropertyCreateForm($('#js-create-property-modal-container'), this.globalEventDispatcher, this.portal, this.customObject);
+        new PropertyCreateForm($('#js-create-property-modal-container'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);
     }
 
     static markup() {
