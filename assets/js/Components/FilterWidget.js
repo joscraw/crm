@@ -166,7 +166,7 @@ class FilterWidget {
     handleCustomObjectPropertyListItemClicked(property) {
 
         debugger;
-        this.customFilterJoins.push(property);
+        this.customFilters.push(property);
         new FilterList(this.$wrapper.find('.js-property-list'), this.globalEventDispatcher, this.portalInternalIdentifier, property.field.customObject.internalName, property);
     }
 
