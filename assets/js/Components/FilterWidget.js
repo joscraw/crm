@@ -17,6 +17,8 @@ import EditDatePickerFieldFilterForm from "./EditDatePickerFieldFilterForm";
 import EditSingleCheckboxFieldFilterForm from "./EditSingleCheckboxFieldFilterForm";
 import DropdownSelectFieldFilterForm from "./DropdownSelectFieldFilterForm";
 import EditDropdownSelectFieldFilterForm from "./EditDropdownSelectFieldFilterForm";
+import MultilpleCheckboxFieldFilterForm from "./MultilpleCheckboxFieldFilterForm";
+import EditMultipleCheckboxFieldFilterForm from "./EditMultipleCheckboxFieldFilterForm";
 
 class FilterWidget {
 
@@ -136,6 +138,9 @@ class FilterWidget {
             case 'dropdown_select_field':
                 new DropdownSelectFieldFilterForm($(FilterWidget._selectors.propertyForm), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, property);
                 break;
+            case 'multiple_checkbox_field':
+                new MultilpleCheckboxFieldFilterForm($(FilterWidget._selectors.propertyForm), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, property);
+                break;
         }
 
     }
@@ -162,6 +167,9 @@ class FilterWidget {
                 break;
             case 'dropdown_select_field':
                 new EditDropdownSelectFieldFilterForm($(FilterWidget._selectors.editPropertyForm), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, customFilter);
+                break;
+            case 'multiple_checkbox_field':
+                new EditMultipleCheckboxFieldFilterForm($(FilterWidget._selectors.editPropertyForm), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, customFilter);
                 break;
         }
     }

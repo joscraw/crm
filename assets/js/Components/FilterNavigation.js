@@ -230,6 +230,7 @@ class FilterNavigation {
                     }
                     break;
                 case 'dropdown_select_field':
+                case 'multiple_checkbox_field':
                     debugger;
                     switch(customFilter['operator']) {
                         case 'IN':

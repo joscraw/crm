@@ -4,38 +4,39 @@ import Settings from '../Settings';
 import RecordFormModal from './RecordFormModal';
 import $ from "jquery";
 
-class EditDropdownSelectFieldFilterForm {
+class MultilpleCheckboxFieldFilterForm {
 
-    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, customFilter) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, property) {
         debugger;
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
         this.customObjectInternalName = customObjectInternalName;
-        this.customFilter = customFilter;
+        this.property = property;
 
         this.unbindEvents();
 
         this.$wrapper.on(
             'click',
-            EditDropdownSelectFieldFilterForm._selectors.radioButton,
+            MultilpleCheckboxFieldFilterForm._selectors.radioButton,
             this.handleOperatorRadioButtonClicked.bind(this)
         );
 
         this.$wrapper.on(
             'submit',
-            EditDropdownSelectFieldFilterForm._selectors.applyFilterForm,
+            MultilpleCheckboxFieldFilterForm._selectors.applyFilterForm,
             this.handleNewFilterFormSubmit.bind(this)
         );
 
         this.$wrapper.on(
             'click',
-            EditDropdownSelectFieldFilterForm._selectors.backToListButton,
+            MultilpleCheckboxFieldFilterForm._selectors.backToListButton,
             this.handleBackButtonClicked.bind(this)
         );
 
         this.render();
-       /* this.$wrapper.find('.js-radio-button').first().click();*/
+        this.activatePlugins();
+        this.$wrapper.find('.js-radio-button').first().click();
     }
 
     /**
@@ -52,17 +53,18 @@ class EditDropdownSelectFieldFilterForm {
     activatePlugins() {
 
         let options = [];
-        for(let i = 0; i < this.customFilter.field.options.length; i++) {
-            let option = this.customFilter.field.options[i];
+        for(let i = 0; i < this.property.field.options.length; i++) {
+            let option = this.property.field.options[i];
             options.push({value: option.label, name: option.label});
         }
 
-        this.s = $('.js-edit-selectize-multiple-select').selectize({
+        debugger;
+        $('.js-selectize-multiple-select').selectize({
             plugins: ['remove_button'],
             valueField: 'value',
             labelField: 'name',
             searchField: ['name'],
-            options: options
+            options: options,
         });
     }
 
@@ -73,7 +75,7 @@ class EditDropdownSelectFieldFilterForm {
     unbindEvents() {
         this.$wrapper.off('submit', '#js-apply-filter-form');
         this.$wrapper.off('click', '.js-radio-button');
-        this.$wrapper.off('click', EditDropdownSelectFieldFilterForm._selectors.backToListButton);
+        this.$wrapper.off('click', MultilpleCheckboxFieldFilterForm._selectors.backToListButton);
     }
 
     handleBackButtonClicked() {
@@ -81,32 +83,12 @@ class EditDropdownSelectFieldFilterForm {
     }
 
     render() {
-        debugger;
-        this.$wrapper.html(EditDropdownSelectFieldFilterForm.markup(this));
-        this.setRadioOption();
+        this.$wrapper.html(MultilpleCheckboxFieldFilterForm.markup(this));
     }
-
-    setRadioOption() {
-
-        debugger;
-        this.$wrapper.find('.js-radio-button').each((index, element) => {
-
-            debugger;
-            let value = $(element).val();
-            if(this.customFilter.operator === value) {
-
-                $(element).click();
-
-                let values = this.customFilter.value.split(",");
-                this.s.selectize()[0].selectize.setValue(values);
-            }
-        });
-    }
-
-
 
     handleNewFilterFormSubmit(e) {
 
+        debugger;
         if(e.cancelable) {
             e.preventDefault();
         }
@@ -119,11 +101,10 @@ class EditDropdownSelectFieldFilterForm {
         }
 
         // add the field to the form
-        formData['field'] = this.customFilter.field;
+        formData['field'] = this.property.field;
 
         this.globalEventDispatcher.publish(Settings.Events.APPLY_CUSTOM_FILTER_BUTTON_PRESSED, formData);
         console.log(`Event Dispatched: ${Settings.Events.APPLY_CUSTOM_FILTER_BUTTON_PRESSED}`);
-
     }
 
     handleOperatorRadioButtonClicked(e) {
@@ -136,44 +117,43 @@ class EditDropdownSelectFieldFilterForm {
             const html = textFieldTemplate();
             const $textField = $($.parseHTML(html));
             $radioButton.closest('div').after($textField);
-
-            this.activatePlugins();
         }
 
+        this.activatePlugins();
     }
 
-    static markup({customFilter}) {
+    static markup({property}) {
 
         return `
         <button type="button" class="btn btn-link js-back-to-list-button"><i class="fa fa-chevron-left"></i> Back</button>
-        <p><small>${customFilter.label}*</small></p>
+        <p><small>${property.label}*</small></p>
         <form name="filter" id="js-apply-filter-form" novalidate="novalidate">
-            <input type="hidden" name="property" value="${customFilter.property}">
-            <input type="hidden" name="fieldType" value="${customFilter.fieldType}">
-            <input type="hidden" name="label" value="${customFilter.label}">
-            <input type="hidden" name="id" value="${customFilter.id}">
+            <input type="hidden" name="property" value="${property.internalName}">
+            <input type="hidden" name="fieldType" value="${property.fieldType}">
+            <input type="hidden" name="label" value="${property.label}">
+            <input type="hidden" name="id" value="${property.id}">
             <div style="height: 200px; overflow-y: auto">
                 <div class="form-check">
-                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="editOperator1" value="IN" checked data-has-text-input="true">
-                    <label class="form-check-label" for="editOperator1">
+                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator1" value="IN" checked data-has-text-input="true">
+                    <label class="form-check-label" for="operator1">
                      <p>is any of</p>
                     </label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="editOperator2" value="NOT_IN" data-has-text-input="true">
-                    <label class="form-check-label" for="editOperator2">
+                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator2" value="NOT_IN" data-has-text-input="true">
+                    <label class="form-check-label" for="operator2">
                     <p>is none of</p>
                     </label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="editOperator3" value="HAS_PROPERTY">
-                    <label class="form-check-label" for="editOperator3">
+                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator3" value="HAS_PROPERTY">
+                    <label class="form-check-label" for="operator3">
                     <p>is known</p>
                     </label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="editOperator4" value="NOT_HAS_PROPERTY">
-                    <label class="form-check-label" for="editOperator4">
+                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator4" value="NOT_HAS_PROPERTY">
+                    <label class="form-check-label" for="operator4">
                     <p>is unknown</p>
                     </label>
                 </div>
@@ -187,9 +167,9 @@ class EditDropdownSelectFieldFilterForm {
 
 const textFieldTemplate = () => `
   <div class="form-group js-operator-value">
-    <input type="text" name="value" class="form-control js-edit-selectize-multiple-select">
+    <input type="text" name="value" class="form-control js-selectize-multiple-select">
   </div>
     
 `;
 
-export default EditDropdownSelectFieldFilterForm;
+export default MultilpleCheckboxFieldFilterForm;

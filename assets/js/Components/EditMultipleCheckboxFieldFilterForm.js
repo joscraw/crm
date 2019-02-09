@@ -4,7 +4,7 @@ import Settings from '../Settings';
 import RecordFormModal from './RecordFormModal';
 import $ from "jquery";
 
-class EditDropdownSelectFieldFilterForm {
+class EditMultipleCheckboxFieldFilterForm {
 
     constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, customFilter) {
         debugger;
@@ -18,19 +18,19 @@ class EditDropdownSelectFieldFilterForm {
 
         this.$wrapper.on(
             'click',
-            EditDropdownSelectFieldFilterForm._selectors.radioButton,
+            EditMultipleCheckboxFieldFilterForm._selectors.radioButton,
             this.handleOperatorRadioButtonClicked.bind(this)
         );
 
         this.$wrapper.on(
             'submit',
-            EditDropdownSelectFieldFilterForm._selectors.applyFilterForm,
+            EditMultipleCheckboxFieldFilterForm._selectors.applyFilterForm,
             this.handleNewFilterFormSubmit.bind(this)
         );
 
         this.$wrapper.on(
             'click',
-            EditDropdownSelectFieldFilterForm._selectors.backToListButton,
+            EditMultipleCheckboxFieldFilterForm._selectors.backToListButton,
             this.handleBackButtonClicked.bind(this)
         );
 
@@ -51,12 +51,14 @@ class EditDropdownSelectFieldFilterForm {
 
     activatePlugins() {
 
+        debugger;
         let options = [];
         for(let i = 0; i < this.customFilter.field.options.length; i++) {
             let option = this.customFilter.field.options[i];
             options.push({value: option.label, name: option.label});
         }
 
+        debugger;
         this.s = $('.js-edit-selectize-multiple-select').selectize({
             plugins: ['remove_button'],
             valueField: 'value',
@@ -73,7 +75,7 @@ class EditDropdownSelectFieldFilterForm {
     unbindEvents() {
         this.$wrapper.off('submit', '#js-apply-filter-form');
         this.$wrapper.off('click', '.js-radio-button');
-        this.$wrapper.off('click', EditDropdownSelectFieldFilterForm._selectors.backToListButton);
+        this.$wrapper.off('click', EditMultipleCheckboxFieldFilterForm._selectors.backToListButton);
     }
 
     handleBackButtonClicked() {
@@ -82,7 +84,7 @@ class EditDropdownSelectFieldFilterForm {
 
     render() {
         debugger;
-        this.$wrapper.html(EditDropdownSelectFieldFilterForm.markup(this));
+        this.$wrapper.html(EditMultipleCheckboxFieldFilterForm.markup(this));
         this.setRadioOption();
     }
 
@@ -137,7 +139,7 @@ class EditDropdownSelectFieldFilterForm {
             const $textField = $($.parseHTML(html));
             $radioButton.closest('div').after($textField);
 
-            this.activatePlugins();
+             this.activatePlugins();
         }
 
     }
@@ -192,4 +194,4 @@ const textFieldTemplate = () => `
     
 `;
 
-export default EditDropdownSelectFieldFilterForm;
+export default EditMultipleCheckboxFieldFilterForm;

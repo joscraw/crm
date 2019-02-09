@@ -450,6 +450,53 @@ class RecordRepository extends ServiceEntityRepository
 
                     }
                     break;
+                case 'multiple_checkbox_field':
+
+                    switch($customFilter['operator']) {
+                        case 'IN':
+
+                            if(trim($customFilter['value']) === '') {
+                                $query .= sprintf(' and IF(properties->>\'$.%s\' IS NOT NULL, LOWER(properties->>\'$.%s\'), null) = \'\'', $customFilter['property'], $customFilter['property']);
+                            } else {
+                                $values = explode(',', $customFilter['value']);
+
+                                $conditions = [];
+                                foreach($values as $value) {
+                                    $conditions[] = sprintf(' JSON_SEARCH(IF(properties->>\'$.%s\' IS NOT NULL, LOWER(properties->>\'$.%s\'), \'[]\'), \'one\', \'%s\') IS NOT NULL', $customFilter['property'], $customFilter['property'], $value);
+                                }
+
+                                $query .= ' and' . implode(" OR ", $conditions);
+                            }
+
+                            break;
+                        case 'NOT_IN':
+
+                            if(trim($customFilter['value']) === '') {
+                                $query .= sprintf(' and IF(properties->>\'$.%s\' IS NOT NULL, LOWER(properties->>\'$.%s\'), null) = \'\'', $customFilter['property'], $customFilter['property']);
+                            } else {
+                                $values = explode(',', $customFilter['value']);
+
+                                $conditions = [];
+                                foreach($values as $value) {
+                                    $conditions[] = sprintf(' JSON_SEARCH(IF(properties->>\'$.%s\' IS NOT NULL, LOWER(properties->>\'$.%s\'), \'[]\'), \'one\', \'%s\') IS NULL', $customFilter['property'], $customFilter['property'], $value);
+                                }
+
+                                $query .= ' and' . implode(" AND ", $conditions);
+                            }
+
+                            break;
+                        case 'HAS_PROPERTY':
+
+                            $query .= sprintf(' and (properties->>\'$.%s\') is not null', $customFilter['property']);
+
+                            break;
+                        case 'NOT_HAS_PROPERTY':
+
+                            $query .= sprintf(' and (properties->>\'$.%s\') is null', $customFilter['property']);
+
+                            break;
+                    }
+                    break;
             }
         }
 
