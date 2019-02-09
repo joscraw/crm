@@ -36,8 +36,8 @@ class FilterNavigation {
         );
 
         this.globalEventDispatcher.subscribe(
-            Settings.Events.APPLY_CUSTOM_FILTER_BUTTON_PRESSED,
-            this.applyCustomFilterButtonPressedHandler.bind(this)
+            Settings.Events.FILTERS_UPDATED,
+            this.customFiltersUpdatedHandler.bind(this)
         );
 
         this.render();
@@ -54,6 +54,14 @@ class FilterNavigation {
         }
     }
 
+    customFiltersUpdatedHandler(customFilters) {
+
+        debugger;
+
+        this.customFilters = customFilters;
+        this.activatePlugins();
+    }
+
     /**
      * Because this component can keep getting run each time a filter is added
      * you need to remove the handlers otherwise they will keep stacking up
@@ -63,31 +71,14 @@ class FilterNavigation {
         this.$wrapper.off('click', FilterNavigation._selectors.allRecordsButton);
     }
 
-    applyCustomFilterButtonPressedHandler(customFilter) {
-
-        debugger;
-        this.customFilters = $.grep(this.customFilters, function(cf){
-            return cf.id !== customFilter.id;
-        });
-
-        this.customFilters.push(customFilter);
-
-        this.globalEventDispatcher.publish(Settings.Events.CUSTOM_FILTER_ADDED, this.customFilters);
-
-        this.activatePlugins();
-    }
-
     handleAllRecordsButtonClicked(e) {
 
         if(e.cancelable) {
             e.preventDefault();
         }
 
-        this.customFilters = [];
+        this.globalEventDispatcher.publish(Settings.Events.FILTER_ALL_RECORDS_BUTTON_PRESSED);
 
-        this.globalEventDispatcher.publish(Settings.Events.CUSTOM_FILTER_ADDED, this.customFilters);
-
-        this.activatePlugins();
     }
 
     activatePlugins() {
@@ -101,9 +92,8 @@ class FilterNavigation {
         this.$selectedProperties.selectize()[0].selectize.off('item_remove');
 
         this.$selectedProperties.selectize()[0].selectize.on('item_remove', (key) => {
-            debugger;
-            this.customFilters.splice(key, 1);
-            this.globalEventDispatcher.publish(Settings.Events.CUSTOM_FILTER_REMOVED, this.customFilters);
+
+            this.globalEventDispatcher.publish(Settings.Events.CUSTOM_FILTER_REMOVED, key);
 
         });
 

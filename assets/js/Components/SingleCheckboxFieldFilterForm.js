@@ -95,9 +95,9 @@ class SingleCheckboxFieldFilterForm {
             formData[fieldData.name] = fieldData.value
         }
 
-        debugger;
+        const customFilter = {...this.property, ...formData};
 
-        this.globalEventDispatcher.publish(Settings.Events.APPLY_CUSTOM_FILTER_BUTTON_PRESSED, formData);
+        this.globalEventDispatcher.publish(Settings.Events.APPLY_CUSTOM_FILTER_BUTTON_PRESSED, customFilter);
         console.log(`Event Dispatched: ${Settings.Events.APPLY_CUSTOM_FILTER_BUTTON_PRESSED}`);
 
     }
@@ -122,10 +122,6 @@ class SingleCheckboxFieldFilterForm {
         <button type="button" class="btn btn-link js-back-to-list-button"><i class="fa fa-chevron-left"></i> Back</button>
         <p><small>${property.label}*</small></p>
         <form name="filter" id="js-apply-filter-form" novalidate="novalidate">
-            <input type="hidden" name="property" value="${property.internalName}">
-            <input type="hidden" name="fieldType" value="${property.fieldType}">
-            <input type="hidden" name="label" value="${property.label}">
-            <input type="hidden" name="id" value="${property.id}">
             <div style="height: 200px; overflow-y: auto">
                 <div class="form-check">
                     <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator1" value="IN" checked data-has-text-input="true">

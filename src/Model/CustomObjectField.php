@@ -14,7 +14,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 class CustomObjectField extends AbstractField /*implements \JsonSerializable*/
 {
     /**
-     * @Groups({"PROPERTY_FIELD_NORMALIZER"})
+     * @Groups({"PROPERTY_FIELD_NORMALIZER", "PROPERTIES_FOR_FILTER"})
      * @var string
      */
     protected static $name = FieldCatalog::CUSTOM_OBJECT;
@@ -26,7 +26,7 @@ class CustomObjectField extends AbstractField /*implements \JsonSerializable*/
     protected static $description = 'Custom object field';
 
     /**
-     * @Groups({"PROPERTY_FIELD_NORMALIZER"})
+     * @Groups({"PROPERTY_FIELD_NORMALIZER", "PROPERTIES_FOR_FILTER"})
      * @var CustomObject
      */
     protected $customObject;

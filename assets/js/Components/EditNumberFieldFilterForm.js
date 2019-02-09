@@ -97,10 +97,9 @@ class EditNumberFieldFilterForm {
             formData[fieldData.name] = fieldData.value
         }
 
-        // add the field to the form
-        formData['field'] = this.customFilter.field;
+        const customFilter = {...this.customFilter, ...formData};
 
-        this.globalEventDispatcher.publish(Settings.Events.APPLY_CUSTOM_FILTER_BUTTON_PRESSED, formData);
+        this.globalEventDispatcher.publish(Settings.Events.APPLY_CUSTOM_FILTER_BUTTON_PRESSED, customFilter);
         console.log(`Event Dispatched: ${Settings.Events.APPLY_CUSTOM_FILTER_BUTTON_PRESSED}`);
 
     }
@@ -126,13 +125,7 @@ class EditNumberFieldFilterForm {
         return `
         <button type="button" class="btn btn-link js-back-to-list-button"><i class="fa fa-chevron-left"></i> Back</button>
         <p><small>${customFilter.label}*</small></p>
-        <form name="filter" id="js-apply-filter-form" novalidate="novalidate">
-            <input type="hidden" name="property" value="${customFilter.property}">
-            <input type="hidden" name="fieldType" value="${customFilter.fieldType}">
-            <input type="hidden" name="label" value="${customFilter.label}">
-            <input type="hidden" name="id" value="${customFilter.id}">
-            <input type="hidden" name="numberType" value="${customFilter.field.type}">
-            
+        <form name="filter" id="js-apply-filter-form" novalidate="novalidate">            
             <div style="height: 200px; overflow-y: auto">
                 <div class="form-check">
                     <input class="form-check-input js-radio-button" type="radio" name="operator" id="editOperator1" value="EQ" checked data-has-text-input="true">

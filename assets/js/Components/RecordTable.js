@@ -42,13 +42,8 @@ class RecordTable {
         );
 
         this.globalEventDispatcher.subscribe(
-            Settings.Events.CUSTOM_FILTER_ADDED,
-            this.customFilterAddedHandler.bind(this)
-        );
-
-        this.globalEventDispatcher.subscribe(
-            Settings.Events.CUSTOM_FILTER_REMOVED,
-            this.customFilterRemovedHandler.bind(this)
+            Settings.Events.FILTERS_UPDATED,
+            this.customFiltersUpdatedHandler.bind(this)
         );
 
         this.render();
@@ -58,17 +53,11 @@ class RecordTable {
         }).catch(() => {});
     }
 
-    customFilterAddedHandler(customFilters) {
-        debugger;
-        this.customFilters = customFilters;
-        this.reloadTable();
-        debugger;
-    }
+    customFiltersUpdatedHandler(customFilters) {
 
-    customFilterRemovedHandler(customFilters) {
-        debugger;
         this.customFilters = customFilters;
         this.reloadTable();
+
     }
 
     activatePlugins(columns) {

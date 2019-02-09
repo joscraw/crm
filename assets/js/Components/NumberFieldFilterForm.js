@@ -83,10 +83,9 @@ class NumberFieldFilterForm {
 
         debugger;
 
-        // add the field to the form
-        formData['field'] = this.property.field;
+        const customFilter = {...this.property, ...formData};
 
-        this.globalEventDispatcher.publish(Settings.Events.APPLY_CUSTOM_FILTER_BUTTON_PRESSED, formData);
+        this.globalEventDispatcher.publish(Settings.Events.APPLY_CUSTOM_FILTER_BUTTON_PRESSED, customFilter);
         console.log(`Event Dispatched: ${Settings.Events.APPLY_CUSTOM_FILTER_BUTTON_PRESSED}`);
 
     }
@@ -113,11 +112,6 @@ class NumberFieldFilterForm {
         <button type="button" class="btn btn-link js-back-to-list-button"><i class="fa fa-chevron-left"></i> Back</button>
         <p><small>${property.label}*</small></p>
         <form name="filter" id="js-apply-filter-form" novalidate="novalidate">
-            <input type="hidden" name="property" value="${property.internalName}">
-            <input type="hidden" name="fieldType" value="${property.fieldType}">
-            <input type="hidden" name="label" value="${property.label}">
-            <input type="hidden" name="id" value="${property.id}">
-            <input type="hidden" name="numberType" value="${property.field.type}">
             
             <div style="height: 200px; overflow-y: auto">
                 <div class="form-check">

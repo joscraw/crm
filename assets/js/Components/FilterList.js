@@ -9,7 +9,7 @@ import SingleLineTextFieldFilterForm from "./SingleLineTextFieldFilterForm";
 
 class FilterList {
 
-    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, customFilterJoin = null) {
         debugger;
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
@@ -17,7 +17,7 @@ class FilterList {
         this.customObjectInternalName = customObjectInternalName;
         this.propertyGroups = [];
         this.lists = [];
-        this.customFilters = [];
+        this.customFilterJoin = customFilterJoin;
 
         this.unbindEvents();
 
@@ -173,6 +173,7 @@ class FilterList {
 
     handlePropertyListItemClicked(e) {
 
+        debugger;
         if(e.cancelable) {
             e.preventDefault();
         }
@@ -192,7 +193,17 @@ class FilterList {
             return parseInt(property.id) === parseInt(propertyId);
         });
 
-        this.globalEventDispatcher.publish(Settings.Events.FILTER_PROPERTY_LIST_ITEM_CLICKED, property[0]);
+        if(property[0].fieldType === 'custom_object_field') {
+            this.globalEventDispatcher.publish(Settings.Events.FILTER_CUSTOM_OBJECT_PROPERTY_LIST_ITEM_CLICKED, property[0]);
+        } else {
+
+            debugger;
+            if(this.customFilterJoin) {
+                property[0].customFilterJoin = this.customFilterJoin.id;
+            }
+
+            this.globalEventDispatcher.publish(Settings.Events.FILTER_PROPERTY_LIST_ITEM_CLICKED, property[0]);
+        }
     }
 
     static markup() {
