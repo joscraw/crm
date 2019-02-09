@@ -1,0 +1,29 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Routing Settings!{% endblock %}
+
+{#
+{% block containerComponent %}js-property-settings{% endblock %}
+{% block containerComponentAttributes %}data-custom-object="{{ customObject.id }}" data-portal="{{ portal.internalIdentifier }}"{% endblock %}
+#}
+
+
+{% block body %}
+
+   <a href="9874561920/properties/search">Search</a>
+    <a href="9874561920/properties/contact">Contact</a>
+    {#<a href="search/properties">Properties</a>#}
+    {#{{ parent() }}#}
+    {# <link href="{{ asset('build/routing_settings.css') }}" rel="stylesheet" />#}
+{% endblock %}
+
+
+{% block stylesheets %}
+    {#{{ parent() }}#}
+   {# <link href="{{ asset('build/routing_settings.css') }}" rel="stylesheet" />#}
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('build/routing_settings.js') }}"></script>
+{% endblock %}

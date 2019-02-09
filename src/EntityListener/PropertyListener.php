@@ -7,7 +7,6 @@ use App\Entity\Property;
 use App\Model\AbstractField;
 use App\Model\CustomObjectField;
 use App\Repository\PropertyRepository;
-use App\Serializer\FieldNormalizer;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Event\LifecycleEventArgs;
 use Doctrine\ORM\Event\PreUpdateEventArgs;
@@ -53,8 +52,9 @@ class PropertyListener
      */
     private function serializePropertyField(Property $property)
     {
-        /*$propertyField = $property->getField();
-        $property->setField($this->serializer->serialize($propertyField, 'json'));*/
+        $propertyField = $property->getField();
+        $data = $this->serializer->serialize($propertyField, 'json');
+        $property->setField(json_decode($data, true));
     }
 
     /**
@@ -103,6 +103,29 @@ class PropertyListener
         }
     }
 
+    /**
+     * Set the first 5 properties to be default properties to display in the create record modal
+     * that way the modal is not empty
+     * @param Property $property
+     */
+    private function setWhetherOrNotIsDefaultProperty(Property $property) {
+
+        $defaultPropertyCount = $this->entityManager->getRepository(Property::class)->getCountWherePropertyIsDefaultProperty($property->getCustomObject());
+        $defaultPropertyCount = (int) $defaultPropertyCount[0]['count'];
+
+        $highestDefaultPropertyOrder = $this->entityManager->getRepository(Property::class)->getHighestDefaultPropertyOrder($property->getCustomObject());
+        if($defaultPropertyCount <= 5) {
+            $property->setIsDefaultProperty(true);
+
+            if($highestDefaultPropertyOrder[0]['default_property_order'] === null) {
+                $property->setDefaultPropertyOrder(0);
+            } else {
+                $highestProperty = (int) $highestDefaultPropertyOrder[0]['default_property_order'];
+                $property->setDefaultPropertyOrder(++$highestProperty);
+            }
+        }
+    }
+
     private function setColumnOrder(Property $property) {
 
         $properties = $this->entityManager->getRepository(Property::class)->findBy([
@@ -111,6 +134,18 @@ class PropertyListener
 
         if(count($properties) <= 5) {
             $property->setIsColumn(true);
+        }
+
+    }
+
+    private function setDefaultPropertyOrder(Property $property) {
+
+        $properties = $this->entityManager->getRepository(Property::class)->findBy([
+            'isDefaultProperty' => true
+        ]);
+
+        if(count($properties) <= 5) {
+            $property->setIsDefaultProperty(true);
         }
 
     }
@@ -125,7 +160,9 @@ class PropertyListener
     {
         $this->serializePropertyField($property);
         $this->setWhetherOrNotIsColumn($property);
-        $this->setColumnOrder($property);
+        /*$this->setColumnOrder($property);*/
+        $this->setWhetherOrNotIsDefaultProperty($property);
+        /*$this->setDefaultPropertyOrder($property);*/
     }
 
     /**
@@ -137,5 +174,16 @@ class PropertyListener
     public function postLoad(Property $property, LifecycleEventArgs $args)
     {
         $this->deserializePropertyField($property);
+    }
+
+    /**
+     * Serialize the content again if it gets updated
+     *
+     * @param Property $property
+     * @param LifecycleEventArgs $args
+     */
+    public function preUpdate(Property $property, LifecycleEventArgs $args)
+    {
+        $this->serializePropertyField($property);
     }
 }

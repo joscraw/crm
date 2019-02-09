@@ -68,7 +68,7 @@ class PropertyGroupRepository extends ServiceEntityRepository
      * @param CustomObject $customObject
      * @return mixed
      */
-    public function getDataTableData(CustomObject $customObject)
+    public function getPropertyGroupsAndProperties(CustomObject $customObject)
     {
 
         return $this->createQueryBuilder('propertyGroup')
@@ -92,5 +92,57 @@ class PropertyGroupRepository extends ServiceEntityRepository
             ->setParameter('customObject', $customObject->getId())
             ->getQuery()
             ->getResult();
+    }
+
+    /**
+     * @param CustomObject $customObject
+     * @return mixed
+     */
+    public function getDefaultPropertyData(CustomObject $customObject)
+    {
+
+        return $this->createQueryBuilder('propertyGroup')
+            ->leftJoin('propertyGroup.properties', 'properties')
+            ->where('propertyGroup.customObject = :customObject')
+            ->setParameter('customObject', $customObject->getId())
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * @param $name
+     * @param CustomObject $customObject
+     * @return mixed
+     */
+    public function findByNameAndCustomObject($name, CustomObject $customObject)
+    {
+        return $this->createQueryBuilder('propertyGroup')
+            ->where('propertyGroup.name = :name')
+            ->andWhere('propertyGroup.customObject = :customObject')
+            ->setParameter('name', $name)
+            ->setParameter('customObject', $customObject->getId())
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * @param $internalName
+     * @param $portalInternalIdentifier
+     * @return mixed
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     */
+    public function findByInternalNameAndPortalInternalIdentifierAndCustomObjectInternalName($internalName, $portalInternalIdentifier, $customObjectInternalName)
+    {
+        return $this->createQueryBuilder('propertyGroup')
+            ->join('propertyGroup.customObject', 'customObject')
+            ->join('customObject.portal', 'portal')
+            ->where('propertyGroup.internalName = :internalName')
+            ->andWhere('portal.internalIdentifier = :internalIdentifier')
+            ->andWhere('customObject.internalName = :customObjectInternalName')
+            ->setParameter('internalName', $internalName)
+            ->setParameter('internalIdentifier', $portalInternalIdentifier)
+            ->setParameter('customObjectInternalName', $customObjectInternalName)
+            ->getQuery()
+            ->getOneOrNullResult();
     }
 }

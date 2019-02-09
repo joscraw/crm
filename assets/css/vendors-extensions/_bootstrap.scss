@@ -1,0 +1,18 @@
+// -----------------------------------------------------------------------------
+// This file contains all styles related to overriding bootstrap styles
+// -----------------------------------------------------------------------------
+
+
+.card {
+  box-shadow: 0 1px 5px 0 rgba(45,62,80,.12);
+
+  h2 {
+    text-align: center;
+  }
+
+}
+
+
+.btn--full-width {
+  width: 100%;
+}

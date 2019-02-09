@@ -33,8 +33,6 @@ class PropertyType extends AbstractType
      */
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
-        /** @var Portal $portal */
-        $portal = $options['portal'];
         /** @var CustomObject $customObject */
         $customObject = $options['customObject'];
 
@@ -69,7 +67,6 @@ class PropertyType extends AbstractType
             ->add('propertyGroup', EntityType::class, array(
                 'required' => true,
                 'placeholder' => false,
-                // looks for choices from this entity
                 'class' => PropertyGroup::class,
                 'query_builder' => function (EntityRepository $er) use ($customObject) {
                     return $er->createQueryBuilder('propertyGroup')
@@ -78,13 +75,7 @@ class PropertyType extends AbstractType
                         ->setParameter('customObject', $customObject)
                         ->orderBy('customObject.label', 'ASC');
                 },
-
-                // uses the User.username property as the visible option string
                 'choice_label' => 'name',
-
-                // used to render a select box, check boxes or radios
-                // 'multiple' => true,
-                // 'expanded' => true,
         ));
 
         $builder->get('fieldType')->addEventListener(FormEvents::POST_SUBMIT, [$this, 'fieldModifier']);
@@ -108,7 +99,6 @@ class PropertyType extends AbstractType
         $options = [
             'auto_initialize' => false,
             'label' => false,
-            'help' => 'this is a help message',
         ];
 
         switch($data) {
@@ -170,6 +160,7 @@ class PropertyType extends AbstractType
     {
         $resolver->setDefaults(array(
             'data_class' => Property::class,
+            'validation_groups' => ['CREATE'],
         ));
 
         $resolver->setRequired([

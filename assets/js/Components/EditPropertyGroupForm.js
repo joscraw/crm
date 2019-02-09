@@ -10,20 +10,18 @@ class EditPropertyGroupForm {
     /**
      * @param $wrapper
      * @param globalEventDispatcher
-     * @param portal
-     * @param propertyGroupId
+     * @param portalInternalIdentifier
+     * @param customObjectInternalName
+     * @param propertyGroupInternalName
      */
-    constructor($wrapper, globalEventDispatcher, portal, propertyGroupId) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, propertyGroupInternalName) {
 
         debugger;
         this.$wrapper = $wrapper;
-        this.portal = portal;
-        this.propertyGroupId = propertyGroupId;
-
-        /**
-         * @type {EventDispatcher}
-         */
         this.globalEventDispatcher = globalEventDispatcher;
+        this.portalInternalIdentifier = portalInternalIdentifier;
+        this.customObjectInternalName = customObjectInternalName;
+        this.propertyGroupInternalName= propertyGroupInternalName;
 
         this.$wrapper.on(
             'submit',
@@ -44,11 +42,17 @@ class EditPropertyGroupForm {
 
     loadEditPropertyGroupForm() {
         debugger;
+        const url = Routing.generate('edit_property_group_form', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName, propertyGroupInternalName: this.propertyGroupInternalName});
+        debugger;
         $.ajax({
-            url: Routing.generate('edit_property_group_form', {internalIdentifier: this.portal, propertyGroup: this.propertyGroupId}),
+            url: url
         }).then(data => {
+            debugger;
             this.$wrapper.html(data.formMarkup);
-        })
+        }).catch((errorData) => {
+
+            debugger;
+        });
     }
 
     /**
@@ -60,10 +64,8 @@ class EditPropertyGroupForm {
             e.preventDefault();
         }
 
-        debugger;
         const $form = $(e.currentTarget);
         let formData = new FormData($form.get(0));
-        formData.append('custom_object_id', this.customObject);
 
         this._savePropertyGroupObject(formData)
             .then((data) => {
@@ -71,6 +73,7 @@ class EditPropertyGroupForm {
                 this.globalEventDispatcher.publish(Settings.Events.PROPERTY_GROUP_EDITED);
             }).catch((errorData) => {
 
+                debugger;
             this.$wrapper.html(errorData.formMarkup);
 
             // Use for when the form is being generated on the JS side
@@ -86,7 +89,7 @@ class EditPropertyGroupForm {
     _savePropertyGroupObject(data) {
         return new Promise( (resolve, reject) => {
 
-            const url = Routing.generate('edit_property_group', {internalIdentifier: this.portal, propertyGroup: this.propertyGroupId});
+            const url = Routing.generate('edit_property_group', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName, propertyGroupInternalName: this.propertyGroupInternalName});
 
             $.ajax({
                 url,

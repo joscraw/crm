@@ -8,16 +8,22 @@ use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 use Symfony\Component\Validator\Constraints as Assert;
 use App\Validator\Constraints as CustomAssert;
+use Symfony\Component\Serializer\Annotation\Groups;
+
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\PropertyGroupRepository")
+ * @ORM\HasLifecycleCallbacks()
  * @CustomAssert\PropertyGroupDeletion(groups={"DELETE"})
+ * @CustomAssert\PropertyGroupNameAlreadyExists(groups={"CREATE", "EDIT"})
  */
 class PropertyGroup
 {
     use TimestampableEntity;
 
     /**
+     * @Groups({"PROPERTIES_FOR_FILTER"})
+     *
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
@@ -25,6 +31,8 @@ class PropertyGroup
     private $id;
 
     /**
+     * @Groups({"PROPERTIES_FOR_FILTER"})
+     *
      * @Assert\NotBlank(message="Don't forget a name for your super cool Property Group!", groups={"CREATE", "EDIT"})
      *
      * @ORM\Column(type="string", length=255)
@@ -32,7 +40,18 @@ class PropertyGroup
     private $name;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Property", mappedBy="propertyGroup", cascade={"persist", "remove"})
+     * @Groups({"PROPERTIES_FOR_FILTER"})
+     *
+     * @Assert\Regex("/^[a-zA-Z0-9_]*$/", message="Woah! Only use letters numbers and underscores please!")
+     *
+     * @ORM\Column(type="string", length=255)
+     */
+    private $internalName;
+
+    /**
+     * @Groups({"PROPERTIES_FOR_FILTER"})
+     * 
+     * @ORM\OneToMany(targetEntity="App\Entity\Property", mappedBy="propertyGroup", cascade={"remove"})
      */
     private $properties;
 
@@ -50,6 +69,27 @@ class PropertyGroup
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    /**
+     * @ORM\PrePersist
+     */
+    public function setInternalNameValue()
+    {
+        if(!$this->internalName) {
+            $this->internalName = $this->getInternalNameValue();
+        }
+    }
+
+    /**
+     * @return string
+     */
+    public function getInternalNameValue()
+    {
+        return strtolower(
+            preg_replace('/\s+/', '_', $this->getName())
+        );
+
     }
 
     public function getName(): ?string
@@ -103,6 +143,18 @@ class PropertyGroup
     public function setCustomObject(CustomObject $customObject): self
     {
         $this->customObject = $customObject;
+
+        return $this;
+    }
+
+    public function getInternalName(): ?string
+    {
+        return $this->internalName;
+    }
+
+    public function setInternalName(?string $internalName): self
+    {
+        $this->internalName = $internalName;
 
         return $this;
     }

@@ -17,6 +17,7 @@ use App\Repository\PropertyGroupRepository;
 use App\Repository\PropertyRepository;
 use App\Repository\RecordRepository;
 use App\Service\MessageGenerator;
+use App\Utils\ArrayHelper;
 use App\Utils\MultiDimensionalArrayExtractor;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
@@ -45,6 +46,7 @@ use Symfony\Component\Serializer\SerializerInterface;
 class RecordController extends ApiController
 {
     use MultiDimensionalArrayExtractor;
+    use ArrayHelper;
 
     /**
      * @var EntityManagerInterface
@@ -102,21 +104,14 @@ class RecordController extends ApiController
     }
 
     /**
-     * @Route("/create-form", name="create_record_form", methods={"GET"}, options = { "expose" = true })
+     * @Route("/{internalName}/create-form", name="create_record_form", methods={"GET"}, options = { "expose" = true })
      * @param Portal $portal
+     * @param CustomObject $customObject
      * @return JsonResponse
-     * @throws \App\Controller\Exception\InvalidInputException
-     * @throws \App\Controller\Exception\MissingRequiredQueryParameterException
      */
-    public function getRecordFormAction(Portal $portal) {
+    public function getRecordFormAction(Portal $portal, CustomObject $customObject) {
 
-        $records = $this->recordRepository->findAll();
-
-        $customObject = $this->getCustomObjectForRequest($this->customObjectRepository);
-
-        $properties = $this->propertyRepository->findBy([
-            'customObject' => $customObject->getId()
-        ]);
+        $properties = $this->propertyRepository->findDefaultProperties($customObject);
 
         $form = $this->createForm(RecordType::class, null, [
             'properties' => $properties,
@@ -140,20 +135,118 @@ class RecordController extends ApiController
     }
 
     /**
-     * @Route("/create", name="create_record", methods={"POST"}, options = { "expose" = true })
+     * @Route("/{internalName}/{recordId}/edit-form", name="edit_record_form", methods={"GET"}, options = { "expose" = true })
      * @param Portal $portal
-     * @param Request $request
+     * @param CustomObject $customObject
+     * @param Record $record
      * @return JsonResponse
-     * @throws \App\Controller\Exception\InvalidInputException
-     * @throws \App\Controller\Exception\MissingRequiredQueryParameterException
      */
-    public function createRecordAction(Portal $portal, Request $request) {
-
-        $customObject = $this->getCustomObjectForRequest($this->customObjectRepository);
+    public function getEditRecordFormAction(Portal $portal, CustomObject $customObject, Record $record) {
 
         $properties = $this->propertyRepository->findBy([
             'customObject' => $customObject->getId()
         ]);
+
+        $recordProperties = $record->getProperties();
+
+        $form = $this->createForm(RecordType::class, $recordProperties, [
+            'properties' => $properties,
+            'portal' => $portal
+        ]);
+
+        $propertyGroups = $customObject->getPropertyGroups();
+
+        $formMarkup = $this->renderView(
+            'Api/form/edit_record_form.html.twig',
+            [
+                'form' => $form->createView(),
+                'propertyGroups' => $propertyGroups
+            ]
+        );
+
+        return new JsonResponse(
+            [
+                'success' => true,
+                'formMarkup' => $formMarkup
+            ],
+            Response::HTTP_OK
+        );
+    }
+
+    /**
+     * @Route("/{internalName}/{recordId}/edit", name="edit_record", methods={"POST"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param CustomObject $customObject
+     * @param Record $record
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function editRecordAction(Portal $portal, CustomObject $customObject, Record $record, Request $request) {
+
+        $properties = $this->propertyRepository->findBy([
+            'customObject' => $customObject->getId()
+        ]);
+
+        $recordProperties = $record->getProperties();
+
+        $form = $this->createForm(RecordType::class, $recordProperties, [
+            'properties' => $properties,
+            'portal' => $portal
+        ]);
+
+        $propertyGroups = $customObject->getPropertyGroups();
+
+        $formFieldMap = [];
+        foreach($propertyGroups as $propertyGroup) {
+            $formFieldMap[$propertyGroup->getInternalName()] = [];
+            $internalNames = $this->propertyRepository->findAllInternalNamesForPropertiesByPropertyGroup($propertyGroup);
+            $internalNames = $this->getArrayValuesRecursive($internalNames);
+            $formFieldMap[$propertyGroup->getInternalName()] = $internalNames;
+        }
+
+        $form->handleRequest($request);
+
+        if (!$form->isValid()) {
+
+            $formMarkup = $this->renderView(
+                'Api/form/edit_record_form.html.twig',
+                [
+                    'form' => $form->createView(),
+                    'formFieldMap' => $formFieldMap,
+                    'propertyGroups' => $propertyGroups
+                ]
+            );
+
+            return new JsonResponse(
+                [
+                    'success' => false,
+                    'formMarkup' => $formMarkup,
+                ], Response::HTTP_BAD_REQUEST
+            );
+        }
+
+        $record->setProperties($form->getData());
+        $this->entityManager->persist($record);
+        $this->entityManager->flush();
+
+        return new JsonResponse(
+            [
+                'success' => true,
+            ],
+            Response::HTTP_OK
+        );
+    }
+
+    /**
+     * @Route("/{internalName}/create", name="create_record", methods={"POST"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param CustomObject $customObject
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function createRecordAction(Portal $portal, CustomObject $customObject, Request $request) {
+
+        $properties = $this->propertyRepository->findDefaultProperties($customObject);
 
         $form = $this->createForm(RecordType::class, null, [
             'properties' => $properties,
@@ -163,6 +256,7 @@ class RecordController extends ApiController
         $form->handleRequest($request);
 
         if (!$form->isValid()) {
+
             $formMarkup = $this->renderView(
                 'Api/form/record_form.html.twig',
                 [
@@ -179,8 +273,7 @@ class RecordController extends ApiController
         }
 
         $record = new Record();
-        $properties = $form->getData();
-        $record->setProperties($properties);
+        $record->setProperties($form->getData());
         $record->setCustomObject($customObject);
 
         $this->entityManager->persist($record);
@@ -195,25 +288,24 @@ class RecordController extends ApiController
     }
 
 
+
+
     /**
-     * @Route("/selectize", name="records_for_selectize", methods={"GET"}, options = { "expose" = true })
+     * @Route("/{internalName}/selectize", name="records_for_selectize", methods={"GET"}, options = { "expose" = true })
      * @see https://stackoverflow.com/questions/29444430/remote-data-loading-from-sql-with-selectize-js
      * @see https://selectize.github.io/selectize.js/
      * @param Request $request
+     * @param CustomObject $customObject
      * @return Response
      * @throws \App\Controller\Exception\InvalidInputException
      * @throws \App\Controller\Exception\MissingRequiredQueryParameterException
      * @throws \Doctrine\DBAL\DBALException
      */
-    public function getRecordsForSelectizeAction(Request $request) {
-
-        $customObject = $this->getCustomObjectForRequest($this->customObjectRepository);
+    public function getRecordsForSelectizeAction(Request $request, CustomObject $customObject) {
 
         $search = $request->query->get('search');
-        $allowedCustomObjectToSearch = $this->customObjectRepository
-            ->find($request->query->get('allowed_custom_object_to_search'));
-
         $property = $this->getPropertyForRequest($this->propertyRepository);
+        $allowedCustomObjectToSearch = $property->getField()->getCustomObject();
         $selectizeAllowedSearchableProperties = $property->getField()->getSelectizeSearchResultProperties();
 
         $results = $this->recordRepository->getSelectizeData($search, $allowedCustomObjectToSearch, $selectizeAllowedSearchableProperties);
@@ -225,9 +317,8 @@ class RecordController extends ApiController
             $selectizeRecord = [];
             $selectizeRecord['valueField'] = $result['id'];
 
-            $items = [];
+            $labels = [];
             foreach($result as $internalName => $value) {
-                $item = [];
                 $key = array_search($internalName, array_column($internalNameToLabelMap, 'internalName'));
                 if($key !== false) {
                     $label = $internalNameToLabelMap[$key]['label'];
@@ -237,18 +328,9 @@ class RecordController extends ApiController
                     continue;
                 }
 
-                $item['internalName'] = $internalName;
-                $item['label'] = $label;
-                $item['value'] = $value;
-                $items[] = $item;
+                $labels[] = sprintf("%s: %s", $label, $value);
             }
 
-            $selectizeRecord['items'] = $items;
-
-            $labels = [];
-            foreach($items as $item) {
-                $labels[] = sprintf("%s: %s", $item['label'], $item['value']);
-            }
             $selectizeRecord['labelField'] = implode(', ', $labels);
 
             $selectizeRecord['searchField'] = 'id:' . $result['id'] . ' ' . json_encode($properties);
@@ -263,16 +345,15 @@ class RecordController extends ApiController
      * DataTables passes unique params in the Request and expects a specific response payload
      * @see https://datatables.net/manual/server-side Documentation for ServerSide Implimentation for DataTables
      *
-     * @Route("/datatable", name="records_for_datatable", methods={"GET"}, options = { "expose" = true })
+     * @Route("{internalName}/datatable", name="records_for_datatable", methods={"GET"}, options = { "expose" = true })
      * @param Portal $portal
+     * @param CustomObject $customObject
      * @param Request $request
      * @return Response
-     * @throws \App\Controller\Exception\InvalidInputException
-     * @throws \App\Controller\Exception\MissingRequiredQueryParameterException
-     * @throws \Doctrine\ORM\NonUniqueResultException
      * @throws \Doctrine\DBAL\DBALException
+     * @throws \Doctrine\ORM\NonUniqueResultException
      */
-    public function getRecordsForDatatableAction(Portal $portal, Request $request) {
+    public function getRecordsForDatatableAction(Portal $portal, CustomObject $customObject, Request $request) {
 
         $draw = intval($request->query->get('draw'));
         $start = $request->query->get('start');
@@ -280,25 +361,73 @@ class RecordController extends ApiController
         $search = $request->query->get('search');
         $orders = $request->query->get('order');
         $columns = $request->query->get('columns');
-        $customObject = $this->getCustomObjectForRequest($this->customObjectRepository);
+        $customFilters = $request->query->get('customFilters', []);
 
         $propertiesForDatatable = $this->propertyRepository->findColumnsForTable($customObject);
 
-        $results = $this->recordRepository->getDataTableData($start, $length, $search, $orders, $columns, $propertiesForDatatable, $customObject);
+        $results = $this->recordRepository->getDataTableData($start, $length, $search, $orders, $columns, $propertiesForDatatable, $customFilters, $customObject);
+
+        $customObjectInternalNames = $this->propertyRepository->findAllInternalNamesByFieldTypeForCustomObject($customObject, FieldCatalog::CUSTOM_OBJECT);
+        $customObjectInternalNames = $this->getArrayValuesRecursive($customObjectInternalNames);
+
+        $properties = $customObject->getProperties()->toArray();
 
         foreach($results['results'] as &$result) {
+
             foreach($result as $key => $value) {
 
-                // 'null' values are columns that exist and you leave empty
-                // null valus are columns that don't exist
-                if(in_array($value, ['null', null])) {
-                    $result[$key] = '-';
+                $customObjectProperty = array_filter($properties, function($property) use($key) {
+                    $isCustomObjectProperty = $property->getFieldType() === FieldCatalog::CUSTOM_OBJECT;
+                    $internalNameMatches = $property->getInternalName() === $key;
+
+                    return $isCustomObjectProperty && $internalNameMatches;
+                });
+
+                if(!empty($customObjectProperty)) {
+                    $customObjectProperty = array_values($customObjectProperty);
+
+                    if(in_array($value, ['-', ''])) {
+                        continue;
+                    }
+
+                    $value = json_decode($value);
+                    $value = is_array($value) ? $value : [$value];
+
+                    $urls = [];
+                    foreach($value as $v) {
+                        $url = sprintf("%s/%s",
+                            $this->generateUrl('record_list', [
+                                'internalIdentifier' => $portal->getInternalIdentifier(),
+                                'internalName' => $customObjectProperty[0]->getField()->getCustomObject()->getInternalName()
+                            ]),
+                            $v
+                        );
+                        $urls[] = "<a href='$url'>$v</a>";
+                    }
+                    $result[$key] = implode(',', $urls);
                 }
 
-                if(in_array($value, ['true'])) {
-                    $result[$key] = 'yes';
-                } else if(in_array($value, ['false'])) {
-                    $result[$key] = 'no';
+                $choiceFieldProperty = array_filter($properties, function($property) use($key) {
+                    $isChoiceFieldProperty = $property->getFieldType() === FieldCatalog::MULTIPLE_CHECKBOX;
+                    $internalNameMatches = $property->getInternalName() === $key;
+
+                    return $isChoiceFieldProperty && $internalNameMatches;
+                });
+
+                if(!empty($choiceFieldProperty)) {
+
+                    if(in_array($value, ['-', ''])) {
+                        continue;
+                    }
+
+                    $value = json_decode($value);
+                    $value = is_array($value) ? $value : [$value];
+
+                    $items = [];
+                    foreach($value as $v) {
+                        $items[] = $v;
+                    }
+                    $result[$key] = implode(',', $items);
                 }
             }
         }

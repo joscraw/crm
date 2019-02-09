@@ -15,16 +15,16 @@ class RecordTable {
     /**
      * @param $wrapper
      * @param globalEventDispatcher
-     * @param portal
-     * @param customObject
+     * @param portalInternalIdentifier
+     * @param customObjectInternalName
      */
-    constructor($wrapper, globalEventDispatcher, portal, customObject, customObjectLabel) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName) {
 
-        this.portal = portal;
         this.$wrapper = $wrapper;
-        this.customObject = customObject;
-        this.customObjectLabel = customObjectLabel;
         this.globalEventDispatcher = globalEventDispatcher;
+        this.portalInternalIdentifier = portalInternalIdentifier;
+        this.customObjectInternalName = customObjectInternalName;
+        this.customFilters = [];
 
         this.globalEventDispatcher.subscribe(
             Settings.Events.DATATABLE_SEARCH_KEY_UP,
@@ -41,28 +41,65 @@ class RecordTable {
             this.reloadTable.bind(this)
         );
 
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.CUSTOM_FILTER_ADDED,
+            this.customFilterAddedHandler.bind(this)
+        );
+
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.CUSTOM_FILTER_REMOVED,
+            this.customFilterRemovedHandler.bind(this)
+        );
+
         this.render();
 
         this.loadColumnsForTable().then((data) => {
-            debugger;
             this.activatePlugins(data.data);
-        }).catch(() => {
-            debugger;
-        });
+        }).catch(() => {});
+    }
+
+    customFilterAddedHandler(customFilters) {
+        debugger;
+        this.customFilters = customFilters;
+        this.reloadTable();
+        debugger;
+    }
+
+    customFilterRemovedHandler(customFilters) {
+        debugger;
+        this.customFilters = customFilters;
+        this.reloadTable();
     }
 
     activatePlugins(columns) {
+
         debugger;
+        if(columns.length !== 0) {
+            columns[0].mRender = (data, type, row) => {
+                
+                let url = Routing.generate('record_list', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
+                url = `${url}/${row['id']}`;
+
+                return `
+                        ${data} <span class="c-table__edit-button"><a href="${url}" role="button" class="btn btn-primary btn-sm">Edit</a></span>
+                        <span class="js-delete-property c-table__delete-button" data-record-id="${row['id']}"></span>
+                         `;
+
+            }
+        }
+
+        debugger;
+        console.log(this.customFilters);
+
         $('#table_id thead').empty();
         $('#table_id tbody').empty();
-        debugger;
 
         this.table = $('#table_id').DataTable({
             "processing": true,
             "serverSide": true,
-            /*"order": [],*/
+            "scrollX": true,
             "language": {
-                "emptyTable": `No "${this.customObjectLabel}" records found.`,
+                "emptyTable": `No records found.`,
             },
             /*
             the "dom" property determines what components DataTables shows by default
@@ -81,14 +118,11 @@ class RecordTable {
             */
             "dom": "lpirt",
             "columns": columns,
-            // num of results per page
             "pageLength": 10,
-            /*"iDisplayLength": 1,*/
-            /*"order": [[1, 'asc']],*/
             "ajax": {
-                url: Routing.generate('records_for_datatable', {internalIdentifier: this.portal}),
+                url: Routing.generate('records_for_datatable', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName}),
                 type: "GET",
-                data: {'custom_object_id': this.customObject},
+                data: {'customFilters': this.customFilters},
                 dataType: "json",
                 contentType: "application/json; charset=utf-8"
             }
@@ -97,12 +131,10 @@ class RecordTable {
 
     loadColumnsForTable() {
         return new Promise((resolve, reject) => {
-            debugger;
-            const url = Routing.generate('get_columns_for_table', {internalIdentifier: this.portal});
+            const url = Routing.generate('get_columns_for_table', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
 
             $.ajax({
-                url: url,
-                data: {custom_object_id: this.customObject}
+                url: url
             }).then(data => {
                 resolve(data);
             }).catch(jqXHR => {
@@ -117,7 +149,6 @@ class RecordTable {
      */
     applySearch(args = {}) {
 
-        debugger;
         if(typeof args.searchValue !== 'undefined') {
             this.searchValue = args.searchValue;
         }
@@ -129,13 +160,9 @@ class RecordTable {
 
     reloadTable() {
         this.loadColumnsForTable().then((data) => {
-            debugger;
             this.table.destroy();
-            /*$('#table_id').DataTable().destroy();*/
-            debugger;
             this.activatePlugins(data.data);
         }).catch(errorData => {
-            debugger;
         });
     }
 
@@ -145,7 +172,7 @@ class RecordTable {
 
     static markup() {
         return `
-            <table id="table_id" class="table table-striped table-bordered" style="width:100%">
+            <table id="table_id" class="table table-striped table-bordered c-table" style="width:100%">
                 <thead>
                 <tr><th></th></tr>
                 </thead>

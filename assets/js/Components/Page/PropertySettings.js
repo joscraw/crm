@@ -14,21 +14,23 @@ class PropertySettings {
     /**
      * @param $wrapper
      * @param globalEventDispatcher
+     * @param portalInternalIdentifier
+     * @param customObjectInternalName
      */
-    constructor($wrapper, globalEventDispatcher) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName) {
         debugger;
-        this.customObject = $wrapper.data('customObject');
-        this.portal = $wrapper.data('portal');
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
+        this.portalInternalIdentifier = portalInternalIdentifier;
+        this.customObjectInternalName = customObjectInternalName;
 
         this.render();
     }
 
     render() {
         this.$wrapper.html(PropertySettings.markup());
-        new PropertySettingsTopBar(this.$wrapper.find('.js-top-bar'), this.globalEventDispatcher, this.portal, this.customObject);
-        new PropertyList(this.$wrapper.find('.js-main-content'), this.globalEventDispatcher, this.portal, this.customObject);
+        new PropertySettingsTopBar(this.$wrapper.find('.js-top-bar'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);
+        new PropertyList(this.$wrapper.find('.js-main-content'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);
 
     }
 

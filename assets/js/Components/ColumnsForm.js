@@ -4,7 +4,6 @@ import $ from 'jquery';
 import swal from 'sweetalert2';
 import Routing from '../Routing';
 import Settings from '../Settings';
-import FormHelper from '../FormHelper';
 import List from 'list.js';
 import ColumnSearch from "./ColumnSearch";
 require('jquery-ui-dist/jquery-ui');
@@ -14,23 +13,18 @@ class ColumnsForm {
     /**
      * @param $wrapper
      * @param globalEventDispatcher
-     * @param customObject
-     * @param customObjectLabel
-     * @param portal
+     * @param portalInternalIdentifier
+     * @param customObjectInternalName
      */
-    constructor($wrapper, globalEventDispatcher, customObject, customObjectLabel, portal) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName) {
 
+        debugger;
         this.$wrapper = $wrapper;
-        this.customObjectLabel = customObjectLabel;
-        this.customObject = customObject;
-        this.portal = portal;
+        this.globalEventDispatcher = globalEventDispatcher;
+        this.portalInternalIdentifier = portalInternalIdentifier;
+        this.customObjectInternalName = customObjectInternalName;
         this.searchValue = '';
         this.lists = [];
-
-        /**
-         * @type {EventDispatcher}
-         */
-        this.globalEventDispatcher = globalEventDispatcher;
 
         this.$wrapper.on(
             'submit',
@@ -128,11 +122,10 @@ class ColumnsForm {
     loadProperties() {
         return new Promise((resolve, reject) => {
             debugger;
-            const url = Routing.generate('properties_for_columns', {internalIdentifier: this.portal});
+            const url = Routing.generate('properties_for_columns', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
 
             $.ajax({
-                url: url,
-                data: {custom_object_id: this.customObject}
+                url: url
             }).then(data => {
                 resolve(data);
             }).catch(jqXHR => {
@@ -157,7 +150,8 @@ class ColumnsForm {
                 }
             }
 
-            new ColumnSearch(this.$wrapper.find('.js-search-container'), this.globalEventDispatcher, this.portal, this.customObject, this.customObjectLabel, "Search for a column...");
+            debugger;
+            new ColumnSearch(this.$wrapper.find('.js-search-container'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, "Search for a column...");
 
             resolve();
         });
@@ -178,7 +172,6 @@ class ColumnsForm {
 
         const $form = $(e.currentTarget);
         let formData = new FormData($form.get(0));
-        formData.append('custom_object_id', this.customObject);
 
         for (let i = 0; i < newOrderArray.length; i++) {
             formData.append('selected_properties[]', newOrderArray[i]);
@@ -218,7 +211,7 @@ class ColumnsForm {
 
         return new Promise( (resolve, reject) => {
 
-            const url = Routing.generate('set_property_columns', {internalIdentifier: this.portal});
+            const url = Routing.generate('set_property_columns', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
 
             $.ajax({
                 url,

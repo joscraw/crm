@@ -14,41 +14,24 @@ class RecordListTopBar {
     /**
      * @param $wrapper
      * @param globalEventDispatcher
-     * @param portal
-     * @param customObject
-     * @param customObjectLabel
+     * @param portalInternalIdentifier
+     * @param customObjectInternalName
      */
-    constructor($wrapper, globalEventDispatcher, portal, customObject, customObjectLabel) {
-        debugger;
-        this.portal = portal;
-        this.customObject = customObject;
-        this.customObjectLabel = customObjectLabel;
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName) {
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
+        this.portalInternalIdentifier = portalInternalIdentifier;
+        this.customObjectInternalName = customObjectInternalName;
 
         this.render();
-    }
-
-    handleKeyupEvent(e) {
-
-        if(e.cancelable) {
-            e.preventDefault();
-        }
-
-        const searchValue = $(e.target).val();
-        const searchObject = {
-          searchValue: searchValue
-        };
-
-        this.globalEventDispatcher.publish(Settings.Events.PROPERTY_SETTINGS_TOP_BAR_SEARCH_KEY_UP, searchObject);
     }
 
     render() {
 
         this.$wrapper.html(RecordListTopBar.markup());
-        new Dropdown(this.$wrapper.find('.js-dropdown'), this.globalEventDispatcher, this.portal, this.customObject, this.customObjectLabel, 'Actions');
-        new CreateRecordButton(this.$wrapper.find('.js-create-record-button'), this.globalEventDispatcher, this.portal, this.customObject, this.customObjectLabel);
-        new DatatableSearch(this.$wrapper.find('.js-top-bar-search-container'), this.globalEventDispatcher, this.portal, this.customObject, this.customObjectLabel, "Search for a record...")
+        new Dropdown(this.$wrapper.find('.js-dropdown'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, 'Actions');
+        new CreateRecordButton(this.$wrapper.find('.js-create-record-button'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);
+        new DatatableSearch(this.$wrapper.find('.js-top-bar-search-container'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, "Search for a record...")
     }
 
     static markup() {

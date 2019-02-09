@@ -1,0 +1,65 @@
+// -----------------------------------------------------------------------------
+// This file contains all styles related to the filter widget component.
+// -----------------------------------------------------------------------------
+
+
+.c-filter-widget__selected-filters {
+
+  .selectize-dropdown {
+    display: none !important;
+  }
+
+  .selectize-input {
+    border: none;
+    background-color: transparent;
+    box-shadow: none;
+    outline: none;
+  }
+
+  .selectize-input .item {
+    background-color: $color-blue-94 !important;
+  }
+
+  .selectize-input .item:hover {
+    text-decoration: underline;
+  }
+
+  #js-selected-properties {
+    border: none;
+    background-color: transparent;
+    pointer-events:none;
+  }
+
+}
+
+.c-filter-widget {
+
+  .nav-link.active {
+    font-weight: bold;
+  }
+
+  .nav-link.disabled {
+    cursor: auto;
+    pointer-events: auto;
+  }
+
+}
+
+.c-filter-widget__list {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+.c-filter-widget__name {
+  font-weight: bold;
+}
+
+.c-filter-widget__list-item:hover {
+  background-color: $color-blue-94;
+}
+
+.c-filter-widget__list-item {
+  cursor: pointer;
+  padding: 10px 10px 10px 10px;
+}

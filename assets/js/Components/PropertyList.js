@@ -6,6 +6,8 @@ import $ from "jquery";
 import EditCustomObjectButton from "./EditCustomObjectButton";
 import EditPropertyGroupButton from "./EditPropertyGroupButton";
 import DeletePropertyGroupButton from "./DeletePropertyGroupButton";
+import DeleteCustomObjectButton from "./DeleteCustomObjectButton";
+import DeletePropertyButton from "./DeletePropertyButton";
 
 require( 'datatables.net-bs4' );
 require( 'datatables.net-responsive-bs4' );
@@ -18,21 +20,20 @@ class PropertyList {
     /**
      * @param $wrapper
      * @param globalEventDispatcher
-     * @param portal
-     * @param customObject
+     * @param portalInternalIdentifier
+     * @param customObjectInternalName
      */
-    constructor($wrapper, globalEventDispatcher, portal, customObject) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName) {
 
-        this.portal = portal;
-        this.customObject = customObject;
+        debugger;
+
         this.$wrapper = $wrapper;
+        this.globalEventDispatcher = globalEventDispatcher;
+        this.portalInternalIdentifier = portalInternalIdentifier;
+        this.customObjectInternalName = customObjectInternalName;
         this.searchValue = '';
         this.collapseStatus = {};
 
-        /**
-         * @type {EventDispatcher}
-         */
-        this.globalEventDispatcher = globalEventDispatcher;
 
 
         this.globalEventDispatcher.subscribe(
@@ -51,12 +52,22 @@ class PropertyList {
         );
 
         this.globalEventDispatcher.subscribe(
+            Settings.Events.PROPERTY_EDITED,
+            this.redrawDataTable.bind(this)
+        );
+
+        this.globalEventDispatcher.subscribe(
             Settings.Events.PROPERTY_GROUP_EDITED,
             this.redrawDataTable.bind(this)
         );
 
         this.globalEventDispatcher.subscribe(
             Settings.Events.PROPERTY_GROUP_DELETED,
+            this.redrawDataTable.bind(this)
+        );
+
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.PROPERTY_DELETED,
             this.redrawDataTable.bind(this)
         );
 
@@ -163,7 +174,6 @@ class PropertyList {
     }
 
     redrawDataTable() {
-        debugger;
         this.loadProperties().then(data => {
             this.render(data);
             this.applyCollapseStatus();
@@ -174,11 +184,10 @@ class PropertyList {
     loadProperties() {
         return new Promise((resolve, reject) => {
             debugger;
-            const url = Routing.generate('properties_for_datatable', {internalIdentifier: this.portal});
+            const url = Routing.generate('properties_for_datatable', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
 
             $.ajax({
-                url: url,
-                data: {custom_object_id: this.customObject}
+                url: url
             }).then(data => {
                 resolve(data);
             }).catch(jqXHR => {
@@ -199,6 +208,7 @@ class PropertyList {
         this.$wrapper.append($row);
 
         $('#table' + propertyGroup.id).DataTable({
+            "paging": false,
             "destroy": true,
             "responsive": true,
             "searching":true,
@@ -222,14 +232,30 @@ class PropertyList {
             */
             "dom": "rt",
             "columns": [
-                { "data": "label", "name": "label", "title": "label" },
+                { "data": "label", "name": "label", "title": "label", mRender: (data, type, row) => {
+
+                        let url = Routing.generate('property_settings', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
+                        url = `${url}/${row['internalName']}`;
+
+                        return `
+                        ${row['label']} <span class="c-table__edit-button"><a href="${url}" role="button" class="btn btn-primary btn-sm">Edit</a></span>
+                        <span class="js-delete-property c-table__delete-button" data-property-internal-name="${row['internalName']}"></span>
+                         `;
+
+                    } },
                 //repeat for each of my 20 or so fields
             ],
-            "data": properties
+            "data": properties,
+            "initComplete": (settings, json) => {
+                $row.find('.js-delete-property').each((index, element) => {
+                    new DeletePropertyButton($(element), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, $(element).attr('data-property-internal-name'), "Delete");
+                });
+            }
         });
 
-        new EditPropertyGroupButton($row.find('.js-edit-property-group-button'), this.globalEventDispatcher, this.portal, propertyGroup.id, "Edit");
-        new DeletePropertyGroupButton($row.find('.js-delete-property-group-button'), this.globalEventDispatcher, this.portal, this.customObject, propertyGroup.id, "Delete");
+        debugger;
+        new EditPropertyGroupButton($row.find('.js-edit-property-group-button'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, propertyGroup.internalName, "Edit");
+        new DeletePropertyGroupButton($row.find('.js-delete-property-group-button'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, propertyGroup.internalName, "Delete");
     }
 }
 
@@ -246,7 +272,7 @@ const rowTemplate = (propertyGroup) => `
         </div>
         <div class="collapse c-collapse__body js-collapse__body">
           <div class="card card-body">
-            <table id="table${propertyGroup.id}" class="table table-striped table-bordered" style="width:100%">
+            <table id="table${propertyGroup.id}" class="table table-striped table-bordered c-table" style="width:100%">
                 <thead>
                 </thead>
                 <tbody>

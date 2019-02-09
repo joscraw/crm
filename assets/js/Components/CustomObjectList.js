@@ -84,8 +84,8 @@ class CustomObjectList {
             "columns": [
                 { "data": "label", "name": "label", "title": "label", mRender: (data, type, row) => {
                         return `
-                        ${row['label']} <span class="js-edit-custom-object c-custom-object-table__edit-button" data-custom-object-id="${row['id']}"></span>
-                        <span class="js-delete-custom-object c-custom-object-table__delete-button" data-custom-object-id="${row['id']}"></span>`;
+                        ${row['label']} <span class="js-edit-custom-object c-table__edit-button" data-custom-object-id="${row['id']}"></span>
+                        <span class="js-delete-custom-object c-table__delete-button" data-custom-object-id="${row['id']}"></span>`;
                     }},
                 //repeat for each of my 20 or so fields
             ],
@@ -94,10 +94,6 @@ class CustomObjectList {
                 type: "GET",
                 dataType: "json",
                 contentType: "application/json; charset=utf-8"
-            },
-            "initComplete": (settings, json) => {
-                this.addEditCustomObjectButton();
-                this.addDeleteCustomObjectButton();
             },
             "drawCallback": (settings)  => {
                 this.addEditCustomObjectButton();
@@ -149,7 +145,7 @@ class CustomObjectList {
 
     static markup() {
         return `
-            <table id="table_id" class="table table-striped table-bordered c-custom-object-table" style="width:100%">
+            <table id="table_id" class="table table-striped table-bordered c-table" style="width:100%">
                 <thead>
                 </thead>
                 <tbody>

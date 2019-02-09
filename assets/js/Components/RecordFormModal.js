@@ -8,27 +8,25 @@ class RecordFormModal {
 
     /**
      * @param globalEventDispatcher
-     * @param portal
-     * @param customObject
-     * @param customObjectLabel
+     * @param portalInternalIdentifier
+     * @param customObjectInternalName
      */
-    constructor(globalEventDispatcher, portal, customObject, customObjectLabel) {
+    constructor(globalEventDispatcher, portalInternalIdentifier, customObjectInternalName) {
         this.globalEventDispatcher = globalEventDispatcher;
-        this.portal = portal;
-        this.customObject = customObject;
-        this.customObjectLabel = customObjectLabel;
+        this.portalInternalIdentifier = portalInternalIdentifier;
+        this.customObjectInternalName = customObjectInternalName;
         this.render();
     }
 
     render() {
         swal({
-            title: `Create ${this.customObjectLabel}`,
+            title: `Create Record`,
             showConfirmButton: false,
             html: RecordFormModal.markup(),
             customClass: "swal2-modal--left-align"
         });
 
-        new RecordForm($('#js-create-record-modal-container'), this.globalEventDispatcher, this.customObject, this.customObjectLabel, this.portal);
+        new RecordForm($('#js-create-record-modal-container'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);
     }
 
     static markup() {

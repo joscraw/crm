@@ -5,13 +5,11 @@ import RecordFormModal from './RecordFormModal';
 
 class CreateRecordButton {
 
-    constructor($wrapper, globalEventDispatcher, portal, customObject, customObjectLabel) {
-        debugger;
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName) {
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
-        this.customObject = customObject;
-        this.customObjectLabel = customObjectLabel;
-        this.portal = portal;
+        this.portalInternalIdentifier = portalInternalIdentifier;
+        this.customObjectInternalName = customObjectInternalName;
 
         this.$wrapper.on(
             'click',
@@ -26,20 +24,17 @@ class CreateRecordButton {
         console.log("Create Custom Object Button Clicked");
         this.globalEventDispatcher.publish(Settings.Events.CREATE_RECORD_BUTTON_CLICKED);
         console.log(`Event Dispatched: ${Settings.Events.CREATE_RECORD_BUTTON_CLICKED}`);
-        new RecordFormModal(this.globalEventDispatcher, this.portal, this.customObject, this.customObjectLabel);
+        new RecordFormModal(this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);
     }
 
     render() {
-        debugger;
         this.$wrapper.html(CreateRecordButton.markup(this));
     }
 
-    static markup({customObjectLabel}) {
-
-        debugger;
+    static markup() {
 
         return `
-      <button type="button" class="js-open-create-custom-object-modal-btn btn btn-secondary">Create ${customObjectLabel}</button>
+      <button type="button" class="js-open-create-custom-object-modal-btn btn btn-secondary">Create Record</button>
     `;
     }
 }

@@ -3,62 +3,52 @@
 namespace App\Form\DataTransformer;
 
 use App\Entity\Record;
+use App\Repository\RecordRepository;
+use App\Utils\ArrayHelper;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Form\DataTransformerInterface;
 use Symfony\Component\Form\Exception\TransformationFailedException;
 
 class IdToRecordTransformer implements DataTransformerInterface
 {
+    use ArrayHelper;
+
     private $entityManager;
 
-    public function __construct(EntityManagerInterface $entityManager)
+    private $recordRepository;
+
+    public function __construct(EntityManagerInterface $entityManager, RecordRepository $recordRepository)
     {
         $this->entityManager = $entityManager;
+        $this->recordRepository = $recordRepository;
     }
 
     /**
      * Transforms an object (record) to a string (number).
      *
-     * @param $record
+     * @param $records
      * @return string
      */
     public function transform($record)
     {
-        if (null === $record) {
+
+        if($record === null) {
             return '';
         }
 
-        return $record->getId();
+        return $record;
     }
 
     /**
      * Transforms an id (record) to an object (issue).
-     *
-     * @param $recordId
-     * @return Record|null
+     * @param $record
+     * @return Record
      */
-    public function reverseTransform($recordId)
+    public function reverseTransform($record)
     {
-        // no issue number? It's optional, so that's ok
-        if (!$recordId) {
-            return;
-        }
-
-        $record = $this->entityManager
-            ->getRepository(Record::class)
-            // query for the issue with this id
-            ->find($recordId);
-
-        if (null === $record) {
-            // causes a validation error
-            // this message is not shown to the user
-            // see the invalid_message option
-            throw new TransformationFailedException(
-                sprintf(
-                    'A record with id "%s" does not exist!',
-                    $recordId
-                )
-            );
+        if (empty($record)) {
+            return '';
         }
 
         return $record;

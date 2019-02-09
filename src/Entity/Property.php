@@ -9,18 +9,23 @@ use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 use Symfony\Component\Validator\Constraints as Assert;
 use App\Validator\Constraints as CustomAssert;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\PropertyRepository")
  * @ORM\HasLifecycleCallbacks()
  * @ORM\EntityListeners({"App\EntityListener\PropertyListener"})
- * @CustomAssert\PropertyAlreadyExists
+ * @CustomAssert\PropertyInternalNameAlreadyExists(groups={"CREATE", "EDIT"})
+ * @CustomAssert\PropertyLabelAlreadyExists(groups={"CREATE", "EDIT"})
+ * @CustomAssert\ChoiceField(groups={"CREATE", "EDIT"})
  */
-class Property implements \JsonSerializable
+class Property /*implements \JsonSerializable*/
 {
     use TimestampableEntity;
 
     /**
+     * @Groups({"PROPERTY_FIELD_NORMALIZER", "PROPERTIES_FOR_FILTER"})
+     *
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
@@ -28,15 +33,19 @@ class Property implements \JsonSerializable
     private $id;
 
     /**
-     * @Assert\NotBlank(message="Don't forget a label for your new Property!")
-     * @Assert\Regex("/^[a-zA-Z0-9_\s]*$/", message="Woah! Only use letters, numbers, underscores and spaces please!")
+     * @Groups({"PROPERTY_FIELD_NORMALIZER", "PROPERTIES_FOR_FILTER"})
+     *
+     * @Assert\NotBlank(message="Don't forget a label for your new Property!", groups={"CREATE", "EDIT"})
+     * @Assert\Regex("/^[a-zA-Z0-9_\s]*$/", message="Woah! Only use letters, numbers, underscores and spaces please!", groups={"CREATE", "EDIT"})
      *
      * @ORM\Column(type="string", length=255)
      */
     private $label;
 
     /**
-     * @Assert\Regex("/^[a-zA-Z0-9_]*$/", message="Woah! Only use letters numbers and underscores please!")
+     * @Groups({"PROPERTY_FIELD_NORMALIZER", "PROPERTIES_FOR_FILTER"})
+     *
+     * @Assert\Regex("/^[a-zA-Z0-9_]*$/", message="Woah! Only use letters numbers and underscores please!", groups={"CREATE", "EDIT"})
      *
      * @ORM\Column(type="string", length=255)
      */
@@ -48,7 +57,9 @@ class Property implements \JsonSerializable
     private $description;
 
     /**
-     * @Assert\NotBlank(message="Don't forget to select a field type for your new Property!")
+     * @Groups({"PROPERTY_FIELD_NORMALIZER", "PROPERTIES_FOR_FILTER"})
+     *
+     * @Assert\NotBlank(message="Don't forget to select a field type for your new Property!", groups={"CREATE", "EDIT"})
      * @Assert\Choice(callback="getValidFieldTypes")
      *
      * @ORM\Column(type="string", length=255)
@@ -56,6 +67,8 @@ class Property implements \JsonSerializable
     private $fieldType;
 
     /**
+     * @Groups({"PROPERTIES_FOR_FILTER"})
+     *
      * @var AbstractField
      *
      * @Assert\Valid
@@ -92,6 +105,16 @@ class Property implements \JsonSerializable
      * @ORM\Column(type="integer", nullable=true)
      */
     private $columnOrder;
+
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $isDefaultProperty = false;
+
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private $defaultPropertyOrder;
 
 
     /**
@@ -130,7 +153,7 @@ class Property implements \JsonSerializable
         return $this->label;
     }
 
-    public function setLabel(string $label): self
+    public function setLabel(?string $label): self
     {
         $this->label = $label;
 
@@ -142,7 +165,7 @@ class Property implements \JsonSerializable
         return $this->internalName;
     }
 
-    public function setInternalName(string $internalName): self
+    public function setInternalName(?string $internalName): self
     {
         $this->internalName = $internalName;
 
@@ -178,7 +201,7 @@ class Property implements \JsonSerializable
         return $this->propertyGroup;
     }
 
-    public function setPropertyGroup(PropertyGroup $propertyGroup): self
+    public function setPropertyGroup(?PropertyGroup $propertyGroup): self
     {
         $this->propertyGroup = $propertyGroup;
 
@@ -190,7 +213,7 @@ class Property implements \JsonSerializable
         return $this->customObject;
     }
 
-    public function setCustomObject(CustomObject $customObject): self
+    public function setCustomObject(?CustomObject $customObject): self
     {
         $this->customObject = $customObject;
 
@@ -227,7 +250,7 @@ class Property implements \JsonSerializable
     /**
      * @param bool $required
      */
-    public function setRequired(bool $required): void
+    public function setRequired(?bool $required): void
     {
         $this->required = $required;
     }
@@ -239,7 +262,7 @@ class Property implements \JsonSerializable
      * which is a value of any type other than a resource.
      * @since 5.4.0
      */
-    public function jsonSerialize()
+ /*   public function jsonSerialize()
     {
        return [
            'id' => $this->getId(),
@@ -247,7 +270,7 @@ class Property implements \JsonSerializable
            'label' => $this->getLabel(),
            'fieldType' => $this->getFieldType()
        ];
-    }
+    }*/
 
     public function setId($id) {
         $this->id = $id;
@@ -258,7 +281,7 @@ class Property implements \JsonSerializable
         return $this->isColumn;
     }
 
-    public function setIsColumn(bool $isColumn): self
+    public function setIsColumn(?bool $isColumn): self
     {
         $this->isColumn = $isColumn;
 
@@ -275,5 +298,37 @@ class Property implements \JsonSerializable
         $this->columnOrder = $columnOrder;
 
         return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getIsDefaultProperty()
+    {
+        return $this->isDefaultProperty;
+    }
+
+    /**
+     * @param mixed $isDefaultProperty
+     */
+    public function setIsDefaultProperty($isDefaultProperty): void
+    {
+        $this->isDefaultProperty = $isDefaultProperty;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getDefaultPropertyOrder()
+    {
+        return $this->defaultPropertyOrder;
+    }
+
+    /**
+     * @param mixed $defaultPropertyOrder
+     */
+    public function setDefaultPropertyOrder($defaultPropertyOrder): void
+    {
+        $this->defaultPropertyOrder = $defaultPropertyOrder;
     }
 }

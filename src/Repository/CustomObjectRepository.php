@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\CustomObject;
+use App\Entity\Portal;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
@@ -147,6 +148,66 @@ class CustomObjectRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('customObject')
             ->orWhere('customObject.label = :label')
             ->setParameter('label', $label)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    public function findByPortal(Portal $portal) {
+
+        return $this->createQueryBuilder('customObject')
+            ->where('customObject.portal = :portal')
+            ->setParameter('portal', $portal)
+            ->orderBy('customObject.label', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * @param $internalName
+     * @param Portal $portal
+     * @return mixed
+     */
+    public function findByInternalNameAndPortal($internalName, Portal $portal)
+    {
+        return $this->createQueryBuilder('customObject')
+            ->where('customObject.internalName = :internalName')
+            ->andWhere('customObject.portal = :portal')
+            ->setParameter('internalName', $internalName)
+            ->setParameter('portal', $portal->getId())
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * @param $label
+     * @param Portal $portal
+     * @return mixed
+     */
+    public function findByLabelAndPortal($label, Portal $portal)
+    {
+        return $this->createQueryBuilder('customObject')
+            ->where('customObject.label = :label')
+            ->andWhere('customObject.portal = :portal')
+            ->setParameter('label', $label)
+            ->setParameter('portal', $portal->getId())
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * @param $internalName
+     * @param $portalInternalIdentifier
+     * @return mixed
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     */
+    public function findByInternalNameAndPortalInternalIdentifier($internalName, $portalInternalIdentifier)
+    {
+        return $this->createQueryBuilder('customObject')
+            ->join('customObject.portal', 'portal')
+            ->where('customObject.internalName = :internalName')
+            ->andWhere('portal.internalIdentifier = :internalIdentifier')
+            ->setParameter('internalName', $internalName)
+            ->setParameter('internalIdentifier', $portalInternalIdentifier)
             ->getQuery()
             ->getOneOrNullResult();
     }

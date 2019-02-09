@@ -11,19 +11,15 @@ class PropertyCreateForm {
     /**
      * @param $wrapper
      * @param globalEventDispatcher
-     * @param portal
-     * @param customObject
+     * @param portalInternalIdentifier
+     * @param customObjectInternalName
      */
-    constructor($wrapper, globalEventDispatcher, portal, customObject) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName) {
 
         this.$wrapper = $wrapper;
-        this.portal = portal;
-        this.customObject = customObject;
-
-        /**
-         * @type {EventDispatcher}
-         */
         this.globalEventDispatcher = globalEventDispatcher;
+        this.portalInternalIdentifier = portalInternalIdentifier;
+        this.customObjectInternalName = customObjectInternalName;
 
         this.$wrapper.on(
             'submit',
@@ -89,8 +85,7 @@ class PropertyCreateForm {
     loadCreatePropertyForm() {
         return new Promise((resolve, reject) => {
             $.ajax({
-                url: Routing.generate('create_property', {internalIdentifier: this.portal}),
-                data: {custom_object_id: this.customObject}
+                url: Routing.generate('create_property', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName}),
             }).then(data => {
                 this.$wrapper.html(data.formMarkup);
                 resolve(data);
@@ -105,15 +100,12 @@ class PropertyCreateForm {
      */
     handleNewFormSubmit(e) {
 
-        console.log("form submitted");
-
         if(e.cancelable) {
             e.preventDefault();
         }
 
         const $form = $(e.currentTarget);
         let formData = new FormData($form.get(0));
-        formData.append('custom_object_id', this.customObject);
 
         this._saveProperty(formData)
             .then((data) => {
@@ -122,11 +114,7 @@ class PropertyCreateForm {
             }).catch((errorData) => {
 
             this.$wrapper.html(errorData.formMarkup);
-
             this.activatePlugins();
-
-            // Use for when the form is being generated on the JS side
-            /*this._mapErrorsToForm(errorData.errors);*/
         });
     }
 
@@ -136,31 +124,21 @@ class PropertyCreateForm {
             e.preventDefault();
         }
 
-        debugger;
-
         const formData = {};
 
         formData[$(e.target).attr('name')] = $(e.target).val();
         formData[$(PropertyCreateForm._selectors.customObject).attr('name')] = $(PropertyCreateForm._selectors.customObject).val();
         formData[$(PropertyCreateForm._selectors.fieldType).attr('name')] = $(PropertyCreateForm._selectors.fieldType).val();
-
         formData['validate'] = false;
 
-        debugger;
-        this._changeCustomObject(formData)
-            .then((data) => {
-                debugger;
-                console.log("hi");
-            }).catch((errorData) => {
+        this._changeCustomObject(formData).then((data) => {}).catch((errorData) => {
 
-                debugger;
             $('.js-selectize-search-result-properties-container').replaceWith(
                 // ... with the returned one from the AJAX response.
                 $(errorData.formMarkup).find('.js-selectize-search-result-properties-container')
             );
 
             this.activatePlugins();
-
         });
 
     }
@@ -173,16 +151,10 @@ class PropertyCreateForm {
 
         const formData = {};
         formData[$(e.target).attr('name')] = $(e.target).val();
-        formData['validate'] = false;
 
-        this._changeFieldType(formData)
-            .then((data) => {
-                debugger;
-                console.log("hi");
-            }).catch((errorData) => {
+        this._changeFieldType(formData).then((data) => {}).catch((errorData) => {
 
             $('.js-field-container').replaceWith(
-                // ... with the returned one from the AJAX response.
                 $(errorData.formMarkup).find('.js-field-container')
             );
 
@@ -194,10 +166,8 @@ class PropertyCreateForm {
 
     _changeCustomObject(data) {
         return new Promise((resolve, reject) => {
-            debugger;
-            const url = Routing.generate('create_property', {internalIdentifier: this.portal});
 
-            data.custom_object_id = this.customObject;
+            const url = Routing.generate('create_property', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
 
             $.ajax({
                 url,
@@ -214,10 +184,7 @@ class PropertyCreateForm {
 
     _changeFieldType(data) {
         return new Promise((resolve, reject) => {
-            debugger;
-            const url = Routing.generate('create_property', {internalIdentifier: this.portal});
-
-            data.custom_object_id = this.customObject;
+            const url = Routing.generate('create_property', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
 
             $.ajax({
                 url,
@@ -262,7 +229,6 @@ class PropertyCreateForm {
     }
 
     updateListElementGenerator(offset, fieldPrefix) {
-        debugger;
         return function(index, el) {
             debugger;
             FormCollectionPrototypeUpdater.updateAttributes($(el), fieldPrefix, offset + index + 1)
@@ -276,9 +242,7 @@ class PropertyCreateForm {
      */
     _saveProperty(data) {
         return new Promise( (resolve, reject) => {
-            const url = Routing.generate('create_property', {internalIdentifier: this.portal});
-
-            data.custom_object_id = this.customObject;
+            const url = Routing.generate('create_property', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
 
             $.ajax({
                 url,

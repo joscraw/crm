@@ -4,21 +4,25 @@ namespace App\Model;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Validator\Constraints as Assert;
+use App\Validator\Constraints as CustomAssert;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * Class AbstractChoiceField
  * @package App\Model
  */
-class AbstractChoiceField extends AbstractField implements \JsonSerializable
+class AbstractChoiceField extends AbstractField
 {
     /**
      * Options for the dropdown select field
+     *
+     * @Groups({"PROPERTY_FIELD_NORMALIZER"})
      *
      * @Assert\Valid
      *
      * @var FieldOption[]
      */
-    private $options;
+    protected $options;
 
     /**
      * Constructor.
@@ -52,22 +56,5 @@ class AbstractChoiceField extends AbstractField implements \JsonSerializable
     public function setOptions($options): void
     {
         $this->options = $options;
-    }
-
-    /**
-     * (PHP 5 &gt;= 5.4.0)<br/>
-     * Specify data which should be serialized to JSON
-     * @link http://php.net/manual/en/jsonserializable.jsonserialize.php
-     * @return mixed data which can be serialized by <b>json_encode</b>,
-     * which is a value of any type other than a resource.
-     */
-    function jsonSerialize()
-    {
-        return array_merge(
-            parent::jsonSerialize(),
-            [
-                'options' => $this->getOptions(),
-            ]
-        );
     }
 }

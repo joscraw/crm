@@ -12,15 +12,15 @@ class PropertySettingsTopBar {
     /**
      * @param $wrapper
      * @param globalEventDispatcher
-     * @param portal
-     * @param customObject
+     * @param portalInternalIdentifier
+     * @param customObjectInternalName
      */
-    constructor($wrapper, globalEventDispatcher, portal, customObject) {
-        debugger;
-        this.portal = portal;
-        this.customObject = customObject;
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName) {
+
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
+        this.portalInternalIdentifier = portalInternalIdentifier;
+        this.customObjectInternalName = customObjectInternalName;
 
         this.$wrapper.on(
             'keyup',
@@ -33,7 +33,6 @@ class PropertySettingsTopBar {
 
     handleKeyupEvent(e) {
 
-        debugger;
         if(e.cancelable) {
             e.preventDefault();
         }
@@ -48,9 +47,9 @@ class PropertySettingsTopBar {
 
     render() {
         this.$wrapper.html(PropertySettingsTopBar.markup());
-        new OpenCreatePropertyGroupModalButton(this.$wrapper.find('.js-top-bar-button-container'), this.globalEventDispatcher, this.portal, this.customObject);
-        new OpenCreatePropertyModalButton(this.$wrapper.find('.js-top-bar-button-container'), this.globalEventDispatcher, this.portal, this.customObject);
-        new CustomObjectNavigation(this.$wrapper.find('.js-custom-object-navigation'), this.globalEventDispatcher, this.portal, this.customObject);
+        new OpenCreatePropertyGroupModalButton(this.$wrapper.find('.js-top-bar-button-container'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);
+        new OpenCreatePropertyModalButton(this.$wrapper.find('.js-top-bar-button-container'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);
+        new CustomObjectNavigation(this.$wrapper.find('.js-custom-object-navigation'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);
     }
 
     static markup() {

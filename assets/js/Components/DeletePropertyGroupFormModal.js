@@ -11,15 +11,15 @@ class DeletePropertyGroupFormModal {
 
     /**
      * @param globalEventDispatcher
-     * @param portal
-     * @param propertyGroupId
-     * @param customObject
+     * @param portalInternalIdentifier
+     * @param customObjectInternalName
+     * @param propertyGroupInternalName
      */
-    constructor(globalEventDispatcher, portal, propertyGroupId, customObject) {
+    constructor(globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, propertyGroupInternalName) {
         this.globalEventDispatcher = globalEventDispatcher;
-        this.portal = portal;
-        this.propertyGroupId = propertyGroupId;
-        this.customObject = customObject;
+        this.portalInternalIdentifier = portalInternalIdentifier;
+        this.customObjectInternalName = customObjectInternalName;
+        this.propertyGroupInternalName= propertyGroupInternalName;
         this.render();
     }
 
@@ -30,7 +30,7 @@ class DeletePropertyGroupFormModal {
             html: DeletePropertyGroupFormModal.markup()
         });
 
-        new DeletePropertyGroupForm($('#js-delete-property-group-modal-container'), this.globalEventDispatcher, this.portal, this.propertyGroupId, this.customObject);
+        new DeletePropertyGroupForm($('#js-delete-property-group-modal-container'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, this.propertyGroupInternalName);
     }
 
     static markup() {

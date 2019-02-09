@@ -2,6 +2,8 @@
 
 namespace App\Model;
 
+use Symfony\Component\Serializer\Annotation\Groups;
+
 /**
  * Class SingleLineTextField
  * @package App\Model
@@ -9,6 +11,8 @@ namespace App\Model;
 class SingleLineTextField extends AbstractField implements \JsonSerializable
 {
     /**
+     * @Groups({"PROPERTIES_FOR_FILTER"})
+     *
      * @var string
      */
     protected static $name = FieldCatalog::SINGLE_LINE_TEXT;

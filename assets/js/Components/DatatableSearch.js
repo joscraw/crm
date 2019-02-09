@@ -6,13 +6,19 @@ import $ from "jquery";
 
 class DatatableSearch {
 
-    constructor($wrapper, globalEventDispatcher, portal, customObject, customObjectLabel, placeholderText) {
-        debugger;
+    /**
+     *
+     * @param $wrapper
+     * @param globalEventDispatcher
+     * @param portalInternalIdentifier
+     * @param customObjectInternalName
+     * @param placeholderText
+     */
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, placeholderText) {
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
-        this.customObject = customObject;
-        this.customObjectLabel = customObjectLabel;
-        this.portal = portal;
+        this.portalInternalIdentifier = portalInternalIdentifier;
+        this.customObjectInternalName = customObjectInternalName;
         this.placeholderText = placeholderText;
 
         this.$wrapper.on(
