@@ -418,10 +418,33 @@ class RecordRepository extends ServiceEntityRepository
                                 }
 
                                 $query .= ' and' . implode(" OR ", $conditions);
-
-                                $name = "Josh";
-
                             }
+
+                            break;
+                        case 'NOT_IN':
+
+                            if(trim($customFilter['value']) === '') {
+                                $query .= sprintf(' and IF(properties->>\'$.%s\' IS NOT NULL, LOWER(properties->>\'$.%s\'), null) != \'\'', $customFilter['property'], $customFilter['property']);
+                            } else {
+                                $values = explode(',', $customFilter['value']);
+
+                                $conditions = [];
+                                foreach($values as $value) {
+                                    $conditions[] = sprintf(' IF(properties->>\'$.%s\' IS NOT NULL, LOWER(properties->>\'$.%s\'), \'\') != \'%s\'', $customFilter['property'], $customFilter['property'], $value);
+                                }
+
+                                $query .= ' and' . implode(" AND ", $conditions);
+                            }
+
+                            break;
+                        case 'HAS_PROPERTY':
+
+                            $query .= sprintf(' and (properties->>\'$.%s\') is not null', $customFilter['property']);
+
+                            break;
+                        case 'NOT_HAS_PROPERTY':
+
+                            $query .= sprintf(' and (properties->>\'$.%s\') is null', $customFilter['property']);
 
                             break;
 

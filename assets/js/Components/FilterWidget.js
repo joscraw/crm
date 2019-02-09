@@ -16,6 +16,7 @@ import SingleCheckboxFieldFilterForm from "./SingleCheckboxFieldFilterForm";
 import EditDatePickerFieldFilterForm from "./EditDatePickerFieldFilterForm";
 import EditSingleCheckboxFieldFilterForm from "./EditSingleCheckboxFieldFilterForm";
 import DropdownSelectFieldFilterForm from "./DropdownSelectFieldFilterForm";
+import EditDropdownSelectFieldFilterForm from "./EditDropdownSelectFieldFilterForm";
 
 class FilterWidget {
 
@@ -158,6 +159,9 @@ class FilterWidget {
                 break;
             case 'single_checkbox_field':
                 new EditSingleCheckboxFieldFilterForm($(FilterWidget._selectors.editPropertyForm), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, customFilter);
+                break;
+            case 'dropdown_select_field':
+                new EditDropdownSelectFieldFilterForm($(FilterWidget._selectors.editPropertyForm), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, customFilter);
                 break;
         }
     }

@@ -229,6 +229,47 @@ class FilterNavigation {
                             break;
                     }
                     break;
+                case 'dropdown_select_field':
+                    debugger;
+                    switch(customFilter['operator']) {
+                        case 'IN':
+
+                            values = customFilter.value.split(",");
+                            values = values.join(" or ");
+
+                            this.$selectedProperties.selectize()[0].selectize.addOption({
+                                value: i,
+                                text: `${customFilter.label} is any of ${values}`
+                            });
+                            this.$selectedProperties.selectize()[0].selectize.addItem(i);
+
+                            break;
+                        case 'NOT_IN':
+
+                            values = customFilter.value.split(",");
+                            values = values.join(" or ");
+
+                            this.$selectedProperties.selectize()[0].selectize.addOption({
+                                value: i,
+                                text: `${customFilter.label} is none of ${values}`
+                            });
+                            this.$selectedProperties.selectize()[0].selectize.addItem(i);
+
+                            break;
+                        case 'HAS_PROPERTY':
+
+                            this.$selectedProperties.selectize()[0].selectize.addOption({value:i, text: `${customFilter.label} is known`});
+                            this.$selectedProperties.selectize()[0].selectize.addItem(i);
+
+                            break;
+                        case 'NOT_HAS_PROPERTY':
+
+                            this.$selectedProperties.selectize()[0].selectize.addOption({value:i, text: `${customFilter.label} is unknown`});
+                            this.$selectedProperties.selectize()[0].selectize.addItem(i);
+
+                            break;
+                    }
+                    break;
                 default:
                     switch(customFilter['operator']) {
                         case 'EQ':

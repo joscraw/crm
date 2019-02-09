@@ -35,7 +35,7 @@ class EditSingleCheckboxFieldFilterForm {
         );
 
         this.render();
-       /* this.$wrapper.find('.js-radio-button').first().click();*/
+        /*this.$wrapper.find('.js-radio-button').first().click();*/
     }
 
     /**
@@ -50,7 +50,7 @@ class EditSingleCheckboxFieldFilterForm {
     }
 
     activatePlugins() {
-        this.s = this.$wrapper.find('.js-selectize-multiple-select').selectize({
+        /*this.s = this.$wrapper.find('.js-edit-selectize-multiple-select').selectize({
             plugins: ['remove_button'],
             valueField: 'value',
             labelField: 'name',
@@ -60,6 +60,8 @@ class EditSingleCheckboxFieldFilterForm {
                 {value: 1, name: 'Yes'}
             ],
         });
+
+        this.s.selectize()[0].selectize.setValue(1);*/
     }
 
     /**
@@ -67,7 +69,7 @@ class EditSingleCheckboxFieldFilterForm {
      * you need to remove the handlers otherwise they will keep stacking up
      */
     unbindEvents() {
-        this.$wrapper.off('submit', '#js-apply-filter-form');
+        this.$wrapper.off('submit', '#js-apply-filter-form2');
         this.$wrapper.off('click', '.js-radio-button');
         this.$wrapper.off('click', EditSingleCheckboxFieldFilterForm._selectors.backToListButton);
     }
@@ -91,12 +93,24 @@ class EditSingleCheckboxFieldFilterForm {
             let $radioButton = $(element);
             if(this.customFilter.operator === value) {
 
-                this.activatePlugins();
-
                 $(element).click();
 
+
+                let s = this.$wrapper.find('.js-edit-selectize-multiple-select').selectize({
+                    plugins: ['remove_button'],
+                    valueField: 'value',
+                    labelField: 'name',
+                    searchField: ['name'],
+                    options: [
+                        {value: 0, name: 'No'},
+                        {value: 1, name: 'Yes'}
+                    ],
+                });
+
+                this.activatePlugins();
+
                 let values = this.customFilter.value.split(",");
-                this.s.selectize()[0].selectize.setValue(values);
+                s.selectize()[0].selectize.setValue(values);
             }
         });
     }
@@ -104,6 +118,8 @@ class EditSingleCheckboxFieldFilterForm {
 
 
     handleNewFilterFormSubmit(e) {
+
+        debugger;
 
         if(e.cancelable) {
             e.preventDefault();
@@ -148,26 +164,26 @@ class EditSingleCheckboxFieldFilterForm {
             <input type="hidden" name="id" value="${customFilter.id}">
             <div style="height: 200px; overflow-y: auto">
                 <div class="form-check">
-                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator1" value="IN" checked data-has-text-input="true">
-                    <label class="form-check-label" for="operator1">
+                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="editOperator1" value="IN" checked data-has-text-input="true">
+                    <label class="form-check-label" for="editOperator1">
                      <p>is any of</p>
                     </label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator2" value="NOT_IN" data-has-text-input="true">
-                    <label class="form-check-label" for="operator2">
+                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="editOperator2" value="NOT_IN" data-has-text-input="true">
+                    <label class="form-check-label" for="editOperator2">
                     <p>is none of</p>
                     </label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator3" value="HAS_PROPERTY">
-                    <label class="form-check-label" for="operator3">
+                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="editOperator3" value="HAS_PROPERTY">
+                    <label class="form-check-label" for="editOperator3">
                     <p>is known</p>
                     </label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator4" value="NOT_HAS_PROPERTY">
-                    <label class="form-check-label" for="operator4">
+                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="editOperator4" value="NOT_HAS_PROPERTY">
+                    <label class="form-check-label" for="editOperator4">
                     <p>is unknown</p>
                     </label>
                 </div>
@@ -181,7 +197,7 @@ class EditSingleCheckboxFieldFilterForm {
 
 const textFieldTemplate = () => `
   <div class="form-group js-operator-value">
-    <input type="text" name="value" class="form-control js-selectize-multiple-select">
+    <input type="text" name="value" class="form-control js-edit-selectize-multiple-select">
   </div>
     
 `;
