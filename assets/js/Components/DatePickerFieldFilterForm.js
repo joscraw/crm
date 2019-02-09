@@ -92,6 +92,9 @@ class DatePickerFieldFilterForm {
             formData[fieldData.name] = fieldData.value
         }
 
+        // add the field to the form
+        formData['field'] = this.property.field;
+
         this.globalEventDispatcher.publish(Settings.Events.APPLY_CUSTOM_FILTER_BUTTON_PRESSED, formData);
         console.log(`Event Dispatched: ${Settings.Events.APPLY_CUSTOM_FILTER_BUTTON_PRESSED}`);
 

@@ -123,26 +123,26 @@ class EditSingleLineTextFieldFilterForm {
             <input type="hidden" name="id" value="${customFilter.id}">
             <div style="height: 200px; overflow-y: auto">
                 <div class="form-check">
-                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator1" value="EQ" checked data-has-text-input="true">
-                    <label class="form-check-label" for="operator1">
+                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="editOperator1" value="EQ" checked data-has-text-input="true">
+                    <label class="form-check-label" for="editOperator1">
                      <p>contains exactly</p>
                     </label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator2" value="NEQ" data-has-text-input="true">
-                    <label class="form-check-label" for="operator2">
+                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="editOperator2" value="NEQ" data-has-text-input="true">
+                    <label class="form-check-label" for="editOperator2">
                     <p>doesn't contain exactly</p>
                     </label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator3" value="HAS_PROPERTY">
-                    <label class="form-check-label" for="operator3">
+                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="editOperator3" value="HAS_PROPERTY">
+                    <label class="form-check-label" for="editOperator3">
                     <p>is known</p>
                     </label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator4" value="NOT_HAS_PROPERTY">
-                    <label class="form-check-label" for="operator4">
+                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="editOperator4" value="NOT_HAS_PROPERTY">
+                    <label class="form-check-label" for="editOperator4">
                     <p>is unknown</p>
                     </label>
                 </div>

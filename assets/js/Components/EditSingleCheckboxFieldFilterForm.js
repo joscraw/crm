@@ -50,7 +50,7 @@ class EditSingleCheckboxFieldFilterForm {
     }
 
     activatePlugins() {
-        /*this.s = this.$wrapper.find('.js-edit-selectize-multiple-select').selectize({
+        this.s = this.$wrapper.find('.js-edit-selectize-multiple-select').selectize({
             plugins: ['remove_button'],
             valueField: 'value',
             labelField: 'name',
@@ -60,8 +60,6 @@ class EditSingleCheckboxFieldFilterForm {
                 {value: 1, name: 'Yes'}
             ],
         });
-
-        this.s.selectize()[0].selectize.setValue(1);*/
     }
 
     /**
@@ -90,27 +88,12 @@ class EditSingleCheckboxFieldFilterForm {
         this.$wrapper.find('.js-radio-button').each((index, element) => {
 
             let value = $(element).val();
-            let $radioButton = $(element);
             if(this.customFilter.operator === value) {
 
                 $(element).click();
 
-
-                let s = this.$wrapper.find('.js-edit-selectize-multiple-select').selectize({
-                    plugins: ['remove_button'],
-                    valueField: 'value',
-                    labelField: 'name',
-                    searchField: ['name'],
-                    options: [
-                        {value: 0, name: 'No'},
-                        {value: 1, name: 'Yes'}
-                    ],
-                });
-
-                this.activatePlugins();
-
                 let values = this.customFilter.value.split(",");
-                s.selectize()[0].selectize.setValue(values);
+                this.s.selectize()[0].selectize.setValue(values);
             }
         });
     }
@@ -147,9 +130,9 @@ class EditSingleCheckboxFieldFilterForm {
             const html = textFieldTemplate();
             const $textField = $($.parseHTML(html));
             $radioButton.closest('div').after($textField);
+            this.activatePlugins();
         }
 
-        this.activatePlugins();
     }
 
     static markup({customFilter}) {

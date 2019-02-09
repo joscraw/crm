@@ -114,6 +114,9 @@ class EditDatePickerFieldFilterForm {
             formData[fieldData.name] = fieldData.value
         }
 
+        // add the field to the form
+        formData['field'] = this.customFilter.field;
+
         this.globalEventDispatcher.publish(Settings.Events.APPLY_CUSTOM_FILTER_BUTTON_PRESSED, formData);
         console.log(`Event Dispatched: ${Settings.Events.APPLY_CUSTOM_FILTER_BUTTON_PRESSED}`);
 
@@ -150,44 +153,44 @@ class EditDatePickerFieldFilterForm {
             <input type="hidden" name="id" value="${customFilter.id}">
             <div style="height: 200px; overflow-y: auto">
                 <div class="form-check">
-                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator1" value="EQ" checked data-has-text-input="true">
-                    <label class="form-check-label" for="operator1">
+                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="editOperator1" value="EQ" checked data-has-text-input="true">
+                    <label class="form-check-label" for="editOperator1">
                      <p>is equal to</p>
                     </label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator2" value="NEQ" data-has-text-input="true">
-                    <label class="form-check-label" for="operator2">
+                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="editOperator2" value="NEQ" data-has-text-input="true">
+                    <label class="form-check-label" for="editOperator2">
                     <p>is not equal to</p>
                     </label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator3" value="LT" checked data-has-text-input="true">
-                    <label class="form-check-label" for="operator3">
+                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="editOperator3" value="LT" checked data-has-text-input="true">
+                    <label class="form-check-label" for="editOperator3">
                      <p>is before</p>
                     </label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator4" value="GT" data-has-text-input="true">
-                    <label class="form-check-label" for="operator4">
+                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="editOperator4" value="GT" data-has-text-input="true">
+                    <label class="form-check-label" for="editOperator4">
                     <p>is after</p>
                     </label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator5" value="BETWEEN" data-has-number-in-between-input="true">
-                    <label class="form-check-label" for="operator5">
+                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="editOperator5" value="BETWEEN" data-has-number-in-between-input="true">
+                    <label class="form-check-label" for="editOperator5">
                     <p>is between</p>
                     </label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator6" value="HAS_PROPERTY">
-                    <label class="form-check-label" for="operator6">
+                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="editOperator6" value="HAS_PROPERTY">
+                    <label class="form-check-label" for="editOperator6">
                     <p>is known</p>
                     </label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator7" value="NOT_HAS_PROPERTY">
-                    <label class="form-check-label" for="operator7">
+                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="editOperator7" value="NOT_HAS_PROPERTY">
+                    <label class="form-check-label" for="editOperator7">
                     <p>is unknown</p>
                     </label>
                 </div>

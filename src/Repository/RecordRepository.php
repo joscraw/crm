@@ -259,6 +259,7 @@ class RecordRepository extends ServiceEntityRepository
                     }
                     break;
                 case 'single_line_text_field':
+                case 'multi_line_text_field':
                     switch($customFilter['operator']) {
                         case 'EQ':
 
@@ -403,6 +404,7 @@ class RecordRepository extends ServiceEntityRepository
                     }
                     break;
                 case 'dropdown_select_field':
+                case 'radio_select_field':
 
                     switch($customFilter['operator']) {
                         case 'IN':

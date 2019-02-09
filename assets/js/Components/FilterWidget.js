@@ -124,6 +124,7 @@ class FilterWidget {
 
         switch (property.fieldType) {
             case 'single_line_text_field':
+            case 'multi_line_text_field':
                 new SingleLineTextFieldFilterForm($(FilterWidget._selectors.propertyForm), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, property);
                 break;
             case 'number_field':
@@ -136,6 +137,7 @@ class FilterWidget {
                 new SingleCheckboxFieldFilterForm($(FilterWidget._selectors.propertyForm), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, property);
                 break;
             case 'dropdown_select_field':
+            case 'radio_select_field':
                 new DropdownSelectFieldFilterForm($(FilterWidget._selectors.propertyForm), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, property);
                 break;
             case 'multiple_checkbox_field':
@@ -154,6 +156,7 @@ class FilterWidget {
 
         switch (customFilter.fieldType) {
             case 'single_line_text_field':
+            case 'multi_line_text_field':
                 new EditSingleLineTextFieldFilterForm($(FilterWidget._selectors.editPropertyForm), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, customFilter);
                 break;
             case 'number_field':
@@ -166,6 +169,7 @@ class FilterWidget {
                 new EditSingleCheckboxFieldFilterForm($(FilterWidget._selectors.editPropertyForm), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, customFilter);
                 break;
             case 'dropdown_select_field':
+            case 'radio_select_field':
                 new EditDropdownSelectFieldFilterForm($(FilterWidget._selectors.editPropertyForm), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, customFilter);
                 break;
             case 'multiple_checkbox_field':
