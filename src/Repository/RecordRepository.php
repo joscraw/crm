@@ -172,6 +172,55 @@ class RecordRepository extends ServiceEntityRepository
             }
 
         }
+
+        // first lets get the filters without any joins
+        $customFiltersWithoutJoins = array_filter($customFilters, function($f) {
+            return !isset($f['customFilterJoin']) && $f['fieldType'] !== FieldCatalog::CUSTOM_OBJECT;
+        });
+
+        $customFilterJoins = array_filter($customFilters, function($f) {
+            return $f['fieldType'] === FieldCatalog::CUSTOM_OBJECT;
+        });
+
+
+        $joins = [];
+        $i = 1;
+        foreach($customFilterJoins as $customFilterJoin) {
+
+            $customFiltersForJoin = array_filter($customFilters, function($f) use($customFilterJoin) {
+                return isset($f['customFilterJoin']) && $f['customFilterJoin'] === $customFilterJoin['id'];
+            });
+
+
+            $joins[] = sprintf(' INNER JOIN record r%s on r1.properties->>\'$.%s\' = r%s.id', $i, $customFilterJoin['internalName'], $i);
+
+            foreach($customFiltersForJoin as $customFilterForJoin) {
+            }
+            $i++;
+        }
+
+        // Joins
+        $joins = [];
+        $i = 1;
+        foreach($customFilters as $customFilter) {
+
+
+
+
+
+            if($customFilter['fieldType'] === FieldCatalog::CUSTOM_OBJECT) {
+
+
+
+
+                $joins[] = sprintf(' INNER JOIN record r%s on r1.properties->>\'$.%s\' = r%s.id', $i, $customFilter['internalName'], $i);
+                $i++;
+            }
+        }
+
+
+
+
         $resultStr = implode(",",$resultStr);
         $query = sprintf("SELECT id, %s from record WHERE custom_object_id='%s'", $resultStr, $customObject->getId());
 
