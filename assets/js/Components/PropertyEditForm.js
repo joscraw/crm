@@ -86,14 +86,24 @@ class PropertyEditForm {
     }
 
     loadEditPropertyForm() {
+
+
+
+
         return new Promise((resolve, reject) => {
+
+
+            let url = Routing.generate('edit_property', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName, propertyInternalName: this.propertyInternalName});
+
             debugger;
             $.ajax({
                 url: Routing.generate('edit_property', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName, propertyInternalName: this.propertyInternalName}),
             }).then(data => {
+                debugger;
                 this.$wrapper.html(data.formMarkup);
                 resolve(data);
             }).catch(errorData => {
+                debugger;
                 reject(errorData);
             });
         });

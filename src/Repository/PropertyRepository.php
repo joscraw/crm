@@ -317,15 +317,17 @@ class PropertyRepository extends ServiceEntityRepository
      * @return mixed
      * @throws \Doctrine\ORM\NonUniqueResultException
      */
-    public function findByInternalNameAndPortalInternalIdentifier($internalName, $portalInternalIdentifier)
+    public function findByInternalNameAndPortalInternalIdentifierAndCustomObjectInternalName($internalName, $portalInternalIdentifier, $customObjectInternalName)
     {
         return $this->createQueryBuilder('property')
             ->join('property.customObject', 'customObject')
             ->join('customObject.portal', 'portal')
             ->where('property.internalName = :internalName')
             ->andWhere('portal.internalIdentifier = :internalIdentifier')
+            ->andWhere('customObject.internalName = :customObjectInternalName')
             ->setParameter('internalName', $internalName)
             ->setParameter('internalIdentifier', $portalInternalIdentifier)
+            ->setParameter('customObjectInternalName', $customObjectInternalName)
             ->getQuery()
             ->getOneOrNullResult();
     }

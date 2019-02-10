@@ -69,9 +69,10 @@ class PropertyConverter implements ParamConverterInterface
         $customObjectInternalName = $request->attributes->get('internalName');
         $propertyInternalName = $request->attributes->get('propertyInternalName');
 
-        $property = $this->propertyRepository->findByInternalNameAndPortalInternalIdentifier(
+        $property = $this->propertyRepository->findByInternalNameAndPortalInternalIdentifierAndCustomObjectInternalName(
             $propertyInternalName,
-            $portalInternalIdentifier
+            $portalInternalIdentifier,
+            $customObjectInternalName
         );
 
         if(!$property) {
