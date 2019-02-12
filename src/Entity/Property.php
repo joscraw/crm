@@ -128,6 +128,16 @@ class Property /*implements \JsonSerializable*/
     }
 
     /**
+     * @ORM\PrePersist
+     */
+    public function setLabelValue()
+    {
+        if($this->label) {
+            $this->label = strtolower($this->label);
+        }
+    }
+
+    /**
      * @return string
      */
     public function getInternalNameValue()

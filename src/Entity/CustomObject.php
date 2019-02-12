@@ -95,6 +95,16 @@ class CustomObject /*implements \JsonSerializable*/
         }
     }
 
+    /**
+     * @ORM\PrePersist
+     */
+    public function setLabelValue()
+    {
+        if($this->label) {
+            $this->label = strtolower($this->label);
+        }
+    }
+
     public function getId(): ?int
     {
         return $this->id;

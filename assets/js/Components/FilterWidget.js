@@ -95,19 +95,17 @@ class FilterWidget {
 
     customFilterRemovedHandler(key) {
 
-        debugger;
         let customFilter = this.customFilters[key];
 
+        // go ahead and remove the main filter
         this.customFilters = $.grep(this.customFilters, function(cf){
 
-            debugger;
             return parseInt(cf.id) !== parseInt(customFilter.id);
 
         });
 
+        // if a parent filter doesn't have any child filters lets just remove it
         for(let i = 0; i < this.customFilters.length; i++) {
-
-            debugger;
 
             let customFilter = this.customFilters[i];
 
@@ -121,7 +119,6 @@ class FilterWidget {
 
             });
 
-            debugger;
             if(customFilter.fieldType === 'custom_object_field' && childFilters.length === 0) {
                 this.customFilters.splice(i, 1);
             }

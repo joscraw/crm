@@ -14,6 +14,18 @@
     background-color: transparent;
     box-shadow: none;
     outline: none;
+
+    input {
+      color: transparent;
+      text-shadow: 0 0 0 #2196f3;
+      box-shadow: none;
+
+      &:focus {
+        outline: none;
+        box-shadow: none;
+      }
+    }
+
   }
 
   .selectize-input .item {
