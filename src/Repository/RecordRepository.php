@@ -2,6 +2,8 @@
 
 namespace App\Repository;
 
+ini_set('xdebug.max_nesting_level', 100000);
+
 use App\Entity\CustomObject;
 use App\Entity\Record;
 use App\Model\FieldCatalog;
@@ -297,8 +299,7 @@ class RecordRepository extends ServiceEntityRepository
         $results = $stmt->fetchAll();
 
         return array(
-            "results"  => $results,
-            "countResult"	=> count($results)
+            "results"  => $results
         );
     }
 

@@ -83,8 +83,8 @@ class CustomObjectSettingsController extends AbstractController
         $results = $this->customObjectRepository->getDataTableData($start, $length, $search, $orders, $columns);
 
         $totalObjectsCount = $this->customObjectRepository->findCount();
-        $filteredObjectsCount = $results['countResult'];
         $arrayResults = $results['arrayResults'];
+        $filteredObjectsCount = count($arrayResults);
 
         $response = new JsonResponse([
             'draw'  => $draw,
