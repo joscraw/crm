@@ -123,7 +123,7 @@ class FilterList {
             for(let i = 0; i < propertyGroups.length; i++) {
                 let propertyGroup = propertyGroups[i];
                 let properties = propertyGroup.properties;
-                
+
                 this._addList(propertyGroup, properties);
 
             }
