@@ -95,7 +95,34 @@ class FilterWidget {
 
     customFilterRemovedHandler(key) {
         debugger;
-        this.customFilters.splice(key, 1);
+
+        let customFilter = this.customFilters[key];
+        let otherFiltersWithTheSameJoin = [];
+
+        if('customFilterJoin' in customFilter) {
+                otherFiltersWithTheSameJoin = this.customFilters.filter(cf => {
+
+                return ('customFilterJoin' in cf && parseInt(cf.customFilterJoin) === parseInt(customFilter.customFilterJoin) && parseInt(cf.id) !== parseInt(customFilter.id));
+
+            });
+        }
+
+        // remove the child filter and if no other child filters are attached to the parent then remove the parent as well
+        this.customFilters = $.grep(this.customFilters, function(cf){
+
+            if(parseInt(cf.id) === parseInt(customFilter.id)) {
+                return false;
+            }
+
+            return !(otherFiltersWithTheSameJoin.length === 0 &&
+                'customFilterJoin' in customFilter &&
+                parseInt(cf.id) === parseInt(customFilter.customFilterJoin)
+            );
+
+        });
+
+
+        debugger;
 
         this.globalEventDispatcher.publish(Settings.Events.FILTERS_UPDATED, this.customFilters);
     }
@@ -118,8 +145,14 @@ class FilterWidget {
 
     applyCustomFilterButtonPressedHandler(customFilter) {
 
-        debugger;
+        // Make sure that properties with the same id that belong to the same join override each other
         this.customFilters = $.grep(this.customFilters, function(cf){
+
+            if(cf.id === customFilter.id && 'customFilterJoin' in cf && 'customFilterJoin' in customFilter) {
+
+                return cf.customFilterJoin !== customFilter.customFilterJoin;
+            }
+
             return cf.id !== customFilter.id;
         });
 
@@ -166,7 +199,13 @@ class FilterWidget {
     handleCustomObjectPropertyListItemClicked(property) {
 
         debugger;
+
+        this.customFilters = $.grep(this.customFilters, function(cf){
+            return cf.id !== property.id;
+        });
+
         this.customFilters.push(property);
+
         new FilterList(this.$wrapper.find('.js-property-list'), this.globalEventDispatcher, this.portalInternalIdentifier, property.field.customObject.internalName, property);
     }
 

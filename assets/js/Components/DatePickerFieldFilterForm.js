@@ -124,10 +124,6 @@ class DatePickerFieldFilterForm {
         <button type="button" class="btn btn-link js-back-to-list-button"><i class="fa fa-chevron-left"></i> Back</button>
         <p><small>${property.label}*</small></p>
         <form name="filter" id="js-apply-filter-form" novalidate="novalidate">
-            <input type="hidden" name="property" value="${property.internalName}">
-            <input type="hidden" name="fieldType" value="${property.fieldType}">
-            <input type="hidden" name="label" value="${property.label}">
-            <input type="hidden" name="id" value="${property.id}">
             <div style="height: 200px; overflow-y: auto">
                 <div class="form-check">
                     <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator1" value="EQ" checked data-has-text-input="true">
