@@ -176,7 +176,7 @@ class RecordRepository extends ServiceEntityRepository
         }
 
 
-        // Setup filter tree
+        // Setup nested filter tree
         function tree(&$customFilters, $allCustomFilters) {
 
             foreach($customFilters as &$customFilter) {
@@ -194,7 +194,8 @@ class RecordRepository extends ServiceEntityRepository
         tree($customFilters, $customFilters);
 
         // clean duplicates
-        function clean(&$customFilters, $allCustomFilters) {
+        $keysToDelete = [];
+        function clean(&$customFilters, $allCustomFilters, &$keysToDelete) {
 
             foreach($customFilters as &$customFilter) {
 
@@ -208,16 +209,22 @@ class RecordRepository extends ServiceEntityRepository
                     $key = array_search($customFilterForJoin['id'], array_column($customFilters, 'id'));
 
                     if($key !== false) {
-                        unset($customFilters[$key]);
-                        $customFilters = array_values($customFilters);
+                        $keysToDelete[] = $key;
                     }
 
                 }
             }
         };
 
-        clean($customFilters, $customFilters);
+        clean($customFilters, $customFilters, $keysToDelete);
 
+        foreach($keysToDelete as $key) {
+            unset($customFilters[$key]);
+        }
+
+        $customFilters = array_values($customFilters);
+
+        // Joins
         $joins = [];
         function joins(&$customFilters, &$joins, $aliasCurrentIndex, $aliasNextIndex) {
 

@@ -19,6 +19,7 @@ class FilterList {
         this.lists = [];
         this.customFilterJoin = customFilterJoin;
 
+
         this.unbindEvents();
 
         this.$wrapper.on(
@@ -194,13 +195,16 @@ class FilterList {
         });
 
         if(property[0].fieldType === 'custom_object_field') {
+
+            debugger;
+
             this.globalEventDispatcher.publish(Settings.Events.FILTER_CUSTOM_OBJECT_PROPERTY_LIST_ITEM_CLICKED, property[0]);
         } else {
 
             debugger;
-            if(this.customFilterJoin) {
+            /*if(this.customFilterJoin) {
                 property[0].customFilterJoin = this.customFilterJoin.id;
-            }
+            }*/
 
             this.globalEventDispatcher.publish(Settings.Events.FILTER_PROPERTY_LIST_ITEM_CLICKED, property[0]);
         }

@@ -31,7 +31,7 @@ class FilterWidget {
         this.propertyGroups = [];
         this.lists = [];
         this.customFilters = [];
-        this.customFilterJoins = [];
+        this.customFilterJoin = null;
 
         this.globalEventDispatcher.subscribe(
             Settings.Events.APPLY_CUSTOM_FILTER_BUTTON_PRESSED,
@@ -98,6 +98,40 @@ class FilterWidget {
 
         let customFilter = this.customFilters[key];
         let otherFiltersWithTheSameJoin = [];
+
+
+        function clean(customFilters, customFilterToDelete) {
+
+            debugger;
+
+            let children = customFilters.filter(cf => {
+
+                if('customFilterJoin' in customFilterToDelete) {
+                    if(parseInt(cf.id) === parseInt(customFilterToDelete.customFilterJoin)) {
+                        return true;
+                    }
+                    return false;
+                }
+            });
+
+
+            this.customFilters = $.grep(customFilters, function(cf){
+
+                if('customFilterJoin' in customFilterToDelete) {
+                    if(parseInt(cf.id) === parseInt(customFilterToDelete.customFilterJoin)) {
+                        return true;
+                    }
+                    return false;
+                }
+
+            });
+
+            debugger;
+
+        }
+
+        debugger;
+        clean(this.customFilters, customFilter);
 
         if('customFilterJoin' in customFilter) {
                 otherFiltersWithTheSameJoin = this.customFilters.filter(cf => {
@@ -190,6 +224,10 @@ class FilterWidget {
 
         debugger;
 
+        if(this.customFilterJoin) {
+            property.customFilterJoin = this.customFilterJoin.id;
+        }
+
         this.$wrapper.find(FilterWidget._selectors.propertyList).addClass('d-none');
         this.$wrapper.find(FilterWidget._selectors.propertyForm).removeClass('d-none');
 
@@ -199,6 +237,13 @@ class FilterWidget {
     handleCustomObjectPropertyListItemClicked(property) {
 
         debugger;
+        if(this.customFilterJoin) {
+            property.customFilterJoin = this.customFilterJoin.id;
+        }
+
+        debugger;
+        this.customFilterJoin = property;
+
 
         this.customFilters = $.grep(this.customFilters, function(cf){
             return cf.id !== property.id;
@@ -206,7 +251,7 @@ class FilterWidget {
 
         this.customFilters.push(property);
 
-        new FilterList(this.$wrapper.find('.js-property-list'), this.globalEventDispatcher, this.portalInternalIdentifier, property.field.customObject.internalName, property);
+        new FilterList(this.$wrapper.find('.js-property-list'), this.globalEventDispatcher, this.portalInternalIdentifier, property.field.customObject.internalName, this.customFilterJoin);
     }
 
     renderFilterForm(property) {
