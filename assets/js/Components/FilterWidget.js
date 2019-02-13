@@ -31,7 +31,6 @@ class FilterWidget {
         this.propertyGroups = [];
         this.lists = [];
         this.customFilters = [];
-        this.customFilterJoin = null;
 
         this.globalEventDispatcher.subscribe(
             Settings.Events.APPLY_CUSTOM_FILTER_BUTTON_PRESSED,
@@ -95,34 +94,14 @@ class FilterWidget {
 
     customFilterRemovedHandler(key) {
 
+        debugger;
         let customFilter = this.customFilters[key];
 
         // go ahead and remove the main filter
         this.customFilters = $.grep(this.customFilters, function(cf){
 
-            return parseInt(cf.id) !== parseInt(customFilter.id);
-
+            return !(cf.id === customFilter.id && cf.customFilterJoins === customFilter.customFilterJoins);
         });
-
-        // if a parent filter doesn't have any child filters lets just remove it
-        for(let i = 0; i < this.customFilters.length; i++) {
-
-            let customFilter = this.customFilters[i];
-
-            let childFilters = this.customFilters.filter(cf => {
-
-                if('customFilterJoin' in cf) {
-                    return customFilter.id === cf.customFilterJoin;
-                }
-
-                return false;
-
-            });
-
-            if(customFilter.fieldType === 'custom_object_field' && childFilters.length === 0) {
-                this.customFilters.splice(i, 1);
-            }
-        }
 
         this.globalEventDispatcher.publish(Settings.Events.FILTERS_UPDATED, this.customFilters);
     }
@@ -150,12 +129,7 @@ class FilterWidget {
         // Make sure that properties with the same id that belong to the same join override each other
         this.customFilters = $.grep(this.customFilters, function(cf){
 
-            if(cf.id === customFilter.id && 'customFilterJoin' in cf && 'customFilterJoin' in customFilter) {
-
-                return cf.customFilterJoin !== customFilter.customFilterJoin;
-            }
-
-            return cf.id !== customFilter.id;
+            return !(cf.id === customFilter.id && cf.customFilterJoins === customFilter.customFilterJoins);
         });
 
         this.customFilters.push(customFilter);
@@ -165,7 +139,6 @@ class FilterWidget {
         this.$wrapper.find(FilterWidget._selectors.propertyForm).addClass('d-none');
         this.$wrapper.find(FilterWidget._selectors.editPropertyForm).addClass('d-none');
 
-        /*this.globalEventDispatcher.publish(Settings.Events.CUSTOM_FILTER_ADDED, this.customFilters);*/
         this.globalEventDispatcher.publish(Settings.Events.FILTERS_UPDATED, this.customFilters);
     }
 
@@ -190,38 +163,15 @@ class FilterWidget {
 
     handlePropertyListItemClicked(property) {
 
-        debugger;
-
-        if(this.customFilterJoin) {
-            property.customFilterJoin = this.customFilterJoin.id;
-        }
-
-        this.customFilterJoin = null;
-
         this.$wrapper.find(FilterWidget._selectors.propertyList).addClass('d-none');
         this.$wrapper.find(FilterWidget._selectors.propertyForm).removeClass('d-none');
 
         this.renderFilterForm(property);
     }
 
-    handleCustomObjectPropertyListItemClicked(property) {
+    handleCustomObjectPropertyListItemClicked(property, customFilterJoins) {
 
-        debugger;
-        if(this.customFilterJoin) {
-            property.customFilterJoin = this.customFilterJoin.id;
-        }
-
-        debugger;
-        this.customFilterJoin = property;
-
-
-        this.customFilters = $.grep(this.customFilters, function(cf){
-            return cf.id !== property.id;
-        });
-
-        this.customFilters.push(property);
-
-        new FilterList(this.$wrapper.find('.js-property-list'), this.globalEventDispatcher, this.portalInternalIdentifier, property.field.customObject.internalName, this.customFilterJoin);
+        new FilterList(this.$wrapper.find('.js-property-list'), this.globalEventDispatcher, this.portalInternalIdentifier, property.field.customObject.internalName, property, customFilterJoins);
     }
 
     renderFilterForm(property) {

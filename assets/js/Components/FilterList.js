@@ -9,7 +9,7 @@ import SingleLineTextFieldFilterForm from "./SingleLineTextFieldFilterForm";
 
 class FilterList {
 
-    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, customFilterJoin = null) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, customFilterJoin = null, customFilterJoins = []) {
         debugger;
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
@@ -18,6 +18,7 @@ class FilterList {
         this.propertyGroups = [];
         this.lists = [];
         this.customFilterJoin = customFilterJoin;
+        this.customFilterJoins = customFilterJoins;
 
 
         this.unbindEvents();
@@ -142,13 +143,25 @@ class FilterList {
         let options = {
             valueNames: [ 'label' ],
             // Since there are no elements in the list, this will be used as template.
-            item: `<li class="js-property-list-item c-filter-widget__list-item"><span class="label"></span></li>`
+            item: `<li class="js-property-list-item c-filter-widget__list-item" data-custom-filter-joins="[]"><span class="label"></span></li>`
         };
 
         this.lists.push(new List(`list-${propertyGroup.id}`, options, properties));
 
+        debugger;
         $( `#list-${propertyGroup.id} li` ).each((index, element) => {
             $(element).attr('data-property-id', properties[index].id);
+
+            let joins = [];
+
+            if(this.customFilterJoin) {
+                debugger;
+                let multiple = _.get(this.customFilterJoin, 'field.multiple', false);
+                joins = this.customFilterJoins.concat({'internalName' : this.customFilterJoin.internalName, 'label' : this.customFilterJoin.label, 'multiple' : multiple});
+            }
+
+            $(element).attr('data-custom-filter-joins', JSON.stringify(joins));
+
         });
 
     }
@@ -183,6 +196,7 @@ class FilterList {
         const $listItem = $(e.currentTarget);
         let propertyGroupId = $listItem.closest('.js-list').attr('data-property-group');
         let propertyId = $listItem.attr('data-property-id');
+        let customFilterJoins = JSON.parse($listItem.attr('data-custom-filter-joins'));
 
 
         let propertyGroup = this.propertyGroups.filter(propertyGroup => {
@@ -197,17 +211,12 @@ class FilterList {
 
         if(property[0].fieldType === 'custom_object_field') {
 
-            debugger;
-
-            this.globalEventDispatcher.publish(Settings.Events.FILTER_CUSTOM_OBJECT_PROPERTY_LIST_ITEM_CLICKED, property[0]);
+            this.globalEventDispatcher.publish(Settings.Events.FILTER_CUSTOM_OBJECT_PROPERTY_LIST_ITEM_CLICKED, property[0], customFilterJoins);
         } else {
 
-            debugger;
-            /*if(this.customFilterJoin) {
-                property[0].customFilterJoin = this.customFilterJoin.id;
-            }*/
+            property[0].customFilterJoins = customFilterJoins;
 
-            this.globalEventDispatcher.publish(Settings.Events.FILTER_PROPERTY_LIST_ITEM_CLICKED, property[0]);
+            this.globalEventDispatcher.publish(Settings.Events.FILTER_PROPERTY_LIST_ITEM_CLICKED, property[0], customFilterJoins);
         }
     }
 

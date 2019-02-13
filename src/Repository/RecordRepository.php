@@ -8,6 +8,8 @@ use App\Entity\CustomObject;
 use App\Entity\Record;
 use App\Model\FieldCatalog;
 use App\Model\NumberField;
+use App\Utils\ArrayHelper;
+use App\Utils\RandomStringGenerator;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
@@ -19,6 +21,9 @@ use Symfony\Bridge\Doctrine\RegistryInterface;
  */
 class RecordRepository extends ServiceEntityRepository
 {
+
+    use ArrayHelper;
+
     public function __construct(RegistryInterface $registry)
     {
         parent::__construct($registry, Record::class);
@@ -178,88 +183,40 @@ class RecordRepository extends ServiceEntityRepository
         }
 
 
-        // Setup nested filter tree
-        function tree(&$customFilters, $allCustomFilters) {
-
-            foreach($customFilters as &$customFilter) {
-
-                $customFiltersForJoin = array_filter($allCustomFilters, function($f) use($customFilter) {
-                    return isset($f['customFilterJoin']) && $f['customFilterJoin'] === $customFilter['id'];
-                });
-
-                $customFilter['customFiltersForJoin'] = $customFiltersForJoin;
-
-                tree($customFilter['customFiltersForJoin'], $allCustomFilters);
-            }
-        };
-
-        tree($customFilters, $customFilters);
-
-        // clean duplicates
-        $keysToDelete = [];
-        function clean(&$customFilters, $allCustomFilters, &$keysToDelete) {
-
-            foreach($customFilters as &$customFilter) {
-
-                $customFiltersForJoin = array_filter($allCustomFilters, function($f) use($customFilter) {
-                    return isset($f['customFilterJoin']) && $f['customFilterJoin'] === $customFilter['id'];
-                });
-
-                // remove the custom filter joins from the main array
-                foreach($customFiltersForJoin as $customFilterForJoin) {
-
-                    $key = array_search($customFilterForJoin['id'], array_column($customFilters, 'id'));
-
-                    if($key !== false) {
-                        $keysToDelete[] = $key;
-                    }
-
-                }
-            }
-        };
-
-        clean($customFilters, $customFilters, $keysToDelete);
-
-        foreach($keysToDelete as $key) {
-            unset($customFilters[$key]);
-        }
-
-        $customFilters = array_values($customFilters);
-
         // Joins
+        // Don't touch the Join logic unless absolutely necessary. It just works!
         $joins = [];
-        function joins(&$customFilters, &$joins, $aliasCurrentIndex, $aliasNextIndex) {
+        $joinAlias = 2;
+        $previousJoinAlias = 1;
+        foreach($customFilters as &$customFilter) {
 
-            foreach($customFilters as &$customFilter) {
-
-                if($customFilter['fieldType'] === FieldCatalog::CUSTOM_OBJECT) {
-
-                    if($customFilter['field']['multiple'] === 'true') {
-                        $joins[] = sprintf('INNER JOIN record r%s on JSON_SEARCH(r%s.properties->>\'$.%s\', \'one\', r%s.id) IS NOT NULL', $aliasNextIndex, $aliasCurrentIndex, $customFilter['internalName'], $aliasNextIndex);
-                    } else {
-                        $joins[] = sprintf('INNER JOIN record r%s on r%s.properties->>\'$.%s\' = r%s.id', $aliasNextIndex, $aliasCurrentIndex, $customFilter['internalName'], $aliasNextIndex);
-                    }
-
-
-                    $customFilter['aliasIndex'] = $aliasNextIndex;
-
-                    $aliasNextIndex++;
-                }
-
-                if(!empty($customFilter['customFiltersForJoin'])) {
-                    joins($customFilter['customFiltersForJoin'], $joins, $aliasCurrentIndex + 1, $aliasNextIndex);
-                }
-
+            if(empty($customFilter['customFilterJoins'])) {
+                $customFilter['aliasIndex'] = 1;
+                continue;
             }
-        }
 
-        joins($customFilters, $joins, 1, 2);
+            $customFilterJoins = $customFilter['customFilterJoins'];
+
+            for($i = 0; $i < count($customFilterJoins); $i++) {
+
+                if($customFilterJoins[$i]['multiple'] === 'true') {
+                    $joins[] = sprintf('INNER JOIN record r%s on JSON_SEARCH(r%s.properties->>\'$.%s\', \'one\', r%s.id) IS NOT NULL', $joinAlias, ($i == 0 ? $i + 1 : $previousJoinAlias), $customFilterJoins[$i]['internalName'], $joinAlias);
+                } else {
+                    $joins[] = sprintf('INNER JOIN record r%s on r%s.properties->>\'$.%s\' = r%s.id', $joinAlias, ($i == 0 ? $i + 1 : $previousJoinAlias), $customFilterJoins[$i]['internalName'], $joinAlias);
+                }
+
+                $previousJoinAlias = $joinAlias;
+                $joinAlias++;
+            }
+
+            $customFilter['aliasIndex'] = ($joinAlias - 1);
+        }
 
         $joinString = implode(" ", $joins);
 
-
         $resultStr = implode(",",$resultStr);
         $query = sprintf("SELECT DISTINCT r1.id, %s from record r1 %s WHERE r1.custom_object_id='%s'", $resultStr, $joinString, $customObject->getId());
+
 
         // Search
         if(!empty($search['value'])) {
@@ -267,12 +224,12 @@ class RecordRepository extends ServiceEntityRepository
             $query .= ' and LOWER(r1.properties) LIKE \'%'.strtolower($searchItem).'%\'';
         }
 
-        // Custom Filters
-        // because we the properties column on each record might not contain each possible property due to the fact
-        // that new properties can be created after records are created we need to do an IF check cause WHERE/LIKE statements
-        // don't work on keys/values (columns) that don't exist
 
-        $query = $this->conditions($customFilters, $query);
+        // Custom Filters
+        foreach($customFilters as &$customFilter) {
+            $query .= $this->getCondition($customFilter, $customFilter['aliasIndex']);
+        }
+
 
         // Order
         foreach ($orders as $key => $order) {
@@ -290,6 +247,7 @@ class RecordRepository extends ServiceEntityRepository
                 $query .= ' ' . $order['dir'];
             }
 
+
         // limit
         $query .= sprintf(' LIMIT %s, %s', $start, $length);
 
@@ -303,62 +261,33 @@ class RecordRepository extends ServiceEntityRepository
         );
     }
 
-    /**
-     * @param $customFilters
-     * @param $query
-     * @param int $alias
-     * @return string
-     */
-    private function conditions($customFilters, &$query, $alias = 1) {
-
-        foreach($customFilters as $customFilter) {
-
-            if($customFilter['fieldType'] === FieldCatalog::CUSTOM_OBJECT) {
-
-                if(!empty($customFilter['customFiltersForJoin'])) {
-                    $this->conditions($customFilter['customFiltersForJoin'], $query, $customFilter['aliasIndex']);
-                }
-
-            } else {
-
-                $query = $this->getCondition($customFilter, $query, $alias);
-            }
-        }
-
-        return $query;
-    }
 
     /**
      * @param $customFilter
-     * @param $query
      * @param $alias
      * @return string
      */
-    private function getCondition($customFilter, $query, $alias) {
+    private function getCondition($customFilter, $alias) {
 
+        $query = '';
         switch($customFilter['fieldType']) {
-            /*case 'custom_object_field':
-                foreach($customFilter['customFiltersForJoin'] as $customFilterForJoin) {
-                    $query .= $this->getCondition($customFilterForJoin, $query, $customFilter['aliasIndex']);
-                }
-                break;*/
             case 'number_field':
                 switch($customFilter['operator']) {
                     case 'EQ':
 
                         if(trim($customFilter['value']) === '') {
-                            $query .= sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, r%s.properties->>\'$.%s\', \'\') = \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
+                            $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, r%s.properties->>\'$.%s\', \'\') = \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         } else {
-                            $query .= sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, r%s.properties->>\'$.%s\', \'\') = \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], $customFilter['value']);
+                            $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, r%s.properties->>\'$.%s\', \'\') = \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], $customFilter['value']);
                         }
 
                         break;
                     case 'NEQ':
 
                         if(trim($customFilter['value']) === '') {
-                            $query .= sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, r%s.properties->>\'$.%s\', \'\') != \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
+                            $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, r%s.properties->>\'$.%s\', \'\') != \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         } else {
-                            $query .= sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, r%s.properties->>\'$.%s\', \'\') != \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], $customFilter['value']);
+                            $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, r%s.properties->>\'$.%s\', \'\') != \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], $customFilter['value']);
                         }
 
                         break;
@@ -366,9 +295,9 @@ class RecordRepository extends ServiceEntityRepository
 
                         if(trim($customFilter['value']) === '') {
                             // TODO revisit this one. how do you compare less than to an empty string? What should we do? Right now this is just returning 0 results
-                            $query .= sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, r%s.properties->>\'$.%s\', \'\') < \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
+                            $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, r%s.properties->>\'$.%s\', \'\') < \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         } else {
-                            $query .= sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, r%s.properties->>\'$.%s\', \'\') < \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], $customFilter['value']);
+                            $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, r%s.properties->>\'$.%s\', null) < \'%s\' AND r%s.properties->>\'$.%s\' != \'\' AND r%s.properties->>\'$.%s\' IS NOT NULL', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], $customFilter['value'], $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         }
 
                         break;
@@ -376,9 +305,9 @@ class RecordRepository extends ServiceEntityRepository
 
                         if(trim($customFilter['value']) === '') {
                             // TODO revisit this one. how do you compare greater than to an empty string? What should we do? Right now this is just returning 0 results
-                            $query .= sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, r%s.properties->>\'$.%s\', \'\') > \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
+                            $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, r%s.properties->>\'$.%s\', \'\') > \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         } else {
-                            $query .= sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, r%s.properties->>\'$.%s\', \'\') > \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], $customFilter['value']);
+                            $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, r%s.properties->>\'$.%s\', \'\') > \'%s\' AND r%s.properties->>\'$.%s\' != \'\' AND r%s.properties->>\'$.%s\' IS NOT NULL', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], $customFilter['value'], $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         }
 
                         break;
@@ -394,20 +323,20 @@ class RecordRepository extends ServiceEntityRepository
 
                         if(trim($customFilter['low_value']) === '' || trim($customFilter['high_value']) === '') {
                             // TODO revisit this one. IF the low value or high value is empty, what should we do? Right now this is just returning 0 results
-                            $query .= sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, r%s.properties->>\'$.%s\', \'\') BETWEEN \'%s\' AND \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], '', '');
+                            $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, r%s.properties->>\'$.%s\', \'\') BETWEEN \'%s\' AND \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], '', '');
                         } else {
-                            $query .= sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, r%s.properties->>\'$.%s\', \'\') BETWEEN \'%s\' AND \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], $lowValue, $highValue);
+                            $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, r%s.properties->>\'$.%s\', \'\') BETWEEN \'%s\' AND \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], $lowValue, $highValue);
                         }
 
                         break;
                     case 'HAS_PROPERTY':
 
-                        $query .= sprintf(' and (r%s.properties->>\'$.%s\') is not null', $alias, $customFilter['internalName']);
+                        $query = sprintf(' and (r%s.properties->>\'$.%s\') is not null', $alias, $customFilter['internalName']);
 
                         break;
                     case 'NOT_HAS_PROPERTY':
 
-                        $query .= sprintf(' and (r%s.properties->>\'$.%s\') is null', $alias, $customFilter['internalName']);
+                        $query = sprintf(' and (r%s.properties->>\'$.%s\') is null', $alias, $customFilter['internalName']);
 
                         break;
                 }
@@ -418,29 +347,29 @@ class RecordRepository extends ServiceEntityRepository
                     case 'EQ':
 
                         if(trim($customFilter['value']) === '') {
-                            $query .= sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), \'\') = \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
+                            $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), \'\') = \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         } else {
-                            $query .= sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), \'\') LIKE \'%%%s%%\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], strtolower($customFilter['value']));
+                            $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), \'\') LIKE \'%%%s%%\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], strtolower($customFilter['value']));
                         }
 
                         break;
                     case 'NEQ':
 
                         if(trim($customFilter['value']) === '') {
-                            $query .= sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), \'\') != \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
+                            $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), \'\') != \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         } else {
-                            $query .= sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), \'\') NOT LIKE \'%%%s%%\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], strtolower($customFilter['value']));
+                            $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), \'\') NOT LIKE \'%%%s%%\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], strtolower($customFilter['value']));
                         }
 
                         break;
                     case 'HAS_PROPERTY':
 
-                        $query .= sprintf(' and (r%s.properties->>\'$.%s\') is not null', $alias, $customFilter['internalName']);
+                        $query = sprintf(' and (r%s.properties->>\'$.%s\') is not null', $alias, $customFilter['internalName']);
 
                         break;
                     case 'NOT_HAS_PROPERTY':
 
-                        $query .= sprintf(' and (r%s.properties->>\'$.%s\') is null', $alias, $customFilter['internalName']);
+                        $query = sprintf(' and (r%s.properties->>\'$.%s\') is null', $alias, $customFilter['internalName']);
 
                         break;
                 }
@@ -450,18 +379,18 @@ class RecordRepository extends ServiceEntityRepository
                     case 'EQ':
 
                         if(trim($customFilter['value']) === '') {
-                            $query .= sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), null) = \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
+                            $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), null) = \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         } else {
-                            $query .= sprintf(' and IF(DATE_FORMAT( CAST( JSON_UNQUOTE( r%s.properties->>\'$.%s\' ) as DATETIME ), \'%%m-%%d-%%Y\' ), DATE_FORMAT( CAST( JSON_UNQUOTE( r%s.properties->>\'$.%s\' ) as DATETIME ), \'%%m-%%d-%%Y\' ), \'\') = \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], $customFilter['value']);
+                            $query = sprintf(' and IF(DATE_FORMAT( CAST( JSON_UNQUOTE( r%s.properties->>\'$.%s\' ) as DATETIME ), \'%%m-%%d-%%Y\' ), DATE_FORMAT( CAST( JSON_UNQUOTE( r%s.properties->>\'$.%s\' ) as DATETIME ), \'%%m-%%d-%%Y\' ), \'\') = \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], $customFilter['value']);
                         }
 
                         break;
                     case 'NEQ':
 
                         if(trim($customFilter['value']) === '') {
-                            $query .= sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), null) != \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
+                            $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), null) != \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         } else {
-                            $query .= sprintf(' and IF(DATE_FORMAT( CAST( JSON_UNQUOTE( r%s.properties->>\'$.%s\' ) as DATETIME ), \'%%m-%%d-%%Y\' ), DATE_FORMAT( CAST( JSON_UNQUOTE( r%s.properties->>\'$.%s\' ) as DATETIME ), \'%%m-%%d-%%Y\' ), \'\') != \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], $customFilter['value']);
+                            $query = sprintf(' and IF(DATE_FORMAT( CAST( JSON_UNQUOTE( r%s.properties->>\'$.%s\' ) as DATETIME ), \'%%m-%%d-%%Y\' ), DATE_FORMAT( CAST( JSON_UNQUOTE( r%s.properties->>\'$.%s\' ) as DATETIME ), \'%%m-%%d-%%Y\' ), \'\') != \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], $customFilter['value']);
                         }
 
                         break;
@@ -469,9 +398,9 @@ class RecordRepository extends ServiceEntityRepository
 
                         if(trim($customFilter['value']) === '') {
                             // TODO revisit this one. how do you compare less than to an empty string? What should we do? Right now this is just returning 0 results
-                            $query .= sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), \'\') < \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
+                            $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), \'\') < \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         } else {
-                            $query .= sprintf(' and IF(DATE_FORMAT( CAST( JSON_UNQUOTE( r%s.properties->>\'$.%s\' ) as DATETIME ), \'%%m-%%d-%%Y\' ), DATE_FORMAT( CAST( JSON_UNQUOTE( r%s.properties->>\'$.%s\' ) as DATETIME ), \'%%m-%%d-%%Y\' ), null) < \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], $customFilter['value']);
+                            $query = sprintf(' and IF(DATE_FORMAT( CAST( JSON_UNQUOTE( r%s.properties->>\'$.%s\' ) as DATETIME ), \'%%m-%%d-%%Y\' ), DATE_FORMAT( CAST( JSON_UNQUOTE( r%s.properties->>\'$.%s\' ) as DATETIME ), \'%%m-%%d-%%Y\' ), null) < \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], $customFilter['value']);
                         }
 
                         break;
@@ -479,9 +408,9 @@ class RecordRepository extends ServiceEntityRepository
 
                         if(trim($customFilter['value']) === '') {
                             // TODO revisit this one. how do you compare greater than to an empty string? What should we do? Right now this is just returning 0 results
-                            $query .= sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), \'\') > \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
+                            $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), \'\') > \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         } else {
-                            $query .= sprintf(' and IF(DATE_FORMAT( CAST( JSON_UNQUOTE( r%s.properties->>\'$.%s\' ) as DATETIME ), \'%%m-%%d-%%Y\' ), DATE_FORMAT( CAST( JSON_UNQUOTE( r%s.properties->>\'$.%s\' ) as DATETIME ), \'%%m-%%d-%%Y\' ), null) > \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], $customFilter['value']);
+                            $query = sprintf(' and IF(DATE_FORMAT( CAST( JSON_UNQUOTE( r%s.properties->>\'$.%s\' ) as DATETIME ), \'%%m-%%d-%%Y\' ), DATE_FORMAT( CAST( JSON_UNQUOTE( r%s.properties->>\'$.%s\' ) as DATETIME ), \'%%m-%%d-%%Y\' ), null) > \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], $customFilter['value']);
                         }
 
                         break;
@@ -490,21 +419,21 @@ class RecordRepository extends ServiceEntityRepository
 
                         if(trim($customFilter['low_value']) === '' || trim($customFilter['high_value']) === '') {
                             // TODO revisit this one. IF the low value or high value is empty, what should we do? Right now this is just returning 0 results
-                            $query .= sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, r%s.properties->>\'$.%s\', \'\') BETWEEN \'%s\' AND \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], '', '');
+                            $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, r%s.properties->>\'$.%s\', \'\') BETWEEN \'%s\' AND \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], '', '');
                         } else {
-                            $query .= sprintf(' and IF(DATE_FORMAT( CAST( JSON_UNQUOTE( r%s.properties->>\'$.%s\' ) as DATETIME ), \'%%m-%%d-%%Y\' ), DATE_FORMAT( CAST( JSON_UNQUOTE( r%s.properties->>\'$.%s\' ) as DATETIME ), \'%%m-%%d-%%Y\' ), null) BETWEEN \'%s\' AND \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], $customFilter['low_value'], $customFilter['high_value']);
+                            $query = sprintf(' and IF(DATE_FORMAT( CAST( JSON_UNQUOTE( r%s.properties->>\'$.%s\' ) as DATETIME ), \'%%m-%%d-%%Y\' ), DATE_FORMAT( CAST( JSON_UNQUOTE( r%s.properties->>\'$.%s\' ) as DATETIME ), \'%%m-%%d-%%Y\' ), null) BETWEEN \'%s\' AND \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], $customFilter['low_value'], $customFilter['high_value']);
                         }
 
                         break;
 
                     case 'HAS_PROPERTY':
 
-                        $query .= sprintf(' and (r%s.properties->>\'$.%s\') is not null', $alias, $customFilter['internalName']);
+                        $query = sprintf(' and (r%s.properties->>\'$.%s\') is not null', $alias, $customFilter['internalName']);
 
                         break;
                     case 'NOT_HAS_PROPERTY':
 
-                        $query .= sprintf(' and (r%s.properties->>\'$.%s\') is null', $alias, $customFilter['internalName']);
+                        $query = sprintf(' and (r%s.properties->>\'$.%s\') is null', $alias, $customFilter['internalName']);
 
                         break;
                 }
@@ -515,15 +444,15 @@ class RecordRepository extends ServiceEntityRepository
                     case 'IN':
 
                         if(trim($customFilter['value']) === '') {
-                            $query .= sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), null) = \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
+                            $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), null) = \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         } else {
                             $values = explode(',', $customFilter['value']);
                             if($values == ['0','1']) {
-                                $query .= sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), \'\') = \'%s\' OR IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), \'\') = \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], 'true', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], 'false');
+                                $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), \'\') = \'%s\' OR IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), \'\') = \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], 'true', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], 'false');
                             } elseif ($values == ['0']) {
-                                $query .= sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), \'\') = \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], 'false');
+                                $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), \'\') = \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], 'false');
                             } elseif ($values == ['1']) {
-                                $query .= sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), \'\') = \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], 'true');
+                                $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), \'\') = \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], 'true');
                             }
                         }
 
@@ -531,27 +460,27 @@ class RecordRepository extends ServiceEntityRepository
                     case 'NOT_IN':
 
                         if(trim($customFilter['value']) === '') {
-                            $query .= sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), null) != \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
+                            $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), null) != \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         } else {
                             $values = explode(',', $customFilter['value']);
                             if($values == ['0','1']) {
-                                $query .= sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), \'\') != \'%s\' AND IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), \'\') != \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], 'true', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], 'false');
+                                $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), \'\') != \'%s\' AND IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), \'\') != \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], 'true', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], 'false');
                             } elseif ($values == ['0']) {
-                                $query .= sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), \'\') != \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], 'false');
+                                $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), \'\') != \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], 'false');
                             } elseif ($values == ['1']) {
-                                $query .= sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), \'\') != \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], 'true');
+                                $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), \'\') != \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], 'true');
                             }
                         }
 
                         break;
                     case 'HAS_PROPERTY':
 
-                        $query .= sprintf(' and (r%s.properties->>\'$.%s\') is not null', $alias, $customFilter['internalName']);
+                        $query = sprintf(' and (r%s.properties->>\'$.%s\') is not null', $alias, $customFilter['internalName']);
 
                         break;
                     case 'NOT_HAS_PROPERTY':
 
-                        $query .= sprintf(' and (r%s.properties->>\'$.%s\') is null', $alias, $customFilter['internalName']);
+                        $query = sprintf(' and (r%s.properties->>\'$.%s\') is null', $alias, $customFilter['internalName']);
 
                         break;
 
@@ -564,7 +493,7 @@ class RecordRepository extends ServiceEntityRepository
                     case 'IN':
 
                         if(trim($customFilter['value']) === '') {
-                            $query .= sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), null) = \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
+                            $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), null) = \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         } else {
                             $values = explode(',', $customFilter['value']);
 
@@ -573,14 +502,14 @@ class RecordRepository extends ServiceEntityRepository
                                 $conditions[] = sprintf(' IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), \'\') = \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], $value);
                             }
 
-                            $query .= ' and' . implode(" OR ", $conditions);
+                            $query = ' and' . implode(" OR ", $conditions);
                         }
 
                         break;
                     case 'NOT_IN':
 
                         if(trim($customFilter['value']) === '') {
-                            $query .= sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), null) != \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
+                            $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), null) != \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         } else {
                             $values = explode(',', $customFilter['value']);
 
@@ -589,18 +518,18 @@ class RecordRepository extends ServiceEntityRepository
                                 $conditions[] = sprintf(' IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), \'\') != \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], $value);
                             }
 
-                            $query .= ' and' . implode(" AND ", $conditions);
+                            $query = ' and' . implode(" AND ", $conditions);
                         }
 
                         break;
                     case 'HAS_PROPERTY':
 
-                        $query .= sprintf(' and (r%s.properties->>\'$.%s\') is not null', $alias, $customFilter['internalName']);
+                        $query = sprintf(' and (r%s.properties->>\'$.%s\') is not null', $alias, $customFilter['internalName']);
 
                         break;
                     case 'NOT_HAS_PROPERTY':
 
-                        $query .= sprintf(' and (r%s.properties->>\'$.%s\') is null', $alias, $customFilter['internalName']);
+                        $query = sprintf(' and (r%s.properties->>\'$.%s\') is null', $alias, $customFilter['internalName']);
 
                         break;
 
@@ -612,7 +541,7 @@ class RecordRepository extends ServiceEntityRepository
                     case 'IN':
 
                         if(trim($customFilter['value']) === '') {
-                            $query .= sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), null) = \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
+                            $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), null) = \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         } else {
                             $values = explode(',', $customFilter['value']);
 
@@ -621,14 +550,14 @@ class RecordRepository extends ServiceEntityRepository
                                 $conditions[] = sprintf(' JSON_SEARCH(IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), \'[]\'), \'one\', \'%s\') IS NOT NULL', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], $value);
                             }
 
-                            $query .= ' and' . implode(" OR ", $conditions);
+                            $query = ' and' . implode(" OR ", $conditions);
                         }
 
                         break;
                     case 'NOT_IN':
 
                         if(trim($customFilter['value']) === '') {
-                            $query .= sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), null) = \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
+                            $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), null) = \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         } else {
                             $values = explode(',', $customFilter['value']);
 
@@ -637,18 +566,18 @@ class RecordRepository extends ServiceEntityRepository
                                 $conditions[] = sprintf(' JSON_SEARCH(IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), \'[]\'), \'one\', \'%s\') IS NULL', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], $value);
                             }
 
-                            $query .= ' and' . implode(" AND ", $conditions);
+                            $query = ' and' . implode(" AND ", $conditions);
                         }
 
                         break;
                     case 'HAS_PROPERTY':
 
-                        $query .= sprintf(' and (r%s.properties->>\'$.%s\') is not null', $alias, $customFilter['internalName']);
+                        $query = sprintf(' and (r%s.properties->>\'$.%s\') is not null', $alias, $customFilter['internalName']);
 
                         break;
                     case 'NOT_HAS_PROPERTY':
 
-                        $query .= sprintf(' and (r%s.properties->>\'$.%s\') is null', $alias, $customFilter['internalName']);
+                        $query = sprintf(' and (r%s.properties->>\'$.%s\') is null', $alias, $customFilter['internalName']);
 
                         break;
                 }
