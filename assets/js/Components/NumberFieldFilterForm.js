@@ -174,8 +174,8 @@ const textFieldTemplate = () => `
 const numberInBetweenTemplate = () => `
   <div class="form-group js-operator-value">
     <input type="text" name="low_value" class="form-control" autocomplete="off">
+    <span>and</span>
   </div>
-  <span>and</span>
   <div class="form-group js-operator-value">
     <input type="text" name="high_value" class="form-control" autocomplete="off">
   </div>

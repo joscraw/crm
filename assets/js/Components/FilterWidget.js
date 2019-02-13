@@ -19,6 +19,7 @@ import DropdownSelectFieldFilterForm from "./DropdownSelectFieldFilterForm";
 import EditDropdownSelectFieldFilterForm from "./EditDropdownSelectFieldFilterForm";
 import MultilpleCheckboxFieldFilterForm from "./MultilpleCheckboxFieldFilterForm";
 import EditMultipleCheckboxFieldFilterForm from "./EditMultipleCheckboxFieldFilterForm";
+import ArrayHelper from "../ArrayHelper";
 
 class FilterWidget {
 
@@ -100,7 +101,7 @@ class FilterWidget {
         // go ahead and remove the main filter
         this.customFilters = $.grep(this.customFilters, function(cf){
 
-            return !(cf.id === customFilter.id && cf.customFilterJoins === customFilter.customFilterJoins);
+            return !(cf.id === customFilter.id && JSON.stringify(cf.customFilterJoins) === JSON.stringify(customFilter.customFilterJoins));
         });
 
         this.globalEventDispatcher.publish(Settings.Events.FILTERS_UPDATED, this.customFilters);
@@ -129,7 +130,9 @@ class FilterWidget {
         // Make sure that properties with the same id that belong to the same join override each other
         this.customFilters = $.grep(this.customFilters, function(cf){
 
-            return !(cf.id === customFilter.id && cf.customFilterJoins === customFilter.customFilterJoins);
+            debugger;
+
+            return !(cf.id === customFilter.id && JSON.stringify(cf.customFilterJoins) === JSON.stringify(customFilter.customFilterJoins));
         });
 
         this.customFilters.push(customFilter);

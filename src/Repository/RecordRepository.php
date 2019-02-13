@@ -313,7 +313,7 @@ class RecordRepository extends ServiceEntityRepository
                         break;
                     case 'BETWEEN':
 
-                        if($customFilter['numberType'] === NumberField::$types['Currency']) {
+                        if($customFilter['field']['type'] === NumberField::$types['Currency']) {
                             $lowValue = number_format((float)$customFilter['low_value'], 2, '.', '');
                             $highValue = number_format((float)$customFilter['high_value'], 2, '.', '');
                         } else {
@@ -499,7 +499,7 @@ class RecordRepository extends ServiceEntityRepository
 
                             $conditions = [];
                             foreach($values as $value) {
-                                $conditions[] = sprintf(' IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), \'\') = \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], $value);
+                                $conditions[] = sprintf(' IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), \'\') = \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], strtolower($value));
                             }
 
                             $query = ' and' . implode(" OR ", $conditions);
@@ -515,7 +515,7 @@ class RecordRepository extends ServiceEntityRepository
 
                             $conditions = [];
                             foreach($values as $value) {
-                                $conditions[] = sprintf(' IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), \'\') != \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], $value);
+                                $conditions[] = sprintf(' IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), \'\') != \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], strtolower($value));
                             }
 
                             $query = ' and' . implode(" AND ", $conditions);
@@ -547,7 +547,7 @@ class RecordRepository extends ServiceEntityRepository
 
                             $conditions = [];
                             foreach($values as $value) {
-                                $conditions[] = sprintf(' JSON_SEARCH(IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), \'[]\'), \'one\', \'%s\') IS NOT NULL', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], $value);
+                                $conditions[] = sprintf(' JSON_SEARCH(IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), \'[]\'), \'one\', \'%s\') IS NOT NULL', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], strtolower($value));
                             }
 
                             $query = ' and' . implode(" OR ", $conditions);
@@ -563,7 +563,7 @@ class RecordRepository extends ServiceEntityRepository
 
                             $conditions = [];
                             foreach($values as $value) {
-                                $conditions[] = sprintf(' JSON_SEARCH(IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), \'[]\'), \'one\', \'%s\') IS NULL', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], $value);
+                                $conditions[] = sprintf(' JSON_SEARCH(IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), \'[]\'), \'one\', \'%s\') IS NULL', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], strtolower($value));
                             }
 
                             $query = ' and' . implode(" AND ", $conditions);
