@@ -275,39 +275,44 @@ class RecordRepository extends ServiceEntityRepository
                 switch($customFilter['operator']) {
                     case 'EQ':
 
+                        $value = number_format((float)$customFilter['value'], 2, '.', '');
                         if(trim($customFilter['value']) === '') {
                             $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, r%s.properties->>\'$.%s\', \'\') = \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         } else {
-                            $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, r%s.properties->>\'$.%s\', \'\') = \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], $customFilter['value']);
+                            $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, r%s.properties->>\'$.%s\', \'\') = \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], $value);
                         }
 
                         break;
                     case 'NEQ':
 
+                        $value = number_format((float)$customFilter['value'], 2, '.', '');
                         if(trim($customFilter['value']) === '') {
                             $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, r%s.properties->>\'$.%s\', \'\') != \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         } else {
-                            $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, r%s.properties->>\'$.%s\', \'\') != \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], $customFilter['value']);
+                            $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, r%s.properties->>\'$.%s\', \'\') != \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], $value);
                         }
 
                         break;
                     case 'LT':
 
+                        $value = number_format((float)$customFilter['value'], 2, '.', '');
                         if(trim($customFilter['value']) === '') {
                             // TODO revisit this one. how do you compare less than to an empty string? What should we do? Right now this is just returning 0 results
                             $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, r%s.properties->>\'$.%s\', \'\') < \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         } else {
-                            $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, r%s.properties->>\'$.%s\', null) < \'%s\' AND r%s.properties->>\'$.%s\' != \'\' AND r%s.properties->>\'$.%s\' IS NOT NULL', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], $customFilter['value'], $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
+                            $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, r%s.properties->>\'$.%s\', null) < \'%s\' AND r%s.properties->>\'$.%s\' != \'\' AND r%s.properties->>\'$.%s\' IS NOT NULL', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], $value, $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         }
 
                         break;
                     case 'GT':
 
+                        $value = number_format((float)$customFilter['value'], 2, '.', '');
+
                         if(trim($customFilter['value']) === '') {
                             // TODO revisit this one. how do you compare greater than to an empty string? What should we do? Right now this is just returning 0 results
                             $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, r%s.properties->>\'$.%s\', \'\') > \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         } else {
-                            $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, r%s.properties->>\'$.%s\', \'\') > \'%s\' AND r%s.properties->>\'$.%s\' != \'\' AND r%s.properties->>\'$.%s\' IS NOT NULL', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], $customFilter['value'], $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
+                            $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, r%s.properties->>\'$.%s\', \'\') > \'%s\' AND r%s.properties->>\'$.%s\' != \'\' AND r%s.properties->>\'$.%s\' IS NOT NULL', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], $value, $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         }
 
                         break;
