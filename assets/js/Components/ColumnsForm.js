@@ -90,7 +90,7 @@ class ColumnsForm {
         let propertyId = $(e.target).data('propertyId');
         this._removeSelectedColumn(propertyId);
 
-        this.$wrapper.find('.js-property-list').find(`[data-property-id="${propertyId}"]`).prop('checked', false);
+        this.$wrapper.find('.js-column-list').find(`[data-property-id="${propertyId}"]`).prop('checked', false);
 
     }
 
@@ -234,7 +234,7 @@ class ColumnsForm {
      * @private
      */
     _addList(propertyGroup, properties) {
-        let $propertyList = this.$wrapper.find('.js-property-list');
+        let $propertyList = this.$wrapper.find('.js-column-list');
         const html = listTemplate(propertyGroup);
         const $list = $($.parseHTML(html));
         $propertyList.append($list);
@@ -245,9 +245,9 @@ class ColumnsForm {
             item: `<li><div class="form-check"><input class="form-check-input js-property-checkbox c-column-editor__checkbox" type="checkbox" value="" id=""><label class="form-check-label c-column-editor__checkbox-label" for=""><p class="label"></p></label></div></li>`
         };
 
-        this.lists.push(new List(`list-${propertyGroup.id}`, options, properties));
+        this.lists.push(new List(`list-columns-${propertyGroup.id}`, options, properties));
 
-        $( `#list-${propertyGroup.id} li input[type="checkbox"]` ).each((index, element) => {
+        $( `#list-columns-${propertyGroup.id} li input[type="checkbox"]` ).each((index, element) => {
             $(element).attr('data-label', properties[index].label);
             $(element).attr('data-property-id', properties[index].id);
 
@@ -264,10 +264,10 @@ class ColumnsForm {
 
             if(property.isColumn) {
                 debugger;
-                $( `#list-${propertyGroup.id} li [data-property-id='${property.id}']` ).prop('checked', true);
+                $( `#list-columns-${propertyGroup.id} li [data-property-id='${property.id}']` ).prop('checked', true);
                 selectedColumns[property.columnOrder] = {'label': property.label, 'id': property.id};
             } else {
-                $( `#list-${propertyGroup.id} li [data-property-id='${property.id}']` ).prop('checked', false);
+                $( `#list-columns-${propertyGroup.id} li [data-property-id='${property.id}']` ).prop('checked', false);
             }
         }
 
@@ -304,7 +304,7 @@ class ColumnsForm {
 }
 
 const listTemplate = ({id, label}) => `
-    <div id="list-${id}" class="js-list">
+    <div id="list-columns-${id}" class="js-list">
       <p>${label}</p>
       <ul class="list"></ul>
     </div>
@@ -315,7 +315,7 @@ const mainTemplate = () => `
     <div class="row c-column-editor">
         <div class="col-md-6">
             <div class="js-search-container c-column-editor__search-container"></div>
-            <div class="js-property-list c-column-editor__property-list"></div>
+            <div class="js-column-list c-column-editor__property-list"></div>
         </div>
         <div class="col-md-6">
             <div class="js-selected-columns-count c-column-editor__selected-columns-count"></div>
