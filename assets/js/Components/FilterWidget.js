@@ -19,6 +19,7 @@ import DropdownSelectFieldFilterForm from "./DropdownSelectFieldFilterForm";
 import EditDropdownSelectFieldFilterForm from "./EditDropdownSelectFieldFilterForm";
 import MultilpleCheckboxFieldFilterForm from "./MultilpleCheckboxFieldFilterForm";
 import EditMultipleCheckboxFieldFilterForm from "./EditMultipleCheckboxFieldFilterForm";
+import ArrayHelper from "../ArrayHelper";
 
 class FilterWidget {
 
@@ -53,6 +54,11 @@ class FilterWidget {
         );
 
         this.globalEventDispatcher.subscribe(
+            Settings.Events.FILTER_CUSTOM_OBJECT_PROPERTY_LIST_ITEM_CLICKED,
+            this.handleCustomObjectPropertyListItemClicked.bind(this)
+        );
+
+        this.globalEventDispatcher.subscribe(
             Settings.Events.FILTER_BACK_TO_LIST_BUTTON_CLICKED,
             this.filterFormBackToListButtonClickedHandler.bind(this)
         );
@@ -60,6 +66,16 @@ class FilterWidget {
         this.globalEventDispatcher.subscribe(
             Settings.Events.EDIT_FILTER_BUTTON_CLICKED,
             this.handleEditFilterButtonClickedHandler.bind(this)
+        );
+
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.CUSTOM_FILTER_REMOVED,
+            this.customFilterRemovedHandler.bind(this)
+        );
+
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.FILTER_ALL_RECORDS_BUTTON_PRESSED,
+            this.customFilterAllRecordsButtonPressedHandler.bind(this)
         );
 
         this.render();
@@ -77,6 +93,30 @@ class FilterWidget {
         }
     }
 
+    customFilterRemovedHandler(key) {
+
+        debugger;
+        let customFilter = this.customFilters[key];
+
+        // go ahead and remove the main filter
+        this.customFilters = $.grep(this.customFilters, function(cf){
+
+            return !(cf.id === customFilter.id && JSON.stringify(cf.customFilterJoins) === JSON.stringify(customFilter.customFilterJoins));
+        });
+
+        this.globalEventDispatcher.publish(Settings.Events.FILTERS_UPDATED, this.customFilters);
+    }
+
+    customFilterAllRecordsButtonPressedHandler() {
+
+        debugger;
+
+        this.customFilters = [];
+
+        this.globalEventDispatcher.publish(Settings.Events.FILTERS_UPDATED, this.customFilters);
+
+    }
+
     filterFormBackToListButtonClickedHandler() {
         this.$wrapper.find(FilterWidget._selectors.propertyList).removeClass('d-none');
         this.$wrapper.find(FilterWidget._selectors.propertyForm).addClass('d-none');
@@ -85,20 +125,35 @@ class FilterWidget {
 
     applyCustomFilterButtonPressedHandler(customFilter) {
 
+        debugger;
+
+        // Make sure that properties with the same id that belong to the same join override each other
+        this.customFilters = $.grep(this.customFilters, function(cf){
+
+            debugger;
+
+            return !(cf.id === customFilter.id && JSON.stringify(cf.customFilterJoins) === JSON.stringify(customFilter.customFilterJoins));
+        });
+
+        this.customFilters.push(customFilter);
+
         this.$wrapper.find(FilterWidget._selectors.propertyList).addClass('d-none');
         this.$wrapper.find(FilterWidget._selectors.filterNavigation).removeClass('d-none');
         this.$wrapper.find(FilterWidget._selectors.propertyForm).addClass('d-none');
         this.$wrapper.find(FilterWidget._selectors.editPropertyForm).addClass('d-none');
+
+        this.globalEventDispatcher.publish(Settings.Events.FILTERS_UPDATED, this.customFilters);
     }
 
     render() {
         debugger;
         this.$wrapper.html(FilterWidget.markup(this));
-        new FilterNavigation(this.$wrapper.find('.js-filter-navigation'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);
+        new FilterNavigation(this.$wrapper.find('.js-filter-navigation'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, this.customFilters);
     }
 
     handleAddFilterButtonClicked() {
 
+        debugger;
         this.$wrapper.find(FilterWidget._selectors.filterNavigation).addClass('d-none');
         this.$wrapper.find(FilterWidget._selectors.propertyList).removeClass('d-none');
         new FilterList(this.$wrapper.find('.js-property-list'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);
@@ -111,12 +166,15 @@ class FilterWidget {
 
     handlePropertyListItemClicked(property) {
 
-        debugger;
-
         this.$wrapper.find(FilterWidget._selectors.propertyList).addClass('d-none');
         this.$wrapper.find(FilterWidget._selectors.propertyForm).removeClass('d-none');
 
         this.renderFilterForm(property);
+    }
+
+    handleCustomObjectPropertyListItemClicked(property, customFilterJoins) {
+
+        new FilterList(this.$wrapper.find('.js-property-list'), this.globalEventDispatcher, this.portalInternalIdentifier, property.field.customObject.internalName, property, customFilterJoins);
     }
 
     renderFilterForm(property) {

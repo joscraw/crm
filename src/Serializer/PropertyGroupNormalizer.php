@@ -88,18 +88,7 @@ class PropertyGroupNormalizer implements NormalizerInterface, NormalizationAware
      */
     public function normalize($object, $format = null, array $context = array())
     {
-        // normalize all the fields first
-        $fields = [];
-        foreach($object->getProperties() as $property) {
-            $fields[$property->getId()] = $this->normalizer->normalize($property->getField(), $format);
-        }
-
         $propertyGroupData = $this->normalizer->normalize($object, $format, $context);
-        $properties = &$propertyGroupData['properties'];
-
-        foreach($properties as &$property) {
-            $property['field'] = $fields[$property['id']];
-        }
 
         return $propertyGroupData;
     }

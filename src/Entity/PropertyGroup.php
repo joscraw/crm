@@ -82,6 +82,16 @@ class PropertyGroup
     }
 
     /**
+     * @ORM\PrePersist
+     */
+    public function setLabelValue()
+    {
+        if($this->name) {
+            $this->name = strtolower($this->name);
+        }
+    }
+
+    /**
      * @return string
      */
     public function getInternalNameValue()

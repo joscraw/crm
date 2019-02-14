@@ -99,15 +99,10 @@ class CustomObjectRepository extends ServiceEntityRepository
         $results = $query->getQuery()->getResult();
         $arrayResults = $query->getQuery()->getArrayResult();
 
-        // Count Query
-        $countQuery = $this->createQueryBuilder('dt');
-        $countQuery->select('COUNT(dt)');
-        $countResult = $countQuery->getQuery()->getSingleScalarResult();
 
         return array(
             "results" 		=> $results,
-            "arrayResults"  => $arrayResults,
-            "countResult"	=> $countResult
+            "arrayResults"  => $arrayResults
         );
 
     }

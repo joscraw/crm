@@ -12,6 +12,7 @@ use App\Form\DataTransformer\RecordCheckboxTransformer;
 use App\Form\DataTransformer\RecordDateTimeTransformer;
 use App\Form\DataTransformer\RecordGenericTransformer;
 use App\Form\DataTransformer\RecordNumberCurrencyTransformer;
+use App\Form\DataTransformer\RecordNumberUnformattedTransformer;
 use App\Model\DatePickerField;
 use App\Model\FieldCatalog;
 use App\Repository\RecordRepository;
@@ -72,6 +73,11 @@ class RecordType extends AbstractType
     private $recordCheckboxTranformer;
 
     /**
+     * @var RecordNumberUnformattedTransformer
+     */
+    private $recordNumberUnformattedTransformer;
+
+    /**
      * @var RecordRepository
      */
     private $recordRepository;
@@ -84,6 +90,7 @@ class RecordType extends AbstractType
      * @param RecordNumberCurrencyTransformer $recordNumberCurrencyTransformer
      * @param RecordGenericTransformer $recordGenericTransformer
      * @param RecordCheckboxTransformer $recordCheckboxTranformer
+     * @param RecordNumberUnformattedTransformer $recordNumberUnformattedTransformer
      * @param RecordRepository $recordRepository
      */
     public function __construct(
@@ -93,6 +100,7 @@ class RecordType extends AbstractType
         RecordNumberCurrencyTransformer $recordNumberCurrencyTransformer,
         RecordGenericTransformer $recordGenericTransformer,
         RecordCheckboxTransformer $recordCheckboxTranformer,
+        RecordNumberUnformattedTransformer $recordNumberUnformattedTransformer,
         RecordRepository $recordRepository
     ) {
         $this->transformer = $transformer;
@@ -101,6 +109,7 @@ class RecordType extends AbstractType
         $this->recordNumberCurrencyTransformer = $recordNumberCurrencyTransformer;
         $this->recordGenericTransformer = $recordGenericTransformer;
         $this->recordCheckboxTranformer = $recordCheckboxTranformer;
+        $this->recordNumberUnformattedTransformer = $recordNumberUnformattedTransformer;
         $this->recordRepository = $recordRepository;
     }
 
@@ -253,6 +262,9 @@ class RecordType extends AbstractType
                     if($field->isCurrency()) {
                         $builder->get($property->getInternalName())
                             ->addModelTransformer($this->recordNumberCurrencyTransformer);
+                    } else if($field->isUnformattedNumber()){
+                        $builder->get($property->getInternalName())
+                            ->addModelTransformer($this->recordNumberUnformattedTransformer);
                     }
                     break;
                 case FieldCatalog::DATE_PICKER:

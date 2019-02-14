@@ -131,7 +131,7 @@ class EditCustomObjectFieldType extends AbstractType
 
         if(null === $customObjectReference) {
             $placeholder = 'Select an object up above to get started!';
-        } elseif(empty($choices)) {
+        } elseif(empty($this->propertyRepository->findByCustomObject($customObjectReference))) {
             $placeholder = 'Woah, hold up! No Properties exist for that object yet!';
         } else {
             $placeholder = 'Start typing to search..';
