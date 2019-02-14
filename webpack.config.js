@@ -22,9 +22,12 @@ Encore
     .addEntry('custom_object_settings', './assets/js/custom_object_settings.js')
     .addEntry('property_settings', './assets/js/property_settings.js')
     .addEntry('record_list', './assets/js/record_list.js')
+    .addEntry('report_list', './assets/js/report_list.js')
     .addEntry('routing_settings', './assets/js/routing_settings.js')
     //.addEntry('page1', './assets/js/page1.js')
     //.addEntry('page2', './assets/js/page2.js')
+
+    /*.createSharedEntry('vendor', 'babel-polyfill')*/
 
     // will require an extra script tag for runtime.js
     // but, you probably want this, unless you're building a single-page app

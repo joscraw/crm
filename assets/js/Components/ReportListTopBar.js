@@ -6,32 +6,36 @@ import CreateRecordButton from './CreateRecordButton';
 import CustomObjectNavigation from './CustomObjectNavigation';
 import DatatableSearch from "./DatatableSearch";
 import Dropdown from "./Dropdown";
+import CreateReportButton from "./CreateReportButton";
 
 
 
-class RecordListTopBar {
+class ReportListTopBar {
 
     /**
      * @param $wrapper
      * @param globalEventDispatcher
      * @param portalInternalIdentifier
-     * @param customObjectInternalName
      */
-    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier) {
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
-        this.customObjectInternalName = customObjectInternalName;
 
         this.render();
     }
 
     render() {
 
-        this.$wrapper.html(RecordListTopBar.markup());
+        this.$wrapper.html(ReportListTopBar.markup());
+
+        new CreateReportButton(this.$wrapper.find('.js-create-report-button'), this.globalEventDispatcher, this.portalInternalIdentifier);
+
+
+/*
         new Dropdown(this.$wrapper.find('.js-dropdown'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, 'Actions');
         new CreateRecordButton(this.$wrapper.find('.js-create-record-button'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);
-        new DatatableSearch(this.$wrapper.find('.js-top-bar-search-container'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, "Search for a record...")
+        new DatatableSearch(this.$wrapper.find('.js-top-bar-search-container'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, "Search for a record...")*/
     }
 
     static markup() {
@@ -40,7 +44,7 @@ class RecordListTopBar {
             <div class="col-md-6 js-top-bar-search-container"></div>
         <div class="col-md-6 text-right js-top-bar-button-container">
             <div class="js-dropdown d-inline-block"></div>
-            <div class="js-create-record-button d-inline-block"></div>     
+            <div class="js-create-report-button d-inline-block"></div>     
         </div>
         </div>
         <br>
@@ -52,4 +56,4 @@ class RecordListTopBar {
     }
 }
 
-export default RecordListTopBar;
+export default ReportListTopBar;
