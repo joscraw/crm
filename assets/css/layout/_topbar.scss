@@ -1,0 +1,20 @@
+// -----------------------------------------------------------------------------
+// This file contains all styles related to the sidebar of the site/application.
+// -----------------------------------------------------------------------------
+
+// https://bootsnipp.com/snippets/featured/responsive-navigation-menu
+
+.l-top-bar {
+  font-size: 12px;
+  font-weight: 200;
+  background-color: $color-blue-20;
+}
+
+.l-top-bar__link {
+  text-decoration: none;
+  color: #FFF;
+}
+
+.l-top-bar__link:hover {
+  text-decoration: underline;
+}

@@ -3,6 +3,7 @@ import $ from 'jquery';
 import EditRecord from "./Components/Page/EditRecord";
 import SideNavigationMenu from "./Components/SideNavigationMenu";
 import ReportList from "./Components/Page/ReportList";
+import CreateReportTopNavigationMenu from "./Components/CreateReportTopNavigationMenu";
 
 require('backbone/backbone.js');
 
@@ -10,14 +11,21 @@ $(document).ready(function() {
 
     var Router = Backbone.Router.extend({
         routes: {
-            ":internalIdentifier/reports": "index"
+            ":internalIdentifier/reports": "index",
+            ":internalIdentifier/reports/create": "create"
         },
 
-        index: function(internalIdentifier, internalName) {
+        index: function(internalIdentifier) {
             debugger;
+            $('#top-nav').html("");
             new ReportList($('#app'), window.globalEventDispatcher, internalIdentifier);
             new SideNavigationMenu($('#side-nav'), window.globalEventDispatcher, internalIdentifier);
-            console.log('hello world');
+        },
+        create: function(internalIdentifier) {
+            debugger;
+            $('#side-nav').html("");
+            /*new ReportList($('#app'), window.globalEventDispatcher, internalIdentifier);*/
+            new CreateReportTopNavigationMenu($('#top-nav'), window.globalEventDispatcher, internalIdentifier);
         }
     });
 

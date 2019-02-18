@@ -3,6 +3,7 @@
 import Settings from '../Settings';
 import RecordFormModal from './RecordFormModal';
 import ReportFormModal from "./ReportFormModal";
+import Routing from '../Routing';
 
 class CreateReportButton {
 
@@ -32,10 +33,10 @@ class CreateReportButton {
         this.$wrapper.html(CreateReportButton.markup(this));
     }
 
-    static markup() {
+    static markup({portalInternalIdentifier}) {
 
         return `
-      <button type="button" class="js-open-create-custom-report-modal-btn btn btn-secondary">Create Report</button>
+        <a class="btn btn-secondary" href="${ Routing.generate('report_list', {internalIdentifier: portalInternalIdentifier}) }/create" role="button">Create Custom Report</a>
     `;
     }
 }

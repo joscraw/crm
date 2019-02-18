@@ -8,6 +8,7 @@ import PropertyGroupFormModal from "./../PropertyGroupFormModal";
 import RecordTable from "../RecordTable";
 import FilterWidget from "../FilterWidget";
 import ReportListTopBar from "../ReportListTopBar";
+import SideNavigationMenu from "../SideNavigationMenu";
 
 class ReportList {
 
@@ -28,6 +29,7 @@ class ReportList {
         this.$wrapper.html(ReportList.markup(this));
 
         new ReportListTopBar(this.$wrapper.find('.js-top-bar'), this.globalEventDispatcher, this.portalInternalIdentifier);
+        new SideNavigationMenu(this.$wrapper.find('#side-nav'), window.globalEventDispatcher, this.portalInternalIdentifier);
 
 
 /*        new RecordListTopBar(this.$wrapper.find('.js-top-bar'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);
