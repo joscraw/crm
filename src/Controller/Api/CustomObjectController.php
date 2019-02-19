@@ -29,6 +29,7 @@ use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
+use Symfony\Component\Serializer\SerializerInterface;
 
 
 /**
@@ -60,23 +61,32 @@ class CustomObjectController extends ApiController
     private $propertyGroupRepository;
 
     /**
-     * PropertySettingsController constructor.
+     * @var SerializerInterface
+     */
+    private $serializer;
+
+    /**
+     * CustomObjectController constructor.
      * @param EntityManagerInterface $entityManager
      * @param CustomObjectRepository $customObjectRepository
      * @param PropertyRepository $propertyRepository
      * @param PropertyGroupRepository $propertyGroupRepository
+     * @param SerializerInterface $serializer
      */
     public function __construct(
         EntityManagerInterface $entityManager,
         CustomObjectRepository $customObjectRepository,
         PropertyRepository $propertyRepository,
-        PropertyGroupRepository $propertyGroupRepository
+        PropertyGroupRepository $propertyGroupRepository,
+        SerializerInterface $serializer
     ) {
         $this->entityManager = $entityManager;
         $this->customObjectRepository = $customObjectRepository;
         $this->propertyRepository = $propertyRepository;
         $this->propertyGroupRepository = $propertyGroupRepository;
+        $this->serializer = $serializer;
     }
+
 
     /**
      * @Route("/", name="get_custom_objects", methods={"GET"}, options = { "expose" = true })
@@ -94,12 +104,9 @@ class CustomObjectController extends ApiController
         $payload['custom_objects'] = [];
 
         foreach($customObjects as $customObject) {
-            $customObjectId = $customObject->getId();
-            $payload['custom_objects'][$customObjectId] = [
-                'id' => $customObjectId,
-                'label' => $customObject->getLabel(),
-                'internalName' => $customObject->getInternalName(),
-            ];
+            $json = $this->serializer->serialize($customObject, 'json', ['groups' => ['CUSTOM_OBJECTS_FOR_FILTER']]);
+
+            $payload['custom_objects'][] = json_decode($json, true);
         }
 
         $response = new JsonResponse([

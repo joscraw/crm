@@ -89,6 +89,20 @@ class ReportController extends AbstractController
 
 
     /**
+     * @Route("/create/{routing}", name="create_report", requirements={"routing"=".+"}, defaults={"routing": null}, methods={"GET"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function createAction(Portal $portal) {
+
+        $records = $this->recordRepository->findAll();
+
+        return $this->render('report/create.html.twig', array(
+            'portal' => $portal
+        ));
+    }
+
+    /**
      * @Route("/{routing}", name="report_list", requirements={"routing"=".+"}, defaults={"routing": null}, methods={"GET"}, options = { "expose" = true })
      * @param Portal $portal
      * @return \Symfony\Component\HttpFoundation\Response
@@ -101,4 +115,5 @@ class ReportController extends AbstractController
             'portal' => $portal
         ));
     }
+
 }

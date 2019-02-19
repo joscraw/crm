@@ -3,7 +3,7 @@ import $ from 'jquery';
 import EditRecord from "./Components/Page/EditRecord";
 import SideNavigationMenu from "./Components/SideNavigationMenu";
 import ReportList from "./Components/Page/ReportList";
-import CreateReportTopNavigationMenu from "./Components/CreateReportTopNavigationMenu";
+import ReportWidget from "./Components/ReportWidget";
 
 require('backbone/backbone.js');
 
@@ -17,15 +17,13 @@ $(document).ready(function() {
 
         index: function(internalIdentifier) {
             debugger;
-            $('#top-nav').html("");
             new ReportList($('#app'), window.globalEventDispatcher, internalIdentifier);
             new SideNavigationMenu($('#side-nav'), window.globalEventDispatcher, internalIdentifier);
         },
         create: function(internalIdentifier) {
             debugger;
             $('#side-nav').html("");
-            /*new ReportList($('#app'), window.globalEventDispatcher, internalIdentifier);*/
-            new CreateReportTopNavigationMenu($('#top-nav'), window.globalEventDispatcher, internalIdentifier);
+            new ReportWidget($('#app'), window.globalEventDispatcher, internalIdentifier);
         }
     });
 

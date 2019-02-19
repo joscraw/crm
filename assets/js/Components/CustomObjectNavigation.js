@@ -20,36 +20,38 @@ class CustomObjectNavigation {
         this.customObjectInternalName = customObjectInternalName;
 
         this.loadCustomObjects().then(data => {
+            debugger;
             this.render(data);
         })
     }
 
     render(data) {
+        debugger;
         const $ul = $("<ul>", {"class": "nav nav-tabs c-tab-nav"});
-        for(let key in data.data.custom_objects) {
-            if(data.data.custom_objects.hasOwnProperty(key)) {
+        let customObjects = data.data.custom_objects;
 
-                let customObject = data.data.custom_objects[key];
-                let route = Routing.generate('property_settings', {internalIdentifier: this.portalInternalIdentifier, internalName: customObject.internalName});
+        customObjects.forEach((customObject) => {
 
-                const html = pillTemplate(customObject, route);
-                const $row = $($.parseHTML(html));
-                $ul.append($row);
+            let route = Routing.generate('property_settings', {internalIdentifier: this.portalInternalIdentifier, internalName: customObject.internalName});
 
-                if(this.customObjectInternalName === customObject.internalName) {
+            const html = pillTemplate(customObject, route);
+            const $row = $($.parseHTML(html));
+            $ul.append($row);
 
-                    $ul.find("[data-custom-object-id='" + customObject.id + "']").find('a').addClass('active');
-                }
+            if(this.customObjectInternalName === customObject.internalName) {
 
+                $ul.find("[data-custom-object-id='" + customObject.id + "']").find('a').addClass('active');
             }
-        }
+
+        });
 
         this.$wrapper.html($ul);
     }
 
     loadCustomObjects() {
         return new Promise((resolve, reject) => {
-            let url = Routing.generate('get_custom_objects', {internalIdentifier: this.portalInternalIdentifier});
+            let url = Routing.generate('' +
+                'get_custom_objects', {internalIdentifier: this.portalInternalIdentifier});
 
             $.ajax({
                 url: url,

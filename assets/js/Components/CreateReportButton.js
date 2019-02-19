@@ -2,16 +2,15 @@
 
 import Settings from '../Settings';
 import RecordFormModal from './RecordFormModal';
-import ReportFormModal from "./ReportFormModal";
 import Routing from '../Routing';
+import ReportWidget from "./ReportWidget";
 
 class CreateReportButton {
 
-    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier) {
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
-        this.customObjectInternalName = customObjectInternalName;
 
         this.$wrapper.on(
             'click',
@@ -23,10 +22,10 @@ class CreateReportButton {
     }
 
     handleButtonClick() {
+        debugger;
         console.log("Create Custom Report Button Clicked");
         this.globalEventDispatcher.publish(Settings.Events.CREATE_RECORD_BUTTON_CLICKED);
         console.log(`Event Dispatched: ${Settings.Events.CREATE_RECORD_BUTTON_CLICKED}`);
-        new ReportFormModal(this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);
     }
 
     render() {
@@ -36,7 +35,7 @@ class CreateReportButton {
     static markup({portalInternalIdentifier}) {
 
         return `
-        <a class="btn btn-secondary" href="${ Routing.generate('report_list', {internalIdentifier: portalInternalIdentifier}) }/create" role="button">Create Custom Report</a>
+        <a class="btn btn-secondary" data-bypass="true" href="${Routing.generate('create_report', {internalIdentifier: portalInternalIdentifier})}" role="button">Create Custom Report</a>
     `;
     }
 }
