@@ -20,6 +20,7 @@ class ReportSelectCustomObject {
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
         this.customObjectInternalName = customObjectInternalName;
+        this.customObjects = null;
 
 
         this.$wrapper.on(
@@ -38,20 +39,25 @@ class ReportSelectCustomObject {
     static get _selectors() {
         return {
             addCustomObjectButton: '.js-select-custom-object-button',
-            customObjectField: 'input[name="customObject"]:checked',
-
+            customObjectField: '.js-custom-object:checked',
             customObjectForm: '.custom-object-form'
         }
     }
 
     handleAddCustomObjectButtonClicked(e) {
 
+        debugger;
         let customObjectField = this.$wrapper.find(ReportSelectCustomObject._selectors.customObjectField);
-        let customObject = customObjectField.val();
+        let customObjectId = customObjectField.val();
 
-        $(ReportSelectCustomObject._selectors.modal).modal('hide');
 
-        this.globalEventDispatcher.publish(Settings.Events.CUSTOM_OBJECT_FOR_REPORT_SELECTED, customObject);
+        let customObject = this.customObjects.filter(customObject => {
+            return parseInt(customObject.id) === parseInt(customObjectId);
+        });
+
+        debugger;
+
+        this.globalEventDispatcher.publish(Settings.Events.CUSTOM_OBJECT_FOR_REPORT_SELECTED, customObject[0]);
     }
 
     render() {
@@ -64,18 +70,19 @@ class ReportSelectCustomObject {
 
     renderCustomObjectForm(data) {
 
-        let customObjects = data.data.custom_objects;
+        let customObjects = this.customObjects = data.data.custom_objects;
 
         let options = {
             valueNames: [ 'label' ],
             // Since there are no elements in the list, this will be used as template.
-            item: '<div class="form-check"><input class="form-check-input" type="radio" name="customObject" id="" value=""><label class="form-check-label label" for=""></label></div>'
+            item: '<div class="form-check"><input class="form-check-input js-custom-object" type="radio" name="customObject" id="" value=""><label class="form-check-label label" for=""></label></div>'
         };
 
         new List('listCustomObjects', options, customObjects);
 
         $( `#listCustomObjects input[type="radio"]`).each((index, element) => {
             $(element).attr('data-label', customObjects[index].label);
+            $(element).attr('value', customObjects[index].id);
             $(element).attr('data-custom-object-id', customObjects[index].id);
             $(element).attr('id', `customObject-${customObjects[index].id}`);
             $(element).next('label').attr('for', `customObject-${customObjects[index].id}`);
@@ -105,13 +112,13 @@ class ReportSelectCustomObject {
     static markup({portalInternalIdentifier}) {
         return `
             <div class="c-report-select-custom-object">
-                 <nav class="navbar navbar-expand-sm l-top-bar justify-content-end c-report-select-custom-object__nav">
+                 <nav class="navbar navbar-expand-sm l-top-bar justify-content-end c-report-widget__nav">
                     <a class="btn btn-link" style="color:#FFF" data-bypass="true" href="${Routing.generate('report_list', {internalIdentifier: portalInternalIdentifier})}" role="button"><i class="fa fa-angle-left" aria-hidden="true"></i> Back to reports</a>
                     <button class="btn btn-lg btn-secondary ml-auto js-select-custom-object-button">Next</button> 
                  </nav> 
                  
                  <div class="container">
-                     <div class="row c-report-select-custom-object__header">
+                     <div class="row c-report-widget__header">
                          <div class="col-md-12" align="center">
                              <h2>Select a custom object</h2>
                          </div>
@@ -124,7 +131,7 @@ class ReportSelectCustomObject {
                                     <input class="form-control c-search-control__input search" type="search" placeholder="Search...">
                                     <span class="c-search-control__foreground"><i class="fa fa-search"></i></span>
                                 </div>
-                                <div class="list c-report-select-custom-object__list"></div>
+                                <div class="list c-report-widget__list"></div>
                              </div>                 
                          </div>
                      </div> 

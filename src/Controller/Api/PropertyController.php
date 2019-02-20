@@ -288,7 +288,7 @@ class PropertyController extends ApiController
      */
     public function getPropertiesForColumnsAction(Portal $portal, CustomObject $customObject, Request $request) {
 
-        $propertyGroups = $this->propertyGroupRepository->getColumnsData($customObject);
+        $propertyGroups = $this->propertyGroupRepository->getPropertiesForCustomObject($customObject);
         $payload = [];
         $payload['property_groups'] = [];
         $payload['properties']= [];
@@ -319,6 +319,29 @@ class PropertyController extends ApiController
         ], Response::HTTP_OK);
 
         return $response;
+    }
+
+    /**
+     * @Route("/{internalName}/get-for-report", name="properties_for_report", methods={"GET"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param CustomObject $customObject
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getPropertiesForReportAction(Portal $portal, CustomObject $customObject, Request $request) {
+
+        $propertyGroups = $this->propertyGroupRepository->getPropertyGroupsAndProperties($customObject);
+
+        $payload['property_groups'] = [];
+        foreach($propertyGroups as $propertyGroup) {
+            $json = $this->serializer->serialize($propertyGroup, 'json', ['groups' => ['PROPERTIES_FOR_REPORT']]);
+            $payload['property_groups'][] = json_decode($json, true);
+        }
+
+        return new JsonResponse([
+            'success' => true,
+            'data'  => $payload
+        ], Response::HTTP_OK);
     }
 
     /**

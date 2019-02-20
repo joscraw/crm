@@ -1,0 +1,48 @@
+// -----------------------------------------------------------------------------
+// This file contains all styles related to the report widget.
+// -----------------------------------------------------------------------------
+
+
+.c-report-widget {
+
+}
+
+.c-report-widget__nav {
+  margin-bottom: 50px;
+}
+
+.c-report-widget__header {
+  margin-bottom: 20px;
+}
+
+
+.c-report-widget__list {
+  margin-top: 20px;
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+.c-report-widget__property-list {
+  overflow-y: scroll;
+  height: 600px;
+}
+
+.c-report-widget__selected-columns {
+  overflow-y: scroll;
+  height: 600px;
+}
+
+
+.c-report-widget__list-item:hover {
+  background-color: $color-blue-94;
+}
+
+.c-report-widget__list-item--active {
+  background-color: $color-blue-94;
+}
+
+.c-report-widget__list-item {
+  cursor: pointer;
+  padding: 10px 10px 10px 10px;
+}
