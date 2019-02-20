@@ -47,7 +47,7 @@ class ReportPropertyList {
             search: '.js-search',
             propertyListItem: '.js-property-list-item',
             list: '.js-list',
-            propertyListContainer: '.js-list-property-container',
+            propertyList: '.js-property-list',
             selectedColumnsContainer: '.js-selected-columns-container'
 
         }
@@ -231,7 +231,7 @@ class ReportPropertyList {
 
     renderProperties(propertyGroups) {
 
-        let $propertyList = this.$wrapper.find(ReportPropertyList._selectors.propertyListContainer);
+        let $propertyList = this.$wrapper.find(ReportPropertyList._selectors.propertyList);
         $propertyList.html("");
 
         return new Promise((resolve, reject) => {
@@ -272,7 +272,7 @@ class ReportPropertyList {
     _addList(propertyGroup, properties) {
 
         debugger;
-        let $propertyList = this.$wrapper.find(ReportPropertyList._selectors.propertyListContainer);
+        let $propertyList = this.$wrapper.find(ReportPropertyList._selectors.propertyList);
         const html = listTemplate(propertyGroup);
         const $list = $($.parseHTML(html));
         $propertyList.append($list);
@@ -347,29 +347,11 @@ class ReportPropertyList {
 
         debugger;
         return `
-         <nav class="navbar navbar-expand-sm l-top-bar justify-content-end c-report-widget__nav">
-             <a class="btn btn-link" style="color:#FFF" data-bypass="true" href="#" role="button"><i class="fa fa-angle-left" aria-hidden="true"></i> Back</a>
-             <button class="btn btn-lg btn-secondary ml-auto js-select-custom-object-button">Next</button> 
-         </nav> 
-         <div class="row c-column-editor container">
-            <div class="col-md-6">
-                <div class="input-group c-search-control">
-                  <input class="form-control c-search-control__input js-search" type="search" placeholder="Search...">
-                  <span class="c-search-control__foreground"><i class="fa fa-search"></i></span>
-                </div>
-                <div class="js-list-property-container c-report-widget__property-list"></div>
+            <div class="input-group c-search-control">
+              <input class="form-control c-search-control__input js-search" type="search" placeholder="Search...">
+              <span class="c-search-control__foreground"><i class="fa fa-search"></i></span>
             </div>
-            <div class="col-md-6">
-            
-                <div class="js-selected-columns-container c-report-widget__selected-columns"></div>
-            
-            <!--
-                <div class="js-selected-columns-count c-column-editor__selected-columns-count"></div>
-                <div class="js-selected-columns-container c-column-editor__selected-columns"></div>
-                -->
-            </div>
-            
-         </div>
+            <div class="js-property-list c-report-widget__property-list"></div>
         `;
     }
 

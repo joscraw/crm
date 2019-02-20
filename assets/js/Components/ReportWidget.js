@@ -22,6 +22,7 @@ import EditMultipleCheckboxFieldFilterForm from "./EditMultipleCheckboxFieldFilt
 import ArrayHelper from "../ArrayHelper";
 import ReportSelectCustomObject from "./ReportSelectCustomObject";
 import ReportPropertyList from "./ReportPropertyList";
+import ReportSelectedColumns from "./ReportSelectedColumns";
 
 class ReportWidget {
 
@@ -69,8 +70,10 @@ class ReportWidget {
      */
     static get _selectors() {
         return {
-            reportSelectCustomObject: '.js-report-select-custom-object',
-            reportPropertyList: '.js-report-property-list'
+            reportSelectCustomObjectContainer: '.js-report-select-custom-object-container',
+            reportSelectPropertyContainer: '.js-report-select-property-container',
+            reportSelectedColumnsContainer: '.js-report-selected-columns-container',
+            reportPropertyListContainer: '.js-report-property-list-container'
 
         }
     }
@@ -80,30 +83,19 @@ class ReportWidget {
 
         debugger;
 
-        this.$wrapper.find(ReportWidget._selectors.reportSelectCustomObject).addClass('d-none');
-        this.$wrapper.find(ReportWidget._selectors.reportPropertyList).removeClass('d-none');
+        this.$wrapper.find(ReportWidget._selectors.reportSelectCustomObjectContainer).addClass('d-none');
+        this.$wrapper.find(ReportWidget._selectors.reportSelectPropertyContainer).removeClass('d-none');
 
-        new ReportPropertyList($('.js-report-property-list'), this.globalEventDispatcher, this.portalInternalIdentifier, customObject.internalName);
+        new ReportPropertyList($(ReportWidget._selectors.reportPropertyListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, customObject.internalName);
 
 
     }
 
     handlePropertyListItemClicked(property) {
 
-        debugger;
-
         let propertyPath = property.joins.join('.');
 
-        /*if(property.joins === "") {
-            debugger;
-
-            if(_.get(this.data, 'root', false) === false) {
-                _.set(this.data, 'root', []);
-            }
-
-            _.get(this.data, 'root').push(property);
-
-        } else */if(_.get(this.data, propertyPath, false)) {
+        if(_.get(this.data, propertyPath, false)) {
             _.get(this.data, propertyPath).push(property);
             debugger;
 
@@ -120,19 +112,20 @@ class ReportWidget {
         this.renderFilterForm(property);*/
 
         this.globalEventDispatcher.publish(Settings.Events.REPORT_PROPERTY_LIST_ITEM_ADDED, this.data);
+
+        new ReportSelectedColumns(ReportWidget._selectors.reportSelectedColumnsContainer, this.globalEventDispatcher, this.portalInternalIdentifier, this.data);
+
     }
 
     handleCustomObjectPropertyListItemClicked(property, joins) {
-
-        debugger;
-
-        new ReportPropertyList($('.js-report-property-list'), this.globalEventDispatcher, this.portalInternalIdentifier, property.field.customObject.internalName, property, joins);
+        
+        new ReportPropertyList($('.js-report-property-list-container'), this.globalEventDispatcher, this.portalInternalIdentifier, property.field.customObject.internalName, property, joins);
     }
 
     render() {
 
         this.$wrapper.html(ReportWidget.markup(this));
-        new ReportSelectCustomObject($('.js-report-select-custom-object'), this.globalEventDispatcher, this.portalInternalIdentifier);
+        new ReportSelectCustomObject($(ReportWidget._selectors.reportSelectCustomObjectContainer), this.globalEventDispatcher, this.portalInternalIdentifier);
 
     }
 
@@ -140,8 +133,28 @@ class ReportWidget {
 
         return `
       <div class="js-report-widget c-report-widget">
-            <div class="js-report-select-custom-object"></div>
-            <div class="js-report-property-list d-none"></div>
+            <div class="js-report-select-custom-object-container"></div>
+            
+            <div class="js-report-select-property-container d-none">
+                 <nav class="navbar navbar-expand-sm l-top-bar justify-content-end c-report-widget__nav">
+                     <a class="btn btn-link" style="color:#FFF" data-bypass="true" href="#" role="button"><i class="fa fa-angle-left" aria-hidden="true"></i> Back</a>
+                     <button class="btn btn-lg btn-secondary ml-auto js-select-custom-object-button">Next</button> 
+                 </nav> 
+            
+                <div class="row container">
+                    <div class="col-md-6 js-report-property-list-container">
+                        
+                    </div>
+                    <div class="col-md-6 js-selected-columns-container c-report-widget__selected-columns">
+                    
+                    <!--
+                        <div class="js-selected-columns-count c-column-editor__selected-columns-count"></div>
+                        <div class="js-selected-columns-container c-column-editor__selected-columns"></div>
+                        -->
+                    </div>  
+                </div>
+            </div>
+            
       </div>
     `;
     }
