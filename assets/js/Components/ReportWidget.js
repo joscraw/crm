@@ -31,7 +31,7 @@ class ReportWidget {
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
-        this.customObjectId = null;
+        this.customObject = null;
 
         /**
          * This data object is responsible for storing all the properties and filters that will get sent to the server
@@ -53,6 +53,13 @@ class ReportWidget {
             Settings.Events.REPORT_CUSTOM_OBJECT_PROPERTY_LIST_ITEM_CLICKED,
             this.handleCustomObjectPropertyListItemClicked.bind(this)
         );
+
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.REPORT_BACK_BUTTON_CLICKED,
+            this.handleBackButtonClicked.bind(this)
+        );
+
+
 
         /*
 
@@ -79,15 +86,15 @@ class ReportWidget {
     }
 
     handleCustomObjectForReportSelected(customObject) {
-        this.customObject = customObject;
 
-        debugger;
+        this.customObject = customObject;
 
         this.$wrapper.find(ReportWidget._selectors.reportSelectCustomObjectContainer).addClass('d-none');
         this.$wrapper.find(ReportWidget._selectors.reportSelectPropertyContainer).removeClass('d-none');
 
         new ReportPropertyList($(ReportWidget._selectors.reportPropertyListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, customObject.internalName);
 
+        new ReportSelectedColumns(ReportWidget._selectors.reportSelectedColumnsContainer, this.globalEventDispatcher, this.portalInternalIdentifier, this.data);
 
     }
 
@@ -105,21 +112,21 @@ class ReportWidget {
             _.get(this.data, propertyPath).push(property);
         }
 
-        debugger;
-        /*this.$wrapper.find(FilterWidget._selectors.propertyList).addClass('d-none');
-        this.$wrapper.find(FilterWidget._selectors.propertyForm).removeClass('d-none');
-
-        this.renderFilterForm(property);*/
-
         this.globalEventDispatcher.publish(Settings.Events.REPORT_PROPERTY_LIST_ITEM_ADDED, this.data);
 
-        new ReportSelectedColumns(ReportWidget._selectors.reportSelectedColumnsContainer, this.globalEventDispatcher, this.portalInternalIdentifier, this.data);
+    }
+
+    handleBackButtonClicked() {
+
+        debugger;
+        new ReportPropertyList($(ReportWidget._selectors.reportPropertyListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject.internalName, null, [], this.data);
 
     }
 
     handleCustomObjectPropertyListItemClicked(property, joins) {
-        
-        new ReportPropertyList($('.js-report-property-list-container'), this.globalEventDispatcher, this.portalInternalIdentifier, property.field.customObject.internalName, property, joins);
+
+        new ReportPropertyList($(ReportWidget._selectors.reportPropertyListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, property.field.customObject.internalName, property, joins, this.data);
+
     }
 
     render() {

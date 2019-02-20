@@ -10,7 +10,7 @@ import ColumnSearch from "./ColumnSearch";
 
 class ReportPropertyList {
 
-    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, join = null, joins = []) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, join = null, joins = [], data = {}) {
         debugger;
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
@@ -19,7 +19,7 @@ class ReportPropertyList {
         this.join = join;
         this.joins = joins;
         this.lists = [];
-        this.data = {};
+        this.data = data;
 
         debugger;
 
@@ -48,7 +48,7 @@ class ReportPropertyList {
             propertyListItem: '.js-property-list-item',
             list: '.js-list',
             propertyList: '.js-property-list',
-            selectedColumnsContainer: '.js-selected-columns-container'
+            backButton: '.js-back-button'
 
         }
     }
@@ -67,6 +67,12 @@ class ReportPropertyList {
             this.handlePropertyListItemClicked.bind(this)
         );
 
+        this.$wrapper.on(
+            'click',
+            ReportPropertyList._selectors.backButton,
+            this.handleBackButtonClicked.bind(this)
+        );
+
     }
 
     /**
@@ -77,6 +83,7 @@ class ReportPropertyList {
 
         this.$wrapper.off('keyup', ReportPropertyList._selectors.search);
         this.$wrapper.off('click', ReportPropertyList._selectors.propertyListItem);
+        this.$wrapper.off('click', ReportPropertyList._selectors.backButton);
     }
 
     handleKeyupEvent(e) {
@@ -116,13 +123,19 @@ class ReportPropertyList {
         });
     }
 
+    handleBackButtonClicked() {
+
+        this.globalEventDispatcher.publish(Settings.Events.REPORT_BACK_BUTTON_CLICKED);
+
+    }
+
     loadProperties() {
 
         this.loadPropertiesForReport().then(data => {
             this.propertyGroups = data.data.property_groups;
             this.renderProperties(this.propertyGroups).then(() => {
                 debugger;
-                /*this._setSelectedColumnsCount();*/
+                this.highlightProperties(this.data);
             })
         });
 
@@ -134,7 +147,6 @@ class ReportPropertyList {
 
         this.highlightProperties(data);
 
-        this.setSelectedColumns(data);
     }
 
     highlightProperties(data) {
@@ -162,35 +174,6 @@ class ReportPropertyList {
     }
 
 
-    setSelectedColumns(data) {
-
-        debugger;
-
-        let columns = [];
-        function search(data) {
-            debugger;
-            for(let key in data) {
-                debugger;
-                if(data[key] instanceof Array) {
-                    search(data[key]);
-                } else {
-                    columns.push(data[key]);
-                }
-            }
-        }
-
-        search(this.data);
-
-        const $selectedColumnsContainer = $(ReportPropertyList._selectors.selectedColumnsContainer);
-        $selectedColumnsContainer.html("");
-
-        for (let column of columns) {
-            debugger;
-            this._addSelectedColumn(column.label, column.id);
-        }
-
-    }
-
     render() {
         this.$wrapper.html(ReportPropertyList.markup(this));
     }
@@ -203,6 +186,11 @@ class ReportPropertyList {
         }
 
         const $listItem = $(e.currentTarget);
+
+        if($listItem.hasClass('c-report-widget__list-item--active')) {
+            return;
+        }
+
         let propertyGroupId = $listItem.closest(ReportPropertyList._selectors.list).attr('data-property-group');
         let propertyId = $listItem.attr('data-property-id');
         let joins = JSON.parse($listItem.attr('data-joins'));
@@ -332,21 +320,11 @@ class ReportPropertyList {
 
     }
 
-    _addSelectedColumn(label, propertyId) {
-        debugger;
-        const $selectedColumnsContainer = $(ReportPropertyList._selectors.selectedColumnsContainer);
-        const html = selectedColumnTemplate(label, propertyId);
-        const $selectedColumnTemplate = $($.parseHTML(html));
-        $selectedColumnsContainer.append($selectedColumnTemplate);
-
-        /*this.activatePlugins();
-        this._setSelectedColumnsCount();*/
-    }
-
     static markup() {
 
         debugger;
         return `
+            <button type="button" class="btn btn-link js-back-button"><i class="fa fa-chevron-left"></i> Back</button>
             <div class="input-group c-search-control">
               <input class="form-control c-search-control__input js-search" type="search" placeholder="Search...">
               <span class="c-search-control__foreground"><i class="fa fa-search"></i></span>
@@ -356,12 +334,6 @@ class ReportPropertyList {
     }
 
 }
-
-const selectedColumnTemplate = (label, id) => `
-    <div class="card js-selected-column" id="${id}">
-        <div class="card-body">${label}<span><i class="fa fa-times js-remove-selected-column-icon c-column-editor__remove-icon" data-property-id="${id}" aria-hidden="true"></i></span></div>
-    </div>
-`;
 
 const listTemplate = ({id, name}) => `
     <div id="list-property-${id}">
