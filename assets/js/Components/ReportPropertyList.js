@@ -128,7 +128,9 @@ class ReportPropertyList {
         });
     }
 
-    handleBackButtonClicked() {
+    handleBackButtonClicked(e) {
+
+        e.stopPropagation();
 
         this.globalEventDispatcher.publish(Settings.Events.REPORT_BACK_BUTTON_CLICKED);
 

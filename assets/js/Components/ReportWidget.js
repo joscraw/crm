@@ -40,6 +40,8 @@ class ReportWidget {
          */
         this.data = {};
 
+        this.unbindEvents();
+
         this.globalEventDispatcher.subscribe(
             Settings.Events.CUSTOM_OBJECT_FOR_REPORT_SELECTED,
             this.handleCustomObjectForReportSelected.bind(this)
@@ -65,6 +67,12 @@ class ReportWidget {
             this.handleReportRemoveSelectedColumnIconClicked.bind(this)
         );
 
+        this.$wrapper.on(
+            'click',
+            ReportWidget._selectors.reportBackToSelectCustomObjectButton,
+            this.handleReportBackToSelectCustomObjectButton.bind(this)
+        );
+
         this.render();
     }
 
@@ -77,9 +85,24 @@ class ReportWidget {
             reportSelectPropertyContainer: '.js-report-select-property-container',
             reportSelectedColumnsContainer: '.js-report-selected-columns-container',
             reportPropertyListContainer: '.js-report-property-list-container',
-            reportSelectedColumnsCountContainer: '.js-report-selected-columns-count-container'
+            reportSelectedColumnsCountContainer: '.js-report-selected-columns-count-container',
+            reportBackToSelectCustomObjectButton: '.js-one'
 
         }
+    }
+
+    unbindEvents() {
+        this.$wrapper.off('click', ReportPropertyList._selectors.reportBackToSelectCustomObjectButton);
+    }
+
+    handleReportBackToSelectCustomObjectButton(e) {
+
+        debugger;
+        this.$wrapper.find(ReportWidget._selectors.reportSelectCustomObjectContainer).removeClass('d-none');
+        this.$wrapper.find(ReportWidget._selectors.reportSelectPropertyContainer).addClass('d-none');
+
+        new ReportSelectCustomObject($(ReportWidget._selectors.reportSelectCustomObjectContainer), this.globalEventDispatcher, this.portalInternalIdentifier);
+
     }
 
     handleCustomObjectForReportSelected(customObject) {
@@ -162,8 +185,8 @@ class ReportWidget {
             
             <div class="js-report-select-property-container d-none">
                  <nav class="navbar navbar-expand-sm l-top-bar justify-content-end c-report-widget__nav">
-                     <a class="btn btn-link" style="color:#FFF" data-bypass="true" href="#" role="button"><i class="fa fa-angle-left" aria-hidden="true"></i> Back</a>
-                     <button class="btn btn-lg btn-secondary ml-auto js-select-custom-object-button">Next</button> 
+                      <button type="button" style="color: #FFF" class="btn btn-link js-one"><i class="fa fa-angle-left" aria-hidden="true"></i> Back</button>
+                     <button class="btn btn-lg btn-secondary ml-auto">Next</button> 
                  </nav> 
             
                 <div class="row container">

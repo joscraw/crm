@@ -22,6 +22,7 @@ class ReportSelectCustomObject {
         this.customObjectInternalName = customObjectInternalName;
         this.customObjects = null;
 
+        this.unbindEvents();
 
         this.$wrapper.on(
             'click',
@@ -31,6 +32,12 @@ class ReportSelectCustomObject {
 
 
         this.render();
+    }
+
+    unbindEvents() {
+
+        this.$wrapper.off('click', ReportSelectCustomObject._selectors.addCustomObjectButton);
+
     }
 
     /**

@@ -73,6 +73,8 @@ class ReportSelectedColumns {
             e.preventDefault();
         }
 
+        e.stopPropagation();
+
         let propertyId = $(e.target).attr('data-property-id');
         let joinString = $(e.target).attr('data-joins');
         let joins = JSON.parse(joinString);
