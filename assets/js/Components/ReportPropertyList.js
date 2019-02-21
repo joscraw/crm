@@ -32,6 +32,11 @@ class ReportPropertyList {
             this.handlePropertyListItemAdded.bind(this)
         );
 
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.REPORT_PROPERTY_LIST_ITEM_REMOVED,
+            this.handlePropertyListItemRemoved.bind(this)
+        );
+
 
         this.render();
 
@@ -149,9 +154,23 @@ class ReportPropertyList {
 
     }
 
+    handlePropertyListItemRemoved(data) {
+
+        debugger;
+
+        this.data = data;
+
+        this.highlightProperties(data);
+
+    }
+
     highlightProperties(data) {
 
         $(ReportPropertyList._selectors.propertyListItem).each((index, element) => {
+
+            if($(element).hasClass('c-report-widget__list-item--active')) {
+                $(element).removeClass('c-report-widget__list-item--active');
+            }
 
             let propertyId = $(element).attr('data-property-id');
             let joins = JSON.parse($(element).attr('data-joins'));

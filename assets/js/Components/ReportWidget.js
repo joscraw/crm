@@ -141,7 +141,6 @@ class ReportWidget {
 
         }
 
-        debugger;
         this.globalEventDispatcher.publish(Settings.Events.REPORT_PROPERTY_LIST_ITEM_REMOVED, this.data);
     }
 
