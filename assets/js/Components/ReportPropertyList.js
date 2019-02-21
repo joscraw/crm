@@ -304,39 +304,6 @@ class ReportPropertyList {
 
         });
 
-
-
-
-/*        $( `#list-columns-${propertyGroup.id} li input[type="checkbox"]` ).each((index, element) => {
-            $(element).attr('data-label', properties[index].label);
-            $(element).attr('data-property-id', properties[index].id);
-
-            // Used to make sure when you click the label the checkbox gets checked
-            $(element).attr('id', `property-${properties[index].id}`);
-            $(element).next().attr('for', `property-${properties[index].id}`);
-        });
-
-        let selectedColumns = {};
-        debugger;
-        for(let i = 0; i < properties.length; i++) {
-            debugger;
-            let property = properties[i];
-
-            if(property.isColumn) {
-                debugger;
-                $( `#list-columns-${propertyGroup.id} li [data-property-id='${property.id}']` ).prop('checked', true);
-                selectedColumns[property.columnOrder] = {'label': property.label, 'id': property.id};
-            } else {
-                $( `#list-columns-${propertyGroup.id} li [data-property-id='${property.id}']` ).prop('checked', false);
-            }
-        }*/
-
-        // make sure the selected columns appear in the correct order
-        debugger;
-        /*for(let order in selectedColumns) {
-            this._addSelectedColumn(selectedColumns[order].label, selectedColumns[order].id);
-        }*/
-
     }
 
     static markup() {

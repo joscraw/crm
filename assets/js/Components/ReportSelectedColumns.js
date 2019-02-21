@@ -7,6 +7,7 @@ import PropertySearch from "./PropertySearch";
 import List from "list.js";
 import SingleLineTextFieldFilterForm from "./SingleLineTextFieldFilterForm";
 import ColumnSearch from "./ColumnSearch";
+require('jquery-ui-dist/jquery-ui');
 
 class ReportSelectedColumns {
 
@@ -37,6 +38,8 @@ class ReportSelectedColumns {
 
         this.setSelectedColumns(this.data);
 
+        this.activatePlugins();
+
     }
 
     /**
@@ -46,6 +49,15 @@ class ReportSelectedColumns {
         return {
             removeSelectedColumnIcon: '.js-remove-selected-column-icon'
         }
+    }
+
+    activatePlugins() {
+
+        this.$wrapper.sortable({
+            placeholder: "ui-state-highlight",
+            cursor: 'crosshair'
+        });
+
     }
 
     unbindEvents() {
@@ -124,24 +136,21 @@ class ReportSelectedColumns {
 
     }
 
-    render() {
-    }
-
 
     _addSelectedColumn(label, propertyId, joins) {
-        debugger;
+
         const html = selectedColumnTemplate(label, propertyId, joins);
         const $selectedColumnTemplate = $($.parseHTML(html));
         this.$wrapper.append($selectedColumnTemplate);
 
-        /*this.activatePlugins();
-        this._setSelectedColumnsCount();*/
+        this.activatePlugins();
+
     }
 }
 
 const selectedColumnTemplate = (label, id, joins) => `
     <div class="card js-selected-column" id="${id}">
-        <div class="card-body">${label}<span><i class="fa fa-times js-remove-selected-column-icon c-column-editor__remove-icon" data-property-id="${id}" data-joins='${joins}' aria-hidden="true"></i></span></div>
+        <div class="card-body c-report-widget__card-body">${label}<span><i class="fa fa-times js-remove-selected-column-icon c-report-widget__remove-column-icon" data-property-id="${id}" data-joins='${joins}' aria-hidden="true"></i></span></div>
     </div>
 `;
 

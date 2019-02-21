@@ -23,6 +23,7 @@ import ArrayHelper from "../ArrayHelper";
 import ReportSelectCustomObject from "./ReportSelectCustomObject";
 import ReportPropertyList from "./ReportPropertyList";
 import ReportSelectedColumns from "./ReportSelectedColumns";
+import ReportSelectedColumnsCount from "./ReportSelectedColumnsCount";
 
 class ReportWidget {
 
@@ -64,16 +65,6 @@ class ReportWidget {
             this.handleReportRemoveSelectedColumnIconClicked.bind(this)
         );
 
-
-
-        /*
-
-        this.globalEventDispatcher.subscribe(
-            Settings.BACK_TO_SELECT_CUSTOM_OBJECT_FOR_REPORT_BUTTON_PRESSED,
-            this.handleBackToSelectCustomObjectForReportButtonPressed.bind(this)
-        );
-*/
-
         this.render();
     }
 
@@ -85,7 +76,8 @@ class ReportWidget {
             reportSelectCustomObjectContainer: '.js-report-select-custom-object-container',
             reportSelectPropertyContainer: '.js-report-select-property-container',
             reportSelectedColumnsContainer: '.js-report-selected-columns-container',
-            reportPropertyListContainer: '.js-report-property-list-container'
+            reportPropertyListContainer: '.js-report-property-list-container',
+            reportSelectedColumnsCountContainer: '.js-report-selected-columns-count-container'
 
         }
     }
@@ -99,10 +91,9 @@ class ReportWidget {
 
         new ReportPropertyList($(ReportWidget._selectors.reportPropertyListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, customObject.internalName);
 
-
-        debugger;
-
         new ReportSelectedColumns(this.$wrapper.find(ReportWidget._selectors.reportSelectedColumnsContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.data);
+
+        new ReportSelectedColumnsCount(this.$wrapper.find(ReportWidget._selectors.reportSelectedColumnsCountContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.data);
 
     }
 
@@ -179,12 +170,11 @@ class ReportWidget {
                     <div class="col-md-6 js-report-property-list-container">
                         
                     </div>
-                    <div class="col-md-6 js-report-selected-columns-container c-report-widget__selected-columns">
+                    <div class="col-md-6">
                     
-                    <!--
-                        <div class="js-selected-columns-count c-column-editor__selected-columns-count"></div>
-                        <div class="js-selected-columns-container c-column-editor__selected-columns"></div>
-                        -->
+                        <div class="js-report-selected-columns-count-container c-column-editor__selected-columns-count"></div>
+                        <div class="js-report-selected-columns-container c-report-widget__selected-columns"></div>
+                   
                     </div>  
                 </div>
             </div>
