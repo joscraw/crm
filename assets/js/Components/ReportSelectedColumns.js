@@ -17,13 +17,23 @@ class ReportSelectedColumns {
         this.portalInternalIdentifier = portalInternalIdentifier;
         this.data = data;
 
-        debugger;
-
         this.globalEventDispatcher.subscribe(
             Settings.Events.REPORT_PROPERTY_LIST_ITEM_ADDED,
             this.handlePropertyListItemAdded.bind(this)
         );
 
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.REPORT_PROPERTY_LIST_ITEM_REMOVED,
+            this.handlePropertyListItemRemoved.bind(this)
+        );
+
+        this.unbindEvents();
+
+        this.$wrapper.on(
+            'click',
+            ReportSelectedColumns._selectors.removeSelectedColumnIcon,
+            this.handleRemoveSelectedColumnIconClicked.bind(this)
+        );
 
         this.setSelectedColumns(this.data);
 
@@ -34,12 +44,40 @@ class ReportSelectedColumns {
      */
     static get _selectors() {
         return {
-            search: '.js-search',
-            propertyListItem: '.js-property-list-item',
-            list: '.js-list',
-            propertyListContainer: '.js-list-property-container',
-            selectedColumnsContainer: '.js-selected-columns-container'
+            removeSelectedColumnIcon: '.js-remove-selected-column-icon'
+        }
+    }
 
+    unbindEvents() {
+
+        debugger;
+        this.$wrapper.off('click', ReportSelectedColumns._selectors.removeSelectedColumnIcon);
+
+    }
+
+    handleRemoveSelectedColumnIconClicked(e) {
+
+        if(e.cancelable) {
+            e.preventDefault();
+        }
+
+        let propertyId = $(e.target).attr('data-property-id');
+        let joinString = $(e.target).attr('data-joins');
+        let joins = JSON.parse(joinString);
+        let propertyPath = joins.join('.');
+
+        if(_.has(this.data, propertyPath)) {
+
+            let properties = _.get(this.data, propertyPath);
+
+            let property = properties.filter(property => {
+                debugger;
+                return parseInt(property.id) === parseInt(propertyId);
+            });
+
+            if(property.length === 1) {
+                this.globalEventDispatcher.publish(Settings.Events.REPORT_REMOVE_SELECTED_COLUMN_ICON_CLICKED, property[0]);
+            }
         }
     }
 
@@ -48,6 +86,14 @@ class ReportSelectedColumns {
         this.data = data;
 
         this.setSelectedColumns(data);
+    }
+
+    handlePropertyListItemRemoved(data) {
+
+        this.data = data;
+
+        this.setSelectedColumns(data);
+
     }
 
     setSelectedColumns(data) {
@@ -69,12 +115,11 @@ class ReportSelectedColumns {
 
         search(this.data);
 
-        const $selectedColumnsContainer = $(ReportSelectedColumns._selectors.selectedColumnsContainer);
-        $selectedColumnsContainer.html("");
+        this.$wrapper.html("");
 
         for (let column of columns) {
             debugger;
-            this._addSelectedColumn(column.label, column.id);
+            this._addSelectedColumn(column.label, column.id, JSON.stringify(column.joins));
         }
 
     }
@@ -83,21 +128,20 @@ class ReportSelectedColumns {
     }
 
 
-    _addSelectedColumn(label, propertyId) {
+    _addSelectedColumn(label, propertyId, joins) {
         debugger;
-        const $selectedColumnsContainer = $(ReportSelectedColumns._selectors.selectedColumnsContainer);
-        const html = selectedColumnTemplate(label, propertyId);
+        const html = selectedColumnTemplate(label, propertyId, joins);
         const $selectedColumnTemplate = $($.parseHTML(html));
-        $selectedColumnsContainer.append($selectedColumnTemplate);
+        this.$wrapper.append($selectedColumnTemplate);
 
         /*this.activatePlugins();
         this._setSelectedColumnsCount();*/
     }
 }
 
-const selectedColumnTemplate = (label, id) => `
+const selectedColumnTemplate = (label, id, joins) => `
     <div class="card js-selected-column" id="${id}">
-        <div class="card-body">${label}<span><i class="fa fa-times js-remove-selected-column-icon c-column-editor__remove-icon" data-property-id="${id}" aria-hidden="true"></i></span></div>
+        <div class="card-body">${label}<span><i class="fa fa-times js-remove-selected-column-icon c-column-editor__remove-icon" data-property-id="${id}" data-joins='${joins}' aria-hidden="true"></i></span></div>
     </div>
 `;
 

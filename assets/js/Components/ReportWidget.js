@@ -59,6 +59,11 @@ class ReportWidget {
             this.handleBackButtonClicked.bind(this)
         );
 
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.REPORT_REMOVE_SELECTED_COLUMN_ICON_CLICKED,
+            this.handleReportRemoveSelectedColumnIconClicked.bind(this)
+        );
+
 
 
         /*
@@ -94,7 +99,10 @@ class ReportWidget {
 
         new ReportPropertyList($(ReportWidget._selectors.reportPropertyListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, customObject.internalName);
 
-        new ReportSelectedColumns(ReportWidget._selectors.reportSelectedColumnsContainer, this.globalEventDispatcher, this.portalInternalIdentifier, this.data);
+
+        debugger;
+
+        new ReportSelectedColumns(this.$wrapper.find(ReportWidget._selectors.reportSelectedColumnsContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.data);
 
     }
 
@@ -116,9 +124,29 @@ class ReportWidget {
 
     }
 
-    handleBackButtonClicked() {
+    handleReportRemoveSelectedColumnIconClicked(property) {
+
+        let propertyPath = property.joins.join('.');
+
+        if(_.has(this.data, propertyPath)) {
+
+            let properties = _.get(this.data, propertyPath);
+
+            let filteredProperties = $.grep(properties, function(p){
+
+                return parseInt(p.id) !== property.id;
+            });
+
+            _.set(this.data, propertyPath, filteredProperties);
+
+        }
 
         debugger;
+        this.globalEventDispatcher.publish(Settings.Events.REPORT_PROPERTY_LIST_ITEM_REMOVED, this.data);
+    }
+
+    handleBackButtonClicked() {
+
         new ReportPropertyList($(ReportWidget._selectors.reportPropertyListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject.internalName, null, [], this.data);
 
     }
@@ -152,7 +180,7 @@ class ReportWidget {
                     <div class="col-md-6 js-report-property-list-container">
                         
                     </div>
-                    <div class="col-md-6 js-selected-columns-container c-report-widget__selected-columns">
+                    <div class="col-md-6 js-report-selected-columns-container c-report-widget__selected-columns">
                     
                     <!--
                         <div class="js-selected-columns-count c-column-editor__selected-columns-count"></div>
