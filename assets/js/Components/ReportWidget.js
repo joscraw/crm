@@ -126,6 +126,7 @@ class ReportWidget {
         let propertyPath = property.joins.join('.');
 
         if(_.get(this.data, propertyPath, false)) {
+            debugger;
             _.get(this.data, propertyPath).push(property);
             debugger;
 
@@ -179,6 +180,16 @@ class ReportWidget {
     }
 
     handleCustomObjectPropertyListItemClicked(property, joins) {
+
+
+        debugger;
+        let propertyPath = property.joins.join('.');
+
+        if(!_.has(this.data, propertyPath)) {
+            debugger;
+            _.set(this.data, propertyPath, []);
+        }
+
 
         new ReportPropertyList($(ReportWidget._selectors.reportPropertyListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, property.field.customObject.internalName, property, joins, this.data);
 
