@@ -75,10 +75,13 @@ class ReportSelectedColumns {
 
         e.stopPropagation();
 
+        debugger;
         let propertyId = $(e.target).attr('data-property-id');
         let joinString = $(e.target).attr('data-joins');
         let joins = JSON.parse(joinString);
         let propertyPath = joins.join('.');
+
+        debugger;
 
         if(_.has(this.data, propertyPath)) {
 
@@ -112,17 +115,17 @@ class ReportSelectedColumns {
 
     setSelectedColumns(data) {
 
-        debugger;
-
         let columns = [];
         function search(data) {
-            debugger;
+
             for(let key in data) {
-                debugger;
-                if(data[key] instanceof Array) {
+
+                if(isNaN(key)) {
+
                     search(data[key]);
                 } else {
-                    columns.push(data[key]);
+
+                    columns.push(data[key])
                 }
             }
         }

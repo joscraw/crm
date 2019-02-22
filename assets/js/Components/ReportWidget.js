@@ -122,6 +122,7 @@ class ReportWidget {
 
     handlePropertyListItemClicked(property) {
 
+        debugger;
         let propertyPath = property.joins.join('.');
 
         if(_.get(this.data, propertyPath, false)) {
@@ -140,21 +141,34 @@ class ReportWidget {
 
     handleReportRemoveSelectedColumnIconClicked(property) {
 
+        debugger;
         let propertyPath = property.joins.join('.');
 
         if(_.has(this.data, propertyPath)) {
 
+            debugger;
+
             let properties = _.get(this.data, propertyPath);
 
-            let filteredProperties = $.grep(properties, function(p){
+            let key = null;
 
-                return parseInt(p.id) !== property.id;
+            properties.forEach((p, k) => {
+                debugger;
+                if(parseInt(p.id) === parseInt(property.id)) {
+                    debugger;
+                    key = k;
+                }
             });
 
-            _.set(this.data, propertyPath, filteredProperties);
+            debugger;
+
+            _.unset(this.data, `${propertyPath}[${key}]`);
+
+            debugger;
 
         }
 
+        debugger;
         this.globalEventDispatcher.publish(Settings.Events.REPORT_PROPERTY_LIST_ITEM_REMOVED, this.data);
     }
 

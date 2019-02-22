@@ -168,21 +168,31 @@ class ReportPropertyList {
 
     highlightProperties(data) {
 
+        debugger;
         $(ReportPropertyList._selectors.propertyListItem).each((index, element) => {
 
             if($(element).hasClass('c-report-widget__list-item--active')) {
                 $(element).removeClass('c-report-widget__list-item--active');
             }
 
+            debugger;
+
             let propertyId = $(element).attr('data-property-id');
             let joins = JSON.parse($(element).attr('data-joins'));
             let propertyPath = joins.join('.');
 
+            debugger;
+
             if(_.has(data, propertyPath)) {
+
+                debugger;
 
                 let properties = _.get(data, propertyPath);
 
+                debugger;
+
                 let propertyMatch = properties.filter(property => {
+                    debugger;
                     return parseInt(property.id) === parseInt(propertyId);
                 });
 

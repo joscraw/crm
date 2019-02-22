@@ -52,10 +52,12 @@ class ReportSelectedColumnsCount {
 
             for(let key in data) {
 
-                if(data[key] instanceof Array) {
+                if(isNaN(key)) {
+
                     search(data[key]);
                 } else {
-                    columns.push(data[key]);
+
+                    columns.push(data[key])
                 }
             }
         }
