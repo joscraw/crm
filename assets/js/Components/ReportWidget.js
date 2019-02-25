@@ -185,46 +185,7 @@ class ReportWidget {
 
         this.globalEventDispatcher.publish(Settings.Events.REPORT_FILTER_ITEM_ADDED, this.data);
 
-        // Make sure that properties with the same id that belong to the same join override each other
-      /*  this.customFilters = $.grep(this.customFilters, function(cf){
-
-            debugger;
-
-            return !(cf.id === customFilter.id && JSON.stringify(cf.customFilterJoins) === JSON.stringify(customFilter.customFilterJoins));
-        });
-
-        this.customFilters.push(customFilter);
-
-        this.$wrapper.find(FilterWidget._selectors.propertyList).addClass('d-none');
-        this.$wrapper.find(FilterWidget._selectors.filterNavigation).removeClass('d-none');
-        this.$wrapper.find(FilterWidget._selectors.propertyForm).addClass('d-none');
-        this.$wrapper.find(FilterWidget._selectors.editPropertyForm).addClass('d-none');
-
-        this.globalEventDispatcher.publish(Settings.Events.FILTERS_UPDATED, this.customFilters);*/
     }
-
-    handleReportFilterItemClicked(property) {
-
-        debugger;
-
-
-/*        let propertyPath = property.joins.join('.') + '.filters';
-
-        if(_.get(this.data, propertyPath, false)) {
-
-            debugger;
-            _.get(this.data, propertyPath).push(property);
-
-        } else {
-            debugger;
-            _.set(this.data, propertyPath, []);
-            _.get(this.data, propertyPath).push(property);
-        }
-
-        this.globalEventDispatcher.publish(Settings.Events.REPORT_FILTER_ITEM_ADDED, this.data);*/
-
-    }
-
 
     handleReportRemoveSelectedColumnIconClicked(property) {
 

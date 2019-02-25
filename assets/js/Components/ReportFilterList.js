@@ -21,24 +21,10 @@ class ReportFilterList {
         this.lists = [];
         this.data = data;
 
-        debugger;
 
         this.unbindEvents();
 
         this.bindEvents();
-
-/*
-        this.globalEventDispatcher.subscribe(
-            Settings.Events.REPORT_PROPERTY_LIST_ITEM_ADDED,
-            this.handlePropertyListItemAdded.bind(this)
-        );
-
-        this.globalEventDispatcher.subscribe(
-            Settings.Events.REPORT_PROPERTY_LIST_ITEM_REMOVED,
-            this.handlePropertyListItemRemoved.bind(this)
-        );
-*/
-
 
 
         this.render();
@@ -93,8 +79,7 @@ class ReportFilterList {
 
         this.$wrapper.off('keyup', ReportFilterList._selectors.search);
         this.$wrapper.off('click', ReportFilterList._selectors.propertyListItem);
-      /*  this.$wrapper.off('click', ReportFilterList._selectors.propertyListItem);
-        this.$wrapper.off('click', ReportFilterList._selectors.backButton);*/
+        this.$wrapper.off('click', ReportFilterList._selectors.backButton);
     }
 
     handleKeyupEvent(e) {

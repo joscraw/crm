@@ -41,39 +41,6 @@ class ReportFilters {
          */
         this.data = {};
 
-/*        this.unbindEvents();
-
-        this.globalEventDispatcher.subscribe(
-            Settings.Events.CUSTOM_OBJECT_FOR_REPORT_SELECTED,
-            this.handleCustomObjectForReportSelected.bind(this)
-        );
-
-        this.globalEventDispatcher.subscribe(
-            Settings.Events.REPORT_CUSTOM_OBJECT_PROPERTY_LIST_ITEM_CLICKED,
-            this.handleCustomObjectPropertyListItemClicked.bind(this)
-        );
-
-        this.globalEventDispatcher.subscribe(
-            Settings.Events.REPORT_BACK_BUTTON_CLICKED,
-            this.handleBackButtonClicked.bind(this)
-        );
-
-        this.globalEventDispatcher.subscribe(
-            Settings.Events.REPORT_REMOVE_SELECTED_COLUMN_ICON_CLICKED,
-            this.handleReportRemoveSelectedColumnIconClicked.bind(this)
-        );
-
-        this.$wrapper.on(
-            'click',
-            ReportFilters._selectors.reportBackToSelectCustomObjectButton,
-            this.handleReportBackToSelectCustomObjectButton.bind(this)
-        );
-
-        this.$wrapper.on(
-            'click',
-            ReportSelectCustomObject._selectors.reportAdvanceToFiltersView,
-            this.handleReportAdvanceToFiltersViewButtonClicked.bind(this)
-        );*/
 
 
         this.globalEventDispatcher.subscribe(
@@ -96,12 +63,6 @@ class ReportFilters {
             this.reportFilterItemAddedHandler.bind(this)
         );
 
-
-
-
-        /*REPORT_FILTER_LIST_BACK_BUTTON_CLICKED*/
-
-
         this.render();
     }
 
@@ -110,19 +71,9 @@ class ReportFilters {
      */
     static get _selectors() {
         return {
-            /*reportSelectCustomObjectContainer: '.js-report-select-custom-object-container',
-            reportSelectPropertyContainer: '.js-report-select-property-container',
-            reportSelectedColumnsContainer: '.js-report-selected-columns-container',
-            reportPropertyListContainer: '.js-report-property-list-container',
-            reportSelectedColumnsCountContainer: '.js-report-selected-columns-count-container',
-            reportBackToSelectCustomObjectButton: '.js-back-to-select-custom-object-button',
-            reportAdvanceToFiltersView: '.js-advance-to-filters-view'*/
-
 
             reportFilterListContainer: '.js-report-filter-list-container',
             propertyForm: '.js-property-form'
-
-
 
         }
     }
@@ -202,7 +153,6 @@ class ReportFilters {
 
     reportFilterItemAddedHandler() {
 
-        debugger;
         this.$wrapper.find(ReportFilters._selectors.reportFilterListContainer).removeClass('d-none');
         this.$wrapper.find(ReportFilters._selectors.propertyForm).addClass('d-none');
 
@@ -212,28 +162,10 @@ class ReportFilters {
 
     handleReportFilterItemClicked(property) {
 
-        debugger;
         this.$wrapper.find(ReportFilters._selectors.reportFilterListContainer).addClass('d-none');
         this.$wrapper.find(ReportFilters._selectors.propertyForm).removeClass('d-none');
 
         this.renderFilterForm(property);
-
-        debugger;
-
-        debugger;
-
-       /* let propertyPath = property.joins.join('.');
-
-        if(_.get(this.data, propertyPath, false)) {
-
-            _.get(this.data, propertyPath).push(property);
-
-        } else {
-            _.set(this.data, propertyPath, []);
-            _.get(this.data, propertyPath).push(property);
-        }
-
-        this.globalEventDispatcher.publish(Settings.Events.REPORT_PROPERTY_LIST_ITEM_ADDED, this.data);*/
 
     }
 
@@ -269,42 +201,13 @@ class ReportFilters {
 
     handleReportCustomObjectFilterListItemClicked(property, joins) {
 
-        debugger;
-
-
         new ReportFilterList($(ReportFilters._selectors.reportFilterListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, property.field.customObject.internalName, property, joins, this.data);
-
-       /* let propertyPath = property.joins.join('.');
-
-        if(!_.has(this.data, propertyPath)) {
-            _.set(this.data, propertyPath, []);
-        }*/
-
-/*
-
-        let propertyPath = property.joins.join('.') + '.filters';
-
-        if(_.get(this.data, propertyPath, false)) {
-
-            debugger;
-            _.get(this.data, propertyPath).push(property);
-
-        } else {
-            debugger;
-            _.set(this.data, propertyPath, []);
-            _.get(this.data, propertyPath).push(property);
-        }
-
-        this.globalEventDispatcher.publish(Settings.Events.REPORT_FILTER_ITEM_ADDED, this.data);
-*/
-
 
     }
 
     render() {
 
         this.$wrapper.html(ReportFilters.markup(this));
-        /*new ReportSelectCustomObject($(ReportFilters._selectors.reportSelectCustomObjectContainer), this.globalEventDispatcher, this.portalInternalIdentifier);*/
 
         new ReportFilterList($(ReportFilters._selectors.reportFilterListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);
 
@@ -321,12 +224,6 @@ class ReportFilters {
             <div class="row container">
                 <div class="col-md-6 js-report-filter-list-container"></div>
                 <div class="col-md-6 js-property-form d-none"></div>
-                <div class="col-md-6">
-                
-                    <!--<div class="js-report-selected-columns-count-container c-column-editor__selected-columns-count"></div>
-                    <div class="js-report-selected-columns-container c-report-widget__selected-columns"></div>-->
-               
-                </div>  
             </div>
     `;
     }
