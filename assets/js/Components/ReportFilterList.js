@@ -8,7 +8,7 @@ import List from "list.js";
 import SingleLineTextFieldFilterForm from "./SingleLineTextFieldFilterForm";
 import ColumnSearch from "./ColumnSearch";
 
-class ReportPropertyList {
+class ReportFilterList {
 
     constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, join = null, joins = [], data = {}) {
         debugger;
@@ -27,6 +27,7 @@ class ReportPropertyList {
 
         this.bindEvents();
 
+/*
         this.globalEventDispatcher.subscribe(
             Settings.Events.REPORT_PROPERTY_LIST_ITEM_ADDED,
             this.handlePropertyListItemAdded.bind(this)
@@ -36,6 +37,8 @@ class ReportPropertyList {
             Settings.Events.REPORT_PROPERTY_LIST_ITEM_REMOVED,
             this.handlePropertyListItemRemoved.bind(this)
         );
+*/
+
 
 
         this.render();
@@ -62,19 +65,21 @@ class ReportPropertyList {
 
         this.$wrapper.on(
             'keyup',
-            ReportPropertyList._selectors.search,
+            ReportFilterList._selectors.search,
             this.handleKeyupEvent.bind(this)
         );
 
         this.$wrapper.on(
             'click',
-            ReportPropertyList._selectors.propertyListItem,
+            ReportFilterList._selectors.propertyListItem,
             this.handlePropertyListItemClicked.bind(this)
         );
 
+
+
         this.$wrapper.on(
             'click',
-            ReportPropertyList._selectors.backButton,
+            ReportFilterList._selectors.backButton,
             this.handleBackButtonClicked.bind(this)
         );
 
@@ -86,9 +91,10 @@ class ReportPropertyList {
      */
     unbindEvents() {
 
-        this.$wrapper.off('keyup', ReportPropertyList._selectors.search);
-        this.$wrapper.off('click', ReportPropertyList._selectors.propertyListItem);
-        this.$wrapper.off('click', ReportPropertyList._selectors.backButton);
+        this.$wrapper.off('keyup', ReportFilterList._selectors.search);
+        this.$wrapper.off('click', ReportFilterList._selectors.propertyListItem);
+      /*  this.$wrapper.off('click', ReportFilterList._selectors.propertyListItem);
+        this.$wrapper.off('click', ReportFilterList._selectors.backButton);*/
     }
 
     handleKeyupEvent(e) {
@@ -110,16 +116,14 @@ class ReportPropertyList {
      */
     applySearch(searchValue) {
 
-        debugger;
-
         for(let i = 0; i < this.lists.length; i++) {
             this.lists[i].search(searchValue);
         }
 
-        this.$wrapper.find(ReportPropertyList._selectors.list).each((index, element) => {
+        this.$wrapper.find(ReportFilterList._selectors.list).each((index, element) => {
 
             let propertyGroupId = $(element).attr('data-property-group');
-            let $parent = $(element).closest(`#list-property-${propertyGroupId}`);
+            let $parent = $(element).closest(`#list-filters-${propertyGroupId}`);
 
             if($(element).is(':empty') && searchValue !== '') {
                 $parent.addClass('d-none');
@@ -129,7 +133,6 @@ class ReportPropertyList {
                     $parent.removeClass('d-none');
                 }
             }
-
         });
     }
 
@@ -137,17 +140,18 @@ class ReportPropertyList {
 
         e.stopPropagation();
 
-        this.globalEventDispatcher.publish(Settings.Events.REPORT_BACK_BUTTON_CLICKED);
+        this.globalEventDispatcher.publish(Settings.Events.FILTER_BACK_TO_LIST_BUTTON_CLICKED);
 
     }
 
     loadProperties() {
 
         this.loadPropertiesForReport().then(data => {
+            debugger;
             this.propertyGroups = data.data.property_groups;
             this.renderProperties(this.propertyGroups).then(() => {
                 debugger;
-                this.highlightProperties(this.data);
+                /*this.highlightProperties(this.data);*/
             })
         });
 
@@ -174,7 +178,7 @@ class ReportPropertyList {
     highlightProperties(data) {
 
         debugger;
-        $(ReportPropertyList._selectors.propertyListItem).each((index, element) => {
+        $(ReportFilterList._selectors.propertyListItem).each((index, element) => {
 
             if($(element).hasClass('c-report-widget__list-item--active')) {
                 $(element).removeClass('c-report-widget__list-item--active');
@@ -211,7 +215,7 @@ class ReportPropertyList {
 
 
     render() {
-        this.$wrapper.html(ReportPropertyList.markup(this));
+        this.$wrapper.html(ReportFilterList.markup(this));
     }
 
     handlePropertyListItemClicked(e) {
@@ -227,7 +231,7 @@ class ReportPropertyList {
             return;
         }
 
-        let propertyGroupId = $listItem.closest(ReportPropertyList._selectors.list).attr('data-property-group');
+        let propertyGroupId = $listItem.closest(ReportFilterList._selectors.list).attr('data-property-group');
         let propertyId = $listItem.attr('data-property-id');
         let joins = JSON.parse($listItem.attr('data-joins'));
 
@@ -246,16 +250,16 @@ class ReportPropertyList {
 
         if(property[0].fieldType === 'custom_object_field') {
 
-            this.globalEventDispatcher.publish(Settings.Events.REPORT_CUSTOM_OBJECT_PROPERTY_LIST_ITEM_CLICKED, property[0], joins);
+            this.globalEventDispatcher.publish(Settings.Events.REPORT_CUSTOM_OBJECT_FILTER_LIST_ITEM_CLICKED, property[0], joins);
         } else {
 
-            this.globalEventDispatcher.publish(Settings.Events.REPORT_PROPERTY_LIST_ITEM_CLICKED, property[0]);
+            this.globalEventDispatcher.publish(Settings.Events.REPORT_FILTER_ITEM_CLICKED, property[0]);
         }
     }
 
     renderProperties(propertyGroups) {
 
-        let $propertyList = this.$wrapper.find(ReportPropertyList._selectors.propertyList);
+        let $propertyList = this.$wrapper.find(ReportFilterList._selectors.propertyList);
         $propertyList.html("");
 
         return new Promise((resolve, reject) => {
@@ -296,7 +300,7 @@ class ReportPropertyList {
     _addList(propertyGroup, properties) {
 
         debugger;
-        let $propertyList = this.$wrapper.find(ReportPropertyList._selectors.propertyList);
+        let $propertyList = this.$wrapper.find(ReportFilterList._selectors.propertyList);
         const html = listTemplate(propertyGroup);
         const $list = $($.parseHTML(html));
         $propertyList.append($list);
@@ -307,9 +311,9 @@ class ReportPropertyList {
             item: `<li class="js-property-list-item c-report-widget__list-item"><span class="label"></span></li>`
         };
 
-        this.lists.push(new List(`list-property-${propertyGroup.id}`, options, properties));
+        this.lists.push(new List(`list-filters-${propertyGroup.id}`, options, properties));
 
-        $( `#list-property-${propertyGroup.id} li` ).each((index, element) => {
+        $( `#list-filters-${propertyGroup.id} li` ).each((index, element) => {
             $(element).attr('data-property-id', properties[index].id);
 
             if(this.join) {
@@ -339,11 +343,11 @@ class ReportPropertyList {
 }
 
 const listTemplate = ({id, name}) => `
-    <div id="list-property-${id}">
+    <div id="list-filters-${id}">
       <p>${name}</p>
       <ul class="js-list list c-report-widget__list" data-property-group="${id}"></ul>
     </div>
     
 `;
 
-export default ReportPropertyList;
+export default ReportFilterList;
