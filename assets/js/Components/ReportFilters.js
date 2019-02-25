@@ -78,11 +78,11 @@ class ReportFilters {
         }
     }
 
-    unbindEvents() {
+ /*   unbindEvents() {
         this.$wrapper.off('click', ReportPropertyList._selectors.reportBackToSelectCustomObjectButton);
         this.$wrapper.off('click', ReportPropertyList._selectors.reportAdvanceToFiltersView);
     }
-
+*/
 
     renderFilterForm(property) {
 

@@ -25,6 +25,7 @@ import ReportPropertyList from "./ReportPropertyList";
 import ReportSelectedColumns from "./ReportSelectedColumns";
 import ReportSelectedColumnsCount from "./ReportSelectedColumnsCount";
 import ReportFilters from "./ReportFilters";
+import ReportProperties from "./ReportProperties";
 
 class ReportWidget {
 
@@ -44,8 +45,8 @@ class ReportWidget {
         this.unbindEvents();
 
         this.globalEventDispatcher.subscribe(
-            Settings.Events.CUSTOM_OBJECT_FOR_REPORT_SELECTED,
-            this.handleCustomObjectForReportSelected.bind(this)
+            Settings.Events.ADVANCE_TO_REPORT_PROPERTIES_VIEW_BUTTON_CLICKED,
+            this.handleAdvanceToReportPropertiesViewButtonClicked.bind(this)
         );
 
         this.globalEventDispatcher.subscribe(
@@ -59,25 +60,8 @@ class ReportWidget {
         );
 
         this.globalEventDispatcher.subscribe(
-            Settings.Events.REPORT_BACK_BUTTON_CLICKED,
-            this.handleBackButtonClicked.bind(this)
-        );
-
-        this.globalEventDispatcher.subscribe(
             Settings.Events.REPORT_REMOVE_SELECTED_COLUMN_ICON_CLICKED,
             this.handleReportRemoveSelectedColumnIconClicked.bind(this)
-        );
-
-        this.$wrapper.on(
-            'click',
-            ReportWidget._selectors.reportBackToSelectCustomObjectButton,
-            this.handleReportBackToSelectCustomObjectButton.bind(this)
-        );
-
-        this.$wrapper.on(
-            'click',
-            ReportWidget._selectors.reportAdvanceToFiltersView,
-            this.handleReportAdvanceToFiltersViewButtonClicked.bind(this)
         );
 
         this.globalEventDispatcher.subscribe(
@@ -85,6 +69,15 @@ class ReportWidget {
             this.applyCustomFilterButtonPressedHandler.bind(this)
         );
 
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.REPORT_BACK_TO_SELECT_CUSTOM_OBJECT_BUTTON_PRESSED,
+            this.reportBackToSelectCustomObjectButtonHandler.bind(this)
+        );
+
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.ADVANCE_TO_REPORT_FILTERS_VIEW_BUTTON_CLICKED,
+            this.handleReportAdvanceToFiltersViewButtonClicked.bind(this)
+        );
 
         this.render();
     }
@@ -95,27 +88,21 @@ class ReportWidget {
     static get _selectors() {
         return {
             reportSelectCustomObjectContainer: '.js-report-select-custom-object-container',
-            reportSelectPropertyContainer: '.js-report-select-property-container',
-            reportSelectedColumnsContainer: '.js-report-selected-columns-container',
-            reportPropertyListContainer: '.js-report-property-list-container',
-            reportSelectedColumnsCountContainer: '.js-report-selected-columns-count-container',
-            reportBackToSelectCustomObjectButton: '.js-back-to-select-custom-object-button',
-            reportAdvanceToFiltersView: '.js-advance-to-filters-view',
+            reportPropertiesContainer: '.js-report-properties-container',
             reportFiltersContainer: '.js-report-filters-container'
 
         }
     }
 
     unbindEvents() {
-        this.$wrapper.off('click', ReportPropertyList._selectors.reportBackToSelectCustomObjectButton);
+
         this.$wrapper.off('click', ReportPropertyList._selectors.reportAdvanceToFiltersView);
     }
 
-    handleReportBackToSelectCustomObjectButton(e) {
+    reportBackToSelectCustomObjectButtonHandler(e) {
 
-        debugger;
         this.$wrapper.find(ReportWidget._selectors.reportSelectCustomObjectContainer).removeClass('d-none');
-        this.$wrapper.find(ReportWidget._selectors.reportSelectPropertyContainer).addClass('d-none');
+        this.$wrapper.find(ReportWidget._selectors.reportPropertiesContainer).addClass('d-none');
 
         new ReportSelectCustomObject($(ReportWidget._selectors.reportSelectCustomObjectContainer), this.globalEventDispatcher, this.portalInternalIdentifier);
 
@@ -124,32 +111,25 @@ class ReportWidget {
     handleReportAdvanceToFiltersViewButtonClicked(e) {
 
         debugger;
-
         this.$wrapper.find(ReportWidget._selectors.reportFiltersContainer).removeClass('d-none');
-        this.$wrapper.find(ReportWidget._selectors.reportSelectPropertyContainer).addClass('d-none');
+        this.$wrapper.find(ReportWidget._selectors.reportPropertiesContainer).addClass('d-none');
 
         new ReportFilters($(ReportWidget._selectors.reportFiltersContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject.internalName);
 
     }
 
-    handleCustomObjectForReportSelected(customObject) {
+    handleAdvanceToReportPropertiesViewButtonClicked(customObject) {
 
         this.customObject = customObject;
 
         this.$wrapper.find(ReportWidget._selectors.reportSelectCustomObjectContainer).addClass('d-none');
-        this.$wrapper.find(ReportWidget._selectors.reportSelectPropertyContainer).removeClass('d-none');
+        this.$wrapper.find(ReportWidget._selectors.reportPropertiesContainer).removeClass('d-none');
 
-        new ReportPropertyList($(ReportWidget._selectors.reportPropertyListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, customObject.internalName);
-
-        new ReportSelectedColumns(this.$wrapper.find(ReportWidget._selectors.reportSelectedColumnsContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.data);
-
-        new ReportSelectedColumnsCount(this.$wrapper.find(ReportWidget._selectors.reportSelectedColumnsCountContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.data);
+        new ReportProperties($(ReportWidget._selectors.reportPropertiesContainer), this.globalEventDispatcher, this.portalInternalIdentifier, customObject.internalName, this.data);
 
     }
 
     handlePropertyListItemClicked(property) {
-
-        debugger;
 
         let propertyPath = property.joins.join('.');
 
@@ -167,8 +147,6 @@ class ReportWidget {
     }
 
     applyCustomFilterButtonPressedHandler(customFilter) {
-
-        debugger;
 
         let propertyPath = customFilter.joins.join('.') + '.filters';
 
@@ -211,12 +189,6 @@ class ReportWidget {
         this.globalEventDispatcher.publish(Settings.Events.REPORT_PROPERTY_LIST_ITEM_REMOVED, this.data);
     }
 
-    handleBackButtonClicked() {
-
-        new ReportPropertyList($(ReportWidget._selectors.reportPropertyListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject.internalName, null, [], this.data);
-
-    }
-
     handleCustomObjectPropertyListItemClicked(property, joins) {
 
         let propertyPath = property.joins.join('.');
@@ -225,8 +197,7 @@ class ReportWidget {
             _.set(this.data, propertyPath, []);
         }
 
-
-        new ReportPropertyList($(ReportWidget._selectors.reportPropertyListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, property.field.customObject.internalName, property, joins, this.data);
+        this.globalEventDispatcher.publish(Settings.Events.REPORT_CUSTOM_OBJECT_JOIN_PATH_SET, property, joins, this.data);
 
     }
 
@@ -243,24 +214,7 @@ class ReportWidget {
       <div class="js-report-widget c-report-widget">
             <div class="js-report-select-custom-object-container"></div>
             
-            <div class="js-report-select-property-container d-none">
-                 <nav class="navbar navbar-expand-sm l-top-bar justify-content-end c-report-widget__nav">
-                      <button type="button" style="color: #FFF" class="btn btn-link js-back-to-select-custom-object-button"><i class="fa fa-angle-left" aria-hidden="true"></i> Back</button>
-                     <button class="btn btn-lg btn-secondary ml-auto js-advance-to-filters-view">Next</button> 
-                 </nav> 
-            
-                <div class="row container">
-                    <div class="col-md-6 js-report-property-list-container">
-                        
-                    </div>
-                    <div class="col-md-6">
-                    
-                        <div class="js-report-selected-columns-count-container c-column-editor__selected-columns-count"></div>
-                        <div class="js-report-selected-columns-container c-report-widget__selected-columns"></div>
-                   
-                    </div>  
-                </div>
-            </div>
+            <div class="js-report-properties-container d-none"></div>
             
             <div class="js-report-filters-container d-none"></div>
             

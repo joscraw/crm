@@ -211,6 +211,7 @@ class ReportPropertyList {
 
 
     render() {
+        debugger;
         this.$wrapper.html(ReportPropertyList.markup(this));
     }
 

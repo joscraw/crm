@@ -16,6 +16,7 @@ class ReportSelectCustomObject {
      * @param customObjectInternalName
      */
     constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName) {
+        debugger;
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
@@ -26,8 +27,8 @@ class ReportSelectCustomObject {
 
         this.$wrapper.on(
             'click',
-            ReportSelectCustomObject._selectors.addCustomObjectButton,
-            this.handleAddCustomObjectButtonClicked.bind(this)
+            ReportSelectCustomObject._selectors.advanceToReportPropertiesViewButton,
+            this.handleAdvanceToReportPropertiesViewButtonClicked.bind(this)
         );
 
 
@@ -36,7 +37,7 @@ class ReportSelectCustomObject {
 
     unbindEvents() {
 
-        this.$wrapper.off('click', ReportSelectCustomObject._selectors.addCustomObjectButton);
+        this.$wrapper.off('click', ReportSelectCustomObject._selectors.advanceToReportPropertiesViewButton);
 
     }
 
@@ -45,13 +46,13 @@ class ReportSelectCustomObject {
      */
     static get _selectors() {
         return {
-            addCustomObjectButton: '.js-select-custom-object-button',
+            advanceToReportPropertiesViewButton: '.js-advance-to-report-properties-view-button',
             customObjectField: '.js-custom-object:checked',
             customObjectForm: '.custom-object-form'
         }
     }
 
-    handleAddCustomObjectButtonClicked(e) {
+    handleAdvanceToReportPropertiesViewButtonClicked(e) {
 
         debugger;
         let customObjectField = this.$wrapper.find(ReportSelectCustomObject._selectors.customObjectField);
@@ -64,19 +65,22 @@ class ReportSelectCustomObject {
 
         debugger;
 
-        this.globalEventDispatcher.publish(Settings.Events.CUSTOM_OBJECT_FOR_REPORT_SELECTED, customObject[0]);
+        this.globalEventDispatcher.publish(Settings.Events.ADVANCE_TO_REPORT_PROPERTIES_VIEW_BUTTON_CLICKED, customObject[0]);
     }
 
     render() {
+        debugger;
         this.$wrapper.html(ReportSelectCustomObject.markup(this));
 
         this.loadCustomObjects().then(data => {
+            debugger;
             this.renderCustomObjectForm(data);
         })
     }
 
     renderCustomObjectForm(data) {
 
+        debugger;
         let customObjects = this.customObjects = data.data.custom_objects;
 
         let options = {
@@ -121,7 +125,7 @@ class ReportSelectCustomObject {
             <div class="c-report-select-custom-object">
                  <nav class="navbar navbar-expand-sm l-top-bar justify-content-end c-report-widget__nav">
                     <a class="btn btn-link" style="color:#FFF" data-bypass="true" href="${Routing.generate('report_list', {internalIdentifier: portalInternalIdentifier})}" role="button"><i class="fa fa-angle-left" aria-hidden="true"></i> Back to reports</a>
-                    <button class="btn btn-lg btn-secondary ml-auto js-select-custom-object-button">Next</button> 
+                    <button class="btn btn-lg btn-secondary ml-auto js-advance-to-report-properties-view-button">Next</button> 
                  </nav> 
                  
                  <div class="container">
