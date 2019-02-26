@@ -26,6 +26,7 @@ import ReportSelectedColumns from "./ReportSelectedColumns";
 import ReportSelectedColumnsCount from "./ReportSelectedColumnsCount";
 import ReportFilters from "./ReportFilters";
 import ReportProperties from "./ReportProperties";
+import StringHelper from "../StringHelper";
 
 class ReportWidget {
 
@@ -57,6 +58,11 @@ class ReportWidget {
         this.globalEventDispatcher.subscribe(
             Settings.Events.REPORT_CUSTOM_OBJECT_PROPERTY_LIST_ITEM_CLICKED,
             this.handleCustomObjectPropertyListItemClicked.bind(this)
+        );
+
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.REPORT_CUSTOM_OBJECT_FILTER_LIST_ITEM_CLICKED,
+            this.handleReportCustomObjectFilterListItemClicked.bind(this)
         );
 
         this.globalEventDispatcher.subscribe(
@@ -148,17 +154,53 @@ class ReportWidget {
 
     applyCustomFilterButtonPressedHandler(customFilter) {
 
-        let propertyPath = customFilter.joins.join('.') + '.filters';
+        debugger;
+
+        let propertyPath = customFilter.joins.join('.') + `.filters`;
+
+        let orPath = customFilter.orPath.join('.');
 
         if(_.get(this.data, propertyPath, false)) {
 
             debugger;
-            _.get(this.data, propertyPath).push(customFilter);
+
+            let uID = StringHelper.makeCharId();
+
+            /*if(!_.get(this.data, `${orPath}.orFilters`)) {
+
+                _.set(this.data, `${orPath}.orFilters`, []);
+
+            }*/
+
+            debugger;
+
+            _.get(this.data, propertyPath)[uID] = customFilter;
+
+            debugger;
+
+            if(orPath !== "") {
+
+                let orFilterPath = customFilter.joins.concat(['filters', uID]);
+
+                _.get(this.data, `${orPath}.orFilters`).push(orFilterPath);
+            }
 
         } else {
             debugger;
-            _.set(this.data, propertyPath, []);
-            _.get(this.data, propertyPath).push(customFilter);
+            _.set(this.data, propertyPath, {});
+            let uID = StringHelper.makeCharId();
+            _.get(this.data, propertyPath)[uID] = customFilter;
+            _.set(_.get(this.data, propertyPath)[uID], `orFilters`, []);
+
+            debugger;
+
+            if(orPath !== "") {
+
+                let orFilterPath = customFilter.joins.concat(['filters', uID]);
+
+                _.get(this.data, `${orPath}.orFilters`).push(orFilterPath);
+
+            }
         }
 
         this.globalEventDispatcher.publish(Settings.Events.REPORT_FILTER_ITEM_ADDED, this.data);
@@ -191,6 +233,8 @@ class ReportWidget {
 
     handleCustomObjectPropertyListItemClicked(property, joins) {
 
+        debugger;
+
         let propertyPath = property.joins.join('.');
 
         if(!_.has(this.data, propertyPath)) {
@@ -198,6 +242,19 @@ class ReportWidget {
         }
 
         this.globalEventDispatcher.publish(Settings.Events.REPORT_CUSTOM_OBJECT_JOIN_PATH_SET, property, joins, this.data);
+
+    }
+
+    handleReportCustomObjectFilterListItemClicked(property, joins) {
+
+        debugger;
+        let propertyPath = property.joins.join('.');
+
+        if(!_.has(this.data, propertyPath)) {
+            _.set(this.data, propertyPath, []);
+        }
+
+        this.globalEventDispatcher.publish(Settings.Events.REPORT_FILTER_CUSTOM_OBJECT_JOIN_PATH_SET, property, joins, this.data);
 
     }
 

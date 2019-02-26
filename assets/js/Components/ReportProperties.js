@@ -106,6 +106,7 @@ class ReportProperties {
 
     handleCustomObjectJoinPathSet(property, joins, data) {
 
+        debugger;
         new ReportPropertyList($(ReportProperties._selectors.reportPropertyListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, property.field.customObject.internalName, property, joins, data);
 
     }

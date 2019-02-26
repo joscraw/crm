@@ -10,7 +10,7 @@ import ColumnSearch from "./ColumnSearch";
 
 class ReportFilterList {
 
-    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, join = null, joins = [], data = {}) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, join = null, joins = [], data = {}, orPath = []) {
         debugger;
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
@@ -21,11 +21,14 @@ class ReportFilterList {
         this.lists = [];
         this.data = data;
 
+        // The path to the filter that this filter should be tied to
+        // Only used in "WHERE" clauses with mysql "OR" condition
+        this.orPath = orPath;
+
 
         this.unbindEvents();
 
         this.bindEvents();
-
 
         this.render();
 
@@ -219,6 +222,7 @@ class ReportFilterList {
         let propertyGroupId = $listItem.closest(ReportFilterList._selectors.list).attr('data-property-group');
         let propertyId = $listItem.attr('data-property-id');
         let joins = JSON.parse($listItem.attr('data-joins'));
+        let orPath = JSON.parse($listItem.attr('data-or-path'));
 
 
         let propertyGroup = this.propertyGroups.filter(propertyGroup => {
@@ -232,6 +236,11 @@ class ReportFilterList {
         });
 
         property[0].joins = joins;
+        property[0].orPath = orPath;
+
+        /*if(orPath !== undefined) {
+            property[0].orPath = orPath;
+        }*/
 
         if(property[0].fieldType === 'custom_object_field') {
 
@@ -300,6 +309,11 @@ class ReportFilterList {
 
         $( `#list-filters-${propertyGroup.id} li` ).each((index, element) => {
             $(element).attr('data-property-id', properties[index].id);
+
+            if(this.orPath) {
+                debugger;
+                $(element).attr('data-or-path', JSON.stringify(this.orPath));
+            }
 
             if(this.join) {
                 let joins = this.joins.concat(this.join.internalName);
