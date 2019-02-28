@@ -166,15 +166,11 @@ class ReportWidget {
 
             let uID = StringHelper.makeCharId();
 
-            /*if(!_.get(this.data, `${orPath}.orFilters`)) {
-
-                _.set(this.data, `${orPath}.orFilters`, []);
-
-            }*/
-
             debugger;
 
             _.get(this.data, propertyPath)[uID] = customFilter;
+
+            _.set(_.get(this.data, propertyPath)[uID], `orFilters`, []);
 
             debugger;
 

@@ -98,6 +98,7 @@ class ReportFilterNavigation {
             addFilterButton: '.js-add-filter-button',
             addOrFilterButton: '.js-add-or-filter-button',
             reportSelectedCustomFilters: '.js-report-selected-custom-filters',
+            filterContainer: '.js-filter-container'
         }
     }
 
@@ -180,7 +181,6 @@ class ReportFilterNavigation {
             let orPath = customFilter.joins.concat(['filters', uID]);
 
 
-
             // get or conditions for filter
 
 
@@ -199,12 +199,19 @@ class ReportFilterNavigation {
 
             text = this.getFilterTextFromCustomFilter(customFilter);
 
+            const html = filterContainerTemplate(JSON.stringify(orPath));
+            const $filterContainerTemplate = $($.parseHTML(html));
+            const $filters = $filterContainerTemplate.find('.js-filters');
+
+            const filterHtml = filterTemplate(text);
+            const $filterTemplate = $($.parseHTML(filterHtml));
+
+            $filters.append($filterTemplate);
+
 
             debugger;
-            const html = selectedCustomFilterTemplate(text, customFilter, JSON.stringify(orPath));
-            const $selectedCustomFilterTemplate = $($.parseHTML(html));
 
-            for(let orFilter of customFilter.orFilters) {
+            for (let orFilter of customFilter.orFilters) {
 
                 debugger;
 
@@ -214,25 +221,15 @@ class ReportFilterNavigation {
 
                 text = this.getFilterTextFromCustomFilter(customFilter);
 
-                debugger;
+                const filterHtml = filterTemplate(text);
+                const $filterTemplate = $($.parseHTML(filterHtml));
 
-                const orFilterHtml = orFilterTemplate(text);
-                const $orFilterTemplate = $($.parseHTML(orFilterHtml));
-
-                $selectedCustomFilterTemplate.find('.js-or-filters').append($orFilterTemplate);
-
-
-                debugger;
+                $filters.append($filterTemplate);
 
             }
 
-            debugger;
+            this.$wrapper.find(ReportFilterNavigation._selectors.reportSelectedCustomFilters).append($filterContainerTemplate);
 
-
-            debugger;
-
-
-            this.$wrapper.find(ReportFilterNavigation._selectors.reportSelectedCustomFilters).append($selectedCustomFilterTemplate);
         }
 
     }
@@ -247,7 +244,8 @@ class ReportFilterNavigation {
 
         let text = '',
             value = '',
-            values = '';
+            values = '',
+            label = customFilter.label;
 
         switch(customFilter['fieldType']) {
             case 'custom_object_field':
@@ -258,52 +256,42 @@ class ReportFilterNavigation {
                     case 'EQ':
 
                         value = customFilter.value.trim() === '' ? '""' : `"${customFilter.value.trim()}"`;
-                        this.$selectedProperties.selectize()[0].selectize.addOption({
-                            value: i,
-                            text: `${label} is equal to ${value}`
-                        });
-                        this.$selectedProperties.selectize()[0].selectize.addItem(i);
+                        text = `${label} is equal to ${value}`;
 
                         break;
                     case 'NEQ':
 
                         value = customFilter.value.trim() === '' ? '""' : `"${customFilter.value.trim()}"`;
-                        this.$selectedProperties.selectize()[0].selectize.addOption({value:i, text: `${label} is not equal to ${value}`});
-                        this.$selectedProperties.selectize()[0].selectize.addItem(i);
+                        text = `${label} is not equal to ${value}`;
 
                         break;
                     case 'LT':
 
                         value = customFilter.value.trim() === '' ? '""' : `"${customFilter.value.trim()}"`;
-                        this.$selectedProperties.selectize()[0].selectize.addOption({value:i, text: `${label} is before ${value}`});
-                        this.$selectedProperties.selectize()[0].selectize.addItem(i);
+                        text = `${label} is before ${value}`;
 
                         break;
                     case 'GT':
 
                         value = customFilter.value.trim() === '' ? '""' : `"${customFilter.value.trim()}"`;
-                        this.$selectedProperties.selectize()[0].selectize.addOption({value:i, text: `${label} is after ${value}`});
-                        this.$selectedProperties.selectize()[0].selectize.addItem(i);
+                        text = `${label} is after ${value}`;
 
                         break;
                     case 'BETWEEN':
 
                         let lowValue = customFilter.low_value.trim() === '' ? '""' : `"${customFilter.low_value.trim()}"`;
                         let highValue = customFilter.high_value.trim() === '' ? '""' : `"${customFilter.high_value.trim()}"`;
-                        this.$selectedProperties.selectize()[0].selectize.addOption({value:i, text: `${label} is between ${lowValue} and ${highValue}`});
-                        this.$selectedProperties.selectize()[0].selectize.addItem(i);
+                        text = `${label} is between ${lowValue} and ${highValue}`;
 
                         break;
                     case 'HAS_PROPERTY':
 
-                        this.$selectedProperties.selectize()[0].selectize.addOption({value:i, text: `${label} is known`});
-                        this.$selectedProperties.selectize()[0].selectize.addItem(i);
+                        text = `${label} is known`;
 
                         break;
                     case 'NOT_HAS_PROPERTY':
 
-                        this.$selectedProperties.selectize()[0].selectize.addOption({value:i, text: `${label} is unknown`});
-                        this.$selectedProperties.selectize()[0].selectize.addItem(i);
+                        text = `${label} is unknown`;
 
                         break;
                 }
@@ -324,11 +312,7 @@ class ReportFilterNavigation {
                             value = `"Yes"`;
                         }
 
-                        this.$selectedProperties.selectize()[0].selectize.addOption({
-                            value: i,
-                            text: `${label} is any of ${value}`
-                        });
-                        this.$selectedProperties.selectize()[0].selectize.addItem(i);
+                        text = `${label} is any of ${value}`;
 
                         break;
                     case 'NOT_IN':
@@ -344,23 +328,17 @@ class ReportFilterNavigation {
                             value = `"Yes"`;
                         }
 
-                        this.$selectedProperties.selectize()[0].selectize.addOption({
-                            value: i,
-                            text: `${label} is none of ${value}`
-                        });
-                        this.$selectedProperties.selectize()[0].selectize.addItem(i);
+                        text = `${label} is none of ${value}`;
 
                         break;
                     case 'HAS_PROPERTY':
 
-                        this.$selectedProperties.selectize()[0].selectize.addOption({value:i, text: `${label} is known`});
-                        this.$selectedProperties.selectize()[0].selectize.addItem(i);
+                        text = `${label} is known`;
 
                         break;
                     case 'NOT_HAS_PROPERTY':
 
-                        this.$selectedProperties.selectize()[0].selectize.addOption({value:i, text: `${label} is unknown`});
-                        this.$selectedProperties.selectize()[0].selectize.addItem(i);
+                        text = `${label} is unknown`;
 
                         break;
                 }
@@ -375,11 +353,7 @@ class ReportFilterNavigation {
                         values = customFilter.value.split(",");
                         values = values.join(" or ");
 
-                        this.$selectedProperties.selectize()[0].selectize.addOption({
-                            value: i,
-                            text: `${label} is any of ${values}`
-                        });
-                        this.$selectedProperties.selectize()[0].selectize.addItem(i);
+                        text = `${label} is any of ${values}`;
 
                         break;
                     case 'NOT_IN':
@@ -387,23 +361,17 @@ class ReportFilterNavigation {
                         values = customFilter.value.split(",");
                         values = values.join(" or ");
 
-                        this.$selectedProperties.selectize()[0].selectize.addOption({
-                            value: i,
-                            text: `${label} is none of ${values}`
-                        });
-                        this.$selectedProperties.selectize()[0].selectize.addItem(i);
+                        text = `${label} is none of ${values}`;
 
                         break;
                     case 'HAS_PROPERTY':
 
-                        this.$selectedProperties.selectize()[0].selectize.addOption({value:i, text: `${label} is known`});
-                        this.$selectedProperties.selectize()[0].selectize.addItem(i);
+                        text = `${label} is known`;
 
                         break;
                     case 'NOT_HAS_PROPERTY':
 
-                        this.$selectedProperties.selectize()[0].selectize.addOption({value:i, text: `${label} is unknown`});
-                        this.$selectedProperties.selectize()[0].selectize.addItem(i);
+                        text = `${label} is unknown`;
 
                         break;
                 }
@@ -482,14 +450,22 @@ class ReportFilterNavigation {
     }
 }
 
-const selectedCustomFilterTemplate = (text, customFilter, orPath) => `
+const filterContainerTemplate = (orPath) => `
     <div class="card">
-        <div class="card-body">
-        <h5 class="card-title">${text}</h5>
+        <div class="card-body js-filter-container">
         
-        <div class="js-or-filters"></div>
+        <div class="js-filters"></div>
         
         <button type="button" class="btn btn-link js-add-or-filter-button" data-or-path=${orPath}><i class="fa fa-plus"></i> Add "OR" Filter</button>
+        </div>
+    </div>
+`;
+
+const filterTemplate = (text) => `
+    <div class="card">
+        <div class="card-body">
+        <h5 class="card-title">${text}</h5>     
+        <span><i class="fa fa-times js-remove-filter-icon c-column-editor__remove-icon" aria-hidden="true"></i></span>
         </div>
     </div>
 `;
