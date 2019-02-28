@@ -128,7 +128,15 @@ class ReportFilterList {
 
         e.stopPropagation();
 
-        this.globalEventDispatcher.publish(Settings.Events.FILTER_BACK_TO_LIST_BUTTON_CLICKED);
+        debugger;
+
+        if(this.join) {
+
+            this.globalEventDispatcher.publish(Settings.Events.FILTER_BACK_TO_LIST_BUTTON_CLICKED);
+        } else {
+
+            this.globalEventDispatcher.publish(Settings.Events.FILTER_BACK_TO_NAVIGATION_BUTTON_CLICKED);
+        }
 
     }
 

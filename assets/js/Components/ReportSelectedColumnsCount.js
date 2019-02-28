@@ -52,6 +52,10 @@ class ReportSelectedColumnsCount {
 
             for(let key in data) {
 
+                if(key === 'filters') {
+                    continue;
+                }
+
                 if(isNaN(key)) {
 
                     search(data[key]);

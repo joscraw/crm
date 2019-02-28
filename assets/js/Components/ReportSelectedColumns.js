@@ -100,6 +100,7 @@ class ReportSelectedColumns {
 
     handlePropertyListItemAdded(data) {
 
+        debugger;
         this.data = data;
 
         this.setSelectedColumns(data);
@@ -115,16 +116,25 @@ class ReportSelectedColumns {
 
     setSelectedColumns(data) {
 
+        debugger;
         let columns = [];
         function search(data) {
 
+            debugger;
             for(let key in data) {
 
+                if(key === 'filters') {
+                    continue;
+                }
+
+                debugger;
                 if(isNaN(key)) {
 
+                    debugger;
                     search(data[key]);
                 } else {
 
+                    debugger;
                     columns.push(data[key])
                 }
             }

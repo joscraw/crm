@@ -90,6 +90,11 @@ class ReportWidget {
             this.handleReportRemoveFilterButtonPressed.bind(this)
         );
 
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.REPORT_BACK_TO_PROPERTIES_BUTTON_PRESSED,
+            this.handleReportBackToPropertiesButtonPressed.bind(this)
+        );
+
 
         this.render();
     }
@@ -120,13 +125,23 @@ class ReportWidget {
 
     }
 
+    handleReportBackToPropertiesButtonPressed() {
+        debugger;
+
+        this.$wrapper.find(ReportWidget._selectors.reportFiltersContainer).addClass('d-none');
+        this.$wrapper.find(ReportWidget._selectors.reportPropertiesContainer).removeClass('d-none');
+
+        /*new ReportProperties($(ReportWidget._selectors.reportPropertiesContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject.internalName, this.data);*/
+
+    }
+
     handleReportAdvanceToFiltersViewButtonClicked(e) {
 
         debugger;
         this.$wrapper.find(ReportWidget._selectors.reportFiltersContainer).removeClass('d-none');
         this.$wrapper.find(ReportWidget._selectors.reportPropertiesContainer).addClass('d-none');
 
-        new ReportFilters($(ReportWidget._selectors.reportFiltersContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject.internalName);
+        new ReportFilters($(ReportWidget._selectors.reportFiltersContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject.internalName, this.data);
 
     }
 
@@ -143,6 +158,7 @@ class ReportWidget {
 
     handlePropertyListItemClicked(property) {
 
+        debugger;
         let propertyPath = property.joins.join('.');
 
         if(_.get(this.data, propertyPath, false)) {

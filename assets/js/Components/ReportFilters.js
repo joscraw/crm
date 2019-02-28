@@ -30,7 +30,7 @@ import ReportFilterNavigation from "./ReportFilterNavigation";
 
 class ReportFilters {
 
-    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, data = {}) {
 
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
@@ -41,7 +41,7 @@ class ReportFilters {
          * This data object is responsible for storing all the properties and filters that will get sent to the server
          * @type {{}}
          */
-        this.data = {};
+        this.data = data;
 
         this.unbindEvents();
 
@@ -75,6 +75,17 @@ class ReportFilters {
             this.reportAddOrFilterButtonPressedHandler.bind(this)
         );
 
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.FILTER_BACK_TO_NAVIGATION_BUTTON_CLICKED,
+            this.reportFilterBackToNavigationButtonClickedHandler.bind(this)
+        );
+
+
+        this.$wrapper.on(
+            'click',
+            ReportFilters._selectors.backToReportPropertiesButton,
+            this.handleBackToReportPropertiesButtonClicked.bind(this)
+        );
 
         this.render();
     }
@@ -88,14 +99,28 @@ class ReportFilters {
             reportFilterListContainer: '.js-report-filter-list-container',
             propertyForm: '.js-property-form',
             reportSelectedCustomFilters: '.js-report-selected-custom-filters',
-            reportFilterNavigation: '.js-report-filter-navigation'
+            reportFilterNavigation: '.js-report-filter-navigation',
+            backToReportPropertiesButton: '.js-back-to-report-properties-button'
 
         }
     }
 
     unbindEvents() {
 
-        this.$wrapper.off('click', ReportFilters._selectors.addFilterButton);
+        this.$wrapper.off('click', ReportFilters._selectors.backToReportPropertiesButton);
+    }
+
+    handleBackToReportPropertiesButtonClicked(e) {
+
+        if(e.cancelable) {
+            e.preventDefault();
+        }
+
+
+        this.globalEventDispatcher.publish(Settings.Events.REPORT_BACK_TO_PROPERTIES_BUTTON_PRESSED);
+
+        debugger;
+
     }
 
     reportAddFilterButtonPressedHandler() {
@@ -162,6 +187,14 @@ class ReportFilters {
         this.$wrapper.find(ReportFilters._selectors.propertyForm).addClass('d-none');
 
         new ReportFilterList($(ReportFilters._selectors.reportFilterListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);
+    }
+
+    reportFilterBackToNavigationButtonClickedHandler() {
+
+        this.$wrapper.find(ReportFilters._selectors.reportFilterNavigation).removeClass('d-none');
+        this.$wrapper.find(ReportFilters._selectors.propertyForm).addClass('d-none');
+        this.$wrapper.find(ReportFilters._selectors.reportFilterListContainer).addClass('d-none');
+
     }
 
     handleReportAdvanceToFiltersViewButtonClicked(e) {
@@ -250,7 +283,7 @@ class ReportFilters {
 
         this.$wrapper.html(ReportFilters.markup(this));
 
-        new ReportFilterNavigation($(ReportFilters._selectors.reportFilterNavigation), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);
+        new ReportFilterNavigation($(ReportFilters._selectors.reportFilterNavigation), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, this.data);
 
      /*   new ReportFilterList($(ReportFilters._selectors.reportFilterListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);
 
@@ -262,7 +295,7 @@ class ReportFilters {
 
         return `
              <nav class="navbar navbar-expand-sm l-top-bar justify-content-end c-report-widget__nav">
-                  <button type="button" style="color: #FFF" class="btn btn-link js-back-to-select-custom-object-button"><i class="fa fa-angle-left" aria-hidden="true"></i> Back</button>
+                  <button type="button" style="color: #FFF" class="btn btn-link js-back-to-report-properties-button"><i class="fa fa-angle-left" aria-hidden="true"></i> Back</button>
                   <button class="btn btn-lg btn-secondary ml-auto js-advance-to-filters-view">Save</button> 
              </nav> 
         

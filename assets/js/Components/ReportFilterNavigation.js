@@ -29,7 +29,7 @@ import ReportSelectedCustomFilters from "./ReportSelectedCustomFilters";
 
 class ReportFilterNavigation {
 
-    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, data = {}) {
 
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
@@ -40,37 +40,9 @@ class ReportFilterNavigation {
          * This data object is responsible for storing all the properties and filters that will get sent to the server
          * @type {{}}
          */
-        this.data = {};
+        this.data = data;
 
         this.unbindEvents();
-
-/*        this.unbindEvents();
-
-        this.globalEventDispatcher.subscribe(
-            Settings.Events.REPORT_FILTER_ITEM_CLICKED,
-            this.handleReportFilterItemClicked.bind(this)
-        );
-
-        this.globalEventDispatcher.subscribe(
-            Settings.Events.FILTER_BACK_TO_LIST_BUTTON_CLICKED,
-            this.handleFilterBackToListButtonClicked.bind(this)
-        );
-
-        this.globalEventDispatcher.subscribe(
-            Settings.Events.REPORT_CUSTOM_OBJECT_FILTER_LIST_ITEM_CLICKED,
-            this.handleReportCustomObjectFilterListItemClicked.bind(this)
-        );
-
-        this.globalEventDispatcher.subscribe(
-            Settings.Events.REPORT_FILTER_ITEM_ADDED,
-            this.reportFilterItemAddedHandler.bind(this)
-        );
-
-        this.$wrapper.on(
-            'click',
-            ReportFilters._selectors.addFilterButton,
-            this.handleAddFilterButtonPressed.bind(this)
-        );*/
 
         this.globalEventDispatcher.subscribe(
             Settings.Events.REPORT_FILTER_ITEM_ADDED,
@@ -100,7 +72,7 @@ class ReportFilterNavigation {
             this.handleRemoveFilterIconPressed.bind(this)
         );
 
-        this.render();
+        this.render(data);
     }
 
     static get _selectors() {
@@ -168,6 +140,7 @@ class ReportFilterNavigation {
 
     renderCustomFilters(data) {
 
+        debugger;
         let customFilters = {};
         function search(data) {
 
@@ -274,9 +247,11 @@ class ReportFilterNavigation {
 
     }
 
-    render() {
+    render(data) {
 
         this.$wrapper.html(ReportFilterNavigation.markup(this));
+
+        this.renderCustomFilters(data);
 
     }
 
