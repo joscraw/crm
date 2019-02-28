@@ -164,6 +164,12 @@ class ReportWidget {
 
         let filterPath = joinPath.join('.');
 
+        let referencedFilterPath = _.get(this.data, `${filterPath}.referencedFilterPath`).join('.');
+
+        _.unset(this.data, `${referencedFilterPath}.orFilters.${joinPath[joinPath.length - 1]}`);
+
+        debugger;
+
         _.unset(this.data, filterPath);
 
         this.globalEventDispatcher.publish(Settings.Events.REPORT_FILTER_ITEM_REMOVED, this.data);
