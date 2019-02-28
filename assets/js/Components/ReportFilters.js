@@ -108,13 +108,13 @@ class ReportFilters {
         new ReportFilterList($(ReportFilters._selectors.reportFilterListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);
     }
 
-    reportAddOrFilterButtonPressedHandler(orPath) {
+    reportAddOrFilterButtonPressedHandler(referencedFilterPath) {
         debugger;
 
         this.$wrapper.find(ReportFilters._selectors.reportFilterNavigation).addClass('d-none');
         this.$wrapper.find(ReportFilters._selectors.reportFilterListContainer).removeClass('d-none');
 
-        new ReportFilterList($(ReportFilters._selectors.reportFilterListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, null, [], {}, orPath);
+        new ReportFilterList($(ReportFilters._selectors.reportFilterListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, null, [], {}, referencedFilterPath);
 
     }
 
@@ -240,7 +240,7 @@ class ReportFilters {
     handleReportFilterCustomObjectJoinPathSet(property, joins, data) {
 
         debugger;
-        new ReportFilterList($(ReportFilters._selectors.reportFilterListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, property.field.customObject.internalName, property, joins, data, property.orPath);
+        new ReportFilterList($(ReportFilters._selectors.reportFilterListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, property.field.customObject.internalName, property, joins, data, property.referencedFilterPath);
 
     }
 

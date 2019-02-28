@@ -156,45 +156,40 @@ class ReportWidget {
 
         debugger;
 
-        let propertyPath = customFilter.joins.join('.') + `.filters`;
+        let filterPath = customFilter.joins.join('.') + `.filters`,
+            referencedFilterPath = customFilter.referencedFilterPath.join('.'),
+            uID = StringHelper.makeCharId();
 
-        let orPath = customFilter.orPath.join('.');
-
-        if(_.get(this.data, propertyPath, false)) {
-
-            debugger;
-
-            let uID = StringHelper.makeCharId();
+        if(_.get(this.data, filterPath, false)) {
 
             debugger;
 
-            _.get(this.data, propertyPath)[uID] = customFilter;
+            _.set(this.data, `${filterPath}[${uID}]`, customFilter);
 
-            _.set(_.get(this.data, propertyPath)[uID], `orFilters`, []);
+            _.set(this.data, `${filterPath}[${uID}].orFilters`, []);
 
             debugger;
 
-            if(orPath !== "") {
+            if(referencedFilterPath !== "") {
 
                 let orFilterPath = customFilter.joins.concat(['filters', uID]);
 
-                _.get(this.data, `${orPath}.orFilters`).push(orFilterPath);
+                _.get(this.data, `${referencedFilterPath}.orFilters`).push(orFilterPath);
             }
 
         } else {
             debugger;
-            _.set(this.data, propertyPath, {});
-            let uID = StringHelper.makeCharId();
-            _.get(this.data, propertyPath)[uID] = customFilter;
-            _.set(_.get(this.data, propertyPath)[uID], `orFilters`, []);
+            _.set(this.data, filterPath, {});
 
-            debugger;
+            _.set(this.data, `${filterPath}[${uID}]`, customFilter);
 
-            if(orPath !== "") {
+            _.set(this.data, `${filterPath}[${uID}].orFilters`, []);
+
+            if(referencedFilterPath !== "") {
 
                 let orFilterPath = customFilter.joins.concat(['filters', uID]);
 
-                _.get(this.data, `${orPath}.orFilters`).push(orFilterPath);
+                _.get(this.data, `${referencedFilterPath}.orFilters`).push(orFilterPath);
 
             }
         }

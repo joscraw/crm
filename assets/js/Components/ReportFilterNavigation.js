@@ -152,7 +152,7 @@ class ReportFilterNavigation {
                     for(let uID in data[key]) {
 
                         // only add the custom filter to the array if it is not an "OR" condition
-                        if(_.size(_.get(data, `${key}.${uID}.orPath`, [])) === 0) {
+                        if(_.size(_.get(data, `${key}.${uID}.referencedFilterPath`, [])) === 0) {
 
                             _.set(customFilters, uID, data[key][uID]);
 

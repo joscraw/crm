@@ -10,7 +10,7 @@ import ColumnSearch from "./ColumnSearch";
 
 class ReportFilterList {
 
-    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, join = null, joins = [], data = {}, orPath = []) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, join = null, joins = [], data = {}, referencedFilterPath = []) {
         debugger;
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
@@ -23,7 +23,7 @@ class ReportFilterList {
 
         // The path to the filter that this filter should be tied to
         // Only used in "WHERE" clauses with mysql "OR" condition
-        this.orPath = orPath;
+        this.referencedFilterPath = referencedFilterPath;
 
 
         this.unbindEvents();
@@ -222,7 +222,7 @@ class ReportFilterList {
         let propertyGroupId = $listItem.closest(ReportFilterList._selectors.list).attr('data-property-group');
         let propertyId = $listItem.attr('data-property-id');
         let joins = JSON.parse($listItem.attr('data-joins'));
-        let orPath = JSON.parse($listItem.attr('data-or-path'));
+        let referencedFilterPath = JSON.parse($listItem.attr('data-referenced-filter-path'));
 
 
         let propertyGroup = this.propertyGroups.filter(propertyGroup => {
@@ -236,11 +236,7 @@ class ReportFilterList {
         });
 
         property[0].joins = joins;
-        property[0].orPath = orPath;
-
-        /*if(orPath !== undefined) {
-            property[0].orPath = orPath;
-        }*/
+        property[0].referencedFilterPath = referencedFilterPath;
 
         if(property[0].fieldType === 'custom_object_field') {
 
@@ -310,9 +306,9 @@ class ReportFilterList {
         $( `#list-filters-${propertyGroup.id} li` ).each((index, element) => {
             $(element).attr('data-property-id', properties[index].id);
 
-            if(this.orPath) {
+            if(this.referencedFilterPath) {
                 debugger;
-                $(element).attr('data-or-path', JSON.stringify(this.orPath));
+                $(element).attr('data-referenced-filter-path', JSON.stringify(this.referencedFilterPath));
             }
 
             if(this.join) {
