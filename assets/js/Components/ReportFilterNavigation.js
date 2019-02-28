@@ -77,6 +77,11 @@ class ReportFilterNavigation {
             this.reportFilterItemAddedHandler.bind(this)
         );
 
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.REPORT_FILTER_ITEM_REMOVED,
+            this.reportFilterItemRemovedHandler.bind(this)
+        );
+
         this.$wrapper.on(
             'click',
             ReportFilterNavigation._selectors.addFilterButton,
@@ -89,6 +94,12 @@ class ReportFilterNavigation {
             this.handleAddOrFilterButtonPressed.bind(this)
         );
 
+        this.$wrapper.on(
+            'click',
+            ReportFilterNavigation._selectors.removeFilterIcon,
+            this.handleRemoveFilterIconPressed.bind(this)
+        );
+
         this.render();
     }
 
@@ -98,7 +109,8 @@ class ReportFilterNavigation {
             addFilterButton: '.js-add-filter-button',
             addOrFilterButton: '.js-add-or-filter-button',
             reportSelectedCustomFilters: '.js-report-selected-custom-filters',
-            filterContainer: '.js-filter-container'
+            filterContainer: '.js-filter-container',
+            removeFilterIcon: '.js-remove-filter-icon'
         }
     }
 
@@ -108,6 +120,18 @@ class ReportFilterNavigation {
 
         this.$wrapper.off('click', ReportFilterNavigation._selectors.addOrFilterButton);
 
+        this.$wrapper.off('click', ReportFilterNavigation._selectors.removeFilterIcon);
+
+    }
+
+    handleRemoveFilterIconPressed(e) {
+        debugger;
+
+        const $removeIcon = $(e.currentTarget);
+
+        let joinPath = JSON.parse($removeIcon.attr('data-join-path'));
+
+        this.globalEventDispatcher.publish(Settings.Events.REPORT_REMOVE_FILTER_BUTTON_PRESSED, joinPath);
     }
 
     handleAddFilterButtonPressed() {
@@ -131,6 +155,12 @@ class ReportFilterNavigation {
     }
 
     reportFilterItemAddedHandler(data) {
+
+        this.renderCustomFilters(data);
+
+    }
+
+    reportFilterItemRemovedHandler(data) {
 
         this.renderCustomFilters(data);
 
@@ -203,7 +233,7 @@ class ReportFilterNavigation {
             const $filterContainerTemplate = $($.parseHTML(html));
             const $filters = $filterContainerTemplate.find('.js-filters');
 
-            const filterHtml = filterTemplate(text);
+            const filterHtml = filterTemplate(text, JSON.stringify(customFilter.joins.concat(['filters', uID])));
             const $filterTemplate = $($.parseHTML(filterHtml));
 
             $filters.append($filterTemplate);
@@ -211,17 +241,27 @@ class ReportFilterNavigation {
 
             debugger;
 
-            for (let orFilter of customFilter.orFilters) {
+            // or filters needs to be an object
+
+            let orFilters = customFilter.orFilters;
+            for (let key in orFilters) {
+
+                debugger;
+                let orFilter = _.get(orFilters, key);
 
                 debugger;
 
                 let filterPath = orFilter.join('.');
 
+                if(!_.has(data, filterPath)) {
+                    continue;
+                }
+
                 let customFilter = _.get(data, filterPath);
 
                 text = this.getFilterTextFromCustomFilter(customFilter);
 
-                const filterHtml = filterTemplate(text);
+                const filterHtml = filterTemplate(text, JSON.stringify(customFilter.joins.concat(['filters', key])));
                 const $filterTemplate = $($.parseHTML(filterHtml));
 
                 $filters.append($filterTemplate);
@@ -461,24 +501,14 @@ const filterContainerTemplate = (orPath) => `
     </div>
 `;
 
-const filterTemplate = (text) => `
+const filterTemplate = (text, joinPath) => `
     <div class="card">
         <div class="card-body">
         <h5 class="card-title">${text}</h5>     
-        <span><i class="fa fa-times js-remove-filter-icon c-column-editor__remove-icon" aria-hidden="true"></i></span>
+        <span><i class="fa fa-times js-remove-filter-icon c-column-editor__remove-icon" data-join-path=${joinPath} aria-hidden="true"></i></span>
         </div>
     </div>
 `;
-
-
-const orFilterTemplate = (text) => `
-    <div class="card">
-        <div class="card-body">
-        <h5 class="card-title">${text}</h5>
-        </div>
-    </div>
-`;
-
 
 
 export default ReportFilterNavigation;

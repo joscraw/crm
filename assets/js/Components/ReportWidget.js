@@ -85,6 +85,12 @@ class ReportWidget {
             this.handleReportAdvanceToFiltersViewButtonClicked.bind(this)
         );
 
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.REPORT_REMOVE_FILTER_BUTTON_PRESSED,
+            this.handleReportRemoveFilterButtonPressed.bind(this)
+        );
+
+
         this.render();
     }
 
@@ -152,6 +158,20 @@ class ReportWidget {
 
     }
 
+    handleReportRemoveFilterButtonPressed(joinPath) {
+
+        debugger;
+
+        let filterPath = joinPath.join('.');
+
+        _.unset(this.data, filterPath);
+
+        this.globalEventDispatcher.publish(Settings.Events.REPORT_FILTER_ITEM_REMOVED, this.data);
+
+        debugger;
+
+    }
+
     applyCustomFilterButtonPressedHandler(customFilter) {
 
         debugger;
@@ -166,7 +186,7 @@ class ReportWidget {
 
             _.set(this.data, `${filterPath}[${uID}]`, customFilter);
 
-            _.set(this.data, `${filterPath}[${uID}].orFilters`, []);
+            _.set(this.data, `${filterPath}[${uID}].orFilters`, {});
 
             debugger;
 
@@ -174,7 +194,10 @@ class ReportWidget {
 
                 let orFilterPath = customFilter.joins.concat(['filters', uID]);
 
-                _.get(this.data, `${referencedFilterPath}.orFilters`).push(orFilterPath);
+
+                _.set(this.data, `${referencedFilterPath}.orFilters.${uID}`, orFilterPath);
+
+                /*_.get(this.data, `${referencedFilterPath}.orFilters`).push(orFilterPath);*/
             }
 
         } else {
@@ -183,13 +206,15 @@ class ReportWidget {
 
             _.set(this.data, `${filterPath}[${uID}]`, customFilter);
 
-            _.set(this.data, `${filterPath}[${uID}].orFilters`, []);
+            _.set(this.data, `${filterPath}[${uID}].orFilters`, {});
 
             if(referencedFilterPath !== "") {
 
                 let orFilterPath = customFilter.joins.concat(['filters', uID]);
 
-                _.get(this.data, `${referencedFilterPath}.orFilters`).push(orFilterPath);
+                _.set(this.data, `${referencedFilterPath}.orFilters.${uID}`, orFilterPath);
+
+                /*_.get(this.data, `${referencedFilterPath}.orFilters`).push(orFilterPath);*/
 
             }
         }
