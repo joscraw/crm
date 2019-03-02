@@ -80,6 +80,11 @@ class ReportFilters {
             this.reportFilterBackToNavigationButtonClickedHandler.bind(this)
         );
 
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.REPORT_EDIT_FILTER_BUTTON_CLICKED,
+            this.handleReportEditFilterButtonClicked.bind(this)
+        );
+
 
         this.$wrapper.on(
             'click',
@@ -98,6 +103,7 @@ class ReportFilters {
 
             reportFilterListContainer: '.js-report-filter-list-container',
             propertyForm: '.js-property-form',
+            editPropertyForm: '.js-edit-property-form',
             reportSelectedCustomFilters: '.js-report-selected-custom-filters',
             reportFilterNavigation: '.js-report-filter-navigation',
             backToReportPropertiesButton: '.js-back-to-report-properties-button'
@@ -121,6 +127,50 @@ class ReportFilters {
 
         debugger;
 
+    }
+
+    handleReportEditFilterButtonClicked(joinPath) {
+
+        let filterPath = joinPath.join('.');
+
+        let customFilter = _.get(this.data, filterPath);
+
+        customFilter.joinPath = joinPath;
+
+        this.$wrapper.find(ReportFilters._selectors.reportFilterNavigation).addClass('d-none');
+        this.$wrapper.find(ReportFilters._selectors.editPropertyForm).removeClass('d-none');
+
+        debugger;
+
+        this.renderEditPropertyForm(customFilter);
+
+    }
+
+    renderEditPropertyForm(customFilter) {
+        debugger;
+
+        switch (customFilter.fieldType) {
+            case 'single_line_text_field':
+            case 'multi_line_text_field':
+                new EditSingleLineTextFieldFilterForm($(ReportFilters._selectors.editPropertyForm), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, customFilter);
+                break;
+            case 'number_field':
+                new EditNumberFieldFilterForm($(ReportFilters._selectors.editPropertyForm), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, customFilter);
+                break;
+            case 'date_picker_field':
+                new EditDatePickerFieldFilterForm($(ReportFilters._selectors.editPropertyForm), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, customFilter);
+                break;
+            case 'single_checkbox_field':
+                new EditSingleCheckboxFieldFilterForm($(ReportFilters._selectors.editPropertyForm), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, customFilter);
+                break;
+            case 'dropdown_select_field':
+            case 'radio_select_field':
+                new EditDropdownSelectFieldFilterForm($(ReportFilters._selectors.editPropertyForm), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, customFilter);
+                break;
+            case 'multiple_checkbox_field':
+                new EditMultipleCheckboxFieldFilterForm($(ReportFilters._selectors.editPropertyForm), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, customFilter);
+                break;
+        }
     }
 
     reportAddFilterButtonPressedHandler() {
@@ -223,7 +273,18 @@ class ReportFilters {
     reportFilterItemAddedHandler() {
 
         this.$wrapper.find(ReportFilters._selectors.reportFilterNavigation).removeClass('d-none');
-        this.$wrapper.find(ReportFilters._selectors.propertyForm).addClass('d-none');
+
+        if(!this.$wrapper.find(ReportFilters._selectors.propertyForm).hasClass('d-none')) {
+
+            this.$wrapper.find(ReportFilters._selectors.propertyForm).addClass('d-none');
+
+        }
+
+        if(!this.$wrapper.find(ReportFilters._selectors.editPropertyForm).hasClass('d-none')) {
+
+            this.$wrapper.find(ReportFilters._selectors.editPropertyForm).addClass('d-none');
+
+        }
 
         /*new ReportFilterList($(ReportFilters._selectors.reportFilterListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);*/
 
@@ -304,6 +365,7 @@ class ReportFilters {
              
              <div class="col-md-6 js-report-filter-list-container d-none"></div>
              <div class="col-md-6 js-property-form d-none"></div>
+             <div class="col-md-6 js-edit-property-form d-none"></div>
             
             <div class="col-md-6">
                 

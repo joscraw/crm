@@ -72,6 +72,13 @@ class ReportFilterNavigation {
             this.handleRemoveFilterIconPressed.bind(this)
         );
 
+        this.$wrapper.on(
+            'click',
+            ReportFilterNavigation._selectors.filter,
+            this.handleFilterPressed.bind(this)
+        );
+
+
         this.render(data);
     }
 
@@ -82,7 +89,8 @@ class ReportFilterNavigation {
             addOrFilterButton: '.js-add-or-filter-button',
             reportSelectedCustomFilters: '.js-report-selected-custom-filters',
             filterContainer: '.js-filter-container',
-            removeFilterIcon: '.js-remove-filter-icon'
+            removeFilterIcon: '.js-remove-filter-icon',
+            filter: '.js-filter'
         }
     }
 
@@ -96,8 +104,22 @@ class ReportFilterNavigation {
 
     }
 
+    handleFilterPressed(e) {
+
+        debugger;
+
+        const $filter = $(e.currentTarget);
+
+        let joinPath = JSON.parse($filter.attr('data-join-path'));
+
+        this.globalEventDispatcher.publish(Settings.Events.REPORT_EDIT_FILTER_BUTTON_CLICKED, joinPath);
+
+    }
+
     handleRemoveFilterIconPressed(e) {
         debugger;
+
+        e.stopPropagation();
 
         const $removeIcon = $(e.currentTarget);
 
@@ -210,7 +232,6 @@ class ReportFilterNavigation {
             const $filterTemplate = $($.parseHTML(filterHtml));
 
             $filters.append($filterTemplate);
-
 
             debugger;
 
@@ -477,7 +498,7 @@ const filterContainerTemplate = (orPath) => `
 `;
 
 const filterTemplate = (text, joinPath) => `
-    <div class="card">
+    <div class="card js-filter" data-join-path=${joinPath}>
         <div class="card-body">
         <h5 class="card-title">${text}</h5>     
         <span><i class="fa fa-times js-remove-filter-icon c-column-editor__remove-icon" data-join-path=${joinPath} aria-hidden="true"></i></span>

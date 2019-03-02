@@ -95,7 +95,6 @@ class ReportWidget {
             this.handleReportBackToPropertiesButtonPressed.bind(this)
         );
 
-
         this.render();
     }
 
@@ -202,28 +201,29 @@ class ReportWidget {
             referencedFilterPath = customFilter.referencedFilterPath.join('.'),
             uID = StringHelper.makeCharId();
 
-        if(_.get(this.data, filterPath, false)) {
+        // if it has a joinPath we are editing the filter and th4e uID already exists
+        if(_.has(customFilter, 'joinPath')) {
 
-            debugger;
+            filterPath = customFilter.joinPath.join('.');
+
+            _.set(this.data, filterPath, customFilter);
+
+        } else if(_.has(this.data, filterPath)) {
 
             _.set(this.data, `${filterPath}[${uID}]`, customFilter);
 
             _.set(this.data, `${filterPath}[${uID}].orFilters`, {});
 
-            debugger;
-
             if(referencedFilterPath !== "") {
 
                 let orFilterPath = customFilter.joins.concat(['filters', uID]);
 
-
                 _.set(this.data, `${referencedFilterPath}.orFilters.${uID}`, orFilterPath);
 
-                /*_.get(this.data, `${referencedFilterPath}.orFilters`).push(orFilterPath);*/
             }
 
         } else {
-            debugger;
+
             _.set(this.data, filterPath, {});
 
             _.set(this.data, `${filterPath}[${uID}]`, customFilter);
@@ -235,8 +235,6 @@ class ReportWidget {
                 let orFilterPath = customFilter.joins.concat(['filters', uID]);
 
                 _.set(this.data, `${referencedFilterPath}.orFilters.${uID}`, orFilterPath);
-
-                /*_.get(this.data, `${referencedFilterPath}.orFilters`).push(orFilterPath);*/
 
             }
         }
