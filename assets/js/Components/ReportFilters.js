@@ -92,6 +92,12 @@ class ReportFilters {
             this.handleBackToReportPropertiesButtonClicked.bind(this)
         );
 
+        this.$wrapper.on(
+            'click',
+            ReportFilters._selectors.saveReportButton,
+            this.handleSaveReportButtonClicked.bind(this)
+        );
+
         this.render();
     }
 
@@ -106,7 +112,8 @@ class ReportFilters {
             editPropertyForm: '.js-edit-property-form',
             reportSelectedCustomFilters: '.js-report-selected-custom-filters',
             reportFilterNavigation: '.js-report-filter-navigation',
-            backToReportPropertiesButton: '.js-back-to-report-properties-button'
+            backToReportPropertiesButton: '.js-back-to-report-properties-button',
+            saveReportButton: '.js-save-report-button'
 
         }
     }
@@ -114,6 +121,18 @@ class ReportFilters {
     unbindEvents() {
 
         this.$wrapper.off('click', ReportFilters._selectors.backToReportPropertiesButton);
+        this.$wrapper.off('click', ReportFilters._selectors.saveReportButton);
+    }
+
+    handleSaveReportButtonClicked(e) {
+
+        if(e.cancelable) {
+            e.preventDefault();
+        }
+
+
+        this.globalEventDispatcher.publish(Settings.Events.REPORT_SAVE_BUTTON_PRESSED);
+
     }
 
     handleBackToReportPropertiesButtonClicked(e) {
@@ -121,7 +140,6 @@ class ReportFilters {
         if(e.cancelable) {
             e.preventDefault();
         }
-
 
         this.globalEventDispatcher.publish(Settings.Events.REPORT_BACK_TO_PROPERTIES_BUTTON_PRESSED);
 
@@ -357,7 +375,7 @@ class ReportFilters {
         return `
              <nav class="navbar navbar-expand-sm l-top-bar justify-content-end c-report-widget__nav">
                   <button type="button" style="color: #FFF" class="btn btn-link js-back-to-report-properties-button"><i class="fa fa-angle-left" aria-hidden="true"></i> Back</button>
-                  <button class="btn btn-lg btn-secondary ml-auto js-advance-to-filters-view">Save</button> 
+                  <button class="btn btn-lg btn-secondary ml-auto js-save-report-button">Save</button> 
              </nav> 
         
             <div class="row container">

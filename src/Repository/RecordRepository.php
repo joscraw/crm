@@ -146,6 +146,133 @@ class RecordRepository extends ServiceEntityRepository
      * @return array
      * @throws \Doctrine\DBAL\DBALException
      */
+    public function getReportData($start, $length, $search, $orders, $columns, $propertiesForDatatable, $customFilters, CustomObject $customObject)
+    {
+
+        // Setup fields to select
+        $resultStr = [];
+        foreach($propertiesForDatatable as $property) {
+
+            switch($property->getFieldType()) {
+
+                case FieldCatalog::DATE_PICKER:
+                    $jsonExtract = $this->getDatePickerQuery();
+                    $resultStr[] = sprintf($jsonExtract, $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $property->getInternalName());
+                    break;
+                case FieldCatalog::SINGLE_CHECKBOX:
+                    $jsonExtract = $this->getSingleCheckboxQuery();
+                    $resultStr[] = sprintf($jsonExtract, $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $property->getInternalName());
+                    break;
+                case FieldCatalog::NUMBER:
+                    $field = $property->getField();
+                    if($field->isCurrency()) {
+                        $jsonExtract = $this->getNumberIsCurrencyQuery();
+                        $resultStr[] = sprintf($jsonExtract, $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $property->getInternalName());
+                    } elseif($field->isUnformattedNumber()) {
+                        $jsonExtract = $this->getNumberIsUnformattedQuery();
+                        $resultStr[] = sprintf($jsonExtract, $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $property->getInternalName());
+                    }
+                    break;
+                default:
+                    $jsonExtract = $this->getDefaultQuery();
+                    $resultStr[] = sprintf($jsonExtract, $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $property->getInternalName());
+                    break;
+
+            }
+
+        }
+
+
+        // Joins
+        // Don't touch the Join logic unless absolutely necessary. It just works!
+        $joins = [];
+        $joinAlias = 2;
+        $previousJoinAlias = 1;
+        foreach($customFilters as &$customFilter) {
+
+            if(empty($customFilter['customFilterJoins'])) {
+                $customFilter['aliasIndex'] = 1;
+                continue;
+            }
+
+            $customFilterJoins = $customFilter['customFilterJoins'];
+
+            for($i = 0; $i < count($customFilterJoins); $i++) {
+
+                if($customFilterJoins[$i]['multiple'] === 'true') {
+                    $joins[] = sprintf('INNER JOIN record r%s on JSON_SEARCH(r%s.properties->>\'$.%s\', \'one\', r%s.id) IS NOT NULL', $joinAlias, ($i == 0 ? $i + 1 : $previousJoinAlias), $customFilterJoins[$i]['internalName'], $joinAlias);
+                } else {
+                    $joins[] = sprintf('INNER JOIN record r%s on r%s.properties->>\'$.%s\' = r%s.id', $joinAlias, ($i == 0 ? $i + 1 : $previousJoinAlias), $customFilterJoins[$i]['internalName'], $joinAlias);
+                }
+
+                $previousJoinAlias = $joinAlias;
+                $joinAlias++;
+            }
+
+            $customFilter['aliasIndex'] = ($joinAlias - 1);
+        }
+
+        $joinString = implode(" ", $joins);
+
+        $resultStr = implode(",",$resultStr);
+        $query = sprintf("SELECT DISTINCT r1.id, %s from record r1 %s WHERE r1.custom_object_id='%s'", $resultStr, $joinString, $customObject->getId());
+
+
+        // Search
+        if(!empty($search['value'])) {
+            $searchItem = $search['value'];
+            $query .= ' and LOWER(r1.properties) LIKE \'%'.strtolower($searchItem).'%\'';
+        }
+
+
+        // Custom Filters
+        foreach($customFilters as &$customFilter) {
+            $query .= $this->getCondition($customFilter, $customFilter['aliasIndex']);
+        }
+
+
+        // Order
+        foreach ($orders as $key => $order) {
+            // Orders does not contain the name of the column, but its number,
+            // so add the name so we can handle it just like the $columns array
+            $orders[$key]['name'] = $columns[$order['column']]['name'];
+        }
+
+        foreach ($orders as $key => $order) {
+
+            if(isset($order['name'])) {
+                $query .= ' ORDER BY ' . $order['name'];
+            }
+
+            $query .= ' ' . $order['dir'];
+        }
+
+
+        // limit
+        $query .= sprintf(' LIMIT %s, %s', $start, $length);
+
+        $em = $this->getEntityManager();
+        $stmt = $em->getConnection()->prepare($query);
+        $stmt->execute();
+        $results = $stmt->fetchAll();
+
+        return array(
+            "results"  => $results
+        );
+    }
+
+    /**
+     * @param $start
+     * @param $length
+     * @param $search
+     * @param $orders
+     * @param $columns
+     * @param $propertiesForDatatable
+     * @param $customFilters
+     * @param CustomObject $customObject
+     * @return array
+     * @throws \Doctrine\DBAL\DBALException
+     */
     public function getDataTableData($start, $length, $search, $orders, $columns, $propertiesForDatatable, $customFilters, CustomObject $customObject)
     {
 

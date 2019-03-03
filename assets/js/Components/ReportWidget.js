@@ -95,6 +95,11 @@ class ReportWidget {
             this.handleReportBackToPropertiesButtonPressed.bind(this)
         );
 
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.REPORT_SAVE_BUTTON_PRESSED,
+            this.handleReportSaveButtonPressed.bind(this)
+        );
+
         this.render();
     }
 
@@ -113,6 +118,13 @@ class ReportWidget {
     unbindEvents() {
 
         this.$wrapper.off('click', ReportPropertyList._selectors.reportAdvanceToFiltersView);
+    }
+
+    handleReportSaveButtonPressed() {
+
+        debugger;
+        this._saveReport();
+
     }
 
     reportBackToSelectCustomObjectButtonHandler(e) {
@@ -298,6 +310,31 @@ class ReportWidget {
 
         this.$wrapper.html(ReportWidget.markup(this));
         new ReportSelectCustomObject($(ReportWidget._selectors.reportSelectCustomObjectContainer), this.globalEventDispatcher, this.portalInternalIdentifier);
+
+    }
+
+    _saveReport() {
+
+        return new Promise((resolve, reject) => {
+            debugger;
+            const url = Routing.generate('save_report', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObject.internalName});
+
+            $.ajax({
+                url,
+                method: 'POST',
+                data: {'data': this.data}
+            }).then((data, textStatus, jqXHR) => {
+
+                debugger;
+                resolve(data);
+
+            }).catch((jqXHR) => {
+                debugger;
+                const errorData = JSON.parse(jqXHR.responseText);
+
+                reject(errorData);
+            });
+        });
 
     }
 

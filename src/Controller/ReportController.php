@@ -95,8 +95,6 @@ class ReportController extends AbstractController
      */
     public function createAction(Portal $portal) {
 
-        $records = $this->recordRepository->findAll();
-
         return $this->render('report/create.html.twig', array(
             'portal' => $portal
         ));
@@ -108,8 +106,6 @@ class ReportController extends AbstractController
      * @return \Symfony\Component\HttpFoundation\Response
      */
     public function listAction(Portal $portal) {
-
-        $records = $this->recordRepository->findAll();
 
         return $this->render('report/list.html.twig', array(
             'portal' => $portal
