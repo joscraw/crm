@@ -135,121 +135,27 @@ class RecordRepository extends ServiceEntityRepository
     }
 
     /**
-     * @param $start
-     * @param $length
-     * @param $search
-     * @param $orders
-     * @param $columns
-     * @param $propertiesForDatatable
-     * @param $customFilters
+     * @param $data
      * @param CustomObject $customObject
      * @return array
      * @throws \Doctrine\DBAL\DBALException
      */
-    public function getReportData($start, $length, $search, $orders, $columns, $propertiesForDatatable, $customFilters, CustomObject $customObject)
+    public function getReportData($data, CustomObject $customObject)
     {
 
-        // Setup fields to select
+        // Setup fields for select
         $resultStr = [];
-        foreach($propertiesForDatatable as $property) {
-
-            switch($property->getFieldType()) {
-
-                case FieldCatalog::DATE_PICKER:
-                    $jsonExtract = $this->getDatePickerQuery();
-                    $resultStr[] = sprintf($jsonExtract, $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $property->getInternalName());
-                    break;
-                case FieldCatalog::SINGLE_CHECKBOX:
-                    $jsonExtract = $this->getSingleCheckboxQuery();
-                    $resultStr[] = sprintf($jsonExtract, $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $property->getInternalName());
-                    break;
-                case FieldCatalog::NUMBER:
-                    $field = $property->getField();
-                    if($field->isCurrency()) {
-                        $jsonExtract = $this->getNumberIsCurrencyQuery();
-                        $resultStr[] = sprintf($jsonExtract, $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $property->getInternalName());
-                    } elseif($field->isUnformattedNumber()) {
-                        $jsonExtract = $this->getNumberIsUnformattedQuery();
-                        $resultStr[] = sprintf($jsonExtract, $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $property->getInternalName());
-                    }
-                    break;
-                default:
-                    $jsonExtract = $this->getDefaultQuery();
-                    $resultStr[] = sprintf($jsonExtract, $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $property->getInternalName());
-                    break;
-
-            }
-
-        }
+        $resultStr = $this->fields($data, $resultStr);
 
 
-        // Joins
-        // Don't touch the Join logic unless absolutely necessary. It just works!
+        // Setup Joins
         $joins = [];
-        $joinAlias = 2;
-        $previousJoinAlias = 1;
-        foreach($customFilters as &$customFilter) {
-
-            if(empty($customFilter['customFilterJoins'])) {
-                $customFilter['aliasIndex'] = 1;
-                continue;
-            }
-
-            $customFilterJoins = $customFilter['customFilterJoins'];
-
-            for($i = 0; $i < count($customFilterJoins); $i++) {
-
-                if($customFilterJoins[$i]['multiple'] === 'true') {
-                    $joins[] = sprintf('INNER JOIN record r%s on JSON_SEARCH(r%s.properties->>\'$.%s\', \'one\', r%s.id) IS NOT NULL', $joinAlias, ($i == 0 ? $i + 1 : $previousJoinAlias), $customFilterJoins[$i]['internalName'], $joinAlias);
-                } else {
-                    $joins[] = sprintf('INNER JOIN record r%s on r%s.properties->>\'$.%s\' = r%s.id', $joinAlias, ($i == 0 ? $i + 1 : $previousJoinAlias), $customFilterJoins[$i]['internalName'], $joinAlias);
-                }
-
-                $previousJoinAlias = $joinAlias;
-                $joinAlias++;
-            }
-
-            $customFilter['aliasIndex'] = ($joinAlias - 1);
-        }
+        $joins = $this->joins($data, $joins);
 
         $joinString = implode(" ", $joins);
 
         $resultStr = implode(",",$resultStr);
-        $query = sprintf("SELECT DISTINCT r1.id, %s from record r1 %s WHERE r1.custom_object_id='%s'", $resultStr, $joinString, $customObject->getId());
-
-
-        // Search
-        if(!empty($search['value'])) {
-            $searchItem = $search['value'];
-            $query .= ' and LOWER(r1.properties) LIKE \'%'.strtolower($searchItem).'%\'';
-        }
-
-
-        // Custom Filters
-        foreach($customFilters as &$customFilter) {
-            $query .= $this->getCondition($customFilter, $customFilter['aliasIndex']);
-        }
-
-
-        // Order
-        foreach ($orders as $key => $order) {
-            // Orders does not contain the name of the column, but its number,
-            // so add the name so we can handle it just like the $columns array
-            $orders[$key]['name'] = $columns[$order['column']]['name'];
-        }
-
-        foreach ($orders as $key => $order) {
-
-            if(isset($order['name'])) {
-                $query .= ' ORDER BY ' . $order['name'];
-            }
-
-            $query .= ' ' . $order['dir'];
-        }
-
-
-        // limit
-        $query .= sprintf(' LIMIT %s, %s', $start, $length);
+        $query = sprintf("SELECT DISTINCT root.id, %s from record root %s WHERE root.custom_object_id='%s'", $resultStr, $joinString, $customObject->getId());
 
         $em = $this->getEntityManager();
         $stmt = $em->getConnection()->prepare($query);
@@ -386,6 +292,87 @@ class RecordRepository extends ServiceEntityRepository
         return array(
             "results"  => $results
         );
+    }
+
+
+    private function fields(&$data, &$resultStr = [])
+    {
+
+        foreach ($data as $key => $value) {
+
+            // we aren't setting up filters now so skip those
+            if ($key === 'filters') {
+
+                continue;
+            } else if (!empty($data[$key]['uID'])) {
+
+                    $property = $data[$key];
+                    // if it contains a uID then it is a field we need to select
+
+                    switch ($property['fieldType']) {
+
+                        case FieldCatalog::DATE_PICKER:
+                            /*                            $jsonExtract = $this->getDatePickerQuery();
+                                                        $resultStr[] = sprintf($jsonExtract, $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $property->getInternalName());*/
+                            break;
+                        default:
+                            $jsonExtract = $this->getDefaultQuery(implode(".", $property['joins']));
+                            $resultStr[] = sprintf(
+                                $jsonExtract,
+                                $property['internalName'],
+                                $property['internalName'],
+                                $property['internalName'],
+                                $property['internalName']
+                            );
+                            break;
+
+                    }
+
+                } else {
+
+                    $this->fields($data[$key], $resultStr);
+                }
+            }
+
+        return $resultStr;
+
+    }
+
+    private function joins(&$data, &$joins = [], $lastJoin = null)
+    {
+
+        foreach ($data as $key => $value) {
+
+            // we aren't setting up filters now so skip those
+            if ($key === 'filters') {
+
+                continue;
+            } else if (!empty($data[$key]['uID'])) {
+
+                continue;
+            } else if ($key === 'root') {
+
+                $this->joins($data[$key], $joins, $key);
+
+            } else {
+
+                $property = $data[$key];
+                // if it contains a uID then it is a field we need to select
+
+                /*$joins[] = sprintf('INNER JOIN record %s on JSON_SEARCH(%s.properties->>\'$.%s\', \'one\', %s.id) IS NOT NULL', "root.$key", $lastJoin, $key, $lastJoin);*/
+
+
+                $newJoin = "$lastJoin.$key";
+
+                $joins[] = sprintf('INNER JOIN record `%s` on `%s`.properties->>\'$.%s\' = `%s`.id', $newJoin, $lastJoin, $key, $newJoin);
+
+
+                $this->joins($data[$key], $joins, $newJoin);
+            }
+        }
+
+        return $joins;
+
     }
 
 
@@ -763,12 +750,12 @@ HERE;
 HERE;
     }
 
-    private function getDefaultQuery() {
+    private function getDefaultQuery($alias = 'r1') {
         return <<<HERE
     CASE
-        WHEN r1.properties->>'$.%s' IS NULL THEN "-" 
-        WHEN r1.properties->>'$.%s' = '' THEN ""
-        ELSE r1.properties->>'$.%s'
+        WHEN `${alias}`.properties->>'$.%s' IS NULL THEN "-" 
+        WHEN `${alias}`.properties->>'$.%s' = '' THEN ""
+        ELSE `${alias}`.properties->>'$.%s'
     END AS "%s"
 HERE;
     }

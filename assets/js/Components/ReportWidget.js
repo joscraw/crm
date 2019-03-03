@@ -170,17 +170,21 @@ class ReportWidget {
     handlePropertyListItemClicked(property) {
 
         debugger;
+        let uID = StringHelper.makeCharId();
+        _.set(property, 'uID', uID);
+
         let propertyPath = property.joins.join('.');
 
-        if(_.get(this.data, propertyPath, false)) {
+        if(_.has(this.data, propertyPath)) {
 
-            _.get(this.data, propertyPath).push(property);
+            _.set(this.data, `${propertyPath}[${uID}]`, property);
 
         } else {
-            _.set(this.data, propertyPath, []);
-            _.get(this.data, propertyPath).push(property);
+            _.set(this.data, propertyPath, {});
+            _.set(this.data, `${propertyPath}[${uID}]`, property);
         }
 
+        debugger;
         this.globalEventDispatcher.publish(Settings.Events.REPORT_PROPERTY_LIST_ITEM_ADDED, this.data);
 
     }
@@ -257,24 +261,12 @@ class ReportWidget {
 
     handleReportRemoveSelectedColumnIconClicked(property) {
 
-        let propertyPath = property.joins.join('.');
+        debugger;
+        let propertyPath = property.joins.concat([property.uID]).join('.');
 
-        if(_.has(this.data, propertyPath)) {
-
-            let properties = _.get(this.data, propertyPath);
-
-            let key = null;
-
-            properties.forEach((p, k) => {
-
-                if(parseInt(p.id) === parseInt(property.id)) {
-                    key = k;
-                }
-            });
-
-            _.unset(this.data, `${propertyPath}[${key}]`);
-
-        }
+        debugger;
+        _.unset(this.data, propertyPath);
+        debugger;
 
         this.globalEventDispatcher.publish(Settings.Events.REPORT_PROPERTY_LIST_ITEM_REMOVED, this.data);
     }

@@ -114,17 +114,9 @@ class ReportController extends ApiController
      */
     public function saveReportAction(Portal $portal, CustomObject $customObject, Request $request) {
 
-        $draw = intval($request->query->get('draw'));
-        $start = $request->query->get('start');
-        $length = $request->query->get('length');
-        $search = $request->query->get('search');
-        $orders = $request->query->get('order');
-        $columns = $request->query->get('columns');
-        $customFilters = $request->query->get('customFilters', []);
+        $data = $request->request->get('data', []);
 
-        $propertiesForDatatable = $this->propertyRepository->findColumnsForTable($customObject);
-
-        $results = $this->recordRepository->getDataTableData($start, $length, $search, $orders, $columns, $propertiesForDatatable, $customFilters, $customObject);
+        $results = $this->recordRepository->getReportData($data, $customObject);
 
 
 

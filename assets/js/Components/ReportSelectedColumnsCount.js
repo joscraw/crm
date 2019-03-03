@@ -53,15 +53,14 @@ class ReportSelectedColumnsCount {
             for(let key in data) {
 
                 if(key === 'filters') {
+
                     continue;
-                }
+                } else if(_.has(data[key], 'uID')) {
 
-                if(isNaN(key)) {
-
-                    search(data[key]);
+                    columns.push(data[key]);
                 } else {
 
-                    columns.push(data[key])
+                    search(data[key]);
                 }
             }
         }

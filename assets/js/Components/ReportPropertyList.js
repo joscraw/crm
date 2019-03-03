@@ -155,6 +155,8 @@ class ReportPropertyList {
 
     handlePropertyListItemAdded(data) {
 
+        debugger;
+
         this.data = data;
 
         this.highlightProperties(data);
@@ -187,12 +189,18 @@ class ReportPropertyList {
 
                 let properties = _.get(data, propertyPath);
 
-                let propertyMatch = properties.filter(property => {
+                let propertyMatch = null;
 
-                    return parseInt(property.id) === parseInt(propertyId);
-                });
+                for(let key in properties) {
 
-                if(propertyMatch.length === 1) {
+                    let property = properties[key];
+
+                    if(parseInt(property.id) === parseInt(propertyId)) {
+                        propertyMatch = property;
+                    }
+                }
+
+                if(propertyMatch) {
 
                     $(element).addClass('c-report-widget__list-item--active');
                 }

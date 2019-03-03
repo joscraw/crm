@@ -62,7 +62,6 @@ class ReportSelectedColumns {
 
     unbindEvents() {
 
-        debugger;
         this.$wrapper.off('click', ReportSelectedColumns._selectors.removeSelectedColumnIcon);
 
     }
@@ -75,26 +74,18 @@ class ReportSelectedColumns {
 
         e.stopPropagation();
 
-        debugger;
         let propertyId = $(e.target).attr('data-property-id');
         let joinString = $(e.target).attr('data-joins');
         let joins = JSON.parse(joinString);
         let propertyPath = joins.join('.');
 
         debugger;
-
         if(_.has(this.data, propertyPath)) {
 
-            let properties = _.get(this.data, propertyPath);
+            debugger;
+            let property = _.get(this.data, propertyPath);
 
-            let property = properties.filter(property => {
-                debugger;
-                return parseInt(property.id) === parseInt(propertyId);
-            });
-
-            if(property.length === 1) {
-                this.globalEventDispatcher.publish(Settings.Events.REPORT_REMOVE_SELECTED_COLUMN_ICON_CLICKED, property[0]);
-            }
+            this.globalEventDispatcher.publish(Settings.Events.REPORT_REMOVE_SELECTED_COLUMN_ICON_CLICKED, property);
         }
     }
 
@@ -116,37 +107,37 @@ class ReportSelectedColumns {
 
     setSelectedColumns(data) {
 
-        debugger;
         let columns = [];
         function search(data) {
 
-            debugger;
             for(let key in data) {
 
                 if(key === 'filters') {
+
                     continue;
-                }
+                } else if(_.has(data[key], 'uID')) {
 
-                debugger;
-                if(isNaN(key)) {
-
-                    debugger;
-                    search(data[key]);
+                    columns.push(data[key]);
                 } else {
 
-                    debugger;
-                    columns.push(data[key])
+                    search(data[key]);
                 }
             }
         }
 
         search(this.data);
 
+        debugger;
         this.$wrapper.html("");
 
+        debugger;
         for (let column of columns) {
+
             debugger;
-            this._addSelectedColumn(column.label, column.id, JSON.stringify(column.joins));
+            let joins = column.joins.concat([column.uID]);
+
+            debugger;
+            this._addSelectedColumn(column.label, column.id, JSON.stringify(joins));
         }
 
     }
