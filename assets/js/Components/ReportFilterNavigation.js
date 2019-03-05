@@ -479,7 +479,7 @@ class ReportFilterNavigation {
                 <div class="js-report-selected-custom-filters"></div>
               </li>
               <li class="nav-item">
-                <button type="button" class="btn btn-link js-add-filter-button"><i class="fa fa-plus"></i> Add Filter</button>
+                <button type="button" class="btn btn-link js-add-filter-button"><i class="fa fa-plus"></i> Add "OR" Filter</button>
               </li>
              </ul>
     `;
@@ -492,7 +492,7 @@ const filterContainerTemplate = (orPath) => `
         
         <div class="js-filters"></div>
         
-        <button type="button" class="btn btn-link js-add-or-filter-button" data-or-path=${orPath}><i class="fa fa-plus"></i> Add "OR" Filter</button>
+        <button type="button" class="btn btn-link js-add-or-filter-button" data-or-path=${orPath}><i class="fa fa-plus"></i> Add Filter</button>
         </div>
     </div>
 `;

@@ -43,6 +43,8 @@ class ReportWidget {
          */
         this.data = {};
 
+        this.filterLogic = [];
+
         this.unbindEvents();
 
         this.globalEventDispatcher.subscribe(
@@ -191,15 +193,35 @@ class ReportWidget {
 
     handleReportRemoveFilterButtonPressed(joinPath) {
 
-        debugger;
-
         let filterPath = joinPath.join('.');
+
+        /**
+         * If a referenced filter is being deleted we need to setup a new referenced filter and make
+         * sure to update all the child (orFilters) to point to the new referenced filter
+         */
+        if(_.keys(_.get(this.data, `${filterPath}.orFilters`, [])).length !== 0) {
+
+            let orFilterPaths = _.get(this.data, `${filterPath}.orFilters`);
+
+            let orFilterPath = orFilterPaths[Object.keys(orFilterPaths)[0]];
+
+            let uID = orFilterPath[orFilterPath.length-1];
+            _.unset(orFilterPaths, uID);
+
+            _.set(this.data, `${orFilterPath.join('.')}.referencedFilterPath`, []);
+            _.set(this.data, `${orFilterPath.join('.')}.orFilters`, orFilterPaths);
+
+
+            _.forOwn(orFilterPaths, (value, key) => {
+
+                _.set(this.data, `${value.join('.')}.referencedFilterPath`, orFilterPath);
+
+            });
+        }
 
         let referencedFilterPath = _.get(this.data, `${filterPath}.referencedFilterPath`).join('.');
 
         _.unset(this.data, `${referencedFilterPath}.orFilters.${joinPath[joinPath.length - 1]}`);
-
-        debugger;
 
         _.unset(this.data, filterPath);
 
@@ -210,8 +232,6 @@ class ReportWidget {
     }
 
     applyCustomFilterButtonPressedHandler(customFilter) {
-
-        debugger;
 
         let filterPath = customFilter.joins.join('.') + `.filters`,
             referencedFilterPath = customFilter.referencedFilterPath.join('.'),

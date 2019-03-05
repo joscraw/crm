@@ -163,14 +163,14 @@ class RecordRepository extends ServiceEntityRepository
         // Setup Filters
         $filters = [];
         $filters = $this->filters($data, $filters);
-        $filterString = implode(" ", $filters);
+        $filterString = implode(" OR ", $filters);
 
         /*foreach($customFilters as &$customFilter) {
             $query .= $this->getCondition($customFilter, $customFilter['aliasIndex']);
         }*/
 
 
-        $query = sprintf("SELECT DISTINCT root.id, %s from record root %s WHERE root.custom_object_id='%s' %s", $resultStr, $joinString, $customObject->getId(), $filterString);
+        $query = sprintf("SELECT DISTINCT root.id, %s from record root %s WHERE root.custom_object_id='%s' AND %s", $resultStr, $joinString, $customObject->getId(), $filterString);
 
         $em = $this->getEntityManager();
         $stmt = $em->getConnection()->prepare($query);
@@ -748,10 +748,9 @@ class RecordRepository extends ServiceEntityRepository
     /**
      * @param $customFilter
      * @param $alias
-     * @param string $condition
      * @return string
      */
-    private function getConditionForReport($customFilter, $alias, $condition = 'AND') {
+    private function getConditionForReport($customFilter, $alias) {
 
         $query = '';
         switch($customFilter['fieldType']) {
@@ -836,9 +835,9 @@ class RecordRepository extends ServiceEntityRepository
                     case 'EQ':
 
                         if(trim($customFilter['value']) === '') {
-                            $query = sprintf('%s IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') = \'\'', $condition, $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
+                            $query = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') = \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         } else {
-                            $query = sprintf('%s IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') LIKE \'%%%s%%\'', $condition, $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], strtolower($customFilter['value']));
+                            $query = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') LIKE \'%%%s%%\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], strtolower($customFilter['value']));
                         }
 
                         break;
@@ -1077,17 +1076,20 @@ class RecordRepository extends ServiceEntityRepository
 
         if(isset($customFilter['orFilters'])) {
 
+            $andFilters = [];
+
             foreach($customFilter['orFilters'] as $orFilter) {
 
                 $filterPath = implode(".", $orFilter);
 
                 $filter = $this->getValueByDotNotation($filterPath, $this->data);
 
-                $query .= ' ' . $this->getConditionForReport($filter, implode('.', $filter['joins']), 'OR');
-
-                $name = "Josh";
-
+                $andFilters[] = $this->getConditionForReport($filter, implode('.', $filter['joins']));
             }
+
+            $query .= ' AND ' . implode(' AND ', $andFilters);
+
+            $query = sprintf('(%s)', $query);
         }
 
         return $query;
