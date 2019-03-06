@@ -165,12 +165,70 @@ class RecordRepository extends ServiceEntityRepository
         $filters = $this->filters($data, $filters);
         $filterString = implode(" OR ", $filters);
 
-        /*foreach($customFilters as &$customFilter) {
-            $query .= $this->getCondition($customFilter, $customFilter['aliasIndex']);
-        }*/
+        $query = sprintf("SELECT DISTINCT root.id, %s from record root %s WHERE root.custom_object_id='%s' AND %s", $resultStr, $joinString, $customObject->getId(), $filterString);
 
+        $em = $this->getEntityManager();
+        $stmt = $em->getConnection()->prepare($query);
+        $stmt->execute();
+        $results = $stmt->fetchAll();
+
+        return array(
+            "results"  => $results
+        );
+    }
+
+    /**
+     * @param $data
+     * @param CustomObject $customObject
+     * @return array
+     */
+    public function getReportMysqlOnly($data, CustomObject $customObject)
+    {
+
+        $this->data = $data;
+
+        // Setup fields for select
+        $resultStr = [];
+        $resultStr = $this->fields($data, $resultStr);
+        $resultStr = implode(",",$resultStr);
+
+        // Setup Joins
+        $joins = [];
+        $joins = $this->joins($data, $joins);
+        $joinString = implode(" ", $joins);
+
+        // Setup Filters
+        $filters = [];
+        $filters = $this->filters($data, $filters);
+        $filterString = implode(" OR ", $filters);
 
         $query = sprintf("SELECT DISTINCT root.id, %s from record root %s WHERE root.custom_object_id='%s' AND %s", $resultStr, $joinString, $customObject->getId(), $filterString);
+
+        return $query;
+    }
+
+    /**
+     * @param $data
+     * @param CustomObject $customObject
+     * @return array
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    public function getReportCount($data, CustomObject $customObject)
+    {
+
+        $this->data = $data;
+
+        // Setup Joins
+        $joins = [];
+        $joins = $this->joins($data, $joins);
+        $joinString = implode(" ", $joins);
+
+        // Setup Filters
+        $filters = [];
+        $filters = $this->filters($data, $filters);
+        $filterString = implode(" OR ", $filters);
+
+        $query = sprintf("SELECT count(rood.id) as count from record root %s WHERE root.custom_object_id='%s' AND %s", $resultStr, $joinString, $customObject->getId(), $filterString);
 
         $em = $this->getEntityManager();
         $stmt = $em->getConnection()->prepare($query);

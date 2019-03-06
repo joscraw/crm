@@ -152,11 +152,28 @@ class ReportFilterNavigation {
 
         this.renderCustomFilters(data);
 
+        this.updateAddFilterButtonText(data);
+
     }
 
     reportFilterItemRemovedHandler(data) {
 
         this.renderCustomFilters(data);
+
+        this.updateAddFilterButtonText(data);
+
+    }
+
+    updateAddFilterButtonText(data) {
+
+        let text = "Add Filter";
+
+        if(this.getCustomFilterCount(data) !== 0) {
+
+            text = 'Add "OR" Filter';
+        }
+
+        this.$wrapper.find(ReportFilterNavigation._selectors.addFilterButton).html('<i class="fa fa-plus"></i> ' + text);
 
     }
 
@@ -268,9 +285,51 @@ class ReportFilterNavigation {
 
     }
 
+    getCustomFilterCount(data) {
+
+        debugger;
+        let customFilters = {};
+        function search(data) {
+
+            for(let key in data) {
+
+                if(isNaN(key) && key !== 'filters') {
+
+                    search(data[key]);
+
+                } else if(key === 'filters'){
+
+                    for(let uID in data[key]) {
+
+                        // only add the custom filter to the array if it is not an "OR" condition
+                        if(_.size(_.get(data, `${key}.${uID}.referencedFilterPath`, [])) === 0) {
+
+                            _.set(customFilters, uID, data[key][uID]);
+
+                        }
+
+                    }
+                }
+            }
+        }
+
+        debugger;
+        search(data);
+
+        return Object.entries(customFilters).length;
+    }
+
     render(data) {
 
-        this.$wrapper.html(ReportFilterNavigation.markup(this));
+        debugger;
+     /*   let customFilters = this.getCustomFilters(data);
+        let filterText = 'Add Filter';
+        if(Object.entries(customFilters).length !== 0 && customFilters.constructor === Object) {
+            filterText = 'Add "OR" Filter';
+        }
+*/
+        this.$wrapper.html(ReportFilterNavigation.markup());
+
 
         this.renderCustomFilters(data);
 
@@ -479,7 +538,7 @@ class ReportFilterNavigation {
                 <div class="js-report-selected-custom-filters"></div>
               </li>
               <li class="nav-item">
-                <button type="button" class="btn btn-link js-add-filter-button"><i class="fa fa-plus"></i> Add "OR" Filter</button>
+                <button type="button" class="btn btn-link js-add-filter-button"><i class="fa fa-plus"></i> Add Filter</button>
               </li>
              </ul>
     `;
