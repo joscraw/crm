@@ -180,7 +180,7 @@ class RecordRepository extends ServiceEntityRepository
     /**
      * @param $data
      * @param CustomObject $customObject
-     * @return array
+     * @return string
      */
     public function getReportMysqlOnly($data, CustomObject $customObject)
     {

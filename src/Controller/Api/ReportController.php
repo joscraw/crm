@@ -7,6 +7,7 @@ use App\Entity\Portal;
 use App\Entity\Property;
 use App\Entity\PropertyGroup;
 use App\Entity\Record;
+use App\Entity\Report;
 use App\Form\CustomObjectType;
 use App\Form\PropertyGroupType;
 use App\Form\PropertyType;
@@ -109,98 +110,27 @@ class ReportController extends ApiController
      * @param CustomObject $customObject
      * @param Request $request
      * @return Response
-     * @throws \Doctrine\DBAL\DBALException
-     * @throws \Doctrine\ORM\NonUniqueResultException
      */
     public function saveReportAction(Portal $portal, CustomObject $customObject, Request $request) {
 
         $data = $request->request->get('data', []);
 
-        $results = $this->recordRepository->getReportData($data, $customObject);
+        $reportName = $request->request->get('reportName', '');
 
+        $query = $this->recordRepository->getReportMysqlOnly($data, $customObject);
 
+        $report = new Report();
+        $report->setQuery($query);
+        $report->setCustomObject($customObject);
+        $report->setData($data);
+        $report->setName($reportName);
 
-        // going to be deleting a lot of this
-
-
-
-        $customObjectInternalNames = $this->propertyRepository->findAllInternalNamesByFieldTypeForCustomObject($customObject, FieldCatalog::CUSTOM_OBJECT);
-        $customObjectInternalNames = $this->getArrayValuesRecursive($customObjectInternalNames);
-
-        $properties = $customObject->getProperties()->toArray();
-
-        foreach($results['results'] as &$result) {
-
-            foreach($result as $key => $value) {
-
-                $customObjectProperty = array_filter($properties, function($property) use($key) {
-                    $isCustomObjectProperty = $property->getFieldType() === FieldCatalog::CUSTOM_OBJECT;
-                    $internalNameMatches = $property->getInternalName() === $key;
-
-                    return $isCustomObjectProperty && $internalNameMatches;
-                });
-
-                if(!empty($customObjectProperty)) {
-                    $customObjectProperty = array_values($customObjectProperty);
-
-                    if(in_array($value, ['-', ''])) {
-                        continue;
-                    }
-
-                    $value = json_decode($value);
-                    $value = is_array($value) ? $value : [$value];
-
-                    $urls = [];
-                    foreach($value as $v) {
-                        $url = sprintf("%s/%s",
-                            $this->generateUrl('record_list', [
-                                'internalIdentifier' => $portal->getInternalIdentifier(),
-                                'internalName' => $customObjectProperty[0]->getField()->getCustomObject()->getInternalName()
-                            ]),
-                            $v
-                        );
-                        $urls[] = "<a href='$url'>$v</a>";
-                    }
-                    $result[$key] = implode(',', $urls);
-                }
-
-                $choiceFieldProperty = array_filter($properties, function($property) use($key) {
-                    $isChoiceFieldProperty = $property->getFieldType() === FieldCatalog::MULTIPLE_CHECKBOX;
-                    $internalNameMatches = $property->getInternalName() === $key;
-
-                    return $isChoiceFieldProperty && $internalNameMatches;
-                });
-
-                if(!empty($choiceFieldProperty)) {
-
-                    if(in_array($value, ['-', ''])) {
-                        continue;
-                    }
-
-                    $value = json_decode($value);
-                    $value = is_array($value) ? $value : [$value];
-
-                    $items = [];
-                    foreach($value as $v) {
-                        $items[] = $v;
-                    }
-                    $result[$key] = implode(',', $items);
-                }
-            }
-        }
-
-        $countQuery = $this->recordRepository->findCountByCustomObject($customObject);
-        $totalRecordsCount = !empty($countQuery[0]['count']) ? $countQuery[0]['count'] : 0;
-
-        $results = $results['results'];
-        $filteredRecordsCount = count($results);
+        $this->entityManager->persist($report);
+        $this->entityManager->flush();
 
         $response = new JsonResponse([
-            'draw'  => $draw,
-            'recordsFiltered' => !empty($search['value']) || !empty($customFilters) ? $filteredRecordsCount : $totalRecordsCount,
-            'recordsTotal'  => $totalRecordsCount,
-            'data'  => $results
-        ],  Response::HTTP_OK);
+            'success' => true
+        ], Response::HTTP_OK);
 
         return $response;
     }

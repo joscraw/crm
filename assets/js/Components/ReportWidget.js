@@ -27,6 +27,7 @@ import ReportSelectedColumnsCount from "./ReportSelectedColumnsCount";
 import ReportFilters from "./ReportFilters";
 import ReportProperties from "./ReportProperties";
 import StringHelper from "../StringHelper";
+import swal from "sweetalert2";
 
 class ReportWidget {
 
@@ -131,8 +132,17 @@ class ReportWidget {
     handleReportSaveButtonPressed() {
 
         debugger;
-        this._saveReport();
+        this._saveReport().then((data) => {
 
+            swal("Woohoo!!!", "Report successfully saved.", "success");
+
+        });
+
+    }
+
+    redirectToReportList() {
+
+        window.location = Routing.generate('report_list', {internalIdentifier: this.portalInternalIdentifier});
     }
 
     handleReportNameChange(reportName) {
@@ -345,7 +355,7 @@ class ReportWidget {
             $.ajax({
                 url,
                 method: 'POST',
-                data: {'data': this.data}
+                data: {'data': this.data, reportName: this.reportName}
             }).then((data, textStatus, jqXHR) => {
 
                 debugger;

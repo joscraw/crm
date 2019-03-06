@@ -76,11 +76,17 @@ class CustomObject /*implements \JsonSerializable*/
      */
     private $records;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Report", mappedBy="customObject", orphanRemoval=true)
+     */
+    private $reports;
+
     public function __construct()
     {
         $this->properties = new ArrayCollection();
         $this->propertyGroups = new ArrayCollection();
         $this->records = new ArrayCollection();
+        $this->reports = new ArrayCollection();
     }
 
     /**
@@ -265,5 +271,36 @@ class CustomObject /*implements \JsonSerializable*/
 
     public function setId($id) {
         $this->id = $id;
+    }
+
+    /**
+     * @return Collection|Report[]
+     */
+    public function getReports(): Collection
+    {
+        return $this->reports;
+    }
+
+    public function addReport(Report $report): self
+    {
+        if (!$this->reports->contains($report)) {
+            $this->reports[] = $report;
+            $report->setCustomObject($this);
+        }
+
+        return $this;
+    }
+
+    public function removeReport(Report $report): self
+    {
+        if ($this->reports->contains($report)) {
+            $this->reports->removeElement($report);
+            // set the owning side to null (unless already changed)
+            if ($report->getCustomObject() === $this) {
+                $report->setCustomObject(null);
+            }
+        }
+
+        return $this;
     }
 }
