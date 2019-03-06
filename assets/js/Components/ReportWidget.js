@@ -36,6 +36,7 @@ class ReportWidget {
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
         this.customObject = null;
+        this.reportName = '';
 
         /**
          * This data object is responsible for storing all the properties and filters that will get sent to the server
@@ -102,6 +103,11 @@ class ReportWidget {
             this.handleReportSaveButtonPressed.bind(this)
         );
 
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.REPORT_NAME_CHANGED,
+            this.handleReportNameChange.bind(this)
+        );
+
         this.render();
     }
 
@@ -129,6 +135,11 @@ class ReportWidget {
 
     }
 
+    handleReportNameChange(reportName) {
+        debugger;
+        this.reportName = reportName;
+    }
+
     reportBackToSelectCustomObjectButtonHandler(e) {
 
         this.$wrapper.find(ReportWidget._selectors.reportSelectCustomObjectContainer).removeClass('d-none');
@@ -154,7 +165,7 @@ class ReportWidget {
         this.$wrapper.find(ReportWidget._selectors.reportFiltersContainer).removeClass('d-none');
         this.$wrapper.find(ReportWidget._selectors.reportPropertiesContainer).addClass('d-none');
 
-        new ReportFilters($(ReportWidget._selectors.reportFiltersContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject.internalName, this.data);
+        new ReportFilters($(ReportWidget._selectors.reportFiltersContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject.internalName, this.data, this.reportName);
 
     }
 

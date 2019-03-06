@@ -3,6 +3,7 @@
 import Settings from '../Settings';
 import Routing from "../Routing";
 import $ from "jquery";
+import swal from 'sweetalert2';
 import PropertySearch from "./PropertySearch";
 import List from "list.js";
 import SingleLineTextFieldFilterForm from "./SingleLineTextFieldFilterForm";
@@ -30,12 +31,13 @@ import ReportFilterNavigation from "./ReportFilterNavigation";
 
 class ReportFilters {
 
-    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, data = {}) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, data = {}, reportName = '') {
 
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
         this.customObjectInternalName = customObjectInternalName;
+        this.reportName = reportName;
 
         /**
          * This data object is responsible for storing all the properties and filters that will get sent to the server
@@ -98,6 +100,12 @@ class ReportFilters {
             this.handleSaveReportButtonClicked.bind(this)
         );
 
+        this.$wrapper.on(
+            'change',
+            ReportFilters._selectors.reportName,
+            this.handleReportNameChange.bind(this)
+        );
+
         this.render();
     }
 
@@ -113,7 +121,8 @@ class ReportFilters {
             reportSelectedCustomFilters: '.js-report-selected-custom-filters',
             reportFilterNavigation: '.js-report-filter-navigation',
             backToReportPropertiesButton: '.js-back-to-report-properties-button',
-            saveReportButton: '.js-save-report-button'
+            saveReportButton: '.js-save-report-button',
+            reportName: '.js-report-name'
 
         }
     }
@@ -122,6 +131,7 @@ class ReportFilters {
 
         this.$wrapper.off('click', ReportFilters._selectors.backToReportPropertiesButton);
         this.$wrapper.off('click', ReportFilters._selectors.saveReportButton);
+        this.$wrapper.off('change', ReportFilters._selectors.reportName);
     }
 
     handleSaveReportButtonClicked(e) {
@@ -130,8 +140,22 @@ class ReportFilters {
             e.preventDefault();
         }
 
+        if(!this.$wrapper.find(ReportFilters._selectors.reportName).val()) {
+
+            swal("Woahhh snap!!!", "Don't forget a name for your report.", "warning");
+
+            return;
+
+        }
 
         this.globalEventDispatcher.publish(Settings.Events.REPORT_SAVE_BUTTON_PRESSED);
+
+    }
+
+    handleReportNameChange(e) {
+        debugger;
+
+        this.globalEventDispatcher.publish(Settings.Events.REPORT_NAME_CHANGED, $(e.target).val());
 
     }
 
@@ -362,6 +386,8 @@ class ReportFilters {
 
         this.$wrapper.html(ReportFilters.markup(this));
 
+        this.$wrapper.find(ReportFilters._selectors.reportName).val(this.reportName);
+
         new ReportFilterNavigation($(ReportFilters._selectors.reportFilterNavigation), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, this.data);
 
      /*   new ReportFilterList($(ReportFilters._selectors.reportFilterListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);
@@ -374,8 +400,27 @@ class ReportFilters {
 
         return `
              <nav class="navbar navbar-expand-sm l-top-bar justify-content-end c-report-widget__nav">
-                  <button type="button" style="color: #FFF" class="btn btn-link js-back-to-report-properties-button"><i class="fa fa-angle-left" aria-hidden="true"></i> Back</button>
-                  <button class="btn btn-lg btn-secondary ml-auto js-save-report-button">Save</button> 
+             
+                 <div class="container-fluid">
+                    <div class="navbar-collapse collapse dual-nav w-50 order-1 order-md-0">
+                        <ul class="navbar-nav">
+                            <li class="nav-item">
+                                <button type="button" style="color: #FFF" class="btn btn-link js-back-to-report-properties-button"><i class="fa fa-angle-left" aria-hidden="true"></i> Back</button>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <input style="width: 200px;" class="form-control navbar-brand mx-auto d-block text-center order-0 order-md-1 w-25 c-report-widget__report-name js-report-name" type="search" placeholder="Report name" aria-label="Search">
+                    
+                    <div class="navbar-collapse collapse dual-nav w-50 order-2">
+                        <ul class="nav navbar-nav ml-auto">
+                            <li class="nav-item">
+                            <button class="btn btn-lg btn-secondary ml-auto js-save-report-button c-report-widget__report-save">Save</button>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                                   
              </nav> 
         
             <div class="row container">

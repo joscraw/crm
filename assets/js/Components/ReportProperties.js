@@ -3,6 +3,7 @@
 import Settings from '../Settings';
 import Routing from "../Routing";
 import $ from "jquery";
+import swal from 'sweetalert2';
 import PropertySearch from "./PropertySearch";
 import List from "list.js";
 import SingleLineTextFieldFilterForm from "./SingleLineTextFieldFilterForm";
@@ -93,9 +94,47 @@ class ReportProperties {
 
     handleReportAdvanceToFiltersViewButtonClicked(e) {
 
+        let properties = this.getPropertiesFromData();
+
+        if(Object.keys(properties).length === 0) {
+
+            swal("Yikes!!!", "You need at least one property.", "warning");
+
+            return;
+        }
+
         debugger;
         this.globalEventDispatcher.publish(Settings.Events.ADVANCE_TO_REPORT_FILTERS_VIEW_BUTTON_CLICKED);
 
+    }
+
+    getPropertiesFromData() {
+
+        let properties = {};
+        function search(data) {
+
+            for(let key in data) {
+
+                if(key !== 'filters' && !_.has(data[key], 'uID')) {
+
+                    search(data[key]);
+
+                } else if(key === 'filters'){
+
+                    continue;
+
+                } else {
+
+                    _.set(properties, key, data[key]);
+
+                }
+            }
+        }
+
+        debugger;
+        search(this.data);
+
+        return properties;
     }
 
     handleBackButtonClicked() {
