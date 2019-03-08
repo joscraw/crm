@@ -140,9 +140,9 @@ class ReportWidget {
 
     }
 
-    redirectToReportList() {
+    redirectToReportSettings() {
 
-        window.location = Routing.generate('report_list', {internalIdentifier: this.portalInternalIdentifier});
+        window.location = Routing.generate('report_settings', {internalIdentifier: this.portalInternalIdentifier});
     }
 
     handleReportNameChange(reportName) {

@@ -202,7 +202,9 @@ class RecordRepository extends ServiceEntityRepository
         $filters = $this->filters($data, $filters);
         $filterString = implode(" OR ", $filters);
 
-        $query = sprintf("SELECT DISTINCT root.id, %s from record root %s WHERE root.custom_object_id='%s' AND %s", $resultStr, $joinString, $customObject->getId(), $filterString);
+        $filterString = empty($filters) ? '' : "AND $filterString";
+
+        $query = sprintf("SELECT DISTINCT root.id, %s from record root %s WHERE root.custom_object_id='%s' %s", $resultStr, $joinString, $customObject->getId(), $filterString);
 
         return $query;
     }

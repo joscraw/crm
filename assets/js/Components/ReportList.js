@@ -5,6 +5,7 @@ import Settings from '../Settings';
 import EditCustomObjectButton from "./EditCustomObjectButton";
 import $ from "jquery";
 import DeleteCustomObjectButton from "./DeleteCustomObjectButton";
+import DeleteReportButton from "./DeleteReportButton";
 
 require( 'datatables.net-bs4' );
 require( 'datatables.net-responsive-bs4' );
@@ -12,7 +13,7 @@ require( 'datatables.net-responsive-bs4/css/responsive.bootstrap4.css' );
 require( 'datatables.net-bs4/css/dataTables.bootstrap4.css' );
 
 
-class CustomObjectList {
+class ReportList {
 
     /**
      * @param $wrapper
@@ -33,22 +34,17 @@ class CustomObjectList {
         this.render().then(() => {this.activatePlugins();});
 
         this.globalEventDispatcher.subscribe(
-            Settings.Events.CUSTOM_OBJECT_CREATED,
-            this.reloadList.bind(this)
-        );
-
-        this.globalEventDispatcher.subscribe(
             Settings.Events.CUSTOM_OBJECT_EDITED,
             this.reloadList.bind(this)
         );
 
         this.globalEventDispatcher.subscribe(
-            Settings.Events.CUSTOM_OBJECT_DELETED,
+            Settings.Events.REPORT_DELETED,
             this.reloadList.bind(this)
         );
 
         this.globalEventDispatcher.subscribe(
-            Settings.Events.CUSTOM_OBJECT_SEARCH_KEY_UP,
+            Settings.Events.REPORT_SEARCH_KEY_UP,
             this.applySearch.bind(this)
         );
 
@@ -63,7 +59,7 @@ class CustomObjectList {
             "serverSide": true,
             "responsive": true,
             "language": {
-                "emptyTable": `No custom objects found.`,
+                "emptyTable": `No reports found.`,
             },
             /*
             the "dom" property determines what components DataTables shows by default
@@ -82,35 +78,50 @@ class CustomObjectList {
             */
             "dom": "lpirt",
             "columns": [
-                { "data": "label", "name": "label", "title": "label", mRender: (data, type, row) => {
+                { "data": "name", "name": "name", "title": "name", mRender: (data, type, row) => {
+            return `
+                        ${row['name']} <span class="js-edit-report c-table__edit-button" data-report-id="${row['id']}"></span>
+                        <span class="js-delete-report c-table__delete-button" data-report-id="${row['id']}"></span>
+                    `;
+                }},
+                {
+                    data: null,
+                    className: "center",
+                    title: "download",
+                    mRender: (data, type, row) => {
+                        debugger;
                         return `
-                        ${row['label']} <span class="js-edit-custom-object c-table__edit-button" data-custom-object-id="${row['id']}"></span>
-                        <span class="js-delete-custom-object c-table__delete-button" data-custom-object-id="${row['id']}"></span>`;
-                    }},
+                        <a href="${Routing.generate('download_report', {'reportId' : data['id'], 'internalIdentifier' : this.portal})}" data-bypass="true" class="btn btn-primary" download><i class="fa fa-download"></i> Export</a>
+                        `;
+                    }
+                }
                 //repeat for each of my 20 or so fields
             ],
             "ajax": {
-                url: Routing.generate('custom_objects_for_datatable', {internalIdentifier: this.portal}),
+                url: Routing.generate('reports_for_datatable', {internalIdentifier: this.portal}),
                 type: "GET",
                 dataType: "json",
                 contentType: "application/json; charset=utf-8"
             },
             "drawCallback": (settings)  => {
-                this.addEditCustomObjectButton();
-                this.addDeleteCustomObjectButton();
+                debugger;
+                this.addEditReportButton();
+                this.addDeleteReportButton();
             }
         });
     }
 
-    addEditCustomObjectButton() {
-        this.$wrapper.find('.js-edit-custom-object').each((index, element) => {
-            new EditCustomObjectButton($(element), this.globalEventDispatcher, this.portal, $(element).data('customObjectId'), "Edit");
+    addEditReportButton() {
+        this.$wrapper.find('.js-edit-report').each((index, element) => {
+            new EditCustomObjectButton($(element), this.globalEventDispatcher, this.portal, $(element).data('reportId'), "Edit");
         });
     }
 
-    addDeleteCustomObjectButton() {
-        this.$wrapper.find('.js-delete-custom-object').each((index, element) => {
-            new DeleteCustomObjectButton($(element), this.globalEventDispatcher, this.portal, $(element).data('customObjectId'), "Delete");
+    addDeleteReportButton() {
+
+        debugger;
+        this.$wrapper.find('.js-delete-report').each((index, element) => {
+            new DeleteReportButton($(element), this.globalEventDispatcher, this.portal, $(element).data('reportId'), "Delete");
         });
     }
 
@@ -131,6 +142,7 @@ class CustomObjectList {
 
 
     reloadList() {
+        debugger;
         this.table.destroy();
         this.activatePlugins();
     }
@@ -138,7 +150,7 @@ class CustomObjectList {
 
     render() {
         return new Promise((resolve, reject) => {
-            this.$wrapper.html(CustomObjectList.markup(this));
+            this.$wrapper.html(ReportList.markup(this));
             resolve();
         });
     }
@@ -155,4 +167,4 @@ class CustomObjectList {
     }
 }
 
-export default CustomObjectList;
+export default ReportList;

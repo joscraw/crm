@@ -41,6 +41,12 @@ class Report
      */
     private $name;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Portal", inversedBy="reports")
+     * @ORM\JoinColumn(nullable=false)
+     */
+    private $portal;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -90,6 +96,18 @@ class Report
     public function setName(string $name): self
     {
         $this->name = $name;
+
+        return $this;
+    }
+
+    public function getPortal(): ?Portal
+    {
+        return $this->portal;
+    }
+
+    public function setPortal(?Portal $portal): self
+    {
+        $this->portal = $portal;
 
         return $this;
     }

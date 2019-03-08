@@ -124,7 +124,7 @@ class ReportSelectCustomObject {
         return `
             <div class="c-report-select-custom-object">
                  <nav class="navbar navbar-expand-sm l-top-bar justify-content-end c-report-widget__nav">
-                    <a class="btn btn-link" style="color:#FFF" data-bypass="true" href="${Routing.generate('report_list', {internalIdentifier: portalInternalIdentifier})}" role="button"><i class="fa fa-angle-left" aria-hidden="true"></i> Back to reports</a>
+                    <a class="btn btn-link" style="color:#FFF" data-bypass="true" href="${Routing.generate('report_settings', {internalIdentifier: portalInternalIdentifier})}" role="button"><i class="fa fa-angle-left" aria-hidden="true"></i> Back to reports</a>
                     <button class="btn btn-lg btn-secondary ml-auto js-advance-to-report-properties-view-button">Next</button> 
                  </nav> 
                  

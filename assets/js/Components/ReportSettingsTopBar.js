@@ -7,10 +7,12 @@ import CustomObjectNavigation from './CustomObjectNavigation';
 import DatatableSearch from "./DatatableSearch";
 import Dropdown from "./Dropdown";
 import CreateReportButton from "./CreateReportButton";
+import CustomObjectSearch from "./CustomObjectSearch";
+import ReportSearch from "./ReportSearch";
 
 
 
-class ReportListTopBar {
+class ReportSettingsTopBar {
 
     /**
      * @param $wrapper
@@ -27,15 +29,12 @@ class ReportListTopBar {
 
     render() {
 
-        this.$wrapper.html(ReportListTopBar.markup());
+        this.$wrapper.html(ReportSettingsTopBar.markup());
+
+        new ReportSearch(this.$wrapper.find('.js-top-bar-search-container'), this.globalEventDispatcher, this.portalInternalIdentifier, "Search for a report");
 
         new CreateReportButton(this.$wrapper.find('.js-create-report-button'), this.globalEventDispatcher, this.portalInternalIdentifier);
 
-
-/*
-        new Dropdown(this.$wrapper.find('.js-dropdown'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, 'Actions');
-        new CreateRecordButton(this.$wrapper.find('.js-create-record-button'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);
-        new DatatableSearch(this.$wrapper.find('.js-top-bar-search-container'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, "Search for a record...")*/
     }
 
     static markup() {
@@ -56,4 +55,4 @@ class ReportListTopBar {
     }
 }
 
-export default ReportListTopBar;
+export default ReportSettingsTopBar;

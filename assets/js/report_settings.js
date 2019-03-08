@@ -2,7 +2,7 @@ import $ from 'jquery';
 
 import EditRecord from "./Components/Page/EditRecord";
 import SideNavigationMenu from "./Components/SideNavigationMenu";
-import ReportList from "./Components/Page/ReportList";
+import ReportSettings from "./Components/Page/ReportSettings";
 import ReportWidget from "./Components/ReportWidget";
 
 require('backbone/backbone.js');
@@ -17,7 +17,7 @@ $(document).ready(function() {
 
         index: function(internalIdentifier) {
             debugger;
-            new ReportList($('#app'), window.globalEventDispatcher, internalIdentifier);
+            new ReportSettings($('#app'), window.globalEventDispatcher, internalIdentifier);
             new SideNavigationMenu($('#side-nav'), window.globalEventDispatcher, internalIdentifier);
         },
         create: function(internalIdentifier) {

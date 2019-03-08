@@ -6,6 +6,7 @@ use App\Entity\CustomObject;
 use App\Entity\Portal;
 use App\Entity\Property;
 use App\Entity\PropertyGroup;
+use App\Entity\Report;
 use App\Form\CustomObjectType;
 use App\Form\PropertyGroupType;
 use App\Form\PropertyType;
@@ -101,13 +102,13 @@ class ReportController extends AbstractController
     }
 
     /**
-     * @Route("/{routing}", name="report_list", requirements={"routing"=".+"}, defaults={"routing": null}, methods={"GET"}, options = { "expose" = true })
+     * @Route("/{routing}", name="report_settings", requirements={"routing"=".+"}, defaults={"routing": null}, methods={"GET"}, options = { "expose" = true })
      * @param Portal $portal
      * @return \Symfony\Component\HttpFoundation\Response
      */
-    public function listAction(Portal $portal) {
+    public function reportSettingsAction(Portal $portal) {
 
-        return $this->render('report/list.html.twig', array(
+        return $this->render('report/settings.html.twig', array(
             'portal' => $portal
         ));
     }
