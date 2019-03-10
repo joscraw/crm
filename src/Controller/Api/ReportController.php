@@ -129,7 +129,9 @@ class ReportController extends ApiController
 
         $reportName = $request->request->get('reportName', '');
 
-        $query = $this->recordRepository->getReportMysqlOnly($data, $customObject);
+        $columnOrder = $request->request->get('columnOrder', []);
+
+        $query = $this->recordRepository->getReportMysqlOnly($data, $customObject, $columnOrder);
 
         $report = new Report();
         $report->setQuery($query);
@@ -137,6 +139,7 @@ class ReportController extends ApiController
         $report->setData($data);
         $report->setName($reportName);
         $report->setPortal($portal);
+        $report->setColumnOrder($columnOrder);
 
         $this->entityManager->persist($report);
         $this->entityManager->flush();
@@ -274,5 +277,61 @@ class ReportController extends ApiController
             Response::HTTP_OK
         );
 
+    }
+
+    /**
+     * @Route("/{reportId}", name="get_report", methods={"GET"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param Report $report
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getReportAction(Portal $portal, Report $report, Request $request) {
+
+        $report = $this->reportRepository->find($report->getId());
+
+        $json = $this->serializer->serialize($report, 'json', ['groups' => ['REPORT']]);
+
+        $payload = json_decode($json, true);
+
+        return new JsonResponse([
+            'success' => true,
+            'data'  => $payload
+        ], Response::HTTP_OK);
+    }
+
+    /**
+     * @Route("/{internalName}/{reportId}/edit-report-save", name="api_edit_report", methods={"POST"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param CustomObject $customObject
+     * @param Report $report
+     * @param Request $request
+     * @return Response
+     */
+    public function editReportAction(Portal $portal, CustomObject $customObject, Report $report, Request $request) {
+
+        $data = $request->request->get('data', []);
+
+        $reportName = $request->request->get('reportName', '');
+
+        $columnOrder = $request->request->get('columnOrder', []);
+
+        $query = $this->recordRepository->getReportMysqlOnly($data, $customObject, $columnOrder);
+
+        $report->setQuery($query);
+        $report->setCustomObject($customObject);
+        $report->setData($data);
+        $report->setName($reportName);
+        $report->setPortal($portal);
+        $report->setColumnOrder($columnOrder);
+
+        $this->entityManager->persist($report);
+        $this->entityManager->flush();
+
+        $response = new JsonResponse([
+            'success' => true
+        ], Response::HTTP_OK);
+
+        return $response;
     }
 }

@@ -10,3 +10,9 @@ require('selectize');
 require('font-awesome/css/font-awesome.css');
 require('../css/main.scss');
 let _ = require('lodash');
+
+
+require('pace-js-amd-fix');
+
+
+/*require('pace-js-amd-fix/templates/pace');*/

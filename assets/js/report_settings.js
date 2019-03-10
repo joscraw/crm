@@ -4,6 +4,7 @@ import EditRecord from "./Components/Page/EditRecord";
 import SideNavigationMenu from "./Components/SideNavigationMenu";
 import ReportSettings from "./Components/Page/ReportSettings";
 import ReportWidget from "./Components/ReportWidget";
+import EditReportWidget from "./Components/EditReportWidget";
 
 require('backbone/backbone.js');
 
@@ -12,11 +13,19 @@ $(document).ready(function() {
     var Router = Backbone.Router.extend({
         routes: {
             ":internalIdentifier/reports": "index",
-            ":internalIdentifier/reports/create": "create"
+            ":internalIdentifier/reports/create": "create",
+            ":internalIdentifier/reports/:reportId/edit": "edit"
         },
 
         index: function(internalIdentifier) {
             debugger;
+
+            /*Pace.options = {
+                ajax: false
+            }
+
+            Pace.start();*/
+
             new ReportSettings($('#app'), window.globalEventDispatcher, internalIdentifier);
             new SideNavigationMenu($('#side-nav'), window.globalEventDispatcher, internalIdentifier);
         },
@@ -24,6 +33,12 @@ $(document).ready(function() {
             debugger;
             $('#side-nav').html("");
             new ReportWidget($('#app'), window.globalEventDispatcher, internalIdentifier);
+        },
+        edit: function(internalIdentifier, reportId) {
+            debugger;
+            $('#side-nav').html("");
+            debugger;
+            new EditReportWidget($('#app'), window.globalEventDispatcher, internalIdentifier, reportId);
         }
     });
 

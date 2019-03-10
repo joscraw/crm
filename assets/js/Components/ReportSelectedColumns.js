@@ -11,12 +11,13 @@ require('jquery-ui-dist/jquery-ui');
 
 class ReportSelectedColumns {
 
-    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, data) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, data, columnOrder) {
         debugger;
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
         this.data = data;
+        this.columnOrder = columnOrder;
 
         this.globalEventDispatcher.subscribe(
             Settings.Events.REPORT_PROPERTY_LIST_ITEM_ADDED,
@@ -28,6 +29,12 @@ class ReportSelectedColumns {
             this.handlePropertyListItemRemoved.bind(this)
         );
 
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.REPORT_COLUMN_ORDER_UPDATED,
+            this.handleReportColumnOrderUpdated.bind(this)
+        );
+
+
         this.unbindEvents();
 
         this.$wrapper.on(
@@ -36,7 +43,7 @@ class ReportSelectedColumns {
             this.handleRemoveSelectedColumnIconClicked.bind(this)
         );
 
-        this.setSelectedColumns(this.data);
+        this.setSelectedColumns(this.data, this.columnOrder);
 
         this.activatePlugins();
 
@@ -55,7 +62,13 @@ class ReportSelectedColumns {
 
         this.$wrapper.sortable({
             placeholder: "ui-state-highlight",
-            cursor: 'crosshair'
+            cursor: 'crosshair',
+            update: (event, ui) => {
+                let columnOrder = $(event.target).sortable('toArray');
+
+                this.globalEventDispatcher.publish(Settings.Events.REPORT_COLUMN_ORDER_CHANGED, columnOrder);
+
+            }
         });
 
     }
@@ -89,55 +102,47 @@ class ReportSelectedColumns {
         }
     }
 
-    handlePropertyListItemAdded(data) {
-
-        debugger;
-        this.data = data;
-
-        this.setSelectedColumns(data);
-    }
-
-    handlePropertyListItemRemoved(data) {
+    handlePropertyListItemAdded(data, columnOrder) {
 
         this.data = data;
 
-        this.setSelectedColumns(data);
+        this.columnOrder = columnOrder;
+
+        this.setSelectedColumns(data, columnOrder);
+    }
+
+    handlePropertyListItemRemoved(data, columnOrder) {
+
+        this.data = data;
+
+        this.columnOrder = columnOrder;
+
+        this.setSelectedColumns(data, columnOrder);
 
     }
 
-    setSelectedColumns(data) {
+    handleReportColumnOrderUpdated(data, columnOrder) {
 
-        let columns = [];
-        function search(data) {
+        this.data = data;
 
-            for(let key in data) {
+        this.columnOrder = columnOrder;
 
-                if(key === 'filters') {
+        this.setSelectedColumns(data, columnOrder);
 
-                    continue;
-                } else if(_.has(data[key], 'uID')) {
+    }
 
-                    columns.push(data[key]);
-                } else {
+    setSelectedColumns(data, columnOrder) {
 
-                    search(data[key]);
-                }
-            }
-        }
-
-        search(this.data);
-
-        debugger;
         this.$wrapper.html("");
 
-        debugger;
-        for (let column of columns) {
+        for(let i = 0; i < columnOrder.length; i ++) {
 
-            debugger;
+            let column = columnOrder[i];
+
             let joins = column.joins.concat([column.uID]);
 
-            debugger;
             this._addSelectedColumn(column.label, column.id, JSON.stringify(joins));
+
         }
 
     }
@@ -145,6 +150,7 @@ class ReportSelectedColumns {
 
     _addSelectedColumn(label, propertyId, joins) {
 
+        debugger;
         const html = selectedColumnTemplate(label, propertyId, joins);
         const $selectedColumnTemplate = $($.parseHTML(html));
         this.$wrapper.append($selectedColumnTemplate);
@@ -155,7 +161,7 @@ class ReportSelectedColumns {
 }
 
 const selectedColumnTemplate = (label, id, joins) => `
-    <div class="card js-selected-column" id="${id}">
+    <div class="card js-selected-column" id=${joins}>
         <div class="card-body c-report-widget__card-body">${label}<span><i class="fa fa-times js-remove-selected-column-icon c-report-widget__remove-column-icon" data-property-id="${id}" data-joins='${joins}' aria-hidden="true"></i></span></div>
     </div>
 `;

@@ -142,17 +142,17 @@ class RecordRepository extends ServiceEntityRepository
     /**
      * @param $data
      * @param CustomObject $customObject
+     * @param $columnOrder
      * @return array
      * @throws \Doctrine\DBAL\DBALException
      */
-    public function getReportData($data, CustomObject $customObject)
+    public function getReportData($data, CustomObject $customObject, $columnOrder)
     {
 
         $this->data = $data;
 
         // Setup fields for select
-        $resultStr = [];
-        $resultStr = $this->fields($data, $resultStr);
+        $resultStr = $this->fields($columnOrder);
         $resultStr = implode(",",$resultStr);
 
         // Setup Joins
@@ -180,16 +180,16 @@ class RecordRepository extends ServiceEntityRepository
     /**
      * @param $data
      * @param CustomObject $customObject
+     * @param $columnOrder
      * @return string
      */
-    public function getReportMysqlOnly($data, CustomObject $customObject)
+    public function getReportMysqlOnly($data, CustomObject $customObject, $columnOrder)
     {
 
         $this->data = $data;
 
         // Setup fields for select
-        $resultStr = [];
-        $resultStr = $this->fields($data, $resultStr);
+        $resultStr = $this->fields($columnOrder);
         $resultStr = implode(",",$resultStr);
 
         // Setup Joins
@@ -370,43 +370,41 @@ class RecordRepository extends ServiceEntityRepository
     }
 
 
-    private function fields(&$data, &$resultStr = [])
+    private function fields($columnOrder)
     {
 
-        foreach ($data as $key => $value) {
+        $resultStr = [];
 
-            // we aren't setting up filters now so skip those
-            if ($key === 'filters') {
+        foreach($columnOrder as $column) {
 
-                continue;
-            } else if (!empty($data[$key]['uID'])) {
+            switch($column['fieldType']) {
 
-                // if it contains a uID then it is a field we need to select
-                $property = $data[$key];
+                case FieldCatalog::DATE_PICKER:
+                    $jsonExtract = $this->getDatePickerQuery(implode(".", $column['joins']));
+                    $resultStr[] = sprintf($jsonExtract, $column['internalName'], $column['internalName'], $column['internalName'], $column['internalName']);
+                    break;
+                case FieldCatalog::SINGLE_CHECKBOX:
+                    $jsonExtract = $this->getSingleCheckboxQuery(implode(".", $column['joins']));
+                    $resultStr[] = sprintf($jsonExtract, $column['internalName'], $column['internalName'], $column['internalName'], $column['internalName'], $column['internalName'], $column['internalName']);
+                    break;
+                case FieldCatalog::NUMBER:
+                    $field = $column['field'];
 
-                switch ($property['fieldType']) {
+                    if($field['type'] === NumberField::$types['Currency']) {
+                        $jsonExtract = $this->getNumberIsCurrencyQuery(implode(".", $column['joins']));
+                        $resultStr[] = sprintf($jsonExtract, $column['internalName'], $column['internalName'], $column['internalName'], $column['internalName']);
+                    } elseif($field['type'] === NumberField::$types['Unformatted Number']) {
+                        $jsonExtract = $this->getNumberIsUnformattedQuery(implode(".", $column['joins']));
+                        $resultStr[] = sprintf($jsonExtract, $column['internalName'], $column['internalName'], $column['internalName'], $column['internalName']);
+                    }
+                    break;
+                default:
+                    $jsonExtract = $this->getDefaultQuery(implode(".", $column['joins']));
+                    $resultStr[] = sprintf($jsonExtract, $column['internalName'], $column['internalName'], $column['internalName'], $column['internalName']);
+                    break;
 
-                    case FieldCatalog::DATE_PICKER:
-                        /*                            $jsonExtract = $this->getDatePickerQuery();
-                                                    $resultStr[] = sprintf($jsonExtract, $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $property->getInternalName());*/
-                        break;
-                    default:
-                        $jsonExtract = $this->getDefaultQuery(implode(".", $property['joins']));
-                        $resultStr[] = sprintf(
-                            $jsonExtract,
-                            $property['internalName'],
-                            $property['internalName'],
-                            $property['internalName'],
-                            $property['internalName']
-                        );
-                        break;
+            }
 
-                }
-
-            } else {
-
-                    $this->fields($data[$key], $resultStr);
-                }
         }
 
         return $resultStr;
@@ -435,7 +433,7 @@ class RecordRepository extends ServiceEntityRepository
 
                 $newJoin = "$lastJoin.$key";
 
-                $joins[] = sprintf('INNER JOIN record `%s` on `%s`.properties->>\'$.%s\' = `%s`.id', $newJoin, $lastJoin, $key, $newJoin);
+                $joins[] = sprintf('LEFT JOIN record `%s` on `%s`.properties->>\'$.%s\' = `%s`.id', $newJoin, $lastJoin, $key, $newJoin);
 
                 $this->joins($data[$key], $joins, $newJoin);
             }
@@ -1169,32 +1167,32 @@ class RecordRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    private function getDatePickerQuery() {
+    private function getDatePickerQuery($alias = 'r1') {
         return <<<HERE
     CASE 
-        WHEN r1.properties->>'$.%s' IS NULL THEN "-" 
-        WHEN r1.properties->>'$.%s' = '' THEN ""
-        ELSE DATE_FORMAT( CAST( JSON_UNQUOTE( r1.properties->>'$.%s' ) as DATETIME ), '%%m-%%d-%%Y' )
+        WHEN `${alias}`.properties->>'$.%s' IS NULL THEN "-" 
+        WHEN `${alias}`.properties->>'$.%s' = '' THEN ""
+        ELSE DATE_FORMAT( CAST( JSON_UNQUOTE( `${alias}`.properties->>'$.%s' ) as DATETIME ), '%%m-%%d-%%Y' )
     END AS "%s"
 HERE;
     }
 
-    private function getNumberIsCurrencyQuery() {
+    private function getNumberIsCurrencyQuery($alias = 'r1') {
         return <<<HERE
     CASE 
-        WHEN r1.properties->>'$.%s' IS NULL THEN "-" 
-        WHEN r1.properties->>'$.%s' = '' THEN ""
-        ELSE CAST( r1.properties->>'$.%s' AS DECIMAL(15,2) ) 
+        WHEN `${alias}`.properties->>'$.%s' IS NULL THEN "-" 
+        WHEN `${alias}`.properties->>'$.%s' = '' THEN ""
+        ELSE CAST( `${alias}`.properties->>'$.%s' AS DECIMAL(15,2) ) 
     END AS "%s"
 HERE;
     }
 
-    private function getNumberIsUnformattedQuery() {
+    private function getNumberIsUnformattedQuery($alias = 'r1') {
         return <<<HERE
     CASE
-        WHEN r1.properties->>'$.%s' IS NULL THEN "-" 
-        WHEN r1.properties->>'$.%s' = '' THEN ""
-        ELSE r1.properties->>'$.%s'
+        WHEN `${alias}`.properties->>'$.%s' IS NULL THEN "-" 
+        WHEN `${alias}`.properties->>'$.%s' = '' THEN ""
+        ELSE `${alias}`.properties->>'$.%s'
     END AS "%s"
 HERE;
     }
@@ -1209,14 +1207,14 @@ HERE;
 HERE;
     }
 
-    private function getSingleCheckboxQuery() {
+    private function getSingleCheckboxQuery($alias = 'r1') {
         return <<<HERE
     CASE
-        WHEN r1.properties->>'$.%s' IS NULL THEN "-" 
-        WHEN r1.properties->>'$.%s' = '' THEN ""
-        WHEN r1.properties->>'$.%s' = 'true' THEN "yes"
-        WHEN r1.properties->>'$.%s' = 'false' THEN "no"
-        ELSE r1.properties->>'$.%s'
+        WHEN `${alias}`.properties->>'$.%s' IS NULL THEN "-" 
+        WHEN `${alias}`.properties->>'$.%s' = '' THEN ""
+        WHEN `${alias}`.properties->>'$.%s' = 'true' THEN "yes"
+        WHEN `${alias}`.properties->>'$.%s' = 'false' THEN "no"
+        ELSE `${alias}`.properties->>'$.%s'
     END AS "%s"
 HERE;
     }

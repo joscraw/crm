@@ -132,4 +132,5 @@ class ReportRepository extends ServiceEntityRepository
         return count($query->getQuery()->getResult());
 
     }
+
 }

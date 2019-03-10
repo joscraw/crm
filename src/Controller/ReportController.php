@@ -102,6 +102,19 @@ class ReportController extends AbstractController
     }
 
     /**
+     * @Route("/{reportId}/edit/{routing}", name="edit_report", requirements={"routing"=".+"}, defaults={"routing": null}, methods={"GET"}, options = { "expose" = true })
+     * @param Report $report
+     * @param Portal $portal
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function editAction(Report $report, Portal $portal) {
+
+        return $this->render('report/edit.html.twig', array(
+            'portal' => $portal
+        ));
+    }
+
+    /**
      * @Route("/{routing}", name="report_settings", requirements={"routing"=".+"}, defaults={"routing": null}, methods={"GET"}, options = { "expose" = true })
      * @param Portal $portal
      * @return \Symfony\Component\HttpFoundation\Response

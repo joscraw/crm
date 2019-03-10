@@ -30,13 +30,14 @@ import ReportFilters from "./ReportFilters";
 
 class ReportProperties {
 
-    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, data) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, data, columnOrder) {
 
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
         this.customObjectInternalName = customObjectInternalName;
         this.data = data;
+        this.columnOrder = columnOrder;
 
         this.unbindEvents();
 
@@ -160,11 +161,11 @@ class ReportProperties {
 
         this.$wrapper.html(ReportProperties.markup(this));
 
-        new ReportPropertyList($(ReportProperties._selectors.reportPropertyListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);
+        new ReportPropertyList($(ReportProperties._selectors.reportPropertyListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, null, [], this.data);
 
-        new ReportSelectedColumns(this.$wrapper.find(ReportProperties._selectors.reportSelectedColumnsContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.data);
+        new ReportSelectedColumns(this.$wrapper.find(ReportProperties._selectors.reportSelectedColumnsContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.data, this.columnOrder);
 
-        new ReportSelectedColumnsCount(this.$wrapper.find(ReportProperties._selectors.reportSelectedColumnsCountContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.data);
+        new ReportSelectedColumnsCount(this.$wrapper.find(ReportProperties._selectors.reportSelectedColumnsCountContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.data, this.columnOrder);
 
     }
 

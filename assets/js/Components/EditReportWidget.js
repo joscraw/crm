@@ -29,15 +29,16 @@ import ReportProperties from "./ReportProperties";
 import StringHelper from "../StringHelper";
 import swal from "sweetalert2";
 
-class ReportWidget {
+class EditReportWidget {
 
-    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, reportId) {
 
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
         this.customObject = null;
         this.reportName = '';
+        this.reportId = reportId;
 
         /**
          * This data object is responsible for storing all the properties and filters that will get sent to the server
@@ -114,7 +115,17 @@ class ReportWidget {
             this.handleReportColumnOrderChanged.bind(this)
         );
 
-        this.render();
+        this.loadReport().then((data) => {
+
+            debugger;
+            this.data = data.data.data;
+            this.columnOrder = data.data.columnOrder;
+            this.reportName = data.data.name;
+            this.customObject = data.data.customObject;
+
+            this.render();
+        });
+
     }
 
     /**
@@ -132,6 +143,24 @@ class ReportWidget {
     unbindEvents() {
 
         this.$wrapper.off('click', ReportPropertyList._selectors.reportAdvanceToFiltersView);
+    }
+
+    loadReport() {
+        return new Promise((resolve, reject) => {
+            debugger;
+            const url = Routing.generate('get_report', {internalIdentifier: this.portalInternalIdentifier, reportId: this.reportId});
+
+            $.ajax({
+                url: url
+            }).then(data => {
+                debugger;
+                resolve(data);
+            }).catch(jqXHR => {
+                debugger;
+                const errorData = JSON.parse(jqXHR.responseText);
+                reject(errorData);
+            });
+        });
     }
 
     handleReportSaveButtonPressed() {
@@ -157,43 +186,39 @@ class ReportWidget {
 
     reportBackToSelectCustomObjectButtonHandler(e) {
 
-        this.$wrapper.find(ReportWidget._selectors.reportSelectCustomObjectContainer).removeClass('d-none');
-        this.$wrapper.find(ReportWidget._selectors.reportPropertiesContainer).addClass('d-none');
+        this.$wrapper.find(EditReportWidget._selectors.reportSelectCustomObjectContainer).removeClass('d-none');
+        this.$wrapper.find(EditReportWidget._selectors.reportPropertiesContainer).addClass('d-none');
 
-        new ReportSelectCustomObject($(ReportWidget._selectors.reportSelectCustomObjectContainer), this.globalEventDispatcher, this.portalInternalIdentifier);
+        new ReportSelectCustomObject($(EditReportWidget._selectors.reportSelectCustomObjectContainer), this.globalEventDispatcher, this.portalInternalIdentifier);
 
     }
 
     handleReportBackToPropertiesButtonPressed() {
         debugger;
 
-        this.$wrapper.find(ReportWidget._selectors.reportFiltersContainer).addClass('d-none');
-        this.$wrapper.find(ReportWidget._selectors.reportPropertiesContainer).removeClass('d-none');
-
-        /*new ReportProperties($(ReportWidget._selectors.reportPropertiesContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject.internalName, this.data);*/
+        this.$wrapper.find(EditReportWidget._selectors.reportFiltersContainer).addClass('d-none');
+        this.$wrapper.find(EditReportWidget._selectors.reportPropertiesContainer).removeClass('d-none');
 
     }
 
     handleReportAdvanceToFiltersViewButtonClicked(e) {
 
         debugger;
-        this.$wrapper.find(ReportWidget._selectors.reportFiltersContainer).removeClass('d-none');
-        this.$wrapper.find(ReportWidget._selectors.reportPropertiesContainer).addClass('d-none');
+        this.$wrapper.find(EditReportWidget._selectors.reportFiltersContainer).removeClass('d-none');
+        this.$wrapper.find(EditReportWidget._selectors.reportPropertiesContainer).addClass('d-none');
 
-        new ReportFilters($(ReportWidget._selectors.reportFiltersContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject.internalName, this.data, this.reportName);
+        new ReportFilters($(EditReportWidget._selectors.reportFiltersContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject.internalName, this.data, this.reportName);
 
     }
 
     handleAdvanceToReportPropertiesViewButtonClicked(customObject) {
 
-        debugger;
-
         this.customObject = customObject;
 
-        this.$wrapper.find(ReportWidget._selectors.reportSelectCustomObjectContainer).addClass('d-none');
-        this.$wrapper.find(ReportWidget._selectors.reportPropertiesContainer).removeClass('d-none');
+        this.$wrapper.find(EditReportWidget._selectors.reportSelectCustomObjectContainer).addClass('d-none');
+        this.$wrapper.find(EditReportWidget._selectors.reportPropertiesContainer).removeClass('d-none');
 
-        new ReportProperties($(ReportWidget._selectors.reportPropertiesContainer), this.globalEventDispatcher, this.portalInternalIdentifier, customObject.internalName, this.data, this.columnOrder);
+        new ReportProperties($(EditReportWidget._selectors.reportPropertiesContainer), this.globalEventDispatcher, this.portalInternalIdentifier, customObject.internalName, this.data);
 
     }
 
@@ -373,8 +398,9 @@ class ReportWidget {
 
     render() {
 
-        this.$wrapper.html(ReportWidget.markup(this));
-        new ReportSelectCustomObject($(ReportWidget._selectors.reportSelectCustomObjectContainer), this.globalEventDispatcher, this.portalInternalIdentifier);
+        this.$wrapper.html(EditReportWidget.markup(this));
+
+        new ReportProperties($(EditReportWidget._selectors.reportPropertiesContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject.internalName, this.data, this.columnOrder);
 
     }
 
@@ -382,7 +408,7 @@ class ReportWidget {
 
         return new Promise((resolve, reject) => {
             debugger;
-            const url = Routing.generate('save_report', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObject.internalName});
+            const url = Routing.generate('api_edit_report', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObject.internalName, reportId: this.reportId});
 
             $.ajax({
                 url,
@@ -407,9 +433,9 @@ class ReportWidget {
 
         return `
       <div class="js-report-widget c-report-widget">
-            <div class="js-report-select-custom-object-container"></div>
+            <div class="js-report-select-custom-object-container d-none"></div>
             
-            <div class="js-report-properties-container d-none"></div>
+            <div class="js-report-properties-container"></div>
             
             <div class="js-report-filters-container d-none"></div>
             
@@ -418,4 +444,4 @@ class ReportWidget {
     }
 }
 
-export default ReportWidget;
+export default EditReportWidget;

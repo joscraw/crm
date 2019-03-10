@@ -10,12 +10,13 @@ import ColumnSearch from "./ColumnSearch";
 
 class ReportSelectedColumnsCount {
 
-    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, data) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, data, columnOrder) {
         debugger;
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
         this.data = data;
+        this.columnOrder = columnOrder;
 
         this.globalEventDispatcher.subscribe(
             Settings.Events.REPORT_PROPERTY_LIST_ITEM_ADDED,
@@ -27,19 +28,42 @@ class ReportSelectedColumnsCount {
             this.handlePropertyListItemRemoved.bind(this)
         );
 
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.REPORT_COLUMN_ORDER_UPDATED,
+            this.handleReportColumnOrderUpdated.bind(this)
+        );
+
         this.render()
     }
 
-    handlePropertyListItemAdded(data) {
+    handlePropertyListItemAdded(data, columnOrder) {
 
         this.data = data;
+        this.columnOrder = columnOrder;
 
         this.render();
     }
 
-    handlePropertyListItemRemoved(data) {
+    handlePropertyListItemRemoved(data, columnOrder) {
 
         this.data = data;
+        this.columnOrder = columnOrder;
+
+        this.render();
+
+    }
+
+    /**
+     * This isn't completely necessary but mine as well give this component a fresh
+     * version of the columnOrder and data object even when changing the order
+     *
+     * @param data
+     * @param columnOrder
+     */
+    handleReportColumnOrderUpdated(data, columnOrder) {
+
+        this.data = data;
+        this.columnOrder = columnOrder;
 
         this.render();
 
@@ -47,29 +71,9 @@ class ReportSelectedColumnsCount {
 
     render() {
 
-        let columns = [];
-        function search(data) {
-
-            for(let key in data) {
-
-                if(key === 'filters') {
-
-                    continue;
-                } else if(_.has(data[key], 'uID')) {
-
-                    columns.push(data[key]);
-                } else {
-
-                    search(data[key]);
-                }
-            }
-        }
-
-        search(this.data);
-
         this.$wrapper.html("");
 
-        let count = columns.length;
+        let count = this.columnOrder.length;
 
         this.$wrapper.html(`Selected Columns: ${count}`);
     }

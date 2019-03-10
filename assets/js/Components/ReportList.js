@@ -52,6 +52,10 @@ class ReportList {
 
     activatePlugins() {
 
+        Pace.start({
+            target: '.js-main-content'
+        });
+
         this.table = $('#table_id').DataTable({
 
             "pageLength": 10,
@@ -60,6 +64,12 @@ class ReportList {
             "responsive": true,
             "language": {
                 "emptyTable": `No reports found.`,
+                "processing": `<div class="pace pace-inactive">
+                                <div class="pace-progress" data-progress-text="100%" data-progress="99" style="width: 100%;">
+                                <div class="pace-progress-inner"></div>
+                                </div>
+                                <div class="pace-activity"></div>
+                                </div>`
             },
             /*
             the "dom" property determines what components DataTables shows by default
@@ -80,7 +90,7 @@ class ReportList {
             "columns": [
                 { "data": "name", "name": "name", "title": "name", mRender: (data, type, row) => {
             return `
-                        ${row['name']} <span class="js-edit-report c-table__edit-button" data-report-id="${row['id']}"></span>
+                        ${row['name']} <span class="c-table__edit-button"><a href="${Routing.generate('edit_report', {'reportId' : row['id'], 'internalIdentifier' : this.portal})}" data-bypass="true" class="btn btn-primary btn-sm">Edit</a></span>
                         <span class="js-delete-report c-table__delete-button" data-report-id="${row['id']}"></span>
                     `;
                 }},
@@ -104,16 +114,12 @@ class ReportList {
                 contentType: "application/json; charset=utf-8"
             },
             "drawCallback": (settings)  => {
-                debugger;
-                this.addEditReportButton();
-                this.addDeleteReportButton();
-            }
-        });
-    }
 
-    addEditReportButton() {
-        this.$wrapper.find('.js-edit-report').each((index, element) => {
-            new EditCustomObjectButton($(element), this.globalEventDispatcher, this.portal, $(element).data('reportId'), "Edit");
+                this.addDeleteReportButton();
+            },
+            "initComplete": function () {
+                Pace.stop();
+            }
         });
     }
 
@@ -124,7 +130,6 @@ class ReportList {
             new DeleteReportButton($(element), this.globalEventDispatcher, this.portal, $(element).data('reportId'), "Delete");
         });
     }
-
 
     /**
      * @param args
