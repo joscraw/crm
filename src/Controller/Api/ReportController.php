@@ -334,4 +334,30 @@ class ReportController extends ApiController
 
         return $response;
     }
+
+    /**
+     * @Route("/{internalName}/report-preview", name="get_report_preview", methods={"GET"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param CustomObject $customObject
+     * @param Request $request
+     * @return Response
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    public function getReportPreviewAction(Portal $portal, CustomObject $customObject, Request $request) {
+
+        $data = $request->query->get('data', []);
+
+        $columnOrder = $request->query->get('columnOrder', []);
+
+        $results = $this->recordRepository->getReportData($data, $customObject, $columnOrder);
+
+        $response = new JsonResponse([
+            'success' => true,
+            'data'  => $results['results']
+        ], Response::HTTP_OK);
+
+        return $response;
+
+    }
+
 }

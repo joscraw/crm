@@ -28,6 +28,8 @@ import ReportSelectedColumnsCount from "./ReportSelectedColumnsCount";
 import ReportFilterList from "./ReportFilterList";
 import ReportSelectedCustomFilters from "./ReportSelectedCustomFilters";
 import ReportFilterNavigation from "./ReportFilterNavigation";
+import ReportPreviewResultsButton from "./ReportPreviewResultsButton";
+import ReportPreviewResultsTable from "./ReportPreviewResultsTable";
 
 class ReportFilters {
 
@@ -122,7 +124,9 @@ class ReportFilters {
             reportFilterNavigation: '.js-report-filter-navigation',
             backToReportPropertiesButton: '.js-back-to-report-properties-button',
             saveReportButton: '.js-save-report-button',
-            reportName: '.js-report-name'
+            reportName: '.js-report-name',
+            reportPreviewResultsButtonContainer: '.js-report-preview-results-button-container',
+            reportPreviewResultsTableContainer: '.js-report-preview-results-table-container'
 
         }
     }
@@ -297,21 +301,6 @@ class ReportFilters {
 
     }
 
-    handleCustomObjectForReportSelected(customObject) {
-
-        this.customObject = customObject;
-
-        this.$wrapper.find(ReportFilters._selectors.reportSelectCustomObjectContainer).addClass('d-none');
-        /*this.$wrapper.find(ReportFilters._selectors.reportSelectPropertyContainer).removeClass('d-none');*/
-
-        new ReportPropertyList($(ReportFilters._selectors.reportPropertyListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, customObject.internalName);
-
-        new ReportSelectedColumns(this.$wrapper.find(ReportFilters._selectors.reportSelectedColumnsContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.data);
-
-        new ReportSelectedColumnsCount(this.$wrapper.find(ReportFilters._selectors.reportSelectedColumnsCountContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.data);
-
-    }
-
     reportFilterItemAddedHandler() {
 
         this.$wrapper.find(ReportFilters._selectors.reportFilterNavigation).removeClass('d-none');
@@ -390,10 +379,10 @@ class ReportFilters {
 
         new ReportFilterNavigation($(ReportFilters._selectors.reportFilterNavigation), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, this.data);
 
-     /*   new ReportFilterList($(ReportFilters._selectors.reportFilterListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);
+        new ReportPreviewResultsButton($(ReportFilters._selectors.reportPreviewResultsButtonContainer), this.globalEventDispatcher);
 
-        new ReportSelectedCustomFilters($(ReportFilters._selectors.reportSelectedCustomFilters), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);
-*/
+        new ReportPreviewResultsTable($(ReportFilters._selectors.reportPreviewResultsTableContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);
+
     }
 
     static markup() {
@@ -430,9 +419,13 @@ class ReportFilters {
              <div class="col-md-6 js-property-form d-none"></div>
              <div class="col-md-6 js-edit-property-form d-none"></div>
             
-            <div class="col-md-6">
-                
-            </div> 
+            
+            <div class="col-md-6 js-report-preview-results-container">
+                <div class="col-md-12 js-report-preview-results-button-container"></div>
+                <br>
+                <div class="col-md-12 js-report-preview-results-table-container"></div>  
+            </div>
+             
             </div>
     `;
     }

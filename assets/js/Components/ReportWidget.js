@@ -114,6 +114,11 @@ class ReportWidget {
             this.handleReportColumnOrderChanged.bind(this)
         );
 
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.REPORT_PREVIEW_RESULTS_BUTTON_CLICKED,
+            this.handleReportPreviewResultsButtonClicked.bind(this)
+        );
+
         this.render();
     }
 
@@ -140,6 +145,17 @@ class ReportWidget {
         this._saveReport().then((data) => {
 
             swal("Woohoo!!!", "Report successfully saved.", "success");
+
+        });
+
+    }
+
+    handleReportPreviewResultsButtonClicked() {
+
+        this.loadReportPreview().then((data) => {
+
+            debugger;
+            this.globalEventDispatcher.publish(Settings.Events.REPORT_PREVIEW_RESULTS_LOADED, data.data, this.columnOrder);
 
         });
 
@@ -401,6 +417,26 @@ class ReportWidget {
             });
         });
 
+    }
+
+    loadReportPreview() {
+        return new Promise((resolve, reject) => {
+            debugger;
+
+            const url = Routing.generate('get_report_preview', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObject.internalName});
+
+            $.ajax({
+                url: url,
+                data: {data: this.data, columnOrder: this.columnOrder}
+            }).then(data => {
+                debugger;
+                resolve(data);
+            }).catch(jqXHR => {
+                debugger;
+                const errorData = JSON.parse(jqXHR.responseText);
+                reject(errorData);
+            });
+        });
     }
 
     static markup() {
