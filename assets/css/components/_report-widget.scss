@@ -1,0 +1,88 @@
+// -----------------------------------------------------------------------------
+// This file contains all styles related to the report widget.
+// -----------------------------------------------------------------------------
+
+
+.c-report-widget {
+
+}
+
+.c-report-widget__custom-object-card {
+  max-height: 500px;
+  overflow: auto;
+}
+
+.c-report-widget__selected-filters {
+  max-height: 500px;
+  overflow: auto;
+}
+
+.c-report-widget__filter-remove-icon {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  right: 10px;
+}
+
+.c-report-widget__nav {
+  margin-bottom: 50px;
+}
+
+.c-report-widget__header {
+  margin-bottom: 20px;
+}
+
+
+.c-report-widget__list {
+  margin-top: 20px;
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+.c-report-widget__property-list {
+  overflow-y: scroll;
+  height: 600px;
+}
+
+.c-report-widget__selected-columns {
+  overflow-y: scroll;
+  height: 600px;
+}
+
+
+.c-report-widget__list-item:hover {
+  background-color: $color-blue-94;
+}
+
+.c-report-widget__list-item--active {
+  background-color: $color-blue-94;
+}
+
+.c-report-widget__list-item {
+  cursor: pointer;
+  padding: 10px 10px 10px 10px;
+}
+
+.c-report-widget__remove-column-icon {
+  float: right;
+}
+
+.c-report-widget__card-body {
+  cursor: pointer;
+}
+
+.c-report-widget__report-name {
+
+  text-align: left !important;
+
+}
+
+/*
+.c-report-widget__preview-results-btn {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+*/

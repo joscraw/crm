@@ -11,7 +11,15 @@
         {% endblock %}
     </head>
     <body>
+   {# <div class="pace pace-inactive">
+        <div class="pace-progress" data-progress-text="100%" data-progress="99" style="width: 100%;">
+            <div class="pace-progress-inner"></div>
+        </div>
+        <div class="pace-activity"></div>
+    </div>#}
+    <div id="top-nav"></div>
     <div id="side-nav"></div>
+    <div id="modal-container"></div>
     <div id="app" class="container {% block containerComponent %}{% endblock %}" {% block containerComponentAttributes %}{% endblock %}></div>
 
     {% block javascripts %}

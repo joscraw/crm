@@ -31,7 +31,8 @@ todo figure out which libraries to load for datatables
   '~selectize/dist/css/selectize',
   'vendors/sweetalert2/override',
   'vendors/selectize/override',
-  'vendors-extensions/bootstrap';
+  'vendors-extensions/bootstrap',
+  'vendors/pace/_override';
 
 // 3. Base stuff
 @import
@@ -46,7 +47,8 @@ todo figure out which libraries to load for datatables
   'layout/footer',
   'layout/drawer',
   'layout/sidebar',
-  'layout/grid';
+  'layout/grid',
+  'layout/topbar';
 
 // 5. Components
 @import
@@ -59,7 +61,8 @@ todo figure out which libraries to load for datatables
   'components/modals',
   'components/search',
   'components/selectize',
-  'components/tab-nav';
+  'components/tab-nav',
+  'components/report-widget';
 
 // 6. Page-specific styles
 @import

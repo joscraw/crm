@@ -48,9 +48,15 @@ class Portal
      */
     private $customObjects;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Report", mappedBy="portal", orphanRemoval=true)
+     */
+    private $reports;
+
     public function __construct()
     {
         $this->customObjects = new ArrayCollection();
+        $this->reports = new ArrayCollection();
     }
 
     /**
@@ -99,6 +105,37 @@ class Portal
     public function setInternalIdentifier(string $internalIdentifier): self
     {
         $this->internalIdentifier = $internalIdentifier;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Report[]
+     */
+    public function getReports(): Collection
+    {
+        return $this->reports;
+    }
+
+    public function addReport(Report $report): self
+    {
+        if (!$this->reports->contains($report)) {
+            $this->reports[] = $report;
+            $report->setPortal($this);
+        }
+
+        return $this;
+    }
+
+    public function removeReport(Report $report): self
+    {
+        if ($this->reports->contains($report)) {
+            $this->reports->removeElement($report);
+            // set the owning side to null (unless already changed)
+            if ($report->getPortal() === $this) {
+                $report->setPortal(null);
+            }
+        }
 
         return $this;
     }

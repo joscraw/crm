@@ -80,6 +80,10 @@ class RecordTable {
         debugger;
         console.log(this.customFilters);
 
+        Pace.start({
+            target: '.js-record-table'
+        });
+
         $('#table_id thead').empty();
         $('#table_id tbody').empty();
 
@@ -114,6 +118,9 @@ class RecordTable {
                 data: {'customFilters': this.customFilters},
                 dataType: "json",
                 contentType: "application/json; charset=utf-8"
+            },
+            "initComplete": function () {
+                Pace.stop();
             }
         });
     }

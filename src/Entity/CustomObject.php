@@ -24,7 +24,7 @@ class CustomObject /*implements \JsonSerializable*/
     use TimestampableEntity;
 
     /**
-     * @Groups({"PROPERTY_FIELD_NORMALIZER", "PROPERTIES_FOR_FILTER"})
+     * @Groups({"PROPERTY_FIELD_NORMALIZER", "PROPERTIES_FOR_FILTER", "CUSTOM_OBJECTS_FOR_FILTER", "REPORT"})
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
@@ -32,7 +32,7 @@ class CustomObject /*implements \JsonSerializable*/
     private $id;
 
     /**
-     * @Groups({"PROPERTY_FIELD_NORMALIZER", "PROPERTIES_FOR_FILTER"})
+     * @Groups({"PROPERTY_FIELD_NORMALIZER", "PROPERTIES_FOR_FILTER", "CUSTOM_OBJECTS_FOR_FILTER", "REPORT"})
      * @Assert\NotBlank(message="Don't forget a label for your super cool sweeeeet Custom Object!", groups={"CREATE", "EDIT"})
      * @Assert\Regex("/^[a-zA-Z0-9_\s]*$/", message="Woah! Only use letters, numbers, underscores and spaces please!", groups={"CREATE", "EDIT"})
      *
@@ -43,7 +43,7 @@ class CustomObject /*implements \JsonSerializable*/
     private $label;
 
     /**
-     * @Groups({"PROPERTY_FIELD_NORMALIZER", "PROPERTIES_FOR_FILTER"})
+     * @Groups({"PROPERTY_FIELD_NORMALIZER", "PROPERTIES_FOR_FILTER", "CUSTOM_OBJECTS_FOR_FILTER", "REPORT"})
      *
      * internal name
      *
@@ -76,11 +76,17 @@ class CustomObject /*implements \JsonSerializable*/
      */
     private $records;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Report", mappedBy="customObject", orphanRemoval=true)
+     */
+    private $reports;
+
     public function __construct()
     {
         $this->properties = new ArrayCollection();
         $this->propertyGroups = new ArrayCollection();
         $this->records = new ArrayCollection();
+        $this->reports = new ArrayCollection();
     }
 
     /**
@@ -92,16 +98,6 @@ class CustomObject /*implements \JsonSerializable*/
             $this->internalName = strtolower(
                 preg_replace('/\s+/', '_', $this->getLabel())
             );
-        }
-    }
-
-    /**
-     * @ORM\PrePersist
-     */
-    public function setLabelValue()
-    {
-        if($this->label) {
-            $this->label = strtolower($this->label);
         }
     }
 
@@ -265,5 +261,36 @@ class CustomObject /*implements \JsonSerializable*/
 
     public function setId($id) {
         $this->id = $id;
+    }
+
+    /**
+     * @return Collection|Report[]
+     */
+    public function getReports(): Collection
+    {
+        return $this->reports;
+    }
+
+    public function addReport(Report $report): self
+    {
+        if (!$this->reports->contains($report)) {
+            $this->reports[] = $report;
+            $report->setCustomObject($this);
+        }
+
+        return $this;
+    }
+
+    public function removeReport(Report $report): self
+    {
+        if ($this->reports->contains($report)) {
+            $this->reports->removeElement($report);
+            // set the owning side to null (unless already changed)
+            if ($report->getCustomObject() === $this) {
+                $report->setCustomObject(null);
+            }
+        }
+
+        return $this;
     }
 }

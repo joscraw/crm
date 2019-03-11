@@ -63,7 +63,7 @@ class CustomObjectList {
             "serverSide": true,
             "responsive": true,
             "language": {
-                "emptyTable": `No "${this.customObjectLabel}" custom objects found.`,
+                "emptyTable": `No custom objects found.`,
             },
             /*
             the "dom" property determines what components DataTables shows by default

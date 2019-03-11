@@ -19,12 +19,12 @@ use Symfony\Component\Serializer\Annotation\Groups;
  * @CustomAssert\PropertyLabelAlreadyExists(groups={"CREATE", "EDIT"})
  * @CustomAssert\ChoiceField(groups={"CREATE", "EDIT"})
  */
-class Property /*implements \JsonSerializable*/
+class Property
 {
     use TimestampableEntity;
 
     /**
-     * @Groups({"PROPERTY_FIELD_NORMALIZER", "PROPERTIES_FOR_FILTER"})
+     * @Groups({"PROPERTY_FIELD_NORMALIZER", "PROPERTIES_FOR_FILTER", "PROPERTIES_FOR_REPORT"})
      *
      * @ORM\Id()
      * @ORM\GeneratedValue()
@@ -33,7 +33,7 @@ class Property /*implements \JsonSerializable*/
     private $id;
 
     /**
-     * @Groups({"PROPERTY_FIELD_NORMALIZER", "PROPERTIES_FOR_FILTER"})
+     * @Groups({"PROPERTY_FIELD_NORMALIZER", "PROPERTIES_FOR_FILTER", "PROPERTIES_FOR_REPORT"})
      *
      * @Assert\NotBlank(message="Don't forget a label for your new Property!", groups={"CREATE", "EDIT"})
      * @Assert\Regex("/^[a-zA-Z0-9_\s]*$/", message="Woah! Only use letters, numbers, underscores and spaces please!", groups={"CREATE", "EDIT"})
@@ -43,7 +43,7 @@ class Property /*implements \JsonSerializable*/
     private $label;
 
     /**
-     * @Groups({"PROPERTY_FIELD_NORMALIZER", "PROPERTIES_FOR_FILTER"})
+     * @Groups({"PROPERTY_FIELD_NORMALIZER", "PROPERTIES_FOR_FILTER", "PROPERTIES_FOR_REPORT"})
      *
      * @Assert\Regex("/^[a-zA-Z0-9_]*$/", message="Woah! Only use letters numbers and underscores please!", groups={"CREATE", "EDIT"})
      *
@@ -57,7 +57,7 @@ class Property /*implements \JsonSerializable*/
     private $description;
 
     /**
-     * @Groups({"PROPERTY_FIELD_NORMALIZER", "PROPERTIES_FOR_FILTER"})
+     * @Groups({"PROPERTY_FIELD_NORMALIZER", "PROPERTIES_FOR_FILTER", "PROPERTIES_FOR_REPORT"})
      *
      * @Assert\NotBlank(message="Don't forget to select a field type for your new Property!", groups={"CREATE", "EDIT"})
      * @Assert\Choice(callback="getValidFieldTypes")
@@ -67,7 +67,7 @@ class Property /*implements \JsonSerializable*/
     private $fieldType;
 
     /**
-     * @Groups({"PROPERTIES_FOR_FILTER"})
+     * @Groups({"PROPERTIES_FOR_FILTER", "PROPERTIES_FOR_REPORT"})
      *
      * @var AbstractField
      *
@@ -124,16 +124,6 @@ class Property /*implements \JsonSerializable*/
     {
         if(!$this->internalName) {
             $this->internalName = $this->getInternalNameValue();
-        }
-    }
-
-    /**
-     * @ORM\PrePersist
-     */
-    public function setLabelValue()
-    {
-        if($this->label) {
-            $this->label = strtolower($this->label);
         }
     }
 

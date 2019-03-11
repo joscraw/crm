@@ -24,6 +24,11 @@ class RecordRepository extends ServiceEntityRepository
 
     use ArrayHelper;
 
+    /**
+     * @var array
+     */
+    private $data = [];
+
     public function __construct(RegistryInterface $registry)
     {
         parent::__construct($registry, Record::class);
@@ -132,6 +137,111 @@ class RecordRepository extends ServiceEntityRepository
         $results = $stmt->fetchAll();
 
         return $results;
+    }
+
+    /**
+     * @param $data
+     * @param CustomObject $customObject
+     * @param $columnOrder
+     * @return array
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    public function getReportData($data, CustomObject $customObject, $columnOrder)
+    {
+
+        $this->data = $data;
+
+        // Setup fields for select
+        $resultStr = $this->fields($columnOrder);
+        $resultStr = implode(",",$resultStr);
+
+        // Setup Joins
+        $joins = [];
+        $joins = $this->joins($data, $joins);
+        $joinString = implode(" ", $joins);
+
+        // Setup Filters
+        $filters = [];
+        $filters = $this->filters($data, $filters);
+        $filterString = implode(" OR ", $filters);
+
+        $filterString = empty($filters) ? '' : "AND $filterString";
+
+        $query = sprintf("SELECT DISTINCT root.id, %s from record root %s WHERE root.custom_object_id='%s' %s", $resultStr, $joinString, $customObject->getId(), $filterString);
+
+        $em = $this->getEntityManager();
+        $stmt = $em->getConnection()->prepare($query);
+        $stmt->execute();
+        $results = $stmt->fetchAll();
+
+        return array(
+            "results"  => $results
+        );
+    }
+
+    /**
+     * @param $data
+     * @param CustomObject $customObject
+     * @param $columnOrder
+     * @return string
+     */
+    public function getReportMysqlOnly($data, CustomObject $customObject, $columnOrder)
+    {
+
+        $this->data = $data;
+
+        // Setup fields for select
+        $resultStr = $this->fields($columnOrder);
+        $resultStr = implode(",",$resultStr);
+
+        // Setup Joins
+        $joins = [];
+        $joins = $this->joins($data, $joins);
+        $joinString = implode(" ", $joins);
+
+        // Setup Filters
+        $filters = [];
+        $filters = $this->filters($data, $filters);
+        $filterString = implode(" OR ", $filters);
+
+        $filterString = empty($filters) ? '' : "AND $filterString";
+
+        $query = sprintf("SELECT DISTINCT root.id, %s from record root %s WHERE root.custom_object_id='%s' %s", $resultStr, $joinString, $customObject->getId(), $filterString);
+
+        return $query;
+    }
+
+    /**
+     * @param $data
+     * @param CustomObject $customObject
+     * @return array
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    public function getReportCount($data, CustomObject $customObject)
+    {
+
+        $this->data = $data;
+
+        // Setup Joins
+        $joins = [];
+        $joins = $this->joins($data, $joins);
+        $joinString = implode(" ", $joins);
+
+        // Setup Filters
+        $filters = [];
+        $filters = $this->filters($data, $filters);
+        $filterString = implode(" OR ", $filters);
+
+        $query = sprintf("SELECT count(rood.id) as count from record root %s WHERE root.custom_object_id='%s' AND %s", $resultStr, $joinString, $customObject->getId(), $filterString);
+
+        $em = $this->getEntityManager();
+        $stmt = $em->getConnection()->prepare($query);
+        $stmt->execute();
+        $results = $stmt->fetchAll();
+
+        return array(
+            "results"  => $results
+        );
     }
 
     /**
@@ -259,6 +369,109 @@ class RecordRepository extends ServiceEntityRepository
         return array(
             "results"  => $results
         );
+    }
+
+
+    private function fields($columnOrder)
+    {
+
+        $resultStr = [];
+
+        foreach($columnOrder as $column) {
+
+            switch($column['fieldType']) {
+
+                case FieldCatalog::DATE_PICKER:
+                    $jsonExtract = $this->getDatePickerQuery(implode(".", $column['joins']));
+                    $resultStr[] = sprintf($jsonExtract, $column['internalName'], $column['internalName'], $column['internalName'], $column['internalName']);
+                    break;
+                case FieldCatalog::SINGLE_CHECKBOX:
+                    $jsonExtract = $this->getSingleCheckboxQuery(implode(".", $column['joins']));
+                    $resultStr[] = sprintf($jsonExtract, $column['internalName'], $column['internalName'], $column['internalName'], $column['internalName'], $column['internalName'], $column['internalName']);
+                    break;
+                case FieldCatalog::NUMBER:
+                    $field = $column['field'];
+
+                    if($field['type'] === NumberField::$types['Currency']) {
+                        $jsonExtract = $this->getNumberIsCurrencyQuery(implode(".", $column['joins']));
+                        $resultStr[] = sprintf($jsonExtract, $column['internalName'], $column['internalName'], $column['internalName'], $column['internalName']);
+                    } elseif($field['type'] === NumberField::$types['Unformatted Number']) {
+                        $jsonExtract = $this->getNumberIsUnformattedQuery(implode(".", $column['joins']));
+                        $resultStr[] = sprintf($jsonExtract, $column['internalName'], $column['internalName'], $column['internalName'], $column['internalName']);
+                    }
+                    break;
+                default:
+                    $jsonExtract = $this->getDefaultQuery(implode(".", $column['joins']));
+                    $resultStr[] = sprintf($jsonExtract, $column['internalName'], $column['internalName'], $column['internalName'], $column['internalName']);
+                    break;
+
+            }
+
+        }
+
+        return $resultStr;
+
+    }
+
+    private function joins(&$data, &$joins = [], $lastJoin = null)
+    {
+
+        foreach ($data as $key => $value) {
+
+            // we aren't setting up filters now so skip those
+            if ($key === 'filters') {
+
+                continue;
+            } else if (!empty($data[$key]['uID'])) {
+
+                continue;
+            } else if ($key === 'root') {
+
+                $this->joins($data[$key], $joins, $key);
+
+            } else {
+
+                /*$joins[] = sprintf('INNER JOIN record %s on JSON_SEARCH(%s.properties->>\'$.%s\', \'one\', %s.id) IS NOT NULL', "root.$key", $lastJoin, $key, $lastJoin);*/
+
+                $newJoin = "$lastJoin.$key";
+
+                $joins[] = sprintf('LEFT JOIN record `%s` on `%s`.properties->>\'$.%s\' = `%s`.id', $newJoin, $lastJoin, $key, $newJoin);
+
+                $this->joins($data[$key], $joins, $newJoin);
+            }
+        }
+
+        return $joins;
+
+    }
+
+    private function filters(&$data, &$filters = [])
+    {
+        foreach ($data as $key => $value) {
+
+            // we aren't setting up filters now so skip those
+            if ($key !== 'filters' && empty($data[$key]['uID'])) {
+
+                $this->filters($data[$key], $filters);
+
+            } else if ($key === 'filters') {
+
+                foreach($data[$key] as $filter) {
+
+                    // We don't want to set up the OR conditioned filters quite yet
+                    if(!empty($filter['referencedFilterPath'])) {
+                        continue;
+                    }
+
+                    $filters[] = $this->getConditionForReport($filter, implode(".", $filter['joins']));
+
+                }
+
+            }
+        }
+
+        return $filters;
+
     }
 
 
@@ -593,6 +806,356 @@ class RecordRepository extends ServiceEntityRepository
     }
 
     /**
+     * @param $customFilter
+     * @param $alias
+     * @return string
+     */
+    private function getConditionForReport($customFilter, $alias) {
+
+        $query = '';
+        switch($customFilter['fieldType']) {
+            case 'number_field':
+                switch($customFilter['operator']) {
+                    case 'EQ':
+
+                        $value = number_format((float)$customFilter['value'], 2, '.', '');
+                        if(trim($customFilter['value']) === '') {
+                            $query = sprintf(' and IF(`%s`.properties->>\'$.%s\' IS NOT NULL, `%s`.properties->>\'$.%s\', \'\') = \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
+                        } else {
+                            $query = sprintf(' and IF(`%s`.properties->>\'$.%s\' IS NOT NULL, `%s`.properties->>\'$.%s\', \'\') = \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], $value);
+                        }
+
+                        break;
+                    case 'NEQ':
+
+                        $value = number_format((float)$customFilter['value'], 2, '.', '');
+                        if(trim($customFilter['value']) === '') {
+                            $query = sprintf(' and IF(`%s`.properties->>\'$.%s\' IS NOT NULL, `%s`.properties->>\'$.%s\', \'\') != \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
+                        } else {
+                            $query = sprintf(' and IF(`%s`.properties->>\'$.%s\' IS NOT NULL, `%s`.properties->>\'$.%s\', \'\') != \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], $value);
+                        }
+
+                        break;
+                    case 'LT':
+
+                        $value = number_format((float)$customFilter['value'], 2, '.', '');
+                        if(trim($customFilter['value']) === '') {
+                            // TODO revisit this one. how do you compare less than to an empty string? What should we do? Right now this is just returning 0 results
+                            $query = sprintf(' and IF(`%s`.properties->>\'$.%s\' IS NOT NULL, `%s`.properties->>\'$.%s\', \'\') < \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
+                        } else {
+                            $query = sprintf(' and IF(`%s`.properties->>\'$.%s\' IS NOT NULL, `%s`.properties->>\'$.%s\', null) < \'%s\' AND `%s`.properties->>\'$.%s\' != \'\' AND `%s`.properties->>\'$.%s\' IS NOT NULL', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], $value, $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
+                        }
+
+                        break;
+                    case 'GT':
+
+                        $value = number_format((float)$customFilter['value'], 2, '.', '');
+
+                        if(trim($customFilter['value']) === '') {
+                            // TODO revisit this one. how do you compare greater than to an empty string? What should we do? Right now this is just returning 0 results
+                            $query = sprintf(' and IF(`%s`.properties->>\'$.%s\' IS NOT NULL, `%s`.properties->>\'$.%s\', \'\') > \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
+                        } else {
+                            $query = sprintf(' and IF(`%s`.properties->>\'$.%s\' IS NOT NULL, `%s`.properties->>\'$.%s\', \'\') > \'%s\' AND `%s`.properties->>\'$.%s\' != \'\' AND `%s`.properties->>\'$.%s\' IS NOT NULL', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], $value, $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
+                        }
+
+                        break;
+                    case 'BETWEEN':
+
+                        if($customFilter['field']['type'] === NumberField::$types['Currency']) {
+                            $lowValue = number_format((float)$customFilter['low_value'], 2, '.', '');
+                            $highValue = number_format((float)$customFilter['high_value'], 2, '.', '');
+                        } else {
+                            $lowValue = $customFilter['low_value'];
+                            $highValue = $customFilter['high_value'];
+                        }
+
+                        if(trim($customFilter['low_value']) === '' || trim($customFilter['high_value']) === '') {
+                            // TODO revisit this one. IF the low value or high value is empty, what should we do? Right now this is just returning 0 results
+                            $query = sprintf(' and IF(`%s`.properties->>\'$.%s\' IS NOT NULL, `%s`.properties->>\'$.%s\', \'\') BETWEEN \'%s\' AND \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], '', '');
+                        } else {
+                            $query = sprintf(' and IF(`%s`.properties->>\'$.%s\' IS NOT NULL, `%s`.properties->>\'$.%s\', \'\') BETWEEN \'%s\' AND \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], $lowValue, $highValue);
+                        }
+
+                        break;
+                    case 'HAS_PROPERTY':
+
+                        $query = sprintf(' and (`%s`.properties->>\'$.%s\') is not null', $alias, $customFilter['internalName']);
+
+                        break;
+                    case 'NOT_HAS_PROPERTY':
+
+                        $query = sprintf(' and (`%s`.properties->>\'$.%s\') is null', $alias, $customFilter['internalName']);
+
+                        break;
+                }
+                break;
+            case 'single_line_text_field':
+            case 'multi_line_text_field':
+                switch($customFilter['operator']) {
+                    case 'EQ':
+
+                        if(trim($customFilter['value']) === '') {
+                            $query = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') = \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
+                        } else {
+                            $query = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') LIKE \'%%%s%%\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], strtolower($customFilter['value']));
+                        }
+
+                        break;
+                    case 'NEQ':
+
+                        if(trim($customFilter['value']) === '') {
+                            $query = sprintf(' and IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') != \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
+                        } else {
+                            $query = sprintf(' and IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') NOT LIKE \'%%%s%%\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], strtolower($customFilter['value']));
+                        }
+
+                        break;
+                    case 'HAS_PROPERTY':
+
+                        $query = sprintf(' and (`%s`.properties->>\'$.%s\') is not null', $alias, $customFilter['internalName']);
+
+                        break;
+                    case 'NOT_HAS_PROPERTY':
+
+                        $query = sprintf(' and (`%s`.properties->>\'$.%s\') is null', $alias, $customFilter['internalName']);
+
+                        break;
+                }
+                break;
+            case 'date_picker_field':
+                switch($customFilter['operator']) {
+                    case 'EQ':
+
+                        if(trim($customFilter['value']) === '') {
+                            $query = sprintf(' and IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), null) = \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
+                        } else {
+                            $query = sprintf(' and IF(DATE_FORMAT( CAST( JSON_UNQUOTE( `%s`.properties->>\'$.%s\' ) as DATETIME ), \'%%m-%%d-%%Y\' ), DATE_FORMAT( CAST( JSON_UNQUOTE( `%s`.properties->>\'$.%s\' ) as DATETIME ), \'%%m-%%d-%%Y\' ), \'\') = \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], $customFilter['value']);
+                        }
+
+                        break;
+                    case 'NEQ':
+
+                        if(trim($customFilter['value']) === '') {
+                            $query = sprintf(' and IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), null) != \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
+                        } else {
+                            $query = sprintf(' and IF(DATE_FORMAT( CAST( JSON_UNQUOTE( `%s`.properties->>\'$.%s\' ) as DATETIME ), \'%%m-%%d-%%Y\' ), DATE_FORMAT( CAST( JSON_UNQUOTE( `%s`.properties->>\'$.%s\' ) as DATETIME ), \'%%m-%%d-%%Y\' ), \'\') != \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], $customFilter['value']);
+                        }
+
+                        break;
+                    case 'LT':
+
+                        if(trim($customFilter['value']) === '') {
+                            // TODO revisit this one. how do you compare less than to an empty string? What should we do? Right now this is just returning 0 results
+                            $query = sprintf(' and IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') < \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
+                        } else {
+                            $query = sprintf(' and IF(DATE_FORMAT( CAST( JSON_UNQUOTE( `%s`.properties->>\'$.%s\' ) as DATETIME ), \'%%m-%%d-%%Y\' ), DATE_FORMAT( CAST( JSON_UNQUOTE( `%s`.properties->>\'$.%s\' ) as DATETIME ), \'%%m-%%d-%%Y\' ), null) < \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], $customFilter['value']);
+                        }
+
+                        break;
+                    case 'GT':
+
+                        if(trim($customFilter['value']) === '') {
+                            // TODO revisit this one. how do you compare greater than to an empty string? What should we do? Right now this is just returning 0 results
+                            $query = sprintf(' and IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') > \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
+                        } else {
+                            $query = sprintf(' and IF(DATE_FORMAT( CAST( JSON_UNQUOTE( `%s`.properties->>\'$.%s\' ) as DATETIME ), \'%%m-%%d-%%Y\' ), DATE_FORMAT( CAST( JSON_UNQUOTE( `%s`.properties->>\'$.%s\' ) as DATETIME ), \'%%m-%%d-%%Y\' ), null) > \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], $customFilter['value']);
+                        }
+
+                        break;
+
+                    case 'BETWEEN':
+
+                        if(trim($customFilter['low_value']) === '' || trim($customFilter['high_value']) === '') {
+                            // TODO revisit this one. IF the low value or high value is empty, what should we do? Right now this is just returning 0 results
+                            $query = sprintf(' and IF(`%s`.properties->>\'$.%s\' IS NOT NULL, `%s`.properties->>\'$.%s\', \'\') BETWEEN \'%s\' AND \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], '', '');
+                        } else {
+                            $query = sprintf(' and IF(DATE_FORMAT( CAST( JSON_UNQUOTE( `%s`.properties->>\'$.%s\' ) as DATETIME ), \'%%m-%%d-%%Y\' ), DATE_FORMAT( CAST( JSON_UNQUOTE( `%s`.properties->>\'$.%s\' ) as DATETIME ), \'%%m-%%d-%%Y\' ), null) BETWEEN \'%s\' AND \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], $customFilter['low_value'], $customFilter['high_value']);
+                        }
+
+                        break;
+
+                    case 'HAS_PROPERTY':
+
+                        $query = sprintf(' and (`%s`.properties->>\'$.%s\') is not null', $alias, $customFilter['internalName']);
+
+                        break;
+                    case 'NOT_HAS_PROPERTY':
+
+                        $query = sprintf(' and (`%s`.properties->>\'$.%s\') is null', $alias, $customFilter['internalName']);
+
+                        break;
+                }
+                break;
+            case 'single_checkbox_field':
+
+                switch($customFilter['operator']) {
+                    case 'IN':
+
+                        if(trim($customFilter['value']) === '') {
+                            $query = sprintf(' and IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), null) = \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
+                        } else {
+                            $values = explode(',', $customFilter['value']);
+                            if($values == ['0','1']) {
+                                $query = sprintf(' and IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') = \'%s\' OR IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') = \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], 'true', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], 'false');
+                            } elseif ($values == ['0']) {
+                                $query = sprintf(' and IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') = \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], 'false');
+                            } elseif ($values == ['1']) {
+                                $query = sprintf(' and IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') = \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], 'true');
+                            }
+                        }
+
+                        break;
+                    case 'NOT_IN':
+
+                        if(trim($customFilter['value']) === '') {
+                            $query = sprintf(' and IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), null) != \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
+                        } else {
+                            $values = explode(',', $customFilter['value']);
+                            if($values == ['0','1']) {
+                                $query = sprintf(' and IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') != \'%s\' AND IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') != \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], 'true', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], 'false');
+                            } elseif ($values == ['0']) {
+                                $query = sprintf(' and IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') != \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], 'false');
+                            } elseif ($values == ['1']) {
+                                $query = sprintf(' and IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') != \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], 'true');
+                            }
+                        }
+
+                        break;
+                    case 'HAS_PROPERTY':
+
+                        $query = sprintf(' and (`%s`.properties->>\'$.%s\') is not null', $alias, $customFilter['internalName']);
+
+                        break;
+                    case 'NOT_HAS_PROPERTY':
+
+                        $query = sprintf(' and (`%s`.properties->>\'$.%s\') is null', $alias, $customFilter['internalName']);
+
+                        break;
+
+                }
+                break;
+            case 'dropdown_select_field':
+            case 'radio_select_field':
+
+                switch($customFilter['operator']) {
+                    case 'IN':
+
+                        if(trim($customFilter['value']) === '') {
+                            $query = sprintf(' and IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), null) = \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
+                        } else {
+                            $values = explode(',', $customFilter['value']);
+
+                            $conditions = [];
+                            foreach($values as $value) {
+                                $conditions[] = sprintf(' IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') = \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], strtolower($value));
+                            }
+
+                            $query = ' and' . implode(" OR ", $conditions);
+                        }
+
+                        break;
+                    case 'NOT_IN':
+
+                        if(trim($customFilter['value']) === '') {
+                            $query = sprintf(' and IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), null) != \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
+                        } else {
+                            $values = explode(',', $customFilter['value']);
+
+                            $conditions = [];
+                            foreach($values as $value) {
+                                $conditions[] = sprintf(' IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') != \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], strtolower($value));
+                            }
+
+                            $query = ' and' . implode(" AND ", $conditions);
+                        }
+
+                        break;
+                    case 'HAS_PROPERTY':
+
+                        $query = sprintf(' and (`%s`.properties->>\'$.%s\') is not null', $alias, $customFilter['internalName']);
+
+                        break;
+                    case 'NOT_HAS_PROPERTY':
+
+                        $query = sprintf(' and (`%s`.properties->>\'$.%s\') is null', $alias, $customFilter['internalName']);
+
+                        break;
+
+                }
+                break;
+            case 'multiple_checkbox_field':
+
+                switch($customFilter['operator']) {
+                    case 'IN':
+
+                        if(trim($customFilter['value']) === '') {
+                            $query = sprintf(' and IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), null) = \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
+                        } else {
+                            $values = explode(',', $customFilter['value']);
+
+                            $conditions = [];
+                            foreach($values as $value) {
+                                $conditions[] = sprintf(' JSON_SEARCH(IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'[]\'), \'one\', \'%s\') IS NOT NULL', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], strtolower($value));
+                            }
+
+                            $query = ' and' . implode(" OR ", $conditions);
+                        }
+
+                        break;
+                    case 'NOT_IN':
+
+                        if(trim($customFilter['value']) === '') {
+                            $query = sprintf(' and IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), null) = \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
+                        } else {
+                            $values = explode(',', $customFilter['value']);
+
+                            $conditions = [];
+                            foreach($values as $value) {
+                                $conditions[] = sprintf(' JSON_SEARCH(IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'[]\'), \'one\', \'%s\') IS NULL', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], strtolower($value));
+                            }
+
+                            $query = ' and' . implode(" AND ", $conditions);
+                        }
+
+                        break;
+                    case 'HAS_PROPERTY':
+
+                        $query = sprintf(' and (`%s`.properties->>\'$.%s\') is not null', $alias, $customFilter['internalName']);
+
+                        break;
+                    case 'NOT_HAS_PROPERTY':
+
+                        $query = sprintf(' and (`%s`.properties->>\'$.%s\') is null', $alias, $customFilter['internalName']);
+
+                        break;
+                }
+                break;
+        }
+
+        // add any OR conditions
+
+        if(isset($customFilter['orFilters'])) {
+
+            $andFilters = [];
+
+            foreach($customFilter['orFilters'] as $orFilter) {
+
+                $filterPath = implode(".", $orFilter);
+
+                $filter = $this->getValueByDotNotation($filterPath, $this->data);
+
+                $andFilters[] = $this->getConditionForReport($filter, implode('.', $filter['joins']));
+            }
+
+            $query .= ' AND ' . implode(' AND ', $andFilters);
+
+            $query = sprintf('(%s)', $query);
+        }
+
+        return $query;
+    }
+
+    /**
      * @param CustomObject $customObject
      * @return mixed
      */
@@ -606,54 +1169,54 @@ class RecordRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    private function getDatePickerQuery() {
+    private function getDatePickerQuery($alias = 'r1') {
         return <<<HERE
     CASE 
-        WHEN r1.properties->>'$.%s' IS NULL THEN "-" 
-        WHEN r1.properties->>'$.%s' = '' THEN ""
-        ELSE DATE_FORMAT( CAST( JSON_UNQUOTE( r1.properties->>'$.%s' ) as DATETIME ), '%%m-%%d-%%Y' )
+        WHEN `${alias}`.properties->>'$.%s' IS NULL THEN "-" 
+        WHEN `${alias}`.properties->>'$.%s' = '' THEN ""
+        ELSE DATE_FORMAT( CAST( JSON_UNQUOTE( `${alias}`.properties->>'$.%s' ) as DATETIME ), '%%m-%%d-%%Y' )
     END AS "%s"
 HERE;
     }
 
-    private function getNumberIsCurrencyQuery() {
+    private function getNumberIsCurrencyQuery($alias = 'r1') {
         return <<<HERE
     CASE 
-        WHEN r1.properties->>'$.%s' IS NULL THEN "-" 
-        WHEN r1.properties->>'$.%s' = '' THEN ""
-        ELSE CAST( r1.properties->>'$.%s' AS DECIMAL(15,2) ) 
+        WHEN `${alias}`.properties->>'$.%s' IS NULL THEN "-" 
+        WHEN `${alias}`.properties->>'$.%s' = '' THEN ""
+        ELSE CAST( `${alias}`.properties->>'$.%s' AS DECIMAL(15,2) ) 
     END AS "%s"
 HERE;
     }
 
-    private function getNumberIsUnformattedQuery() {
+    private function getNumberIsUnformattedQuery($alias = 'r1') {
         return <<<HERE
     CASE
-        WHEN r1.properties->>'$.%s' IS NULL THEN "-" 
-        WHEN r1.properties->>'$.%s' = '' THEN ""
-        ELSE r1.properties->>'$.%s'
+        WHEN `${alias}`.properties->>'$.%s' IS NULL THEN "-" 
+        WHEN `${alias}`.properties->>'$.%s' = '' THEN ""
+        ELSE `${alias}`.properties->>'$.%s'
     END AS "%s"
 HERE;
     }
 
-    private function getDefaultQuery() {
+    private function getDefaultQuery($alias = 'r1') {
         return <<<HERE
     CASE
-        WHEN r1.properties->>'$.%s' IS NULL THEN "-" 
-        WHEN r1.properties->>'$.%s' = '' THEN ""
-        ELSE r1.properties->>'$.%s'
+        WHEN `${alias}`.properties->>'$.%s' IS NULL THEN "-" 
+        WHEN `${alias}`.properties->>'$.%s' = '' THEN ""
+        ELSE `${alias}`.properties->>'$.%s'
     END AS "%s"
 HERE;
     }
 
-    private function getSingleCheckboxQuery() {
+    private function getSingleCheckboxQuery($alias = 'r1') {
         return <<<HERE
     CASE
-        WHEN r1.properties->>'$.%s' IS NULL THEN "-" 
-        WHEN r1.properties->>'$.%s' = '' THEN ""
-        WHEN r1.properties->>'$.%s' = 'true' THEN "yes"
-        WHEN r1.properties->>'$.%s' = 'false' THEN "no"
-        ELSE r1.properties->>'$.%s'
+        WHEN `${alias}`.properties->>'$.%s' IS NULL THEN "-" 
+        WHEN `${alias}`.properties->>'$.%s' = '' THEN ""
+        WHEN `${alias}`.properties->>'$.%s' = 'true' THEN "yes"
+        WHEN `${alias}`.properties->>'$.%s' = 'false' THEN "no"
+        ELSE `${alias}`.properties->>'$.%s'
     END AS "%s"
 HERE;
     }

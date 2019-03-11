@@ -6,7 +6,7 @@ import CreateRecordButton from './CreateRecordButton';
 import CustomObjectNavigation from './CustomObjectNavigation';
 import DatatableSearch from "./DatatableSearch";
 import Dropdown from "./Dropdown";
-;
+
 
 
 class RecordListTopBar {

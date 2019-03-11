@@ -1,0 +1,16 @@
+{% extends 'baseNoNavBars.html.twig' %}
+
+{% block title %}Create Report{% endblock %}
+
+{% block containerComponent %}js-create-report{% endblock %}
+
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link href="{{ asset('build/report_settings.css') }}" rel="stylesheet" />
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('build/report_settings.js') }}"></script>
+{% endblock %}
