@@ -535,7 +535,7 @@ class ReportFilterNavigation {
                 <a class="nav-link active js-all-records-button" href="#">All Filters</a>
               </li>
               <li class="nav-item">
-                <div class="js-report-selected-custom-filters"></div>
+                <div class="js-report-selected-custom-filters c-report-widget__selected-filters"></div>
               </li>
               <li class="nav-item">
                 <button type="button" class="btn btn-link js-add-filter-button"><i class="fa fa-plus"></i> Add Filter</button>
@@ -560,7 +560,7 @@ const filterTemplate = (text, joinPath) => `
     <div class="card js-filter" data-join-path=${joinPath}>
         <div class="card-body">
         <h5 class="card-title">${text}</h5>     
-        <span><i class="fa fa-times js-remove-filter-icon c-column-editor__remove-icon" data-join-path=${joinPath} aria-hidden="true"></i></span>
+        <span><i class="fa fa-times js-remove-filter-icon c-report-widget__filter-remove-icon" data-join-path=${joinPath} aria-hidden="true"></i></span>
         </div>
     </div>
 `;

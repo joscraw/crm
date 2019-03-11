@@ -135,7 +135,7 @@ class ReportSelectCustomObject {
                          </div>
                      </div>
                      
-                     <div class="card card--center">
+                     <div class="card card--center c-report-widget__custom-object-card">
                          <div class="card-body">
                              <div id="listCustomObjects">
                                 <div class="input-group c-search-control">

@@ -7,6 +7,23 @@
 
 }
 
+.c-report-widget__custom-object-card {
+  max-height: 500px;
+  overflow: auto;
+}
+
+.c-report-widget__selected-filters {
+  max-height: 500px;
+  overflow: auto;
+}
+
+.c-report-widget__filter-remove-icon {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  right: 10px;
+}
+
 .c-report-widget__nav {
   margin-bottom: 50px;
 }

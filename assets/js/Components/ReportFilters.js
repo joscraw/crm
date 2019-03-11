@@ -413,7 +413,7 @@ class ReportFilters {
              </nav> 
         
             <div class="row container">
-            <div class="col-md-6 js-report-filter-navigation"></div>
+            <div class="col-md-6 js-report-filter-navigation c-report-widget__filter-navigation"></div>
              
              <div class="col-md-6 js-report-filter-list-container d-none"></div>
              <div class="col-md-6 js-property-form d-none"></div>
