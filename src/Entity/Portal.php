@@ -53,10 +53,22 @@ class Portal
      */
     private $reports;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\User", mappedBy="portal", orphanRemoval=true)
+     */
+    private $users;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Role", mappedBy="portal", orphanRemoval=true)
+     */
+    private $roles;
+
     public function __construct()
     {
         $this->customObjects = new ArrayCollection();
         $this->reports = new ArrayCollection();
+        $this->users = new ArrayCollection();
+        $this->roles = new ArrayCollection();
     }
 
     /**
@@ -134,6 +146,68 @@ class Portal
             // set the owning side to null (unless already changed)
             if ($report->getPortal() === $this) {
                 $report->setPortal(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|User[]
+     */
+    public function getUsers(): Collection
+    {
+        return $this->users;
+    }
+
+    public function addUser(User $user): self
+    {
+        if (!$this->users->contains($user)) {
+            $this->users[] = $user;
+            $user->setPortal($this);
+        }
+
+        return $this;
+    }
+
+    public function removeUser(User $user): self
+    {
+        if ($this->users->contains($user)) {
+            $this->users->removeElement($user);
+            // set the owning side to null (unless already changed)
+            if ($user->getPortal() === $this) {
+                $user->setPortal(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Role[]
+     */
+    public function getRoles(): Collection
+    {
+        return $this->roles;
+    }
+
+    public function addRole(Role $role): self
+    {
+        if (!$this->roles->contains($role)) {
+            $this->roles[] = $role;
+            $role->setPortal($this);
+        }
+
+        return $this;
+    }
+
+    public function removeRole(Role $role): self
+    {
+        if ($this->roles->contains($role)) {
+            $this->roles->removeElement($role);
+            // set the owning side to null (unless already changed)
+            if ($role->getPortal() === $this) {
+                $role->setPortal(null);
             }
         }
 

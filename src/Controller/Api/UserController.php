@@ -6,25 +6,32 @@ use App\Entity\CustomObject;
 use App\Entity\Portal;
 use App\Entity\Property;
 use App\Entity\PropertyGroup;
+use App\Entity\Role;
+use App\Entity\User;
 use App\Form\CustomObjectType;
 use App\Form\DeletePropertyType;
 use App\Form\EditPropertyType;
 use App\Form\PropertyGroupType;
 use App\Form\PropertyType;
+use App\Form\RoleType;
+use App\Form\UserType;
 use App\Model\FieldCatalog;
 use App\Repository\CustomObjectRepository;
 use App\Repository\PropertyGroupRepository;
 use App\Repository\PropertyRepository;
+use App\Repository\UserRepository;
 use App\Service\MessageGenerator;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Response;
 
 
+use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 use Symfony\Component\Serializer\Normalizer\GetSetMethodNormalizer;
 use Symfony\Component\Serializer\Serializer;
@@ -35,13 +42,13 @@ use Symfony\Component\Serializer\SerializerInterface;
 
 
 /**
- * Class PropertyController
+ * Class UserController
  * @package App\Controller\Api
  *
- * @Route("{internalIdentifier}/api/properties")
+ * @Route("{internalIdentifier}/api/users")
  *
  */
-class PropertyController extends ApiController
+class UserController extends ApiController
 {
     /**
      * @var EntityManagerInterface
@@ -64,66 +71,74 @@ class PropertyController extends ApiController
     private $propertyGroupRepository;
 
     /**
+     * @var UserRepository
+     */
+    private $userRepository;
+
+    /**
      * @var SerializerInterface
      */
     private $serializer;
 
     /**
-     * PropertyController constructor.
+     * @var UserPasswordEncoderInterface
+     */
+    private $passwordEncoder;
+
+    /**
+     * UserController constructor.
      * @param EntityManagerInterface $entityManager
      * @param CustomObjectRepository $customObjectRepository
      * @param PropertyRepository $propertyRepository
      * @param PropertyGroupRepository $propertyGroupRepository
+     * @param UserRepository $userRepository
      * @param SerializerInterface $serializer
+     * @param UserPasswordEncoderInterface $passwordEncoder
      */
     public function __construct(
         EntityManagerInterface $entityManager,
         CustomObjectRepository $customObjectRepository,
         PropertyRepository $propertyRepository,
         PropertyGroupRepository $propertyGroupRepository,
-        SerializerInterface $serializer
+        UserRepository $userRepository,
+        SerializerInterface $serializer,
+        UserPasswordEncoderInterface $passwordEncoder
     ) {
         $this->entityManager = $entityManager;
         $this->customObjectRepository = $customObjectRepository;
         $this->propertyRepository = $propertyRepository;
         $this->propertyGroupRepository = $propertyGroupRepository;
+        $this->userRepository = $userRepository;
         $this->serializer = $serializer;
+        $this->passwordEncoder = $passwordEncoder;
     }
 
 
     /**
-     * @Route("{internalName}/create", name="create_property", methods={"GET", "POST"}, options = { "expose" = true })
+     * @Route("/create", name="create_user", methods={"GET", "POST"}, options = { "expose" = true })
      * @param Portal $portal
-     * @param CustomObject $customObject
      * @param Request $request
      * @return JsonResponse
      */
-    public function createPropertyAction(Portal $portal, CustomObject $customObject, Request $request) {
+    public function createUserAction(Portal $portal, Request $request) {
 
-        $property = new Property();
-        $property->setCustomObject($customObject);
+        $user = new User();
 
-        $form = $this->createForm(PropertyType::class, $property, [
-            'portal' => $portal,
-            'customObject' => $customObject
-        ]);
+        $form = $this->createForm(UserType::class, $user);
+
+        $form->add('submit', SubmitType::class);
 
         $form->handleRequest($request);
 
-        $fieldHelpMessage = FieldCatalog::getOptionsForFieldType(FieldCatalog::SINGLE_LINE_TEXT)['description'];
-        if($property->getFieldType()) {
-            $fieldHelpMessage = FieldCatalog::getOptionsForFieldType($property->getFieldType())['description'];
-        }
-
         $formMarkup = $this->renderView(
-            'Api/form/property_form.html.twig',
+            'Api/form/user_form.html.twig',
             [
-                'form' => $form->createView(),
-                'fieldHelpMessage' => $fieldHelpMessage
+                'form' => $form->createView()
             ]
         );
 
         if ($form->isSubmitted() && !$form->isValid()) {
+
 
             if(!$form->isValid()) {
                 return new JsonResponse(
@@ -136,9 +151,14 @@ class PropertyController extends ApiController
         }
 
         if ($form->isSubmitted() && $form->isValid()) {
-            /** @var $property Property */
-            $property = $form->getData();
-            $this->entityManager->persist($property);
+            /** @var $user User */
+            $user = $form->getData();
+            $user->setPortal($portal);
+            $user->setPassword($this->passwordEncoder->encodePassword(
+                $user,
+                $user->getPassword()
+            ));
+            $this->entityManager->persist($user);
             $this->entityManager->flush();
         }
 
@@ -152,105 +172,35 @@ class PropertyController extends ApiController
     }
 
     /**
-     * @Route("/{internalName}/{propertyInternalName}/edit", name="edit_property", methods={"GET", "POST"}, options = { "expose" = true })
+     * @Route("/get-for-datatable", name="users_for_datatable", methods={"GET"}, options = { "expose" = true })
      * @param Portal $portal
-     * @param CustomObject $customObject
-     * @param Property $property
      * @param Request $request
      * @return JsonResponse
      */
-    public function editPropertyAction(Portal $portal, CustomObject $customObject, Property $property, Request $request) {
+    public function getUsersForDatatableAction(Portal $portal, Request $request) {
 
-        $property->setCustomObject($customObject);
+        $draw = intval($request->query->get('draw'));
+        $start = $request->query->get('start');
+        $length = $request->query->get('length');
+        $search = $request->query->get('search');
+        $orders = $request->query->get('order');
+        $columns = $request->query->get('columns');
 
-        $form = $this->createForm(EditPropertyType::class, $property, [
-            'portal' => $portal,
-            'customObject' => $customObject,
-            'property' => $property
-        ]);
+        $results = $this->userRepository->getDataTableData($portal, $start, $length, $search, $orders, $columns);
 
-        $form->handleRequest($request);
-
-        $fieldHelpMessage = FieldCatalog::getOptionsForFieldType(FieldCatalog::SINGLE_LINE_TEXT)['description'];
-        if($property->getFieldType()) {
-            $fieldHelpMessage = FieldCatalog::getOptionsForFieldType($property->getFieldType())['description'];
-        }
-
-        $formMarkup = $this->renderView(
-            'Api/form/property_form.html.twig',
-            [
-                'form' => $form->createView(),
-                'fieldHelpMessage' => $fieldHelpMessage
-            ]
-        );
-
-        if ($form->isSubmitted() && !$form->isValid()) {
-
-            if(!$form->isValid()) {
-                return new JsonResponse(
-                    [
-                        'success' => false,
-                        'formMarkup' => $formMarkup,
-                    ], Response::HTTP_BAD_REQUEST
-                );
-            }
-        }
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            /** @var $property Property */
-            $property = $form->getData();
-            $this->entityManager->persist($property);
-            $this->entityManager->flush();
-        }
-
-        return new JsonResponse(
-            [
-                'success' => true,
-                'formMarkup' => $formMarkup,
-            ],
-            Response::HTTP_OK
-        );
-    }
-
-    /**
-     * @Route("/{internalName}/get-for-datatable", name="properties_for_datatable", methods={"GET"}, options = { "expose" = true })
-     * @param Portal $portal
-     * @param CustomObject $customObject
-     * @param Request $request
-     * @return JsonResponse
-     */
-    public function getPropertiesForDatatableAction(Portal $portal, CustomObject $customObject, Request $request) {
-
-        $propertyGroups = $this->propertyGroupRepository->getPropertyGroupsAndProperties($customObject);
-        $payload = [];
-        $payload['property_groups'] = [];
-        $payload['properties']= [];
-
-        foreach($propertyGroups as $propertyGroup) {
-            $propertyGroupId = $propertyGroup->getId();
-            $payload['property_groups'][$propertyGroupId] = [
-                'id' => $propertyGroupId,
-                'label' => $propertyGroup->getName(),
-                'internalName' => $propertyGroup->getInternalName()
-            ];
-
-            $properties = $propertyGroup->getProperties();
-
-            foreach($properties as $property) {
-                $payload['properties'][$propertyGroupId][] = [
-                    'label' => $property->getLabel(),
-                    'internalName' => $property->getInternalName(),
-                    'id' => $property->getId()
-                ];
-            }
-        }
+        $totalReportCount = $this->userRepository->getTotalCount($portal);
+        $arrayResults = $results['arrayResults'];
+        $filteredReportCount = count($arrayResults);
 
         $response = new JsonResponse([
-            'success' => true,
-            'data'  => $payload
-        ], Response::HTTP_OK);
+            'draw'  => $draw,
+            'recordsFiltered' => !empty($search['value']) ? $filteredReportCount : $totalReportCount,
+            'recordsTotal'  => $totalReportCount,
+            'data'  => $arrayResults
+        ],  Response::HTTP_OK);
 
         return $response;
+
     }
 
     /**

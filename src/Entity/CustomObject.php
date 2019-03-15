@@ -293,4 +293,15 @@ class CustomObject /*implements \JsonSerializable*/
 
         return $this;
     }
+
+    public function getPermissions() {
+
+        $internalName = strtoupper($this->getInternalName());
+
+        return [
+            "CREATE_{$internalName}" => "CREATE_{$internalName}",
+            "EDIT_{$internalName}" => "EDIT_{$internalName}",
+            "DELETE_{$internalName}" => "DELETE_{$internalName}"
+        ];
+    }
 }

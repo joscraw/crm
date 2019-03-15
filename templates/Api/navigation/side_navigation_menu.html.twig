@@ -24,7 +24,7 @@
             </ul>
 
             <li>
-                <a data-bypass="true" href="{{ path('property_settings', {'internalIdentifier' : portal.internalIdentifier, 'internalName' : 'contact'}) }}">
+                <a data-bypass="true" href="{{ path('property_settings', {'internalIdentifier' : portal.internalIdentifier, 'internalName' : 'contacts'}) }}">
                     <i class="fa fa-cog fa-lg"></i> Properties
                 </a>
             </li>
@@ -32,6 +32,12 @@
             <li>
                 <a data-bypass="true" href="{{ path('report_settings', {'internalIdentifier' : portal.internalIdentifier}) }}">
                     <i class="fa fa-cog fa-lg"></i> Reports
+                </a>
+            </li>
+
+            <li>
+                <a data-bypass="true" href="{{ path('user_settings', {'internalIdentifier' : portal.internalIdentifier}) }}">
+                    <i class="fa fa-cog fa-lg"></i> Users
                 </a>
             </li>
 

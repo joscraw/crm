@@ -1,0 +1,15 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}User Settings!{% endblock %}
+
+{% block containerComponent %}js-user-settings{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link href="{{ asset('build/user_settings.css') }}" rel="stylesheet" />
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('build/user_settings.js') }}"></script>
+{% endblock %}
