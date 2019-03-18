@@ -134,6 +134,7 @@ class RoleController extends ApiController
     public function createRoleAction(Portal $portal, Request $request) {
 
         $role = new Role();
+        $role->setPortal($portal);
 
         $form = $this->createForm(RoleType::class, $role, [
             'portal' => $portal
@@ -164,7 +165,6 @@ class RoleController extends ApiController
 
             /** @var $role Role */
             $role = $form->getData();
-            $role->setPortal($portal);
             $this->entityManager->persist($role);
             $this->entityManager->flush();
         }
@@ -187,6 +187,8 @@ class RoleController extends ApiController
      */
     public function editRoleAction(Portal $portal, Request $request, Role $role)
     {
+
+        $role->setPortal($portal);
 
         $form = $this->createForm(RoleType::class, $role, [
             'portal' => $portal
@@ -217,7 +219,6 @@ class RoleController extends ApiController
 
             /** @var $role Role */
             $role = $form->getData();
-            $role->setPortal($portal);
             $this->entityManager->persist($role);
             $this->entityManager->flush();
         }

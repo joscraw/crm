@@ -8,6 +8,8 @@ import EditPropertyGroupButton from "./EditPropertyGroupButton";
 import DeletePropertyGroupButton from "./DeletePropertyGroupButton";
 import DeleteCustomObjectButton from "./DeleteCustomObjectButton";
 import DeletePropertyButton from "./DeletePropertyButton";
+import EditUserButton from "./EditUserButton";
+import DeleteUserButton from "./DeleteUserButton";
 
 require( 'datatables.net-bs4' );
 require( 'datatables.net-responsive-bs4' );
@@ -32,58 +34,29 @@ class UserList {
         this.searchValue = '';
         this.collapseStatus = {};
 
-
-
-/*        this.globalEventDispatcher.subscribe(
-            Settings.Events.PROPERTY_SETTINGS_TOP_BAR_SEARCH_KEY_UP,
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.USER_SETTINGS_TOP_BAR_SEARCH_KEY_UP,
             this.applySearch.bind(this)
         );
 
         this.globalEventDispatcher.subscribe(
-            Settings.Events.PROPERTY_GROUP_CREATED,
+            Settings.Events.USER_DELETED,
             this.redrawDataTable.bind(this)
         );
 
         this.globalEventDispatcher.subscribe(
-            Settings.Events.PROPERTY_CREATED,
+            Settings.Events.USER_CREATED,
             this.redrawDataTable.bind(this)
         );
 
         this.globalEventDispatcher.subscribe(
-            Settings.Events.PROPERTY_EDITED,
+            Settings.Events.USER_EDITED,
             this.redrawDataTable.bind(this)
         );
-
-        this.globalEventDispatcher.subscribe(
-            Settings.Events.PROPERTY_GROUP_EDITED,
-            this.redrawDataTable.bind(this)
-        );
-
-        this.globalEventDispatcher.subscribe(
-            Settings.Events.PROPERTY_GROUP_DELETED,
-            this.redrawDataTable.bind(this)
-        );
-
-        this.globalEventDispatcher.subscribe(
-            Settings.Events.PROPERTY_DELETED,
-            this.redrawDataTable.bind(this)
-        );
-
-        this.$wrapper.on('click',
-            PropertyList._selectors.collapseTitle,
-            this.handleTitleClick.bind(this)
-            );*/
-
-        /*this.loadUsers().then(data => {
-            debugger;
-            this.render(data);
-        })*/
-
 
         this.render().then(() => {
             this.activatePlugins();
         })
-
 
     }
 
@@ -136,8 +109,8 @@ class UserList {
                 { "data": "firstName", "name": "firstName", "title": "First Name", mRender: (data, type, row) => {
 
                         return `
-                        ${row['firstName']} <span class="c-table__edit-button js-edit-user-button"><button type="button" data-role-id="${row['id']}" class="btn btn-primary btn-sm">Edit</button></span>
-                        <span class="js-delete-user-button c-table__delete-button"><button type="button" data-role-id="${row['id']}" class="btn btn-primary btn-sm">Delete</button></span>
+                        ${row['firstName']} <span class="c-table__edit-button js-edit-user-button" data-user-id="${row['id']}"></span>
+                        <span class="js-delete-user-button c-table__delete-button" data-user-id="${row['id']}"></span>
                          `;
 
                     } },
@@ -149,7 +122,24 @@ class UserList {
                 type: "GET",
                 dataType: "json",
                 contentType: "application/json; charset=utf-8"
+            },
+            "drawCallback": (settings)  => {
+                this.addEditUserButton();
+                this.addDeleteUserButton();
             }
+        });
+    }
+
+    addEditUserButton() {
+        this.$wrapper.find('.js-edit-user-button').each((index, element) => {
+
+            new EditUserButton($(element), this.globalEventDispatcher, this.portalInternalIdentifier, $(element).data('userId'), "Edit");
+        });
+    }
+
+    addDeleteUserButton() {
+        this.$wrapper.find('.js-delete-user-button').each((index, element) => {
+            new DeleteUserButton($(element), this.globalEventDispatcher, this.portalInternalIdentifier, $(element).data('userId'), "Delete");
         });
     }
 
@@ -162,28 +152,15 @@ class UserList {
             this.searchValue = args.searchValue;
         }
 
-        $('table').DataTable().search(
+        $('#user_table').DataTable().search(
             this.searchValue
         ).draw();
 
-        this.$wrapper.find('.js-collapse').each((index, element) => {
-            if($(element).find('.dataTables_empty').length && this.searchValue !== '') {
-                $(element).addClass('is-disabled');
-
-            } else {
-                if($(element).hasClass('is-disabled')) {
-                    $(element).removeClass('is-disabled');
-                }
-            }
-        });
     }
 
     redrawDataTable() {
-        this.loadProperties().then(data => {
-            this.render(data);
-            this.applyCollapseStatus();
-            this.applySearch();
-        });
+        this.table.destroy();
+        this.activatePlugins();
     }
 
     render() {

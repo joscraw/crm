@@ -71,7 +71,15 @@ class UserRepository extends ServiceEntityRepository
         // Search
         if(!empty($search['value'])) {
             $searchItem = $search['value'];
-            $searchQuery = 'dt.name LIKE \'%'.$searchItem.'%\'';
+
+            $likes = [];
+
+            foreach($columns as $column) {
+                $likes[] = sprintf('dt.%s LIKE \'%%'.$searchItem.'%%\'', $column['data']);
+            }
+
+
+            $searchQuery = implode(" OR ", $likes);
         }
 
         if ($searchQuery) {

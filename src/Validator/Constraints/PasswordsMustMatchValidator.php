@@ -22,7 +22,7 @@ class PasswordsMustMatchValidator extends ConstraintValidator
     public function validate($protocol, Constraint $constraint)
     {
 
-        if (!empty($protocol->getPassword()) && !empty($protocol->getPasswordRepeat())) {
+        if (!empty($protocol->getPassword())) {
 
             if ($protocol->getPassword() !== $protocol->getPasswordRepeat()) {
 

@@ -8,8 +8,11 @@ use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Serializer\Annotation\Groups;
+use App\Validator\Constraints as CustomAssert;
+
 
 /**
+ * * @CustomAssert\RoleNameAlreadyExists()
  * @ORM\Entity(repositoryClass="App\Repository\RoleRepository")
  */
 class Role
@@ -29,6 +32,7 @@ class Role
     /**
      * @Groups({"ROLES_FOR_DATATABLE"})
      * @Assert\NotBlank(message="Don't forget a name for your brand new Role!")
+     * @Assert\Regex("/^[a-zA-Z0-9_]*$/", message="Woah! Only use letters numbers and underscores please!")
      * @ORM\Column(type="string", length=255)
      */
     private $name;

@@ -42,7 +42,7 @@ class UserSettingsTopBar {
           searchValue: searchValue
         };
 
-        this.globalEventDispatcher.publish(Settings.Events.PROPERTY_SETTINGS_TOP_BAR_SEARCH_KEY_UP, searchObject);
+        this.globalEventDispatcher.publish(Settings.Events.USER_SETTINGS_TOP_BAR_SEARCH_KEY_UP, searchObject);
     }
 
     render() {
@@ -51,12 +51,6 @@ class UserSettingsTopBar {
         new OpenRolesAndPermissionsModalButton(this.$wrapper.find('.js-top-bar-button-container'), this.globalEventDispatcher, this.portalInternalIdentifier);
         new OpenCreateUserModalButton(this.$wrapper.find('.js-top-bar-button-container'), this.globalEventDispatcher, this.portalInternalIdentifier);
 
-
-
-
-/*        new OpenCreatePropertyGroupModalButton(this.$wrapper.find('.js-top-bar-button-container'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);
-        new OpenCreatePropertyModalButton(this.$wrapper.find('.js-top-bar-button-container'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);
-        new CustomObjectNavigation(this.$wrapper.find('.js-custom-object-navigation'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);*/
     }
 
     static markup() {

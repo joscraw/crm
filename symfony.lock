@@ -149,6 +149,12 @@
     "psr/simple-cache": {
         "version": "1.0.1"
     },
+    "rollerworks/password-strength-bundle": {
+        "version": "v2.0.3"
+    },
+    "rollerworks/password-strength-validator": {
+        "version": "v1.1.5"
+    },
     "scienta/doctrine-json-functions": {
         "version": "4.0.0"
     },

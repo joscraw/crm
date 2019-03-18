@@ -8,10 +8,9 @@ use Symfony\Component\Validator\Constraint;
 /**
  * @Annotation
  */
-class PasswordsMustMatch extends Constraint
+class RoleNameAlreadyExists extends Constraint
 {
-    public $message = 'The passwords must match!';
-    public $passwordRepeatMessage = 'You must enter a password repeat!';
+    public $message = 'The role name "{{ string }}" is already in use!';
 
     public function getTargets()
     {

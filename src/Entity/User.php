@@ -10,10 +10,13 @@ use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 use App\Validator\Constraints as CustomAssert;
 use App\Validator\Constraints\PasswordsMustMatch;
+use Symfony\Component\Serializer\Annotation\Groups;
+use Rollerworks\Component\PasswordStrength\Validator\Constraints as RollerworksPassword;
+
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\UserRepository")
- * @CustomAssert\PasswordsMustMatch())
+ * @CustomAssert\PasswordsMustMatch(groups={"CREATE", "EDIT"})
  */
 class User implements UserInterface
 {
@@ -28,7 +31,7 @@ class User implements UserInterface
     private $id;
 
     /**
-     * @Assert\NotBlank(message="Don't forget an email for your user!")
+     * @Assert\NotBlank(message="Don't forget an email for your user!", groups={"CREATE", "EDIT"})
      * @ORM\Column(type="string", length=180, unique=true)
      */
     private $email;
@@ -39,7 +42,8 @@ class User implements UserInterface
     private $roles = [];
 
     /**
-     * @Assert\NotBlank(message="Don't forget a password for your user!")
+     * @RollerworksPassword\PasswordRequirements(requireLetters=true, requireNumbers=true, requireCaseDiff=true, requireSpecialCharacter= true, minLength = "6", groups={"CREATE", "EDIT"})
+     * @Assert\NotBlank(message="Don't forget a password for your user!", groups={"CREATE"})
      *
      * @var string The hashed password
      * @ORM\Column(type="string")
@@ -47,19 +51,20 @@ class User implements UserInterface
     private $password;
 
     /**
+     * @Assert\NotBlank(message="Don't forget the password repeat field!", groups={"CREATE"})
      * @var string password repeat
      */
     private $passwordRepeat;
 
     /**
-     * @Assert\NotBlank(message="Don't forget a first name for your user!")
+     * @Assert\NotBlank(message="Don't forget a first name for your user!", groups={"CREATE", "EDIT"})
      *
      * @ORM\Column(type="string", length=24)
      */
     private $firstName;
 
     /**
-     * @Assert\NotBlank(message="Don't forget a last name for your user!")
+     * @Assert\NotBlank(message="Don't forget a last name for your user!", groups={"CREATE", "EDIT"})
      *
      * @ORM\Column(type="string", length=24)
      */
@@ -83,7 +88,7 @@ class User implements UserInterface
 
     /**
      *
-     * @Assert\Count(min = 1, minMessage = "You must select at least one role!")
+     * @Assert\Count(min = 1, minMessage = "You must select at least one role!", groups={"CREATE", "EDIT"})
      *
      * @ORM\ManyToMany(targetEntity="App\Entity\Role", inversedBy="users")
      */

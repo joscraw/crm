@@ -25,10 +25,10 @@ use Symfony\Component\Form\FormEvents;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 /**
- * Class UserType
+ * Class EditUserType
  * @package App\Form\User
  */
-class UserType extends AbstractType
+class EditUserType extends AbstractType
 {
     /**
      * @param FormBuilderInterface $builder
@@ -81,7 +81,7 @@ class UserType extends AbstractType
     {
         $resolver->setDefaults(array(
             'data_class' => User::class,
-            'validation_groups' => ['CREATE'],
+            'validation_groups' => ['EDIT'],
         ));
 
     }
