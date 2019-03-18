@@ -184,9 +184,6 @@ class PropertyController extends ApiController
             ]
         );
 
-
-        $j = $form->getData();
-
         if ($form->isSubmitted() && !$form->isValid()) {
 
             if(!$form->isValid()) {

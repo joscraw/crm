@@ -1,0 +1,15 @@
+{% form_theme form 'bootstrap_4_layout.html.twig' %}
+
+
+
+{{ form_start(form, {'attr': {class: 'js-new-user-form', novalidate: 'novalidate'}}) }}
+{{ form_row(form.firstName, {'attr': {autofocus: 'autofocus'}}) }}
+{{ form_row(form.lastName, {'attr': {autofocus: 'autofocus'}}) }}
+{{ form_row(form.email, {'attr': {autofocus: 'autofocus'}}) }}
+{{ form_row(form.password, {'attr': {autofocus: 'autofocus'}}) }}
+{{ form_row(form.passwordRepeat, {'attr': {autofocus: 'autofocus'}}) }}
+{{ form_row(form.customRoles, {'attr': {autofocus: 'autofocus'}}) }}
+
+<br>
+{{ form_rest(form) }}
+{{ form_end(form) }}

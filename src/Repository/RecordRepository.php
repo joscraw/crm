@@ -351,7 +351,7 @@ class RecordRepository extends ServiceEntityRepository
         foreach ($orders as $key => $order) {
 
                 if(isset($order['name'])) {
-                    $query .= ' ORDER BY ' . $order['name'];
+                    $query .= " ORDER BY {$order['name']}";
                 }
 
                 $query .= ' ' . $order['dir'];

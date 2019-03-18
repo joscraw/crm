@@ -1,0 +1,12 @@
+{% form_theme form 'bootstrap_4_layout.html.twig' %}
+
+
+
+{{ form_start(form, {'attr': {class: 'js-new-role-form', novalidate: 'novalidate'}}) }}
+{{ form_row(form.name, {'attr': {autofocus: 'autofocus'}}) }}
+{{ form_row(form.objectPermissions, {'attr': {autofocus: 'autofocus'}}) }}
+{{ form_row(form.systemPermissions, {'attr': {autofocus: 'autofocus'}}) }}
+
+<br>
+{{ form_rest(form) }}
+{{ form_end(form) }}

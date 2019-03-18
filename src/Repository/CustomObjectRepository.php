@@ -80,19 +80,10 @@ class CustomObjectRepository extends ServiceEntityRepository
         foreach ($orders as $key => $order) {
             // $order['name'] is the name of the order column as sent by the JS
             if ($order['name'] != '') {
-                $orderColumn = null;
 
-                switch($order['name']) {
-                    case 'label':
-                        $orderColumn = 'dt.label';
-                        break;
-                    case 'createdAt':
-                        $orderColumn = 'dt.createdAt';
-                        break;
-                }
-                if ($orderColumn !== null) {
-                    $query->orderBy($orderColumn, $order['dir']);
-                }
+                $orderColumn = "dt.{$order['name']}";
+
+                $query->orderBy($orderColumn, $order['dir']);
             }
         }
 
