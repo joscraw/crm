@@ -6,6 +6,7 @@ import EditCustomObjectButton from "./EditCustomObjectButton";
 import $ from "jquery";
 import DeleteCustomObjectButton from "./DeleteCustomObjectButton";
 import DeletePropertyButton from "./DeletePropertyButton";
+import swal from "sweetalert2";
 
 require( 'datatables.net-bs4' );
 require( 'datatables.net-responsive-bs4' );
@@ -122,6 +123,13 @@ class RolesList {
                 this.activatePlugins(data.data);
             });
 
+        }).catch((errorData) => {
+
+            if(errorData.httpCode === 401) {
+                swal("Woah!", `You don't have proper permissions for this!`, "error");
+                return;
+            }
+
         });
 
     }
@@ -209,6 +217,7 @@ class RolesList {
                 resolve(data);
             }).catch((jqXHR) => {
                 const errorData = JSON.parse(jqXHR.responseText);
+                errorData.httpCode = jqXHR.status;
                 reject(errorData);
             });
         });

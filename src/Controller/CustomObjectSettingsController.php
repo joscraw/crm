@@ -2,8 +2,10 @@
 
 namespace App\Controller;
 
+use App\AuthorizationHandler\PermissionAuthorizationHandler;
 use App\Entity\CustomObject;
 use App\Entity\Portal;
+use App\Entity\Role;
 use App\Form\CustomObjectType;
 use App\Form\DeleteCustomObjectType;
 use App\Form\EditCustomObjectType;
@@ -43,10 +45,25 @@ class CustomObjectSettingsController extends AbstractController
      */
     private $customObjectRepository;
 
-    public function __construct(EntityManagerInterface $entityManager, CustomObjectRepository $customObjectRepository)
-    {
+    /**
+     * @var PermissionAuthorizationHandler
+     */
+    private $permissionAuthorizationHandler;
+
+    /**
+     * CustomObjectSettingsController constructor.
+     * @param EntityManagerInterface $entityManager
+     * @param CustomObjectRepository $customObjectRepository
+     * @param PermissionAuthorizationHandler $permissionAuthorizationHandler
+     */
+    public function __construct(
+        EntityManagerInterface $entityManager,
+        CustomObjectRepository $customObjectRepository,
+        PermissionAuthorizationHandler $permissionAuthorizationHandler
+    ) {
         $this->entityManager = $entityManager;
         $this->customObjectRepository = $customObjectRepository;
+        $this->permissionAuthorizationHandler = $permissionAuthorizationHandler;
     }
 
     /**
@@ -181,6 +198,20 @@ class CustomObjectSettingsController extends AbstractController
     public function deleteCustomObjectAction(Portal $portal, Request $request, CustomObject $customObject)
     {
 
+        $hasPermission = $this->permissionAuthorizationHandler->isAuthorized(
+            $this->getUser(),
+            Role::DELETE_CUSTOM_OBJECT,
+            Role::SYSTEM_PERMISSION
+        );
+
+        if(!$hasPermission) {
+            return new JsonResponse(
+                [
+                    'success' => false,
+                ], Response::HTTP_UNAUTHORIZED
+            );
+        }
+
         $form = $this->createForm(DeleteCustomObjectType::class, $customObject);
 
         $form->handleRequest($request);
@@ -225,6 +256,20 @@ class CustomObjectSettingsController extends AbstractController
     public function editCustomObjectAction(Portal $portal, Request $request, CustomObject $customObject)
     {
 
+        $hasPermission = $this->permissionAuthorizationHandler->isAuthorized(
+            $this->getUser(),
+            Role::EDIT_CUSTOM_OBJECT,
+            Role::SYSTEM_PERMISSION
+        );
+
+        if(!$hasPermission) {
+            return new JsonResponse(
+                [
+                    'success' => false,
+                ], Response::HTTP_UNAUTHORIZED
+            );
+        }
+
         $form = $this->createForm(EditCustomObjectType::class, $customObject);
 
         $form->handleRequest($request);
@@ -266,6 +311,21 @@ class CustomObjectSettingsController extends AbstractController
      */
     public function createCustomObjectAction(Portal $portal, Request $request)
     {
+
+        $hasPermission = $this->permissionAuthorizationHandler->isAuthorized(
+            $this->getUser(),
+            Role::CREATE_CUSTOM_OBJECT,
+            Role::SYSTEM_PERMISSION
+        );
+
+        if(!$hasPermission) {
+            return new JsonResponse(
+                [
+                    'success' => false,
+                ], Response::HTTP_UNAUTHORIZED
+            );
+        }
+
         $customObject = new CustomObject();
         $customObject->setPortal($portal);
 

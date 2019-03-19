@@ -2,6 +2,7 @@
 
 namespace App\Controller\Api;
 
+use App\AuthorizationHandler\PermissionAuthorizationHandler;
 use App\Entity\CustomObject;
 use App\Entity\Portal;
 use App\Entity\Property;
@@ -78,6 +79,11 @@ class RoleController extends ApiController
     private $serializer;
 
     /**
+     * @var PermissionAuthorizationHandler
+     */
+    private $permissionAuthorizationHandler;
+
+    /**
      * RoleController constructor.
      * @param EntityManagerInterface $entityManager
      * @param CustomObjectRepository $customObjectRepository
@@ -85,6 +91,7 @@ class RoleController extends ApiController
      * @param PropertyGroupRepository $propertyGroupRepository
      * @param RoleRepository $roleRepository
      * @param SerializerInterface $serializer
+     * @param PermissionAuthorizationHandler $permissionAuthorizationHandler
      */
     public function __construct(
         EntityManagerInterface $entityManager,
@@ -92,7 +99,8 @@ class RoleController extends ApiController
         PropertyRepository $propertyRepository,
         PropertyGroupRepository $propertyGroupRepository,
         RoleRepository $roleRepository,
-        SerializerInterface $serializer
+        SerializerInterface $serializer,
+        PermissionAuthorizationHandler $permissionAuthorizationHandler
     ) {
         $this->entityManager = $entityManager;
         $this->customObjectRepository = $customObjectRepository;
@@ -100,8 +108,8 @@ class RoleController extends ApiController
         $this->propertyGroupRepository = $propertyGroupRepository;
         $this->roleRepository = $roleRepository;
         $this->serializer = $serializer;
+        $this->permissionAuthorizationHandler = $permissionAuthorizationHandler;
     }
-
 
     /**
      * @Route("/get-for-datatable", name="roles_for_datatable", methods={"GET"}, options = { "expose" = true })
@@ -150,6 +158,24 @@ class RoleController extends ApiController
                 'form' => $form->createView()
             ]
         );
+
+        if($form->isSubmitted()) {
+
+            $hasPermission = $this->permissionAuthorizationHandler->isAuthorized(
+                $this->getUser(),
+                Role::CREATE_ROLE,
+                Role::SYSTEM_PERMISSION
+            );
+
+            if(!$hasPermission) {
+                return new JsonResponse(
+                    [
+                        'success' => false,
+                    ], Response::HTTP_UNAUTHORIZED
+                );
+            }
+
+        }
 
         if ($form->isSubmitted() && !$form->isValid()) {
 
@@ -205,6 +231,24 @@ class RoleController extends ApiController
             ]
         );
 
+        if($form->isSubmitted()) {
+
+            $hasPermission = $this->permissionAuthorizationHandler->isAuthorized(
+                $this->getUser(),
+                Role::EDIT_ROLE,
+                Role::SYSTEM_PERMISSION
+            );
+
+            if(!$hasPermission) {
+                return new JsonResponse(
+                    [
+                        'success' => false,
+                    ], Response::HTTP_UNAUTHORIZED
+                );
+            }
+
+        }
+
         if ($form->isSubmitted() && !$form->isValid()) {
 
             return new JsonResponse(
@@ -241,6 +285,20 @@ class RoleController extends ApiController
      */
     public function deleteRoleAction(Portal $portal, Request $request, Role $role)
     {
+
+        $hasPermission = $this->permissionAuthorizationHandler->isAuthorized(
+            $this->getUser(),
+            Role::DELETE_ROLE,
+            Role::SYSTEM_PERMISSION
+        );
+
+        if(!$hasPermission) {
+            return new JsonResponse(
+                [
+                    'success' => false,
+                ], Response::HTTP_UNAUTHORIZED
+            );
+        }
 
         $this->entityManager->remove($role);
         $this->entityManager->flush();

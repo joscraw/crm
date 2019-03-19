@@ -2,6 +2,7 @@
 
 namespace App\Controller\Api;
 
+use App\AuthorizationHandler\PermissionAuthorizationHandler;
 use App\Entity\CustomObject;
 use App\Entity\Portal;
 use App\Entity\Property;
@@ -88,6 +89,11 @@ class UserController extends ApiController
     private $passwordEncoder;
 
     /**
+     * @var PermissionAuthorizationHandler
+     */
+    private $permissionAuthorizationHandler;
+
+    /**
      * UserController constructor.
      * @param EntityManagerInterface $entityManager
      * @param CustomObjectRepository $customObjectRepository
@@ -96,6 +102,7 @@ class UserController extends ApiController
      * @param UserRepository $userRepository
      * @param SerializerInterface $serializer
      * @param UserPasswordEncoderInterface $passwordEncoder
+     * @param PermissionAuthorizationHandler $permissionAuthorizationHandler
      */
     public function __construct(
         EntityManagerInterface $entityManager,
@@ -104,7 +111,8 @@ class UserController extends ApiController
         PropertyGroupRepository $propertyGroupRepository,
         UserRepository $userRepository,
         SerializerInterface $serializer,
-        UserPasswordEncoderInterface $passwordEncoder
+        UserPasswordEncoderInterface $passwordEncoder,
+        PermissionAuthorizationHandler $permissionAuthorizationHandler
     ) {
         $this->entityManager = $entityManager;
         $this->customObjectRepository = $customObjectRepository;
@@ -113,8 +121,8 @@ class UserController extends ApiController
         $this->userRepository = $userRepository;
         $this->serializer = $serializer;
         $this->passwordEncoder = $passwordEncoder;
+        $this->permissionAuthorizationHandler = $permissionAuthorizationHandler;
     }
-
 
     /**
      * @Route("/create", name="create_user", methods={"GET", "POST"}, options = { "expose" = true })
@@ -139,6 +147,24 @@ class UserController extends ApiController
             ]
         );
 
+        if($form->isSubmitted()) {
+
+            $hasPermission = $this->permissionAuthorizationHandler->isAuthorized(
+                $this->getUser(),
+                Role::CREATE_USER,
+                Role::SYSTEM_PERMISSION
+            );
+
+            if(!$hasPermission) {
+                return new JsonResponse(
+                    [
+                        'success' => false,
+                    ], Response::HTTP_UNAUTHORIZED
+                );
+            }
+
+        }
+
         if ($form->isSubmitted() && !$form->isValid()) {
 
 
@@ -160,6 +186,7 @@ class UserController extends ApiController
                 $user,
                 $user->getPassword()
             ));
+            $user->setRoles([User::ROLE_ADMIN_USER]);
             $this->entityManager->persist($user);
             $this->entityManager->flush();
         }
@@ -182,6 +209,7 @@ class UserController extends ApiController
      */
     public function editUserAction(Portal $portal, User $user, Request $request) {
 
+
         $form = $this->createForm(EditUserType::class, $user);
 
         $form->add('submit', SubmitType::class);
@@ -194,6 +222,24 @@ class UserController extends ApiController
                 'form' => $form->createView()
             ]
         );
+
+        if($form->isSubmitted()) {
+
+            $hasPermission = $this->permissionAuthorizationHandler->isAuthorized(
+                $this->getUser(),
+                Role::EDIT_USER,
+                Role::SYSTEM_PERMISSION
+            );
+
+            if(!$hasPermission) {
+                return new JsonResponse(
+                    [
+                        'success' => false,
+                    ], Response::HTTP_UNAUTHORIZED
+                );
+            }
+
+        }
 
         if ($form->isSubmitted() && !$form->isValid()) {
 
@@ -261,6 +307,20 @@ class UserController extends ApiController
      */
     public function deleteUserAction(Portal $portal, User $user, Request $request)
     {
+
+        $hasPermission = $this->permissionAuthorizationHandler->isAuthorized(
+            $this->getUser(),
+            Role::DELETE_USER,
+            Role::SYSTEM_PERMISSION
+        );
+
+        if(!$hasPermission) {
+            return new JsonResponse(
+                [
+                    'success' => false,
+                ], Response::HTTP_UNAUTHORIZED
+            );
+        }
 
         $form = $this->createForm(DeleteUserType::class, $user);
 

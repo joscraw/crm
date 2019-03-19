@@ -69,10 +69,15 @@ class DeleteUserForm {
                 this.globalEventDispatcher.publish(Settings.Events.USER_DELETED);
             }).catch((errorData) => {
 
-            this.$wrapper.html(errorData.formMarkup);
+                if(errorData.httpCode === 401) {
+                    swal("Woah!", `You don't have proper permissions for this!`, "error");
+                    return;
+                }
 
-            // Use for when the form is being generated on the JS side
-            /*this._mapErrorsToForm(errorData.errors);*/
+                this.$wrapper.html(errorData.formMarkup);
+
+                // Use for when the form is being generated on the JS side
+                /*this._mapErrorsToForm(errorData.errors);*/
         });
     }
 
@@ -97,6 +102,7 @@ class DeleteUserForm {
                 resolve(data);
             }).catch((jqXHR) => {
                 const errorData = JSON.parse(jqXHR.responseText);
+                errorData.httpCode = jqXHR.status;
                 reject(errorData);
             });
         });

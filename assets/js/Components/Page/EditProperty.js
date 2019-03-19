@@ -9,6 +9,7 @@ import CustomObjectSettingsTopBar from "../CustomObjectSettingsTopBar";
 import CustomObjectList from "../CustomObjectList";
 import PropertyCreateForm from "../PropertyCreateForm";
 import PropertyEditForm from "../PropertyEditForm";
+import EditPropertyTopBar from "../EditPropertyTopBar";
 
 
 class EditProperty {
@@ -36,9 +37,7 @@ class EditProperty {
 
         debugger;
         new PropertyEditForm($('.js-main-content'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, this.propertyInternalName);
-
-/*        new PropertySettingsTopBar(this.$wrapper.find('.js-top-bar'), this.globalEventDispatcher, this.portal, this.customObject);
-        new PropertyList(this.$wrapper.find('.js-main-content'), this.globalEventDispatcher, this.portal, this.customObject, this.customObjectInternalName);*/
+        new EditPropertyTopBar(this.$wrapper.find('.js-top-bar'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, this.propertyInternalName);
 
     }
 

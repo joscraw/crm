@@ -2,10 +2,12 @@
 
 namespace App\Controller\Api;
 
+use App\AuthorizationHandler\PermissionAuthorizationHandler;
 use App\Entity\CustomObject;
 use App\Entity\Portal;
 use App\Entity\Property;
 use App\Entity\PropertyGroup;
+use App\Entity\Role;
 use App\Form\CustomObjectType;
 use App\Form\DeletePropertyType;
 use App\Form\EditPropertyType;
@@ -69,27 +71,34 @@ class PropertyController extends ApiController
     private $serializer;
 
     /**
+     * @var PermissionAuthorizationHandler
+     */
+    private $permissionAuthorizationHandler;
+
+    /**
      * PropertyController constructor.
      * @param EntityManagerInterface $entityManager
      * @param CustomObjectRepository $customObjectRepository
      * @param PropertyRepository $propertyRepository
      * @param PropertyGroupRepository $propertyGroupRepository
      * @param SerializerInterface $serializer
+     * @param PermissionAuthorizationHandler $permissionAuthorizationHandler
      */
     public function __construct(
         EntityManagerInterface $entityManager,
         CustomObjectRepository $customObjectRepository,
         PropertyRepository $propertyRepository,
         PropertyGroupRepository $propertyGroupRepository,
-        SerializerInterface $serializer
+        SerializerInterface $serializer,
+        PermissionAuthorizationHandler $permissionAuthorizationHandler
     ) {
         $this->entityManager = $entityManager;
         $this->customObjectRepository = $customObjectRepository;
         $this->propertyRepository = $propertyRepository;
         $this->propertyGroupRepository = $propertyGroupRepository;
         $this->serializer = $serializer;
+        $this->permissionAuthorizationHandler = $permissionAuthorizationHandler;
     }
-
 
     /**
      * @Route("{internalName}/create", name="create_property", methods={"GET", "POST"}, options = { "expose" = true })
@@ -122,6 +131,24 @@ class PropertyController extends ApiController
                 'fieldHelpMessage' => $fieldHelpMessage
             ]
         );
+
+        if($form->isSubmitted()) {
+
+            $hasPermission = $this->permissionAuthorizationHandler->isAuthorized(
+                $this->getUser(),
+                Role::CREATE_PROPERTY,
+                Role::SYSTEM_PERMISSION
+            );
+
+            if(!$hasPermission) {
+                return new JsonResponse(
+                    [
+                        'success' => false,
+                    ], Response::HTTP_UNAUTHORIZED
+                );
+            }
+
+        }
 
         if ($form->isSubmitted() && !$form->isValid()) {
 
@@ -183,6 +210,24 @@ class PropertyController extends ApiController
                 'fieldHelpMessage' => $fieldHelpMessage
             ]
         );
+
+        if($form->isSubmitted()) {
+
+            $hasPermission = $this->permissionAuthorizationHandler->isAuthorized(
+                $this->getUser(),
+                Role::EDIT_PROPERTY,
+                Role::SYSTEM_PERMISSION
+            );
+
+            if(!$hasPermission) {
+                return new JsonResponse(
+                    [
+                        'success' => false,
+                    ], Response::HTTP_UNAUTHORIZED
+                );
+            }
+
+        }
 
         if ($form->isSubmitted() && !$form->isValid()) {
 
@@ -517,6 +562,20 @@ class PropertyController extends ApiController
      */
     public function deletePropertyAction(Portal $portal, Request $request, Property $property)
     {
+
+        $hasPermission = $this->permissionAuthorizationHandler->isAuthorized(
+            $this->getUser(),
+            Role::DELETE_PROPERTY,
+            Role::SYSTEM_PERMISSION
+        );
+
+        if(!$hasPermission) {
+            return new JsonResponse(
+                [
+                    'success' => false,
+                ], Response::HTTP_UNAUTHORIZED
+            );
+        }
 
         $form = $this->createForm(DeletePropertyType::class, $property);
 

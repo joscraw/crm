@@ -72,8 +72,12 @@ class DeleteReportForm {
                 this.globalEventDispatcher.publish(Settings.Events.REPORT_DELETED);
             }).catch((errorData) => {
 
-                debugger;
-            this.$wrapper.html(errorData.formMarkup);
+                if(errorData.httpCode === 401) {
+                    swal("Woah!", `You don't have proper permissions for this!`, "error");
+                    return;
+                }
+
+                this.$wrapper.html(errorData.formMarkup);
 
             // Use for when the form is being generated on the JS side
             /*this._mapErrorsToForm(errorData.errors);*/
@@ -103,6 +107,9 @@ class DeleteReportForm {
             }).catch((jqXHR) => {
                 debugger;
                 const errorData = JSON.parse(jqXHR.responseText);
+
+                errorData.httpCode = jqXHR.status;
+
                 reject(errorData);
             });
         });

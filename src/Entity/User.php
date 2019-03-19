@@ -23,6 +23,8 @@ class User implements UserInterface
 
     use TimestampableEntity;
 
+    const ROLE_ADMIN_USER = 'ROLE_ADMIN_USER';
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
@@ -277,5 +279,39 @@ class User implements UserInterface
         }
 
         return $this;
+    }
+
+    /**
+     * We check here for existence of a permission on a user
+     *
+     * @param $permission
+     * @param $permissionType
+     * @return bool
+     */
+    public function hasPermission($permission, $permissionType) {
+
+        foreach($this->getCustomRoles() as $customRole) {
+
+            switch ($permissionType) {
+
+                case Role::OBJECT_PERMISSION:
+                    $permissions = new ArrayCollection($customRole->getObjectPermissions());
+                    break;
+
+                case Role::SYSTEM_PERMISSION:
+                    $permissions = new ArrayCollection($customRole->getSystemPermissions());
+                    break;
+            }
+
+            $exists =  $permissions->exists(function($key, $element) use ($permission){
+                return $element === $permission || $element === 'ALL';
+            });
+
+            if($exists) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

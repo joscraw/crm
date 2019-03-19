@@ -296,7 +296,7 @@ class CustomObject /*implements \JsonSerializable*/
 
     public function getPermissions() {
 
-        $internalName = strtoupper($this->getInternalName());
+        $internalName = $this->getFormatForRole();
 
         return [
             "CREATE_{$internalName}" => "CREATE_{$internalName}",
@@ -304,4 +304,11 @@ class CustomObject /*implements \JsonSerializable*/
             "DELETE_{$internalName}" => "DELETE_{$internalName}"
         ];
     }
+
+    public function getFormatForRole() {
+
+        return strtoupper($this->getInternalName());
+
+    }
+
 }

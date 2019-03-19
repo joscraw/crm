@@ -2,13 +2,14 @@
 
 namespace App\DataFixtures;
 
+use App\Entity\Role;
 use App\Entity\User;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Common\Persistence\ObjectManager;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
-class UserFixtures extends Fixture implements DependentFixtureInterface
+class RoleFixtures extends Fixture implements DependentFixtureInterface
 {
 
     private $passwordEncoder;
@@ -20,20 +21,15 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
 
     public function load(ObjectManager $manager)
     {
-        $user = new User();
+        $role = new Role();
+        $role->setName('ALL');
+        $role->setObjectPermissions(['ALL']);
+        $role->setSystemPermissions(['ALL']);
+        $role->setPortal($this->getReference('portal_1'));
 
-        $user->setEmail('jcrawmer@edoutcome.com');
-        $user->setFirstName('Josh');
-        $user->setLastName('Crawmer');
-        $user->setPassword($this->passwordEncoder->encodePassword(
-            $user,
-            'Eoc123!'
-        ));
+        $this->addReference('role_1', $role);
 
-        $user->setPortal($this->getReference('portal_1'));
-        $user->addCustomRole($this->getReference('role_1'));
-
-        $manager->persist($user);
+        $manager->persist($role);
 
         $manager->flush();
     }
@@ -47,8 +43,7 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
     public function getDependencies()
     {
         return array(
-            PortalFixtures::class,
-            RoleFixtures::class
+            PortalFixtures::class
         );
     }
 }

@@ -2,12 +2,14 @@
 
 namespace App\Controller\Api;
 
+use App\AuthorizationHandler\PermissionAuthorizationHandler;
 use App\Entity\CustomObject;
 use App\Entity\Portal;
 use App\Entity\Property;
 use App\Entity\PropertyGroup;
 use App\Entity\Record;
 use App\Entity\Report;
+use App\Entity\Role;
 use App\Form\CustomObjectType;
 use App\Form\DeleteReportType;
 use App\Form\PropertyGroupType;
@@ -88,6 +90,11 @@ class ReportController extends ApiController
     private $reportRepository;
 
     /**
+     * @var PermissionAuthorizationHandler
+     */
+    private $permissionAuthorizationHandler;
+
+    /**
      * ReportController constructor.
      * @param EntityManagerInterface $entityManager
      * @param CustomObjectRepository $customObjectRepository
@@ -96,6 +103,7 @@ class ReportController extends ApiController
      * @param RecordRepository $recordRepository
      * @param SerializerInterface $serializer
      * @param ReportRepository $reportRepository
+     * @param PermissionAuthorizationHandler $permissionAuthorizationHandler
      */
     public function __construct(
         EntityManagerInterface $entityManager,
@@ -104,7 +112,8 @@ class ReportController extends ApiController
         PropertyGroupRepository $propertyGroupRepository,
         RecordRepository $recordRepository,
         SerializerInterface $serializer,
-        ReportRepository $reportRepository
+        ReportRepository $reportRepository,
+        PermissionAuthorizationHandler $permissionAuthorizationHandler
     ) {
         $this->entityManager = $entityManager;
         $this->customObjectRepository = $customObjectRepository;
@@ -113,8 +122,8 @@ class ReportController extends ApiController
         $this->recordRepository = $recordRepository;
         $this->serializer = $serializer;
         $this->reportRepository = $reportRepository;
+        $this->permissionAuthorizationHandler = $permissionAuthorizationHandler;
     }
-
 
     /**
      * @Route("/{internalName}/save-report", name="save_report", methods={"POST"}, options = { "expose" = true })
@@ -124,6 +133,20 @@ class ReportController extends ApiController
      * @return Response
      */
     public function saveReportAction(Portal $portal, CustomObject $customObject, Request $request) {
+
+        $hasPermission = $this->permissionAuthorizationHandler->isAuthorized(
+            $this->getUser(),
+            Role::CREATE_REPORT,
+            Role::SYSTEM_PERMISSION
+        );
+
+        if(!$hasPermission) {
+            return new JsonResponse(
+                [
+                    'success' => false,
+                ], Response::HTTP_UNAUTHORIZED
+            );
+        }
 
         $data = $request->request->get('data', []);
 
@@ -244,6 +267,20 @@ class ReportController extends ApiController
     public function deleteReportAction(Portal $portal, Report $report, Request $request)
     {
 
+        $hasPermission = $this->permissionAuthorizationHandler->isAuthorized(
+            $this->getUser(),
+            Role::DELETE_REPORT,
+            Role::SYSTEM_PERMISSION
+        );
+
+        if(!$hasPermission) {
+            return new JsonResponse(
+                [
+                    'success' => false,
+                ], Response::HTTP_UNAUTHORIZED
+            );
+        }
+
         $form = $this->createForm(DeleteReportType::class, $report);
 
         $form->handleRequest($request);
@@ -309,6 +346,20 @@ class ReportController extends ApiController
      * @return Response
      */
     public function editReportAction(Portal $portal, CustomObject $customObject, Report $report, Request $request) {
+
+        $hasPermission = $this->permissionAuthorizationHandler->isAuthorized(
+            $this->getUser(),
+            Role::EDIT_REPORT,
+            Role::SYSTEM_PERMISSION
+        );
+
+        if(!$hasPermission) {
+            return new JsonResponse(
+                [
+                    'success' => false,
+                ], Response::HTTP_UNAUTHORIZED
+            );
+        }
 
         $data = $request->request->get('data', []);
 

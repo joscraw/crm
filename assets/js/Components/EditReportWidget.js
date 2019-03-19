@@ -170,6 +170,13 @@ class EditReportWidget {
 
             swal("Woohoo!!!", "Report successfully saved.", "success");
 
+        }).catch((errorData) => {
+
+            if(errorData.httpCode === 401) {
+                swal("Woah!", `You don't have proper permissions for this!`, "error");
+                return;
+            }
+
         });
 
     }
@@ -422,6 +429,7 @@ class EditReportWidget {
             }).catch((jqXHR) => {
                 debugger;
                 const errorData = JSON.parse(jqXHR.responseText);
+                errorData.httpCode = jqXHR.status;
 
                 reject(errorData);
             });
