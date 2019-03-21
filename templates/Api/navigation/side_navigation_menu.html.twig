@@ -15,7 +15,7 @@
             </li>
 
             <li  data-toggle="collapse" data-target="#products" class="collapsed">
-                <a href="javascript:void(0)"><i class="fa fa-gift fa-lg"></i> Custom Objects <span class="arrow"></span></a>
+                <a href="javascript:void(0)"><i class="fa fa-object-ungroup"></i> Custom Objects <span class="arrow"></span></a>
             </li>
             <ul class="sub-menu collapse" id="products">
                 {% for customObject in customObjects %}
@@ -25,19 +25,25 @@
 
             <li>
                 <a data-bypass="true" href="{{ path('property_settings', {'internalIdentifier' : portal.internalIdentifier, 'internalName' : 'contacts'}) }}">
-                    <i class="fa fa-cog fa-lg"></i> Properties
+                    <i class="fa fa-object-group"></i> Properties
                 </a>
             </li>
 
             <li>
                 <a data-bypass="true" href="{{ path('report_settings', {'internalIdentifier' : portal.internalIdentifier}) }}">
-                    <i class="fa fa-cog fa-lg"></i> Reports
+                    <i class="fa fa-line-chart"></i> Reports
                 </a>
             </li>
 
             <li>
                 <a data-bypass="true" href="{{ path('user_settings', {'internalIdentifier' : portal.internalIdentifier}) }}">
-                    <i class="fa fa-cog fa-lg"></i> Users
+                    <i class="fa fa-users"></i> Users
+                </a>
+            </li>
+
+            <li>
+                <a data-bypass="true" href="{{ path('logout') }}">
+                    <i class="fa fa-sign-out"></i> Sign Out
                 </a>
             </li>
 
