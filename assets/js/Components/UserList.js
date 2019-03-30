@@ -54,6 +54,16 @@ class UserList {
             this.redrawDataTable.bind(this)
         );
 
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.ROLE_CREATED,
+            this.redrawDataTable.bind(this)
+        );
+
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.ROLE_EDITED,
+            this.redrawDataTable.bind(this)
+        );
+
         this.render().then(() => {
             this.activatePlugins();
         })
@@ -115,7 +125,19 @@ class UserList {
 
                     } },
                 { "data": "lastName", "name": "lastName", "title": "Last Name"},
-                { "data": "email", "name": "email", "title": "Email"}
+                { "data": "email", "name": "email", "title": "Email"},
+                { "data": "isActive", "name": "isActive", "title": "Is Active"},
+                { "data": "isAdminUser", "name": "isAdminUser", "title": "Is Admin User"},
+                { "data": "customRoles", "name": "customRoles", "title": "Custom Roles", mRender: (data, type, row) => {
+
+                    let values = [];
+                    for(let obj of data) {
+                        values.push(obj.name);
+                    }
+
+                    return values.join(', ');
+
+                    }}
             ],
             "ajax": {
                 url: Routing.generate('users_for_datatable', {internalIdentifier: this.portalInternalIdentifier}),

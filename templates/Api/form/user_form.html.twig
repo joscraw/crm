@@ -4,11 +4,13 @@
 
 {{ form_start(form, {'attr': {class: 'js-new-user-form', novalidate: 'novalidate'}}) }}
 {{ form_row(form.firstName, {'attr': {autofocus: 'autofocus'}}) }}
-{{ form_row(form.lastName, {'attr': {autofocus: 'autofocus'}}) }}
-{{ form_row(form.email, {'attr': {autofocus: 'autofocus'}}) }}
-{{ form_row(form.password, {'attr': {autofocus: 'autofocus'}}) }}
-{{ form_row(form.passwordRepeat, {'attr': {autofocus: 'autofocus'}}) }}
-{{ form_row(form.customRoles, {'attr': {autofocus: 'autofocus'}}) }}
+{{ form_row(form.lastName) }}
+{{ form_row(form.email) }}
+{{ form_row(form.password) }}
+{{ form_row(form.passwordRepeat) }}
+{{ form_row(form.customRoles) }}
+{{ form_row(form.isAdminUser) }}
+{{ form_row(form.isActive) }}
 
 <br>
 {{ form_rest(form) }}

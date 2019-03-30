@@ -4,10 +4,13 @@ namespace App\Security;
 
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
+use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Core\Exception\CustomUserMessageAuthenticationException;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\Security\Core\Exception\InvalidCsrfTokenException;
@@ -67,8 +70,18 @@ class LoginFormAuthenticator extends AbstractFormLoginAuthenticator
         $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $credentials['email']]);
 
         if (!$user) {
-            // fail authentication with a custom error
+
             throw new CustomUserMessageAuthenticationException('Email could not be found.');
+        }
+
+        if(!$user->isActive()) {
+
+            throw new CustomUserMessageAuthenticationException('Account has been disabled.');
+        }
+
+        if(!$user->isAdminUser()) {
+
+            throw new CustomUserMessageAuthenticationException('You don\'t have proper permissions to use the CRM.');
         }
 
         return $user;
@@ -76,20 +89,35 @@ class LoginFormAuthenticator extends AbstractFormLoginAuthenticator
 
     public function checkCredentials($credentials, UserInterface $user)
     {
-        return $this->passwordEncoder->isPasswordValid($user, $credentials['password']);
+        if(!$this->passwordEncoder->isPasswordValid($user, $credentials['password'])) {
+            throw new CustomUserMessageAuthenticationException('Invalid credentials.');
+        }
+
+        return true;
     }
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, $providerKey)
     {
+        $targetPath = $this->router->generate('custom_object_settings', ['internalIdentifier' => $token->getUser()->getPortal()->getInternalIdentifier()]);
 
-        $t = $this->getTargetPath($request->getSession(), $providerKey);
+        return new JsonResponse(
+            [
+                'targetPath' => $targetPath,
+                'success' => true,
+            ], Response::HTTP_OK
+        );
+    }
 
-        if ($targetPath = $this->getTargetPath($request->getSession(), $providerKey)) {
-            return new RedirectResponse($targetPath);
-        }
+    public function onAuthenticationFailure(Request $request, AuthenticationException $exception)
+    {
 
-        return new RedirectResponse($this->router->generate('custom_object_settings', ['internalIdentifier' => $token->getUser()->getPortal()->getInternalIdentifier()]));
-        throw new \Exception('TODO: provide a valid redirect inside '.__FILE__);
+        return new JsonResponse(
+            [
+                'success' => false,
+                'message' => $exception->getMessage()
+            ], Response::HTTP_OK
+        );
+
     }
 
     protected function getLoginUrl()

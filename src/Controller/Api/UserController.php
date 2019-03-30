@@ -373,6 +373,10 @@ class UserController extends ApiController
 
         $results = $this->userRepository->getDataTableData($portal, $start, $length, $search, $orders, $columns);
 
+        $json = $this->serializer->serialize($results['results'], 'json', ['groups' => ['USERS_FOR_DATATABLE']]);
+
+        $payload = json_decode($json, true);
+
         $totalReportCount = $this->userRepository->getTotalCount($portal);
         $arrayResults = $results['arrayResults'];
         $filteredReportCount = count($arrayResults);
@@ -381,7 +385,7 @@ class UserController extends ApiController
             'draw'  => $draw,
             'recordsFiltered' => !empty($search['value']) ? $filteredReportCount : $totalReportCount,
             'recordsTotal'  => $totalReportCount,
-            'data'  => $arrayResults
+            'data'  => $payload
         ],  Response::HTTP_OK);
 
         return $response;

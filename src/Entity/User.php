@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -26,6 +27,8 @@ class User implements UserInterface
     const ROLE_ADMIN_USER = 'ROLE_ADMIN_USER';
 
     /**
+     * @Groups({"USERS_FOR_DATATABLE"})
+     *
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
@@ -33,6 +36,7 @@ class User implements UserInterface
     private $id;
 
     /**
+     * @Groups({"USERS_FOR_DATATABLE"})
      * @Assert\NotBlank(message="Don't forget an email for your user!", groups={"CREATE", "EDIT"})
      * @ORM\Column(type="string", length=180, unique=true)
      */
@@ -53,12 +57,35 @@ class User implements UserInterface
     private $password;
 
     /**
+     * isActive
+     *
+     * Flag indicating whether the user is active.
+     *
+     * @Groups({"USERS_FOR_DATATABLE"})
+     *
+     * @ORM\Column(name="is_active", type="boolean", nullable=false)
+     */
+    private $isActive;
+
+    /**
+     * isActive
+     *
+     * Flag indicating whether the user is an admin user
+     *
+     * @Groups({"USERS_FOR_DATATABLE"})
+     *
+     * @ORM\Column(name="is_admin_user", type="boolean", nullable=false)
+     */
+    private $isAdminUser;
+
+    /**
      * @Assert\NotBlank(message="Don't forget the password repeat field!", groups={"CREATE"})
      * @var string password repeat
      */
     private $passwordRepeat;
 
     /**
+     * @Groups({"USERS_FOR_DATATABLE"})
      * @Assert\NotBlank(message="Don't forget a first name for your user!", groups={"CREATE", "EDIT"})
      *
      * @ORM\Column(type="string", length=24)
@@ -66,6 +93,7 @@ class User implements UserInterface
     private $firstName;
 
     /**
+     * @Groups({"USERS_FOR_DATATABLE"})
      * @Assert\NotBlank(message="Don't forget a last name for your user!", groups={"CREATE", "EDIT"})
      *
      * @ORM\Column(type="string", length=24)
@@ -89,6 +117,8 @@ class User implements UserInterface
     private $portal;
 
     /**
+     *
+     * @Groups({"USERS_FOR_DATATABLE"})
      *
      * @Assert\Count(min = 1, minMessage = "You must select at least one role!", groups={"CREATE", "EDIT"})
      *
@@ -224,9 +254,24 @@ class User implements UserInterface
         return $this->passwordResetToken;
     }
 
-    public function setPasswordResetToken(?string $passwordResetToken): self
+    /**
+     * @param string $passwordResetToken
+     * @return User
+     * @throws \Exception
+     */
+    public function setPasswordResetToken($passwordResetToken = null)
     {
+        if (empty($passwordResetToken)) {
+            $passwordResetToken = bin2hex(random_bytes(32));
+        }
+
+        if (strlen($passwordResetToken) !== 64) {
+            throw new \InvalidArgumentException('Reset token must be 64 characters in length');
+        }
+
         $this->passwordResetToken = $passwordResetToken;
+
+        $this->setPasswordResetTokenTimestamp();
 
         return $this;
     }
@@ -236,9 +281,31 @@ class User implements UserInterface
         return $this->passwordResetTokenTimestamp;
     }
 
-    public function setPasswordResetTokenTimestamp(?\DateTimeInterface $passwordResetTokenTimestamp): self
+    /**
+     * @param DateTime $passwordResetTokenTimestamp
+     * @return User
+     * @throws \Exception
+     */
+    public function setPasswordResetTokenTimestamp(DateTime $passwordResetTokenTimestamp = null)
     {
+        if (empty($passwordResetTokenTimestamp)) {
+            $passwordResetTokenTimestamp = new DateTime();
+        }
+
         $this->passwordResetTokenTimestamp = $passwordResetTokenTimestamp;
+
+        return $this;
+    }
+
+    /**
+     * Clear out password reset token related fields
+     *
+     * @return User
+     */
+    public function clearPasswordResetToken()
+    {
+        $this->passwordResetToken          = null;
+        $this->passwordResetTokenTimestamp = null;
 
         return $this;
     }
@@ -279,6 +346,38 @@ class User implements UserInterface
         }
 
         return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function isActive()
+    {
+        return $this->isActive;
+    }
+
+    /**
+     * @param mixed $isActive
+     */
+    public function setIsActive($isActive): void
+    {
+        $this->isActive = $isActive;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function isAdminUser()
+    {
+        return $this->isAdminUser;
+    }
+
+    /**
+     * @param mixed $isAdminUser
+     */
+    public function setIsAdminUser($isAdminUser): void
+    {
+        $this->isAdminUser = $isAdminUser;
     }
 
     /**
