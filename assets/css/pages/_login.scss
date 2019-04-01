@@ -1,0 +1,108 @@
+// -----------------------------------------------------------------------------
+// This file contains styles that are specific to the login page.
+// -----------------------------------------------------------------------------
+
+
+.p-login {
+  height: 100%;
+}
+
+.p-login__body {
+  height: 100% !important;
+}
+
+.p-login__app {
+  height: 100%;
+}
+
+.p-login__container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: -webkit-linear-gradient(left, hsl(12, 75%, 61%), #f7d1c8);
+  padding: 3%;
+}
+
+.p-login__left {
+  text-align: center;
+  color: #fff;
+  margin-top: 4%;
+}
+
+.p-login__right {
+  background: #f8f9fa;
+  border-top-left-radius: 10% 50%;
+  border-bottom-left-radius: 10% 50%;
+  padding: 20px;
+}
+.p-login__left img{
+  margin-top: 15%;
+  margin-bottom: 5%;
+  width: 25%;
+  -webkit-animation: mover 2s infinite  alternate;
+  animation: mover 1s infinite  alternate;
+}
+@-webkit-keyframes mover {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-20px); }
+}
+@keyframes mover {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-20px); }
+}
+.p-login__left p {
+  font-weight: lighter;
+  padding: 12%;
+  margin-top: -9%;
+}
+
+.p-login__field-container {
+  padding-left: 200px;
+  padding-right: 200px;
+}
+
+.p-login__login-button {
+  margin-top: 10%;
+  border: none;
+  border-radius: 1.5rem;
+  padding: 10px;
+  background: hsl(210, 27%, 25%);
+  color: #fff;
+  font-weight: 600;
+  width: 25%;
+  cursor: pointer;
+}
+.p-login__heading {
+  text-align: center;
+  margin-top: 4%;
+  color: #495057;
+}
+
+.p-login__container .nav-tabs {
+  border: none;
+  background: hsl(210, 27%, 25%);
+  border-radius: 1.5rem;
+  margin: 0 auto;
+  width: 400px;
+}
+.p-login__container .nav-tabs .nav-link{
+  padding-top: 9px;
+  padding-bottom: 9px;
+  font-weight: 600;
+  width: 100%;
+  height: 100%;
+  color: #fff;
+  border-top-right-radius: 1.5rem;
+  border-bottom-right-radius: 1.5rem;
+}
+.p-login__container .nav-tabs .nav-link:hover{
+  border: none;
+}
+.p-login__container .nav-tabs .nav-link.active{
+  width: 100%;
+  color: hsl(210, 27%, 25%);
+  border: 2px solid hsl(210, 27%, 25%);
+  border-top-left-radius: 1.5rem;
+  border-bottom-left-radius: 1.5rem;
+}

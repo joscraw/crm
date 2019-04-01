@@ -125,17 +125,19 @@ class RecordForm {
 
         this._saveRecord(formData)
             .then((data) => {
-                debugger;
+
                 swal("Hooray!", `Well done, you created a shiny brand new record!`, "success");
                 this.globalEventDispatcher.publish(Settings.Events.RECORD_CREATED);
+
             }).catch((errorData) => {
 
-                debugger;
-            this.$wrapper.html(errorData.formMarkup);
-            this.activatePlugins();
+                if(errorData.httpCode === 401) {
+                    swal("Woah!", `You don't have proper permissions for this!`, "error");
+                    return;
+                }
 
-            // Use for when the form is being generated on the JS side
-            /*this._mapErrorsToForm(errorData.errors);*/
+                this.$wrapper.html(errorData.formMarkup);
+                this.activatePlugins();
         });
     }
 
@@ -145,9 +147,9 @@ class RecordForm {
      * @private
      */
     _saveRecord(data) {
-        debugger;
+
         return new Promise( (resolve, reject) => {
-            debugger;
+
             const url = Routing.generate('create_record', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
 
             $.ajax({
@@ -157,9 +159,15 @@ class RecordForm {
                 processData: false,
                 contentType: false
             }).then((data, textStatus, jqXHR) => {
+
+                debugger;
                 resolve(data);
             }).catch((jqXHR) => {
+
                 const errorData = JSON.parse(jqXHR.responseText);
+
+                errorData.httpCode = jqXHR.status;
+
                 reject(errorData);
             });
         });

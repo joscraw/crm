@@ -1,0 +1,26 @@
+<form method="post" class="js-login-form">
+    <div class="row">
+        <div class="col-md-12 p-login__field-container">
+            <input type="email" value="{#{{ last_username }}#}" name="email" id="inputEmail" class="form-control" placeholder="Email" autofocus>
+            <br>
+            <input type="password" name="password" id="inputPassword" class="form-control" placeholder="Password">
+        </div>
+        <input type="hidden" name="_csrf_token"
+               value="{{ csrf_token('authenticate') }}"
+        >
+
+        {#
+            Uncomment this section and add a remember_me option below your firewall to activate remember me functionality.
+            See https://symfony.com/doc/current/security/remember_me.html
+
+            <div class="checkbox mb-3">
+                <label>
+                    <input type="checkbox" name="_remember_me"> Remember me
+                </label>
+            </div>
+        #}
+        <div class="col-md-12" align="center">
+            <input type="submit" class="p-login__login-button"  value="Login"/>
+        </div>
+    </div>
+</form>

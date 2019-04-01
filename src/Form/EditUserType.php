@@ -71,6 +71,10 @@ class EditUserType extends AbstractType
                         'class' => 'js-selectize-multiple-select',
                         'autocomplete' => 'off'
                     ]
+            ])->add('isAdminUser', CheckboxType::class, [
+
+            ])->add('isActive', CheckboxType::class, [
+
             ]);
     }
 

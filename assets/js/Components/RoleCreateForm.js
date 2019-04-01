@@ -82,8 +82,16 @@ class RoleCreateForm {
 
         this._saveRole(formData)
             .then((data) => {
+
+                this.globalEventDispatcher.publish(Settings.Events.ROLE_CREATED);
+
                 swal("Hooray!", "Well done, you created a new role!", "success");
             }).catch((errorData) => {
+
+            if(errorData.httpCode === 401) {
+                swal("Woah!", `You don't have proper permissions for this!`, "error");
+                return;
+            }
 
             this.$wrapper.html(errorData.formMarkup);
             this.activatePlugins();
@@ -109,6 +117,7 @@ class RoleCreateForm {
                 resolve(data);
             }).catch((jqXHR) => {
                 const errorData = JSON.parse(jqXHR.responseText);
+                errorData.httpCode = jqXHR.status;
                 reject(errorData);
             });
         });

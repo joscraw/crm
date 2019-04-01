@@ -405,7 +405,7 @@ sqlite:
             group: www-data
             sql_file: ''
 mailhog:
-    install: '0'
+    install: '1'
     settings:
         smtp_ip: 0.0.0.0
         smtp_port: 1025
@@ -413,7 +413,7 @@ mailhog:
         http_port: '8025'
         path: /usr/local/bin/mailhog
 beanstalkd:
-    install: '0'
+    install: '1'
     settings:
         listenaddress: 0.0.0.0
         listenport: '11300'

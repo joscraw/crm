@@ -19,6 +19,7 @@
     "sass-loader": "^7.0.1",
     "selectize": "^0.12.6",
     "sweetalert2": "^7.33.1",
+    "toastr": "^2.1.4",
     "universal-router": "^7.0.0",
     "webpack-notifier": "^1.7.0"
   },

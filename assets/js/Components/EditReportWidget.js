@@ -170,6 +170,13 @@ class EditReportWidget {
 
             swal("Woohoo!!!", "Report successfully saved.", "success");
 
+        }).catch((errorData) => {
+
+            if(errorData.httpCode === 401) {
+                swal("Woah!", `You don't have proper permissions for this!`, "error");
+                return;
+            }
+
         });
 
     }
@@ -301,6 +308,7 @@ class EditReportWidget {
 
     applyCustomFilterButtonPressedHandler(customFilter) {
 
+        debugger;
         let filterPath = customFilter.joins.join('.') + `.filters`,
             referencedFilterPath = customFilter.referencedFilterPath.join('.'),
             uID = StringHelper.makeCharId();
@@ -343,6 +351,7 @@ class EditReportWidget {
             }
         }
 
+        debugger;
         this.globalEventDispatcher.publish(Settings.Events.REPORT_FILTER_ITEM_ADDED, this.data);
 
     }
@@ -422,6 +431,7 @@ class EditReportWidget {
             }).catch((jqXHR) => {
                 debugger;
                 const errorData = JSON.parse(jqXHR.responseText);
+                errorData.httpCode = jqXHR.status;
 
                 reject(errorData);
             });

@@ -31,6 +31,7 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
         ));
 
         $user->setPortal($this->getReference('portal_1'));
+        $user->addCustomRole($this->getReference('role_1'));
 
         $manager->persist($user);
 
@@ -47,6 +48,7 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
     {
         return array(
             PortalFixtures::class,
+            RoleFixtures::class
         );
     }
 }

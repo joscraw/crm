@@ -88,8 +88,13 @@ class EditUserForm {
                 this.globalEventDispatcher.publish(Settings.Events.USER_EDITED);
             }).catch((errorData) => {
 
-            this.$wrapper.html(errorData.formMarkup);
-            this.activatePlugins();
+                if(errorData.httpCode === 401) {
+                    swal("Woah!", `You don't have proper permissions for this!`, "error");
+                    return;
+                }
+
+                this.$wrapper.html(errorData.formMarkup);
+                this.activatePlugins();
         });
     }
 
@@ -112,6 +117,7 @@ class EditUserForm {
                 resolve(data);
             }).catch((jqXHR) => {
                 const errorData = JSON.parse(jqXHR.responseText);
+                errorData.httpCode = jqXHR.status;
                 reject(errorData);
             });
         });

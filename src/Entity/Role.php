@@ -18,6 +18,33 @@ use App\Validator\Constraints as CustomAssert;
 class Role
 {
 
+    const OBJECT_PERMISSION = 'OBJECT_PERMISSION';
+    const SYSTEM_PERMISSION = 'SYSTEM_PERMISSION';
+
+    const CREATE_REPORT = 'CREATE_REPORT';
+    const DELETE_REPORT = 'DELETE_REPORT';
+    const EDIT_REPORT = 'EDIT_REPORT';
+
+    const CREATE_USER = 'CREATE_USER';
+    const DELETE_USER = 'DELETE_USER';
+    const EDIT_USER = 'EDIT_USER';
+
+    const CREATE_ROLE = 'CREATE_ROLE';
+    const DELETE_ROLE = 'DELETE_ROLE';
+    const EDIT_ROLE = 'EDIT_ROLE';
+
+    const CREATE_CUSTOM_OBJECT = 'CREATE_CUSTOM_OBJECT';
+    const DELETE_CUSTOM_OBJECT = 'DELETE_CUSTOM_OBJECT';
+    const EDIT_CUSTOM_OBJECT = 'EDIT_CUSTOM_OBJECT';
+
+    const CREATE_PROPERTY = 'CREATE_PROPERTY';
+    const DELETE_PROPERTY = 'DELETE_PROPERTY';
+    const EDIT_PROPERTY = 'EDIT_PROPERTY';
+
+    const CREATE_PROPERTY_GROUP = 'CREATE_PROPERTY_GROUP';
+    const DELETE_PROPERTY_GROUP = 'DELETE_PROPERTY_GROUP';
+    const EDIT_PROPERTY_GROUP = 'EDIT_PROPERTY_GROUP';
+
     use TimestampableEntity;
 
     /**
@@ -30,7 +57,7 @@ class Role
     private $id;
 
     /**
-     * @Groups({"ROLES_FOR_DATATABLE"})
+     * @Groups({"ROLES_FOR_DATATABLE", "USERS_FOR_DATATABLE", "ROLES_FOR_USER_FILTER"})
      * @Assert\NotBlank(message="Don't forget a name for your brand new Role!")
      * @Assert\Regex("/^[a-zA-Z0-9_]*$/", message="Woah! Only use letters numbers and underscores please!")
      * @ORM\Column(type="string", length=255)

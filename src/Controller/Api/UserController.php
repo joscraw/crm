@@ -2,6 +2,7 @@
 
 namespace App\Controller\Api;
 
+use App\AuthorizationHandler\PermissionAuthorizationHandler;
 use App\Entity\CustomObject;
 use App\Entity\Portal;
 use App\Entity\Property;
@@ -21,6 +22,7 @@ use App\Model\FieldCatalog;
 use App\Repository\CustomObjectRepository;
 use App\Repository\PropertyGroupRepository;
 use App\Repository\PropertyRepository;
+use App\Repository\RoleRepository;
 use App\Repository\UserRepository;
 use App\Service\MessageGenerator;
 use Doctrine\ORM\EntityManager;
@@ -88,6 +90,16 @@ class UserController extends ApiController
     private $passwordEncoder;
 
     /**
+     * @var PermissionAuthorizationHandler
+     */
+    private $permissionAuthorizationHandler;
+
+    /**
+     * @var RoleRepository
+     */
+    private $roleRepository;
+
+    /**
      * UserController constructor.
      * @param EntityManagerInterface $entityManager
      * @param CustomObjectRepository $customObjectRepository
@@ -96,6 +108,8 @@ class UserController extends ApiController
      * @param UserRepository $userRepository
      * @param SerializerInterface $serializer
      * @param UserPasswordEncoderInterface $passwordEncoder
+     * @param PermissionAuthorizationHandler $permissionAuthorizationHandler
+     * @param RoleRepository $roleRepository
      */
     public function __construct(
         EntityManagerInterface $entityManager,
@@ -104,7 +118,9 @@ class UserController extends ApiController
         PropertyGroupRepository $propertyGroupRepository,
         UserRepository $userRepository,
         SerializerInterface $serializer,
-        UserPasswordEncoderInterface $passwordEncoder
+        UserPasswordEncoderInterface $passwordEncoder,
+        PermissionAuthorizationHandler $permissionAuthorizationHandler,
+        RoleRepository $roleRepository
     ) {
         $this->entityManager = $entityManager;
         $this->customObjectRepository = $customObjectRepository;
@@ -113,6 +129,8 @@ class UserController extends ApiController
         $this->userRepository = $userRepository;
         $this->serializer = $serializer;
         $this->passwordEncoder = $passwordEncoder;
+        $this->permissionAuthorizationHandler = $permissionAuthorizationHandler;
+        $this->roleRepository = $roleRepository;
     }
 
 
@@ -139,6 +157,24 @@ class UserController extends ApiController
             ]
         );
 
+        if($form->isSubmitted()) {
+
+            $hasPermission = $this->permissionAuthorizationHandler->isAuthorized(
+                $this->getUser(),
+                Role::CREATE_USER,
+                Role::SYSTEM_PERMISSION
+            );
+
+            if(!$hasPermission) {
+                return new JsonResponse(
+                    [
+                        'success' => false,
+                    ], Response::HTTP_UNAUTHORIZED
+                );
+            }
+
+        }
+
         if ($form->isSubmitted() && !$form->isValid()) {
 
 
@@ -160,6 +196,7 @@ class UserController extends ApiController
                 $user,
                 $user->getPassword()
             ));
+            $user->setRoles([User::ROLE_ADMIN_USER]);
             $this->entityManager->persist($user);
             $this->entityManager->flush();
         }
@@ -182,6 +219,7 @@ class UserController extends ApiController
      */
     public function editUserAction(Portal $portal, User $user, Request $request) {
 
+
         $form = $this->createForm(EditUserType::class, $user);
 
         $form->add('submit', SubmitType::class);
@@ -194,6 +232,24 @@ class UserController extends ApiController
                 'form' => $form->createView()
             ]
         );
+
+        if($form->isSubmitted()) {
+
+            $hasPermission = $this->permissionAuthorizationHandler->isAuthorized(
+                $this->getUser(),
+                Role::EDIT_USER,
+                Role::SYSTEM_PERMISSION
+            );
+
+            if(!$hasPermission) {
+                return new JsonResponse(
+                    [
+                        'success' => false,
+                    ], Response::HTTP_UNAUTHORIZED
+                );
+            }
+
+        }
 
         if ($form->isSubmitted() && !$form->isValid()) {
 
@@ -262,6 +318,20 @@ class UserController extends ApiController
     public function deleteUserAction(Portal $portal, User $user, Request $request)
     {
 
+        $hasPermission = $this->permissionAuthorizationHandler->isAuthorized(
+            $this->getUser(),
+            Role::DELETE_USER,
+            Role::SYSTEM_PERMISSION
+        );
+
+        if(!$hasPermission) {
+            return new JsonResponse(
+                [
+                    'success' => false,
+                ], Response::HTTP_UNAUTHORIZED
+            );
+        }
+
         $form = $this->createForm(DeleteUserType::class, $user);
 
         $form->handleRequest($request);
@@ -301,6 +371,7 @@ class UserController extends ApiController
      * @param Portal $portal
      * @param Request $request
      * @return JsonResponse
+     * @throws \Doctrine\DBAL\DBALException
      */
     public function getUsersForDatatableAction(Portal $portal, Request $request) {
 
@@ -310,22 +381,82 @@ class UserController extends ApiController
         $search = $request->query->get('search');
         $orders = $request->query->get('order');
         $columns = $request->query->get('columns');
+        $customFilters = $request->query->get('customFilters', []);
 
-        $results = $this->userRepository->getDataTableData($portal, $start, $length, $search, $orders, $columns);
+        $results = $this->userRepository->getDataTableData($portal, $start, $length, $search, $orders, $columns, $customFilters);
+
+        $json = $this->serializer->serialize($results['results'], 'json', ['groups' => ['USERS_FOR_DATATABLE']]);
+
+        $payload = json_decode($json, true);
 
         $totalReportCount = $this->userRepository->getTotalCount($portal);
-        $arrayResults = $results['arrayResults'];
-        $filteredReportCount = count($arrayResults);
+        $filteredReportCount = count($payload);
 
         $response = new JsonResponse([
             'draw'  => $draw,
-            'recordsFiltered' => !empty($search['value']) ? $filteredReportCount : $totalReportCount,
+            'recordsFiltered' => !empty($search['value']) || !empty($customFilters) ? $filteredReportCount : $totalReportCount,
             'recordsTotal'  => $totalReportCount,
-            'data'  => $arrayResults
+            'data'  => $payload
         ],  Response::HTTP_OK);
 
         return $response;
 
+    }
+
+    /**
+     * @Route("/get-properties-for-filter", name="user_properties_for_filter", methods={"GET"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getPropertiesForFilter(Portal $portal, Request $request) {
+
+        $roles = $this->roleRepository->getRolesForUserFilterByPortal($portal);
+
+        /**
+         * Setup the filters that will be rendered for the user filter widget
+         * @var array
+         */
+        $payload = [
+            [
+                'name' => 'email',
+                'label' => 'Email',
+                'fieldType' => FieldCatalog::SINGLE_LINE_TEXT,
+            ],
+            [
+                'name' => 'first_name',
+                'label' => 'First Name',
+                'fieldType' => FieldCatalog::SINGLE_LINE_TEXT,
+            ],
+            [
+                'name' => 'last_name',
+                'label' => 'Last Name',
+                'fieldType' => FieldCatalog::SINGLE_LINE_TEXT,
+            ],
+            [
+                'name' => 'is_active',
+                'label' => 'Is Active',
+                'fieldType' => FieldCatalog::SINGLE_CHECKBOX,
+            ],
+            [
+                'name' => 'is_admin_user',
+                'label' => 'Is Admin User',
+                'fieldType' => FieldCatalog::SINGLE_CHECKBOX,
+            ],
+            [
+                'name' => 'name',
+                'label' => 'Custom Roles',
+                'fieldType' => FieldCatalog::MULTIPLE_CHECKBOX,
+                'field' => [
+                    'options' => $roles
+                ],
+            ]
+        ];
+
+        return new JsonResponse([
+            'success' => true,
+            'data'  => $payload
+        ], Response::HTTP_OK);
     }
 
 }

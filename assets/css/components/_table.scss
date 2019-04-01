@@ -14,19 +14,31 @@
 
 }
 
+.c-table__data {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
 .c-table__edit-button {
+  margin-left: 10px;
+}
+
+/*.c-table__edit-button {
   right: 70px;
 }
 
 .c-table__delete-button {
   right: 5px;
-}
+}*/
 
 .c-table__edit-button, .c-table__delete-button {
   display: none;
+  float: right;
+  /*
   position: absolute;
   top: 50%;
-  transform: translateY(-50%);
+  transform: translateY(-50%);*/
 }
 
 

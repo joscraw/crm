@@ -2,6 +2,7 @@
 
 namespace App\Controller\Api;
 
+use App\AuthorizationHandler\PermissionAuthorizationHandler;
 use App\Entity\CustomObject;
 use App\Entity\Portal;
 use App\Entity\Property;
@@ -79,13 +80,19 @@ class RecordController extends ApiController
     private $serializer;
 
     /**
-     * PropertySettingsController constructor.
+     * @var PermissionAuthorizationHandler
+     */
+    private $permissionAuthorizationHandler;
+
+    /**
+     * RecordController constructor.
      * @param EntityManagerInterface $entityManager
      * @param CustomObjectRepository $customObjectRepository
      * @param PropertyRepository $propertyRepository
      * @param PropertyGroupRepository $propertyGroupRepository
      * @param RecordRepository $recordRepository
      * @param SerializerInterface $serializer
+     * @param PermissionAuthorizationHandler $permissionAuthorizationHandler
      */
     public function __construct(
         EntityManagerInterface $entityManager,
@@ -93,7 +100,8 @@ class RecordController extends ApiController
         PropertyRepository $propertyRepository,
         PropertyGroupRepository $propertyGroupRepository,
         RecordRepository $recordRepository,
-        SerializerInterface $serializer
+        SerializerInterface $serializer,
+        PermissionAuthorizationHandler $permissionAuthorizationHandler
     ) {
         $this->entityManager = $entityManager;
         $this->customObjectRepository = $customObjectRepository;
@@ -101,7 +109,9 @@ class RecordController extends ApiController
         $this->propertyGroupRepository = $propertyGroupRepository;
         $this->recordRepository = $recordRepository;
         $this->serializer = $serializer;
+        $this->permissionAuthorizationHandler = $permissionAuthorizationHandler;
     }
+
 
     /**
      * @Route("/{internalName}/create-form", name="create_record_form", methods={"GET"}, options = { "expose" = true })
@@ -183,6 +193,19 @@ class RecordController extends ApiController
      */
     public function editRecordAction(Portal $portal, CustomObject $customObject, Record $record, Request $request) {
 
+        $hasPermission = $this->permissionAuthorizationHandler->isAuthorized(
+            $this->getUser(),
+            sprintf('EDIT_%s', $customObject->getFormatForRole())
+        );
+
+        if(!$hasPermission) {
+            return new JsonResponse(
+                [
+                    'success' => false,
+                ], Response::HTTP_UNAUTHORIZED
+            );
+        }
+
         $properties = $this->propertyRepository->findBy([
             'customObject' => $customObject->getId()
         ]);
@@ -245,6 +268,19 @@ class RecordController extends ApiController
      * @return JsonResponse
      */
     public function createRecordAction(Portal $portal, CustomObject $customObject, Request $request) {
+
+        $hasPermission = $this->permissionAuthorizationHandler->isAuthorized(
+            $this->getUser(),
+            sprintf('CREATE_%s', $customObject->getFormatForRole())
+        );
+
+        if(!$hasPermission) {
+            return new JsonResponse(
+                [
+                    'success' => false,
+                ], Response::HTTP_UNAUTHORIZED
+            );
+        }
 
         $properties = $this->propertyRepository->findDefaultProperties($customObject);
 

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html class="p-login">
     <head>
         <meta charset="UTF-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -8,11 +8,34 @@
         <title>{% block title %}Welcome!{% endblock %}</title>
         {% block stylesheets %}
             <link href="{{ asset('build/layout.css') }}" rel="stylesheet" />
+
+            <style>
+
+                #toast-container > div {
+                    opacity:1;
+                    width: 100% !important;
+                    max-width: none !important;
+                }
+
+                #toast-container {
+                    width: 100% !important;
+                }
+
+                .toast-top-right {
+                    right: 0;
+                    top: 0;
+                }
+
+                .toast-error { background-color: #2f4051 !important; } .toast-success { background-color: #2f4051 !important; }
+            </style>
         {% endblock %}
     </head>
-    <body>
+    <body class="p-login__body" style="height:100% !important">
 
-    {% block body %}{% endblock %}
+    <div id="top-nav"></div>
+    <div id="side-nav"></div>
+    <div id="modal-container"></div>
+    <div id="app" class="p-login__app {% block containerComponent %}{% endblock %}" {% block containerComponentAttributes %}{% endblock %}></div>
 
     {% block javascripts %}
             <script src="{{ asset('bundles/fosjsrouting/js/router.min.js') }}"></script>

@@ -6,7 +6,7 @@ import $ from "jquery";
 
 class SingleLineTextFieldFilterForm {
 
-    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, property) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName = null, property) {
         debugger;
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;

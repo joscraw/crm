@@ -2,9 +2,11 @@
 
 namespace App\Controller\Api;
 
+use App\AuthorizationHandler\PermissionAuthorizationHandler;
 use App\Entity\CustomObject;
 use App\Entity\Portal;
 use App\Entity\PropertyGroup;
+use App\Entity\Role;
 use App\Form\DeletePropertyGroupType;
 use App\Form\EditPropertyGroupType;
 use App\Form\PropertyGroupType;
@@ -49,22 +51,30 @@ class PropertyGroupController extends ApiController
     private $propertyGroupRepository;
 
     /**
-     * PropertySettingsController constructor.
+     * @var PermissionAuthorizationHandler
+     */
+    private $permissionAuthorizationHandler;
+
+    /**
+     * PropertyGroupController constructor.
      * @param EntityManagerInterface $entityManager
      * @param CustomObjectRepository $customObjectRepository
      * @param PropertyRepository $propertyRepository
      * @param PropertyGroupRepository $propertyGroupRepository
+     * @param PermissionAuthorizationHandler $permissionAuthorizationHandler
      */
     public function __construct(
         EntityManagerInterface $entityManager,
         CustomObjectRepository $customObjectRepository,
         PropertyRepository $propertyRepository,
-        PropertyGroupRepository $propertyGroupRepository
+        PropertyGroupRepository $propertyGroupRepository,
+        PermissionAuthorizationHandler $permissionAuthorizationHandler
     ) {
         $this->entityManager = $entityManager;
         $this->customObjectRepository = $customObjectRepository;
         $this->propertyRepository = $propertyRepository;
         $this->propertyGroupRepository = $propertyGroupRepository;
+        $this->permissionAuthorizationHandler = $permissionAuthorizationHandler;
     }
 
     /**
@@ -161,6 +171,20 @@ class PropertyGroupController extends ApiController
     public function deletePropertyGroupAction(Portal $portal, CustomObject $customObject, PropertyGroup $propertyGroup, Request $request)
     {
 
+        $hasPermission = $this->permissionAuthorizationHandler->isAuthorized(
+            $this->getUser(),
+            Role::DELETE_PROPERTY_GROUP,
+            Role::SYSTEM_PERMISSION
+        );
+
+        if(!$hasPermission) {
+            return new JsonResponse(
+                [
+                    'success' => false,
+                ], Response::HTTP_UNAUTHORIZED
+            );
+        }
+
         $form = $this->createForm(DeletePropertyGroupType::class, $propertyGroup);
 
         $form->handleRequest($request);
@@ -203,6 +227,21 @@ class PropertyGroupController extends ApiController
      */
     public function editPropertyGroupAction(Portal $portal, CustomObject $customObject, PropertyGroup $propertyGroup, Request $request)
     {
+
+        $hasPermission = $this->permissionAuthorizationHandler->isAuthorized(
+            $this->getUser(),
+            Role::EDIT_PROPERTY_GROUP,
+            Role::SYSTEM_PERMISSION
+        );
+
+        if(!$hasPermission) {
+            return new JsonResponse(
+                [
+                    'success' => false,
+                ], Response::HTTP_UNAUTHORIZED
+            );
+        }
+
         $propertyGroup->setCustomObject($customObject);
 
         $form = $this->createForm(EditPropertyGroupType::class, $propertyGroup);
@@ -246,6 +285,21 @@ class PropertyGroupController extends ApiController
      */
     public function createPropertyGroupAction(Portal $portal, CustomObject $customObject, Request $request)
     {
+
+        $hasPermission = $this->permissionAuthorizationHandler->isAuthorized(
+            $this->getUser(),
+            Role::CREATE_PROPERTY_GROUP,
+            Role::SYSTEM_PERMISSION
+        );
+
+        if(!$hasPermission) {
+            return new JsonResponse(
+                [
+                    'success' => false,
+                ], Response::HTTP_UNAUTHORIZED
+            );
+        }
+
         $propertyGroup = new PropertyGroup();
 
         $propertyGroup->setCustomObject($customObject);

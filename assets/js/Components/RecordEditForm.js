@@ -241,9 +241,14 @@ class RecordEditForm {
                 this.globalEventDispatcher.publish(Settings.Events.PROPERTY_EDITED);
             }).catch((errorData) => {
 
-            this.$wrapper.html(errorData.formMarkup);
+                if(errorData.httpCode === 401) {
+                    swal("Woah!", `You don't have proper permissions for this!`, "error");
+                    return;
+                }
 
-            this.activatePlugins();
+                this.$wrapper.html(errorData.formMarkup);
+
+                this.activatePlugins();
 
         });
     }
@@ -268,6 +273,8 @@ class RecordEditForm {
                 resolve(data);
             }).catch((jqXHR) => {
                 const errorData = JSON.parse(jqXHR.responseText);
+                errorData.httpCode = jqXHR.status;
+
                 reject(errorData);
             });
         });

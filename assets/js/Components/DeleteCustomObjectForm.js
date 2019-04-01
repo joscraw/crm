@@ -71,6 +71,11 @@ class DeleteCustomObjectForm {
                 this.globalEventDispatcher.publish(Settings.Events.CUSTOM_OBJECT_DELETED);
             }).catch((errorData) => {
 
+            if(errorData.httpCode === 401) {
+                swal("Woah!", `You don't have proper permissions for this!`, "error");
+                return;
+            }
+
             this.$wrapper.html(errorData.formMarkup);
 
             // Use for when the form is being generated on the JS side
@@ -98,6 +103,7 @@ class DeleteCustomObjectForm {
                 resolve(data);
             }).catch((jqXHR) => {
                 const errorData = JSON.parse(jqXHR.responseText);
+                errorData.httpCode = jqXHR.status;
                 reject(errorData);
             });
         });
