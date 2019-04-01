@@ -87,47 +87,63 @@ class UserRepository extends ServiceEntityRepository
      * @param $search
      * @param $orders
      * @param $columns
+     * @param $customFilters
      * @return array
+     * @throws \Doctrine\DBAL\DBALException
      */
-    public function getDataTableData(Portal $portal, $start, $length, $search, $orders, $columns)
+    public function getDataTableData(Portal $portal, $start, $length, $search, $orders, $columns, $customFilters)
     {
-        $joinedTables = ['customRoles' => [
-            'column' => 'name',
-            'alias' => 'cr'
-        ]];
 
-        // Main Query
-        $query = $this->createQueryBuilder('dt')
-            ->innerJoin('dt.customRoles', 'cr')
-            ->where('dt.portal = :portal')
-            ->setParameter('portal', $portal->getId());
+        // filters
+        $filters = [];
+        foreach ($customFilters as $key => $filter) {
+
+            // We need to setup the alias for any join tables
+            switch($filter['name']) {
+                case 'name':
+                    $alias = 'r';
+                    break;
+                default:
+                    $alias = 'u';
+                    break;
+            }
+
+            $filters[] = $this->getCondition($filter, $alias);
+
+        }
+
+        $filterString = implode(" AND ", $filters);
+        $filterString = empty($filters) ? '' : "AND $filterString";
 
         // Search
-        $searchQuery = null;
+        $searches = [];
         if(!empty($search['value'])) {
             $searchItem = $search['value'];
 
-            $likes = [];
-
             foreach($columns as $column) {
 
-                if(array_key_exists($column['name'], $joinedTables)) {
-                    $likes[] = sprintf('%s.%s LIKE \'%%'.$searchItem.'%%\'', $joinedTables[$column['name']]['alias'], $joinedTables[$column['name']]['column']);
-                } else {
-                    $likes[] = sprintf('dt.%s LIKE \'%%'.$searchItem.'%%\'', $column['data']);
+                // We need to setup the alias and column name for any join tables
+                switch($column['name']) {
+                    case 'custom_roles':
+                        $alias = 'r';
+                        $name = 'name';
+                        break;
+                    default:
+                        $alias = 'u';
+                        $name = $column['name'];
+                        break;
                 }
+
+                $searches[] = sprintf('LOWER(%s.%s) LIKE \'%%%s%%\'', $alias, $name, strtolower($searchItem));
             }
 
-
-            $searchQuery = implode(" OR ", $likes);
         }
 
-        if ($searchQuery) {
-            $query->andWhere($searchQuery);
-        }
+        $searchString = implode(" OR ", $searches);
+        $searchString = empty($searches) ? '' : "AND $searchString";
 
-        // Limit
-        $query->setFirstResult($start)->setMaxResults($length);
+        // Main Query
+        $query = sprintf("SELECT u.id, u.email, u.first_name, u.last_name, u.is_active, u.is_admin_user, GROUP_CONCAT(r.name SEPARATOR ', ') as custom_roles from user u left join user_role ur on u.id = ur.user_id left join role r on r.id = ur.role_id WHERE 1=1 %s %s GROUP BY u.id", $filterString, $searchString);
 
         // Order
         foreach ($orders as $key => $order) {
@@ -137,21 +153,24 @@ class UserRepository extends ServiceEntityRepository
         }
 
         foreach ($orders as $key => $order) {
-            // $order['name'] is the name of the order column as sent by the JS
-            if ($order['name'] != '') {
 
-                $orderColumn = "dt.{$order['name']}";
-
-                $query->orderBy($orderColumn, $order['dir']);
+            if(isset($order['name'])) {
+                $query .= " ORDER BY {$order['name']}";
             }
+
+            $query .= ' ' . $order['dir'];
         }
 
-        $results = $query->getQuery()->getResult();
-        $arrayResults = $query->getQuery()->getArrayResult();
+        // limit
+        $query .= sprintf(' LIMIT %s, %s', $start, $length);
+
+        $em = $this->getEntityManager();
+        $stmt = $em->getConnection()->prepare($query);
+        $stmt->execute();
+        $results = $stmt->fetchAll();
 
         return array(
-            "results" 		=> $results,
-            "arrayResults"  => $arrayResults
+            "results"  => $results
         );
 
     }
@@ -169,5 +188,146 @@ class UserRepository extends ServiceEntityRepository
 
         return count($query->getQuery()->getResult());
 
+    }
+
+    /**
+     * @param $customFilter
+     * @param $alias
+     * @return string
+     */
+    private function getCondition($customFilter, $alias) {
+
+        $query = '';
+        switch($customFilter['fieldType']) {
+            case 'single_line_text_field':
+                switch($customFilter['operator']) {
+                    case 'EQ':
+
+                        if(trim($customFilter['value']) === '') {
+                            $query = sprintf('%s.%s = \'\'', $alias, $customFilter['name']);
+                        } else {
+                            $query = sprintf('LOWER(%s.%s) LIKE \'%%%s%%\'', $alias, $customFilter['name'], strtolower($customFilter['value']));
+                        }
+
+                        break;
+                    case 'NEQ':
+
+                        if(trim($customFilter['value']) === '') {
+                            $query = sprintf('%s.%s != \'\'', $alias, $customFilter['name']);
+                        } else {
+                            $query = sprintf('LOWER(%s.%s) NOT LIKE \'%%%s%%\'', $alias, $customFilter['name'], strtolower($customFilter['value']));
+                        }
+
+                        break;
+                    case 'HAS_PROPERTY':
+
+                        $query = sprintf('%s.%s is not null', $alias, $customFilter['name']);
+
+                        break;
+                    case 'NOT_HAS_PROPERTY':
+
+                        $query = sprintf('%s.%s is null', $alias, $customFilter['name']);
+
+                        break;
+                }
+                break;
+            case 'single_checkbox_field':
+
+                switch($customFilter['operator']) {
+                    case 'IN':
+
+                        if(trim($customFilter['value']) === '') {
+                            $query = sprintf('%s.%s = \'\'', $alias, $customFilter['name']);
+                        } else {
+                            $values = explode(',', $customFilter['value']);
+                            if($values == ['0','1']) {
+                                $query = sprintf('%s.%s = \'%s\' OR %s.%s = \'%s\'', $alias, $customFilter['name'], '1', $alias, $customFilter['name'], 0);
+                            } elseif ($values == ['0']) {
+                                $query = sprintf('%s.%s = \'%s\'', $alias, $customFilter['name'], '0');
+                            } elseif ($values == ['1']) {
+                                $query = sprintf('%s.%s = \'%s\'', $alias, $customFilter['name'], '1');
+                            }
+                        }
+
+                        break;
+                    case 'NOT_IN':
+
+                        if(trim($customFilter['value']) === '') {
+                            $query = sprintf('%s.%s != \'\'', $alias, $customFilter['name']);
+                        } else {
+                            $values = explode(',', $customFilter['value']);
+                            if($values == ['0','1']) {
+                                $query = sprintf('%s.%s != \'%s\' AND %s.%s != \'%s\'', $alias, $customFilter['name'], '1', $alias, $customFilter['name'], 0);
+                            } elseif ($values == ['0']) {
+                                $query = sprintf('%s.%s != \'%s\'', $alias, $customFilter['name'], '0');
+                            } elseif ($values == ['1']) {
+                                $query = sprintf('%s.%s != \'%s\'', $alias, $customFilter['name'], '1');
+                            }
+                        }
+
+                        break;
+                    case 'HAS_PROPERTY':
+
+                        $query = sprintf('%s.%s is not null', $alias, $customFilter['name']);
+
+                        break;
+                    case 'NOT_HAS_PROPERTY':
+
+                        $query = sprintf('%s.%s is null', $alias, $customFilter['name']);
+
+                        break;
+
+                }
+                break;
+            case 'multiple_checkbox_field':
+
+                switch($customFilter['operator']) {
+                    case 'IN':
+
+                        if(trim($customFilter['value']) === '') {
+                            $query = sprintf('%s.%s = \'\'', $alias, $customFilter['name']);
+                        } else {
+                            $values = explode(',', $customFilter['value']);
+
+                            $conditions = [];
+                            foreach($values as $value) {
+                                $conditions[] = sprintf('LOWER(%s.%s) = \'%s\'', $alias, $customFilter['name'], strtolower($value));
+                            }
+
+                            $query = implode(" OR ", $conditions);
+                        }
+
+                        break;
+                    case 'NOT_IN':
+
+                        if(trim($customFilter['value']) === '') {
+                            $query = sprintf('%s.%s != \'\'', $alias, $customFilter['name']);
+                        } else {
+                            $values = explode(',', $customFilter['value']);
+
+                            $conditions = [];
+                            foreach($values as $value) {
+                                $conditions[] = sprintf('LOWER(%s.%s) != \'%s\'', $alias, $customFilter['name'], strtolower($value));
+                            }
+
+                            $query = implode(" AND ", $conditions);
+                        }
+
+                        break;
+                    case 'HAS_PROPERTY':
+
+                        $query = sprintf('%s.%s is not null', $alias, $customFilter['name']);
+
+                        break;
+                    case 'NOT_HAS_PROPERTY':
+
+                        $query = sprintf('%s.%s is null', $alias, $customFilter['name']);
+
+                        break;
+                }
+                break;
+        }
+
+        return $query;
     }
 }

@@ -33,6 +33,7 @@ class UserList {
         this.portalInternalIdentifier = portalInternalIdentifier;
         this.searchValue = '';
         this.collapseStatus = {};
+        this.customFilters = {};
 
         this.globalEventDispatcher.subscribe(
             Settings.Events.USER_SETTINGS_TOP_BAR_SEARCH_KEY_UP,
@@ -64,6 +65,11 @@ class UserList {
             this.redrawDataTable.bind(this)
         );
 
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.FILTERS_UPDATED,
+            this.customFiltersUpdatedHandler.bind(this)
+        );
+
         this.render().then(() => {
             this.activatePlugins();
         })
@@ -79,6 +85,21 @@ class UserList {
             collapseTitle: '.js-collapse__title',
             collapseBody: '.js-collapse__body'
         }
+    }
+
+    customFiltersUpdatedHandler(customFilters) {
+
+        this.customFilters = customFilters;
+        this.reloadTable();
+
+    }
+
+    reloadTable() {
+
+        this.render().then(() => {
+            this.table.destroy();
+            this.activatePlugins();
+        });
     }
 
     activatePlugins() {
@@ -116,33 +137,41 @@ class UserList {
             "dom": "lpirt",
             "columns": [
 
-                { "data": "firstName", "name": "firstName", "title": "First Name", mRender: (data, type, row) => {
+                { "data": "first_name", "name": "first_name", "title": "First Name", mRender: (data, type, row) => {
 
                         return `
-                        ${row['firstName']} <span class="c-table__edit-button js-edit-user-button" data-user-id="${row['id']}"></span>
+                        ${row['first_name']} <span class="c-table__edit-button js-edit-user-button" data-user-id="${row['id']}"></span>
                         <span class="js-delete-user-button c-table__delete-button" data-user-id="${row['id']}"></span>
                          `;
 
                     } },
-                { "data": "lastName", "name": "lastName", "title": "Last Name"},
+                { "data": "last_name", "name": "last_name", "title": "Last Name"},
                 { "data": "email", "name": "email", "title": "Email"},
-                { "data": "isActive", "name": "isActive", "title": "Is Active"},
-                { "data": "isAdminUser", "name": "isAdminUser", "title": "Is Admin User"},
-                { "data": "customRoles", "name": "customRoles", "title": "Custom Roles", mRender: (data, type, row) => {
+                { "data": "is_active", "name": "is_active", "title": "Is Active", mRender: (data, type, row) => {
 
-                    let values = [];
-                    for(let obj of data) {
-                        values.push(obj.name);
+                    if(data === "0") {
+                        return 'no';
                     }
 
-                    return values.join(', ');
+                    return 'yes';
 
-                    }}
+                    } },
+                { "data": "is_admin_user", "name": "is_admin_user", "title": "Is Admin User", mRender: (data, type, row) => {
+
+                    if(data === "0") {
+                        return 'no';
+                    }
+
+                    return 'yes';
+
+                    } },
+                { "data": "custom_roles", "name": "custom_roles", "title": "Custom Roles"}
             ],
             "ajax": {
                 url: Routing.generate('users_for_datatable', {internalIdentifier: this.portalInternalIdentifier}),
                 type: "GET",
                 dataType: "json",
+                data: {'customFilters': this.customFilters},
                 contentType: "application/json; charset=utf-8"
             },
             "drawCallback": (settings)  => {
@@ -195,6 +224,7 @@ class UserList {
     static markup() {
         return `
             <table id="user_table" class="table table-striped table-bordered c-table" style="width:100%">
+                <col width="300">
                 <thead>
                 </thead>
                 <tbody>

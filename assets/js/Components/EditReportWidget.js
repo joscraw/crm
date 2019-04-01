@@ -308,6 +308,7 @@ class EditReportWidget {
 
     applyCustomFilterButtonPressedHandler(customFilter) {
 
+        debugger;
         let filterPath = customFilter.joins.join('.') + `.filters`,
             referencedFilterPath = customFilter.referencedFilterPath.join('.'),
             uID = StringHelper.makeCharId();
@@ -350,6 +351,7 @@ class EditReportWidget {
             }
         }
 
+        debugger;
         this.globalEventDispatcher.publish(Settings.Events.REPORT_FILTER_ITEM_ADDED, this.data);
 
     }

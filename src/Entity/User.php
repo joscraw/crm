@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Model\FieldCatalog;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -25,6 +26,7 @@ class User implements UserInterface
     use TimestampableEntity;
 
     const ROLE_ADMIN_USER = 'ROLE_ADMIN_USER';
+
 
     /**
      * @Groups({"USERS_FOR_DATATABLE"})

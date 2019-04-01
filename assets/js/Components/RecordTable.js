@@ -169,6 +169,7 @@ class RecordTable {
     static markup() {
         return `
             <table id="table_id" class="table table-striped table-bordered c-table" style="width:100%">
+             <col width="300">
                 <thead>
                 <tr><th></th></tr>
                 </thead>

@@ -6,7 +6,7 @@ import $ from "jquery";
 
 class MultilpleCheckboxFieldFilterForm {
 
-    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, property) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName = null, property) {
         debugger;
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
@@ -52,6 +52,7 @@ class MultilpleCheckboxFieldFilterForm {
 
     activatePlugins() {
 
+        debugger;
         let options = [];
         for(let i = 0; i < this.property.field.options.length; i++) {
             let option = this.property.field.options[i];

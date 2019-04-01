@@ -57,7 +57,7 @@ class Role
     private $id;
 
     /**
-     * @Groups({"ROLES_FOR_DATATABLE", "USERS_FOR_DATATABLE"})
+     * @Groups({"ROLES_FOR_DATATABLE", "USERS_FOR_DATATABLE", "ROLES_FOR_USER_FILTER"})
      * @Assert\NotBlank(message="Don't forget a name for your brand new Role!")
      * @Assert\Regex("/^[a-zA-Z0-9_]*$/", message="Woah! Only use letters numbers and underscores please!")
      * @ORM\Column(type="string", length=255)

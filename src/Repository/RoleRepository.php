@@ -64,6 +64,20 @@ class RoleRepository extends ServiceEntityRepository
 
     /**
      * @param Portal $portal
+     * @return mixed
+     */
+    public function getRolesForUserFilterByPortal(Portal $portal)
+    {
+        return $this->createQueryBuilder('role')
+            ->select('role.name as label')
+            ->where('role.portal = :portal')
+            ->setParameter('portal', $portal->getId())
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * @param Portal $portal
      * @param $name
      * @return mixed
      */

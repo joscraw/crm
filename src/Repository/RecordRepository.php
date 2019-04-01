@@ -232,7 +232,7 @@ class RecordRepository extends ServiceEntityRepository
         $filters = $this->filters($data, $filters);
         $filterString = implode(" OR ", $filters);
 
-        $query = sprintf("SELECT count(rood.id) as count from record root %s WHERE root.custom_object_id='%s' AND %s", $resultStr, $joinString, $customObject->getId(), $filterString);
+        $query = sprintf("SELECT count(root.id) as count from record root %s WHERE root.custom_object_id='%s' AND %s", $resultStr, $joinString, $customObject->getId(), $filterString);
 
         $em = $this->getEntityManager();
         $stmt = $em->getConnection()->prepare($query);

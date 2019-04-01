@@ -22,6 +22,7 @@ use App\Model\FieldCatalog;
 use App\Repository\CustomObjectRepository;
 use App\Repository\PropertyGroupRepository;
 use App\Repository\PropertyRepository;
+use App\Repository\RoleRepository;
 use App\Repository\UserRepository;
 use App\Service\MessageGenerator;
 use Doctrine\ORM\EntityManager;
@@ -94,6 +95,11 @@ class UserController extends ApiController
     private $permissionAuthorizationHandler;
 
     /**
+     * @var RoleRepository
+     */
+    private $roleRepository;
+
+    /**
      * UserController constructor.
      * @param EntityManagerInterface $entityManager
      * @param CustomObjectRepository $customObjectRepository
@@ -103,6 +109,7 @@ class UserController extends ApiController
      * @param SerializerInterface $serializer
      * @param UserPasswordEncoderInterface $passwordEncoder
      * @param PermissionAuthorizationHandler $permissionAuthorizationHandler
+     * @param RoleRepository $roleRepository
      */
     public function __construct(
         EntityManagerInterface $entityManager,
@@ -112,7 +119,8 @@ class UserController extends ApiController
         UserRepository $userRepository,
         SerializerInterface $serializer,
         UserPasswordEncoderInterface $passwordEncoder,
-        PermissionAuthorizationHandler $permissionAuthorizationHandler
+        PermissionAuthorizationHandler $permissionAuthorizationHandler,
+        RoleRepository $roleRepository
     ) {
         $this->entityManager = $entityManager;
         $this->customObjectRepository = $customObjectRepository;
@@ -122,7 +130,9 @@ class UserController extends ApiController
         $this->serializer = $serializer;
         $this->passwordEncoder = $passwordEncoder;
         $this->permissionAuthorizationHandler = $permissionAuthorizationHandler;
+        $this->roleRepository = $roleRepository;
     }
+
 
     /**
      * @Route("/create", name="create_user", methods={"GET", "POST"}, options = { "expose" = true })
@@ -361,6 +371,7 @@ class UserController extends ApiController
      * @param Portal $portal
      * @param Request $request
      * @return JsonResponse
+     * @throws \Doctrine\DBAL\DBALException
      */
     public function getUsersForDatatableAction(Portal $portal, Request $request) {
 
@@ -370,26 +381,82 @@ class UserController extends ApiController
         $search = $request->query->get('search');
         $orders = $request->query->get('order');
         $columns = $request->query->get('columns');
+        $customFilters = $request->query->get('customFilters', []);
 
-        $results = $this->userRepository->getDataTableData($portal, $start, $length, $search, $orders, $columns);
+        $results = $this->userRepository->getDataTableData($portal, $start, $length, $search, $orders, $columns, $customFilters);
 
         $json = $this->serializer->serialize($results['results'], 'json', ['groups' => ['USERS_FOR_DATATABLE']]);
 
         $payload = json_decode($json, true);
 
         $totalReportCount = $this->userRepository->getTotalCount($portal);
-        $arrayResults = $results['arrayResults'];
-        $filteredReportCount = count($arrayResults);
+        $filteredReportCount = count($payload);
 
         $response = new JsonResponse([
             'draw'  => $draw,
-            'recordsFiltered' => !empty($search['value']) ? $filteredReportCount : $totalReportCount,
+            'recordsFiltered' => !empty($search['value']) || !empty($customFilters) ? $filteredReportCount : $totalReportCount,
             'recordsTotal'  => $totalReportCount,
             'data'  => $payload
         ],  Response::HTTP_OK);
 
         return $response;
 
+    }
+
+    /**
+     * @Route("/get-properties-for-filter", name="user_properties_for_filter", methods={"GET"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getPropertiesForFilter(Portal $portal, Request $request) {
+
+        $roles = $this->roleRepository->getRolesForUserFilterByPortal($portal);
+
+        /**
+         * Setup the filters that will be rendered for the user filter widget
+         * @var array
+         */
+        $payload = [
+            [
+                'name' => 'email',
+                'label' => 'Email',
+                'fieldType' => FieldCatalog::SINGLE_LINE_TEXT,
+            ],
+            [
+                'name' => 'first_name',
+                'label' => 'First Name',
+                'fieldType' => FieldCatalog::SINGLE_LINE_TEXT,
+            ],
+            [
+                'name' => 'last_name',
+                'label' => 'Last Name',
+                'fieldType' => FieldCatalog::SINGLE_LINE_TEXT,
+            ],
+            [
+                'name' => 'is_active',
+                'label' => 'Is Active',
+                'fieldType' => FieldCatalog::SINGLE_CHECKBOX,
+            ],
+            [
+                'name' => 'is_admin_user',
+                'label' => 'Is Admin User',
+                'fieldType' => FieldCatalog::SINGLE_CHECKBOX,
+            ],
+            [
+                'name' => 'name',
+                'label' => 'Custom Roles',
+                'fieldType' => FieldCatalog::MULTIPLE_CHECKBOX,
+                'field' => [
+                    'options' => $roles
+                ],
+            ]
+        ];
+
+        return new JsonResponse([
+            'success' => true,
+            'data'  => $payload
+        ], Response::HTTP_OK);
     }
 
 }
