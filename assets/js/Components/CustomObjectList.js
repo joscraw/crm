@@ -56,6 +56,10 @@ class CustomObjectList {
 
     activatePlugins() {
 
+        Pace.start({
+            target: '.js-main-content'
+        });
+
         this.table = $('#table_id').DataTable({
 
             "pageLength": 10,
