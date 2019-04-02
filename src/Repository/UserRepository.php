@@ -98,9 +98,10 @@ class UserRepository extends ServiceEntityRepository
         $filters = [];
         foreach ($customFilters as $key => $filter) {
 
-            // We need to setup the alias for any join tables
+            // We need to setup the alias and column name for any join tables
             switch($filter['name']) {
-                case 'name':
+                case 'custom_roles':
+                    $filter['name'] = 'name';
                     $alias = 'r';
                     break;
                 default:
@@ -126,15 +127,14 @@ class UserRepository extends ServiceEntityRepository
                 switch($column['name']) {
                     case 'custom_roles':
                         $alias = 'r';
-                        $name = 'name';
+                        $column['name'] = 'name';
                         break;
                     default:
                         $alias = 'u';
-                        $name = $column['name'];
                         break;
                 }
 
-                $searches[] = sprintf('LOWER(%s.%s) LIKE \'%%%s%%\'', $alias, $name, strtolower($searchItem));
+                $searches[] = sprintf('LOWER(%s.%s) LIKE \'%%%s%%\'', $alias, $column['name'], strtolower($searchItem));
             }
 
         }

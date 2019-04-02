@@ -121,61 +121,6 @@ class UserFilterNavigation {
                 case 'custom_object_field':
                     // do nothing
                     break;
-                case 'date_picker_field':
-                    switch(customFilter['operator']) {
-                        case 'EQ':
-
-                            value = customFilter.value.trim() === '' ? '""' : `"${customFilter.value.trim()}"`;
-                            this.$selectedProperties.selectize()[0].selectize.addOption({
-                                value: i,
-                                text: `${label} is equal to ${value}`
-                            });
-                            this.$selectedProperties.selectize()[0].selectize.addItem(i);
-
-                            break;
-                        case 'NEQ':
-
-                            value = customFilter.value.trim() === '' ? '""' : `"${customFilter.value.trim()}"`;
-                            this.$selectedProperties.selectize()[0].selectize.addOption({value:i, text: `${label} is not equal to ${value}`});
-                            this.$selectedProperties.selectize()[0].selectize.addItem(i);
-
-                            break;
-                        case 'LT':
-
-                            value = customFilter.value.trim() === '' ? '""' : `"${customFilter.value.trim()}"`;
-                            this.$selectedProperties.selectize()[0].selectize.addOption({value:i, text: `${label} is before ${value}`});
-                            this.$selectedProperties.selectize()[0].selectize.addItem(i);
-
-                            break;
-                        case 'GT':
-
-                            value = customFilter.value.trim() === '' ? '""' : `"${customFilter.value.trim()}"`;
-                            this.$selectedProperties.selectize()[0].selectize.addOption({value:i, text: `${label} is after ${value}`});
-                            this.$selectedProperties.selectize()[0].selectize.addItem(i);
-
-                            break;
-                        case 'BETWEEN':
-
-                            let lowValue = customFilter.low_value.trim() === '' ? '""' : `"${customFilter.low_value.trim()}"`;
-                            let highValue = customFilter.high_value.trim() === '' ? '""' : `"${customFilter.high_value.trim()}"`;
-                            this.$selectedProperties.selectize()[0].selectize.addOption({value:i, text: `${label} is between ${lowValue} and ${highValue}`});
-                            this.$selectedProperties.selectize()[0].selectize.addItem(i);
-
-                            break;
-                        case 'HAS_PROPERTY':
-
-                            this.$selectedProperties.selectize()[0].selectize.addOption({value:i, text: `${label} is known`});
-                            this.$selectedProperties.selectize()[0].selectize.addItem(i);
-
-                            break;
-                        case 'NOT_HAS_PROPERTY':
-
-                            this.$selectedProperties.selectize()[0].selectize.addOption({value:i, text: `${label} is unknown`});
-                            this.$selectedProperties.selectize()[0].selectize.addItem(i);
-
-                            break;
-                    }
-                    break;
                 case 'single_checkbox_field':
                     debugger;
                     switch(customFilter['operator']) {
@@ -194,7 +139,8 @@ class UserFilterNavigation {
 
                             this.$selectedProperties.selectize()[0].selectize.addOption({
                                 value: i,
-                                text: `${label} is any of ${value}`
+                                text: `${label} is any of ${value}`,
+                                path: uID
                             });
                             this.$selectedProperties.selectize()[0].selectize.addItem(i);
 
@@ -213,29 +159,27 @@ class UserFilterNavigation {
 
                             this.$selectedProperties.selectize()[0].selectize.addOption({
                                 value: i,
-                                text: `${label} is none of ${value}`
+                                text: `${label} is none of ${value}`,
+                                path: uID
                             });
                             this.$selectedProperties.selectize()[0].selectize.addItem(i);
 
                             break;
                         case 'HAS_PROPERTY':
 
-                            this.$selectedProperties.selectize()[0].selectize.addOption({value:i, text: `${label} is known`});
+                            this.$selectedProperties.selectize()[0].selectize.addOption({value:i, text: `${label} is known`, path: uID});
                             this.$selectedProperties.selectize()[0].selectize.addItem(i);
 
                             break;
                         case 'NOT_HAS_PROPERTY':
 
-                            this.$selectedProperties.selectize()[0].selectize.addOption({value:i, text: `${label} is unknown`});
+                            this.$selectedProperties.selectize()[0].selectize.addOption({value:i, text: `${label} is unknown`, path: uID});
                             this.$selectedProperties.selectize()[0].selectize.addItem(i);
 
                             break;
                     }
                     break;
-                case 'dropdown_select_field':
                 case 'multiple_checkbox_field':
-                case 'radio_select_field':
-
                     switch(customFilter['operator']) {
                         case 'IN':
 
@@ -244,7 +188,8 @@ class UserFilterNavigation {
 
                             this.$selectedProperties.selectize()[0].selectize.addOption({
                                 value: i,
-                                text: `${label} is any of ${values}`
+                                text: `${label} is any of ${values}`,
+                                path: uID
                             });
                             this.$selectedProperties.selectize()[0].selectize.addItem(i);
 
@@ -256,28 +201,27 @@ class UserFilterNavigation {
 
                             this.$selectedProperties.selectize()[0].selectize.addOption({
                                 value: i,
-                                text: `${label} is none of ${values}`
+                                text: `${label} is none of ${values}`,
+                                path: uID
                             });
                             this.$selectedProperties.selectize()[0].selectize.addItem(i);
 
                             break;
                         case 'HAS_PROPERTY':
 
-                            this.$selectedProperties.selectize()[0].selectize.addOption({value:i, text: `${label} is known`});
+                            this.$selectedProperties.selectize()[0].selectize.addOption({value:i, text: `${label} is known`, path: uID});
                             this.$selectedProperties.selectize()[0].selectize.addItem(i);
 
                             break;
                         case 'NOT_HAS_PROPERTY':
 
-                            this.$selectedProperties.selectize()[0].selectize.addOption({value:i, text: `${label} is unknown`});
+                            this.$selectedProperties.selectize()[0].selectize.addOption({value:i, text: `${label} is unknown`, path: uID});
                             this.$selectedProperties.selectize()[0].selectize.addItem(i);
 
                             break;
                     }
                     break;
                 case 'single_line_text_field':
-                case 'multi_line_text_field':
-                case 'number_field':
                     switch(customFilter['operator']) {
                         case 'EQ':
 
@@ -289,41 +233,19 @@ class UserFilterNavigation {
                         case 'NEQ':
 
                             value = customFilter.value.trim() === '' ? '""' : `"${customFilter.value.trim()}"`;
-                            this.$selectedProperties.selectize()[0].selectize.addOption({value:i, text: `${label} doesn't contain exactly ${value}`});
-                            this.$selectedProperties.selectize()[0].selectize.addItem(i);
-
-                            break;
-                        case 'LT':
-
-                            value = customFilter.value.trim() === '' ? '""' : `"${customFilter.value.trim()}"`;
-                            this.$selectedProperties.selectize()[0].selectize.addOption({value:i, text: `${label} is less than ${value}`});
-                            this.$selectedProperties.selectize()[0].selectize.addItem(i);
-
-                            break;
-                        case 'GT':
-
-                            value = customFilter.value.trim() === '' ? '""' : `"${customFilter.value.trim()}"`;
-                            this.$selectedProperties.selectize()[0].selectize.addOption({value:i, text: `${label} is greater than ${value}`});
-                            this.$selectedProperties.selectize()[0].selectize.addItem(i);
-
-                            break;
-                        case 'BETWEEN':
-
-                            let lowValue = customFilter.low_value.trim() === '' ? '""' : `"${customFilter.low_value.trim()}"`;
-                            let highValue = customFilter.high_value.trim() === '' ? '""' : `"${customFilter.high_value.trim()}"`;
-                            this.$selectedProperties.selectize()[0].selectize.addOption({value:i, text: `${label} is between ${lowValue} and ${highValue}`});
+                            this.$selectedProperties.selectize()[0].selectize.addOption({value:i, text: `${label} doesn't contain exactly ${value}`, path: uID});
                             this.$selectedProperties.selectize()[0].selectize.addItem(i);
 
                             break;
                         case 'HAS_PROPERTY':
 
-                            this.$selectedProperties.selectize()[0].selectize.addOption({value:i, text: `${label} is known`});
+                            this.$selectedProperties.selectize()[0].selectize.addOption({value:i, text: `${label} is known`, path: uID});
                             this.$selectedProperties.selectize()[0].selectize.addItem(i);
 
                             break;
                         case 'NOT_HAS_PROPERTY':
 
-                            this.$selectedProperties.selectize()[0].selectize.addOption({value:i, text: `${label} is unknown`});
+                            this.$selectedProperties.selectize()[0].selectize.addOption({value:i, text: `${label} is unknown`, path: uID});
                             this.$selectedProperties.selectize()[0].selectize.addItem(i);
 
                             break;

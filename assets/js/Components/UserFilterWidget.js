@@ -112,6 +112,7 @@ class UserFilterWidget {
 
     applyCustomFilterButtonPressedHandler(customFilter) {
 
+        debugger;
         let uID = StringHelper.makeCharId();
 
         if(_.has(customFilter, 'path')) {

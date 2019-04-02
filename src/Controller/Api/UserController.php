@@ -444,7 +444,7 @@ class UserController extends ApiController
                 'fieldType' => FieldCatalog::SINGLE_CHECKBOX,
             ],
             [
-                'name' => 'name',
+                'name' => 'custom_roles',
                 'label' => 'Custom Roles',
                 'fieldType' => FieldCatalog::MULTIPLE_CHECKBOX,
                 'field' => [
