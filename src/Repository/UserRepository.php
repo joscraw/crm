@@ -96,47 +96,21 @@ class UserRepository extends ServiceEntityRepository
 
         // filters
         $filters = [];
-        foreach ($customFilters as $key => $filter) {
-
-            // We need to setup the alias and column name for any join tables
-            switch($filter['name']) {
-                case 'custom_roles':
-                    $filter['name'] = 'name';
-                    $alias = 'r';
-                    break;
-                default:
-                    $alias = 'u';
-                    break;
-            }
-
-            $filters[] = $this->getCondition($filter, $alias);
-
-        }
-
-        $filterString = implode(" AND ", $filters);
-        $filterString = empty($filters) ? '' : "AND $filterString";
+        $filters = $this->filters($customFilters, $filters);
+        $filterString = empty($filters) ? "" : 'AND ' . implode(" AND ", $filters);
 
         // Search
         $searches = [];
         if(!empty($search['value'])) {
+
+            $searchableColumns = ['u.email', 'u.first_name', 'u.last_name', 'u.is_active', 'u.is_admin_user', 'r.name'];
             $searchItem = $search['value'];
 
-            foreach($columns as $column) {
+            foreach($searchableColumns as $searchableColumn) {
 
-                // We need to setup the alias and column name for any join tables
-                switch($column['name']) {
-                    case 'custom_roles':
-                        $alias = 'r';
-                        $column['name'] = 'name';
-                        break;
-                    default:
-                        $alias = 'u';
-                        break;
-                }
+                $searches[] = sprintf('LOWER(%s) LIKE \'%%%s%%\'', $searchableColumn, strtolower($searchItem));
 
-                $searches[] = sprintf('LOWER(%s.%s) LIKE \'%%%s%%\'', $alias, $column['name'], strtolower($searchItem));
             }
-
         }
 
         $searchString = implode(" OR ", $searches);
@@ -204,29 +178,29 @@ class UserRepository extends ServiceEntityRepository
                     case 'EQ':
 
                         if(trim($customFilter['value']) === '') {
-                            $query = sprintf('%s.%s = \'\'', $alias, $customFilter['name']);
+                            $query = sprintf('`%s`.%s = \'\'', $alias, $customFilter['internalName']);
                         } else {
-                            $query = sprintf('LOWER(%s.%s) LIKE \'%%%s%%\'', $alias, $customFilter['name'], strtolower($customFilter['value']));
+                            $query = sprintf('LOWER(`%s`.%s) LIKE \'%%%s%%\'', $alias, $customFilter['internalName'], strtolower($customFilter['value']));
                         }
 
                         break;
                     case 'NEQ':
 
                         if(trim($customFilter['value']) === '') {
-                            $query = sprintf('%s.%s != \'\'', $alias, $customFilter['name']);
+                            $query = sprintf('`%s`.%s != \'\'', $alias, $customFilter['internalName']);
                         } else {
-                            $query = sprintf('LOWER(%s.%s) NOT LIKE \'%%%s%%\'', $alias, $customFilter['name'], strtolower($customFilter['value']));
+                            $query = sprintf('LOWER(`%s`.%s) NOT LIKE \'%%%s%%\'', $alias, $customFilter['internalName'], strtolower($customFilter['value']));
                         }
 
                         break;
                     case 'HAS_PROPERTY':
 
-                        $query = sprintf('%s.%s is not null', $alias, $customFilter['name']);
+                        $query = sprintf('`%s`.%s is not null', $alias, $customFilter['internalName']);
 
                         break;
                     case 'NOT_HAS_PROPERTY':
 
-                        $query = sprintf('%s.%s is null', $alias, $customFilter['name']);
+                        $query = sprintf('`%s`.%s is null', $alias, $customFilter['internalName']);
 
                         break;
                 }
@@ -237,15 +211,15 @@ class UserRepository extends ServiceEntityRepository
                     case 'IN':
 
                         if(trim($customFilter['value']) === '') {
-                            $query = sprintf('%s.%s = \'\'', $alias, $customFilter['name']);
+                            $query = sprintf('`%s`.%s = \'\'', $alias, $customFilter['internalName']);
                         } else {
                             $values = explode(',', $customFilter['value']);
                             if($values == ['0','1']) {
-                                $query = sprintf('%s.%s = \'%s\' OR %s.%s = \'%s\'', $alias, $customFilter['name'], '1', $alias, $customFilter['name'], 0);
+                                $query = sprintf('`%s`.%s = \'%s\' OR %s.%s = \'%s\'', $alias, $customFilter['internalName'], '1', $alias, $customFilter['internalName'], 0);
                             } elseif ($values == ['0']) {
-                                $query = sprintf('%s.%s = \'%s\'', $alias, $customFilter['name'], '0');
+                                $query = sprintf('`%s`.%s = \'%s\'', $alias, $customFilter['internalName'], '0');
                             } elseif ($values == ['1']) {
-                                $query = sprintf('%s.%s = \'%s\'', $alias, $customFilter['name'], '1');
+                                $query = sprintf('`%s`.%s = \'%s\'', $alias, $customFilter['internalName'], '1');
                             }
                         }
 
@@ -253,27 +227,27 @@ class UserRepository extends ServiceEntityRepository
                     case 'NOT_IN':
 
                         if(trim($customFilter['value']) === '') {
-                            $query = sprintf('%s.%s != \'\'', $alias, $customFilter['name']);
+                            $query = sprintf('`%s`.%s != \'\'', $alias, $customFilter['internalName']);
                         } else {
                             $values = explode(',', $customFilter['value']);
                             if($values == ['0','1']) {
-                                $query = sprintf('%s.%s != \'%s\' AND %s.%s != \'%s\'', $alias, $customFilter['name'], '1', $alias, $customFilter['name'], 0);
+                                $query = sprintf('`%s`.%s != \'%s\' AND %s.%s != \'%s\'', $alias, $customFilter['internalName'], '1', $alias, $customFilter['internalName'], 0);
                             } elseif ($values == ['0']) {
-                                $query = sprintf('%s.%s != \'%s\'', $alias, $customFilter['name'], '0');
+                                $query = sprintf('`%s`.%s != \'%s\'', $alias, $customFilter['internalName'], '0');
                             } elseif ($values == ['1']) {
-                                $query = sprintf('%s.%s != \'%s\'', $alias, $customFilter['name'], '1');
+                                $query = sprintf('`%s`.%s != \'%s\'', $alias, $customFilter['internalName'], '1');
                             }
                         }
 
                         break;
                     case 'HAS_PROPERTY':
 
-                        $query = sprintf('%s.%s is not null', $alias, $customFilter['name']);
+                        $query = sprintf('`%s`.%s is not null', $alias, $customFilter['internalName']);
 
                         break;
                     case 'NOT_HAS_PROPERTY':
 
-                        $query = sprintf('%s.%s is null', $alias, $customFilter['name']);
+                        $query = sprintf('`%s`.%s is null', $alias, $customFilter['internalName']);
 
                         break;
 
@@ -285,13 +259,13 @@ class UserRepository extends ServiceEntityRepository
                     case 'IN':
 
                         if(trim($customFilter['value']) === '') {
-                            $query = sprintf('%s.%s = \'\'', $alias, $customFilter['name']);
+                            $query = sprintf('`%s`.%s = \'\'', $alias, $customFilter['internalName']);
                         } else {
                             $values = explode(',', $customFilter['value']);
 
                             $conditions = [];
                             foreach($values as $value) {
-                                $conditions[] = sprintf('LOWER(%s.%s) = \'%s\'', $alias, $customFilter['name'], strtolower($value));
+                                $conditions[] = sprintf('LOWER(`%s`.%s) = \'%s\'', $alias, $customFilter['internalName'], strtolower($value));
                             }
 
                             $query = implode(" OR ", $conditions);
@@ -301,13 +275,13 @@ class UserRepository extends ServiceEntityRepository
                     case 'NOT_IN':
 
                         if(trim($customFilter['value']) === '') {
-                            $query = sprintf('%s.%s != \'\'', $alias, $customFilter['name']);
+                            $query = sprintf('`%s`.%s != \'\'', $alias, $customFilter['internalName']);
                         } else {
                             $values = explode(',', $customFilter['value']);
 
                             $conditions = [];
                             foreach($values as $value) {
-                                $conditions[] = sprintf('LOWER(%s.%s) != \'%s\'', $alias, $customFilter['name'], strtolower($value));
+                                $conditions[] = sprintf('LOWER(`%s`.%s) != \'%s\'', $alias, $customFilter['internalName'], strtolower($value));
                             }
 
                             $query = implode(" AND ", $conditions);
@@ -316,12 +290,12 @@ class UserRepository extends ServiceEntityRepository
                         break;
                     case 'HAS_PROPERTY':
 
-                        $query = sprintf('%s.%s is not null', $alias, $customFilter['name']);
+                        $query = sprintf('`%s`.%s is not null', $alias, $customFilter['internalName']);
 
                         break;
                     case 'NOT_HAS_PROPERTY':
 
-                        $query = sprintf('%s.%s is null', $alias, $customFilter['name']);
+                        $query = sprintf('`%s`.%s is null', $alias, $customFilter['internalName']);
 
                         break;
                 }
@@ -330,4 +304,35 @@ class UserRepository extends ServiceEntityRepository
 
         return $query;
     }
+
+    private function filters(&$data, &$filters = [])
+    {
+        foreach ($data as $key => $value) {
+
+            // we aren't setting up filters now so skip those
+            if ($key !== 'filters' && empty($data[$key]['uID'])) {
+
+                $this->filters($data[$key], $filters);
+
+            } else if ($key === 'filters') {
+
+                foreach($data[$key] as $filter) {
+
+                    switch(implode(".", $filter['joins'])) {
+                        case 'root':
+                            $filters[] = $this->getCondition($filter, 'u');
+                            break;
+                        case 'root.custom_roles':
+                            $filters[] = $this->getCondition($filter, 'r');
+                            break;
+                    }
+
+                }
+            }
+        }
+
+        return $filters;
+
+    }
+
 }

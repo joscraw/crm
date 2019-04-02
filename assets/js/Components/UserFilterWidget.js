@@ -23,6 +23,7 @@ import ArrayHelper from "../ArrayHelper";
 import UserFilterNavigation from "./UserFilterNavigation";
 import UserFilterList from "./UserFilterList";
 import StringHelper from "../StringHelper";
+import ReportFilterList from "./ReportFilterList";
 
 class UserFilterWidget {
 
@@ -37,6 +38,16 @@ class UserFilterWidget {
         this.globalEventDispatcher.subscribe(
             Settings.Events.APPLY_CUSTOM_FILTER_BUTTON_PRESSED,
             this.applyCustomFilterButtonPressedHandler.bind(this)
+        );
+
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.CUSTOM_OBJECT_FILTER_LIST_ITEM_CLICKED,
+            this.handleCustomObjectFilterListItemClicked.bind(this)
+        );
+
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.FILTER_CUSTOM_OBJECT_JOIN_PATH_SET,
+            this.handleFilterCustomObjectJoinPathSet.bind(this)
         );
 
         this.globalEventDispatcher.subscribe(
@@ -113,17 +124,26 @@ class UserFilterWidget {
     applyCustomFilterButtonPressedHandler(customFilter) {
 
         debugger;
-        let uID = StringHelper.makeCharId();
+        let filterPath = customFilter.joins.join('.') + `.filters`,
+            uID = StringHelper.makeCharId();
 
-        if(_.has(customFilter, 'path')) {
+        // if it has a joinPath we are editing the filter and th4e uID already exists
+        if(_.has(customFilter, 'joinPath')) {
 
-            _.set(this.customFilters, customFilter.path, customFilter);
+            filterPath = customFilter.joinPath.join('.');
+
+            _.set(this.data, filterPath, customFilter);
+
+        } else if(_.has(this.customFilters, filterPath)) {
+
+            _.set(this.customFilters, `${filterPath}[${uID}]`, customFilter);
 
         } else {
 
-            customFilter.path = uID;
+            _.set(this.customFilters, filterPath, {});
 
-            _.set(this.customFilters, uID, customFilter);
+            _.set(this.customFilters, `${filterPath}[${uID}]`, customFilter);
+
         }
 
         this.$wrapper.find(UserFilterWidget._selectors.propertyList).addClass('d-none');
@@ -131,8 +151,30 @@ class UserFilterWidget {
         this.$wrapper.find(UserFilterWidget._selectors.propertyForm).addClass('d-none');
         this.$wrapper.find(UserFilterWidget._selectors.editPropertyForm).addClass('d-none');
 
+        debugger;
         this.globalEventDispatcher.publish(Settings.Events.FILTERS_UPDATED, this.customFilters);
 
+    }
+
+    handleCustomObjectFilterListItemClicked(property) {
+
+        debugger;
+
+        let propertyPath = property.joins.join('.');
+
+        if(!_.has(this.customFilters, propertyPath)) {
+            _.set(this.customFilters, propertyPath, {});
+        }
+
+        this.globalEventDispatcher.publish(Settings.Events.FILTER_CUSTOM_OBJECT_JOIN_PATH_SET, property, property.joins, this.customFilters);
+
+    }
+
+    handleFilterCustomObjectJoinPathSet(property, joins, customFilters) {
+
+        new UserFilterList(this.$wrapper.find('.js-property-list'), this.globalEventDispatcher, this.portalInternalIdentifier, property.internalName, property, joins, customFilters);
+
+        /*new ReportFilterList($(ReportFilters._selectors.reportFilterListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, property.field.customObject.internalName, property, joins, data, property.referencedFilterPath);*/
     }
 
     render() {
@@ -189,15 +231,15 @@ class UserFilterWidget {
 
     }
 
-    handleEditFilterButtonClickedHandler(path) {
+    handleEditFilterButtonClickedHandler(joinPath) {
 
-        let customFilter;
+        debugger;
 
-        if(_.has(this.customFilters, path)) {
+        let filterPath = joinPath.join('.');
 
-            customFilter = _.get(this.customFilters, path);
+        let customFilter = _.get(this.customFilters, filterPath);
 
-        }
+        customFilter.joinPath = joinPath;
 
         this.$wrapper.find(UserFilterWidget._selectors.filterNavigation).addClass('d-none');
         this.$wrapper.find(UserFilterWidget._selectors.propertyList).addClass('d-none');

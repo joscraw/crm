@@ -404,54 +404,80 @@ class UserController extends ApiController
     }
 
     /**
-     * @Route("/get-properties-for-filter", name="user_properties_for_filter", methods={"GET"}, options = { "expose" = true })
+     * @Route("/get-properties-for-filter/{internalName}", name="user_properties_for_filter", methods={"GET"}, options = { "expose" = true })
      * @param Portal $portal
+     * @param $internalName
      * @param Request $request
      * @return JsonResponse
      */
-    public function getPropertiesForFilter(Portal $portal, Request $request) {
-
-        $roles = $this->roleRepository->getRolesForUserFilterByPortal($portal);
+    public function getPropertiesForFilter(Portal $portal, $internalName, Request $request) {
 
         /**
-         * Setup the filters that will be rendered for the user filter widget
-         * @var array
+         * Setup the filters that will be rendered for the user filter widget. This follows the same naming pattern
+         * as Record Custom Filters and Reports. For example, a FieldCatalog::CUSTOM_OBJECT is just a join to another
+         * table.
          */
-        $payload = [
-            [
-                'name' => 'email',
-                'label' => 'Email',
-                'fieldType' => FieldCatalog::SINGLE_LINE_TEXT,
-            ],
-            [
-                'name' => 'first_name',
-                'label' => 'First Name',
-                'fieldType' => FieldCatalog::SINGLE_LINE_TEXT,
-            ],
-            [
-                'name' => 'last_name',
-                'label' => 'Last Name',
-                'fieldType' => FieldCatalog::SINGLE_LINE_TEXT,
-            ],
-            [
-                'name' => 'is_active',
-                'label' => 'Is Active',
-                'fieldType' => FieldCatalog::SINGLE_CHECKBOX,
-            ],
-            [
-                'name' => 'is_admin_user',
-                'label' => 'Is Admin User',
-                'fieldType' => FieldCatalog::SINGLE_CHECKBOX,
-            ],
-            [
-                'name' => 'custom_roles',
-                'label' => 'Custom Roles',
-                'fieldType' => FieldCatalog::MULTIPLE_CHECKBOX,
-                'field' => [
-                    'options' => $roles
-                ],
-            ]
-        ];
+        switch($internalName) {
+            case 'root':
+
+                $payload = [
+                    [
+                        'id' => 1,
+                        'internalName' => 'email',
+                        'label' => 'Email',
+                        'fieldType' => FieldCatalog::SINGLE_LINE_TEXT,
+                    ],
+                    [
+                        'id' => 2,
+                        'internalName' => 'first_name',
+                        'label' => 'First Name',
+                        'fieldType' => FieldCatalog::SINGLE_LINE_TEXT,
+                    ],
+                    [
+                        'id' => 3,
+                        'internalName' => 'last_name',
+                        'label' => 'Last Name',
+                        'fieldType' => FieldCatalog::SINGLE_LINE_TEXT,
+                    ],
+                    [
+                        'id' => 4,
+                        'internalName' => 'is_active',
+                        'label' => 'Is Active',
+                        'fieldType' => FieldCatalog::SINGLE_CHECKBOX,
+                    ],
+                    [
+                        'id' => 5,
+                        'internalName' => 'is_admin_user',
+                        'label' => 'Is Admin User',
+                        'fieldType' => FieldCatalog::SINGLE_CHECKBOX,
+                    ],
+                    [
+                        'id' => 6,
+                        'internalName' => 'custom_roles',
+                        'label' => 'Custom Roles',
+                        'fieldType' => FieldCatalog::CUSTOM_OBJECT,
+                    ]
+                ];
+
+                break;
+            case 'custom_roles':
+
+                $roles = $this->roleRepository->getRolesForUserFilterByPortal($portal);
+
+                $payload = [
+                    [
+                        'id' => 7,
+                        'internalName' => 'name',
+                        'label' => 'Name',
+                        'fieldType' => FieldCatalog::MULTIPLE_CHECKBOX,
+                        'field' => [
+                            'options' => $roles
+                        ],
+                    ]
+                ];
+
+                break;
+        }
 
         return new JsonResponse([
             'success' => true,

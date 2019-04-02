@@ -299,6 +299,7 @@ class ReportWidget {
 
     applyCustomFilterButtonPressedHandler(customFilter) {
 
+        debugger;
         let filterPath = customFilter.joins.join('.') + `.filters`,
             referencedFilterPath = customFilter.referencedFilterPath.join('.'),
             uID = StringHelper.makeCharId();
@@ -374,7 +375,7 @@ class ReportWidget {
         let propertyPath = property.joins.join('.');
 
         if(!_.has(this.data, propertyPath)) {
-            _.set(this.data, propertyPath, []);
+            _.set(this.data, propertyPath, {});
         }
 
         this.globalEventDispatcher.publish(Settings.Events.REPORT_CUSTOM_OBJECT_JOIN_PATH_SET, property, joins, this.data);
@@ -387,7 +388,7 @@ class ReportWidget {
         let propertyPath = property.joins.join('.');
 
         if(!_.has(this.data, propertyPath)) {
-            _.set(this.data, propertyPath, []);
+            _.set(this.data, propertyPath, {});
         }
 
         this.globalEventDispatcher.publish(Settings.Events.REPORT_FILTER_CUSTOM_OBJECT_JOIN_PATH_SET, property, joins, this.data);
