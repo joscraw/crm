@@ -132,7 +132,7 @@ class UserFilterWidget {
 
             filterPath = customFilter.joinPath.join('.');
 
-            _.set(this.data, filterPath, customFilter);
+            _.set(this.customFilters, filterPath, customFilter);
 
         } else if(_.has(this.customFilters, filterPath)) {
 

@@ -130,6 +130,8 @@ class UserFilterList {
 
         $( `#user-property-list li` ).each((index, element) => {
 
+            debugger;
+
             $(element).attr('data-property-id', properties[index].id);
 
             if(this.join) {

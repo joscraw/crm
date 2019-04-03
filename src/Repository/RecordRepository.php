@@ -232,7 +232,9 @@ class RecordRepository extends ServiceEntityRepository
         $filters = $this->filters($data, $filters);
         $filterString = implode(" OR ", $filters);
 
-        $query = sprintf("SELECT count(root.id) as count from record root %s WHERE root.custom_object_id='%s' AND %s", $resultStr, $joinString, $customObject->getId(), $filterString);
+        $filterString = empty($filters) ? '' : "AND $filterString";
+
+        $query = sprintf("SELECT count(root.id) as count from record root %s WHERE root.custom_object_id='%s' AND %s", $joinString, $customObject->getId(), $filterString);
 
         $em = $this->getEntityManager();
         $stmt = $em->getConnection()->prepare($query);
@@ -266,25 +268,25 @@ class RecordRepository extends ServiceEntityRepository
             switch($property->getFieldType()) {
 
                 case FieldCatalog::DATE_PICKER:
-                    $jsonExtract = $this->getDatePickerQuery();
+                    $jsonExtract = $this->getDatePickerQuery('root');
                     $resultStr[] = sprintf($jsonExtract, $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $property->getInternalName());
                     break;
                 case FieldCatalog::SINGLE_CHECKBOX:
-                    $jsonExtract = $this->getSingleCheckboxQuery();
+                    $jsonExtract = $this->getSingleCheckboxQuery('root');
                     $resultStr[] = sprintf($jsonExtract, $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $property->getInternalName());
                     break;
                 case FieldCatalog::NUMBER:
                     $field = $property->getField();
                     if($field->isCurrency()) {
-                        $jsonExtract = $this->getNumberIsCurrencyQuery();
+                        $jsonExtract = $this->getNumberIsCurrencyQuery('root');
                         $resultStr[] = sprintf($jsonExtract, $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $property->getInternalName());
                     } elseif($field->isUnformattedNumber()) {
-                        $jsonExtract = $this->getNumberIsUnformattedQuery();
+                        $jsonExtract = $this->getNumberIsUnformattedQuery('root');
                         $resultStr[] = sprintf($jsonExtract, $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $property->getInternalName());
                     }
                     break;
                 default:
-                    $jsonExtract = $this->getDefaultQuery();
+                    $jsonExtract = $this->getDefaultQuery('root');
                     $resultStr[] = sprintf($jsonExtract, $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $property->getInternalName());
                     break;
 
@@ -292,10 +294,24 @@ class RecordRepository extends ServiceEntityRepository
 
         }
 
+        // Setup Joins
+        $joins = [];
+        $joins = $this->joins($customFilters, $joins);
+        $joinString = implode(" ", $joins);
 
+        // Setup Filters
+        $filters = [];
+        $filters = $this->filters($customFilters, $filters);
+        $filterString = implode(" OR ", $filters);
+
+        $filterString = empty($filters) ? '' : "AND $filterString";
+
+        /**
+         * @deprecated
+         */
         // Joins
         // Don't touch the Join logic unless absolutely necessary. It just works!
-        $joins = [];
+/*        $joins = [];
         $joinAlias = 2;
         $previousJoinAlias = 1;
         foreach($customFilters as &$customFilter) {
@@ -322,24 +338,21 @@ class RecordRepository extends ServiceEntityRepository
             $customFilter['aliasIndex'] = ($joinAlias - 1);
         }
 
-        $joinString = implode(" ", $joins);
+        $joinString = implode(" ", $joins);*/
+
+
+
+
 
         $resultStr = implode(",",$resultStr);
-        $query = sprintf("SELECT DISTINCT r1.id, %s from record r1 %s WHERE r1.custom_object_id='%s'", $resultStr, $joinString, $customObject->getId());
+        $query = sprintf("SELECT DISTINCT root.id, %s from record root %s WHERE root.custom_object_id='%s' %s", $resultStr, $joinString, $customObject->getId(), $filterString);
 
 
         // Search
         if(!empty($search['value'])) {
             $searchItem = $search['value'];
-            $query .= ' and LOWER(r1.properties) LIKE \'%'.strtolower($searchItem).'%\'';
+            $query .= ' and LOWER(root.properties) LIKE \'%'.strtolower($searchItem).'%\'';
         }
-
-
-        // Custom Filters
-        foreach($customFilters as &$customFilter) {
-            $query .= $this->getCondition($customFilter, $customFilter['aliasIndex']);
-        }
-
 
         // Order
         foreach ($orders as $key => $order) {
@@ -351,7 +364,7 @@ class RecordRepository extends ServiceEntityRepository
         foreach ($orders as $key => $order) {
 
                 if(isset($order['name'])) {
-                    $query .= " ORDER BY {$order['name']}";
+                    $query .= " ORDER BY LOWER({$order['name']})";
                 }
 
                 $query .= ' ' . $order['dir'];
