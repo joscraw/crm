@@ -12,7 +12,7 @@ use App\Validator\Constraints as CustomAssert;
 
 
 /**
- * * @CustomAssert\RoleNameAlreadyExists()
+ * @CustomAssert\RoleNameAlreadyExists()
  * @ORM\Entity(repositoryClass="App\Repository\RoleRepository")
  */
 class Role

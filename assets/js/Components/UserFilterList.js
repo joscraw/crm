@@ -46,7 +46,9 @@ class UserFilterList {
         this.loadUserPropertiesForFilter().then((data) => {
 
             this.properties = data.data;
-            this.renderProperties(this.properties);
+            this.renderProperties(this.properties).then(() => {
+                this.highlightProperties(this.customFilters);
+            });
         }).catch(() => {});
     }
 
@@ -83,6 +85,50 @@ class UserFilterList {
         };
 
         this.applySearch(searchObject);
+    }
+
+    highlightProperties(data) {
+
+        debugger;
+        $(UserFilterList._selectors.propertyListItem).each((index, element) => {
+
+            debugger;
+            if($(element).hasClass('c-list__list-item--active')) {
+                $(element).removeClass('c-list__list-item--active');
+            }
+
+            let propertyId = $(element).attr('data-property-id');
+            let joins = JSON.parse($(element).attr('data-joins'));
+            let propertyPath = joins.join('.');
+
+            if(_.has(data, propertyPath)) {
+
+                let properties = _.get(data, propertyPath);
+
+                let propertyMatch = null;
+
+                if(!_.has(properties, 'filters')) {
+                    return true;
+                }
+
+                let filters =  _.get(properties, 'filters');
+
+                for(let key in filters) {
+
+                    let filter = filters[key];
+
+                    if(parseInt(filter.id) === parseInt(propertyId)) {
+                        propertyMatch = filter
+                    }
+                }
+
+                if(propertyMatch) {
+
+                    $(element).addClass('c-list__list-item--active');
+                }
+            }
+
+        });
     }
 
     /**
@@ -130,8 +176,6 @@ class UserFilterList {
 
         $( `#user-property-list li` ).each((index, element) => {
 
-            debugger;
-
             $(element).attr('data-property-id', properties[index].id);
 
             if(this.join) {
@@ -175,6 +219,11 @@ class UserFilterList {
         }
 
         const $listItem = $(e.currentTarget);
+
+        if($listItem.hasClass('c-list__list-item--active')) {
+            return;
+        }
+
         let propertyId = $listItem.attr('data-property-id');
         let joins = JSON.parse($listItem.attr('data-joins'));
 

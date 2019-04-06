@@ -10,6 +10,8 @@ import FilterList from "./FilterList";
 import ArrayHelper from "../ArrayHelper";
 import FilterHelper from "../FilterHelper";
 import StringHelper from "../StringHelper";
+import SaveFilterFormModal from "./SaveFilterFormModal";
+import SavedFiltersModal from "./SavedFiltersModal";
 
 class FilterNavigation {
 
@@ -37,9 +39,32 @@ class FilterNavigation {
             this.handleAllRecordsButtonClicked.bind(this)
         );
 
+        this.$wrapper.on(
+            'click',
+            FilterNavigation._selectors.resetFiltersButton,
+            this.handleResetFiltersButtonClicked.bind(this)
+        );
+
+        this.$wrapper.on(
+            'click',
+            FilterNavigation._selectors.saveFiltersButton,
+            this.handleSaveFiltersButtonClicked.bind(this)
+        );
+
+        this.$wrapper.on(
+            'click',
+            FilterNavigation._selectors.allSavedFiltersButton,
+            this.handleAllSavedFiltersButtonClicked.bind(this)
+        );
+
         this.globalEventDispatcher.subscribe(
             Settings.Events.FILTERS_UPDATED,
-            this.customFiltersUpdatedHandler.bind(this)
+            this.activatePlugins.bind(this)
+        );
+
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.FILTERS_UPDATED,
+            this.showOrHideSaveFilterNavItem.bind(this)
         );
 
         this.render();
@@ -52,13 +77,15 @@ class FilterNavigation {
         return {
             addFilterButton: '.js-add-filter-button',
             propertyList: '.js-property-list',
-            allRecordsButton: '.js-all-records-button'
+            allRecordsButton: '.js-all-records-button',
+            saveFilterNavItem: '.js-save-filter-nav-item',
+            saveFiltersButton: '.js-save-filters-button',
+            resetFiltersButton: '.js-reset-filters-button',
+            allSavedFiltersButton: '.js-all-saved-filters-button'
         }
     }
 
     customFiltersUpdatedHandler(customFilters) {
-
-        debugger;
 
         this.customFilters = customFilters;
         this.activatePlugins(customFilters);
@@ -71,6 +98,8 @@ class FilterNavigation {
     unbindEvents() {
         this.$wrapper.off('click', FilterNavigation._selectors.addFilterButton);
         this.$wrapper.off('click', FilterNavigation._selectors.allRecordsButton);
+        this.$wrapper.off('click', FilterNavigation._selectors.resetFiltersButton);
+        this.$wrapper.off('click', FilterNavigation._selectors.saveFiltersButton);
     }
 
     handleAllRecordsButtonClicked(e) {
@@ -83,30 +112,61 @@ class FilterNavigation {
 
     }
 
-    activatePlugins(customFilters) {
-        debugger;
+    handleResetFiltersButtonClicked(e) {
 
-        let filters = {};
-        function search(data) {
-
-            for(let key in data) {
-
-                if(isNaN(key) && key !== 'filters') {
-
-                    search(data[key]);
-
-                } else if(key === 'filters'){
-
-                    for(let uID in data[key]) {
-
-                        _.set(filters, uID, data[key][uID]);
-
-                    }
-                }
-            }
+        if(e.cancelable) {
+            e.preventDefault();
         }
 
-        search(customFilters);
+        this.globalEventDispatcher.publish(Settings.Events.RESET_FILTERS_BUTTON_PRESSED);
+    }
+
+    handleAllSavedFiltersButtonClicked(e) {
+
+        if(e.cancelable) {
+            e.preventDefault();
+        }
+
+        new SavedFiltersModal(this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);
+
+    }
+
+    handleSaveFiltersButtonClicked(e) {
+
+        if(e.cancelable) {
+            e.preventDefault();
+        }
+
+        new SaveFilterFormModal(this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, this.customFilters);
+    }
+
+    showOrHideSaveFilterNavItem(customFilters) {
+
+        let filters = FilterHelper.getNonReportFiltersFromCustomFiltersObject(customFilters);
+
+        if(_.isEmpty(filters)) {
+
+            if(!$(FilterNavigation._selectors.saveFilterNavItem).hasClass('d-none')) {
+
+                $(FilterNavigation._selectors.saveFilterNavItem).addClass('d-none');
+
+            }
+
+        } else {
+
+            if($(FilterNavigation._selectors.saveFilterNavItem).hasClass('d-none')) {
+
+                $(FilterNavigation._selectors.saveFilterNavItem).removeClass('d-none');
+
+            }
+        }
+    }
+
+    activatePlugins(customFilters) {
+
+        this.customFilters = customFilters;
+
+        let filters = FilterHelper.getNonReportFiltersFromCustomFiltersObject(customFilters);
 
         this.$selectedProperties = $('#js-selected-properties').selectize({
             plugins: ['remove_button'],
@@ -185,7 +245,7 @@ class FilterNavigation {
         <a class="nav-link active js-all-records-button" href="#">All Records</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link disabled" href="javascript:void(0)">All Records</a>
+        <button type="button" class="btn btn-link js-all-saved-filters-button">All saved filters <i class="fa fa-angle-right"></i></button>
       </li>
       <li class="nav-item js-selectized-property-container c-filter-widget__selected-filters">
         <div class="js-selectized-property-container">
@@ -194,6 +254,11 @@ class FilterNavigation {
       </li>
       <li class="nav-item">
         <button type="button" class="btn btn-link js-add-filter-button"><i class="fa fa-plus"></i> Add Filter</button>
+      </li>
+      
+      <li class="nav-item js-save-filter-nav-item d-none">
+        <hr>
+        <button type="button" class="btn btn-sm btn-primary js-save-filters-button">Save</button> <button type="button" class="btn btn-sm btn-light js-reset-filters-button">Reset</button>
       </li>
     </ul>
     `;

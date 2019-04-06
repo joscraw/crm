@@ -63,12 +63,18 @@ class Portal
      */
     private $roles;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Filter", mappedBy="portal", orphanRemoval=true)
+     */
+    private $filters;
+
     public function __construct()
     {
         $this->customObjects = new ArrayCollection();
         $this->reports = new ArrayCollection();
         $this->users = new ArrayCollection();
         $this->roles = new ArrayCollection();
+        $this->filters = new ArrayCollection();
     }
 
     /**
@@ -208,6 +214,37 @@ class Portal
             // set the owning side to null (unless already changed)
             if ($role->getPortal() === $this) {
                 $role->setPortal(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Filter[]
+     */
+    public function getFilters(): Collection
+    {
+        return $this->filters;
+    }
+
+    public function addFilter(Filter $filter): self
+    {
+        if (!$this->filters->contains($filter)) {
+            $this->filters[] = $filter;
+            $filter->setPortal($this);
+        }
+
+        return $this;
+    }
+
+    public function removeFilter(Filter $filter): self
+    {
+        if ($this->filters->contains($filter)) {
+            $this->filters->removeElement($filter);
+            // set the owning side to null (unless already changed)
+            if ($filter->getPortal() === $this) {
+                $filter->setPortal(null);
             }
         }
 

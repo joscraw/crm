@@ -216,6 +216,37 @@ class FilterHelper {
 
     }
 
+    /**
+     * Report filters are slightly different and have "OR Reference filters" and
+     * therefore require a slightly different extraction method
+     *
+     * @param customFilters
+     */
+    static getNonReportFiltersFromCustomFiltersObject(customFilters) {
+
+        return (function search(data, filters = {}) {
+
+            for(let key in data) {
+
+                if(isNaN(key) && key !== 'filters') {
+
+                    search(data[key], filters);
+
+                } else if(key === 'filters'){
+
+                    for(let uID in data[key]) {
+
+                        _.set(filters, uID, data[key][uID]);
+
+                    }
+                }
+            }
+
+            return filters;
+        })(customFilters);
+
+    }
+
 }
 
 export default FilterHelper;

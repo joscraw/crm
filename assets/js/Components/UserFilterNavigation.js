@@ -9,6 +9,7 @@ import SingleLineTextFieldFilterForm from "./SingleLineTextFieldFilterForm";
 import FilterList from "./FilterList";
 import ArrayHelper from "../ArrayHelper";
 import StringHelper from "../StringHelper";
+import FilterHelper from "../FilterHelper";
 
 class UserFilterNavigation {
 
@@ -82,28 +83,7 @@ class UserFilterNavigation {
 
     activatePlugins(customFilters) {
 
-
-        let filters = {};
-        function search(data) {
-
-            for(let key in data) {
-
-                if(isNaN(key) && key !== 'filters') {
-
-                    search(data[key]);
-
-                } else if(key === 'filters'){
-
-                    for(let uID in data[key]) {
-
-                        _.set(filters, uID, data[key][uID]);
-
-                    }
-                }
-            }
-        }
-
-        search(customFilters);
+        let filters = FilterHelper.getNonReportFiltersFromCustomFiltersObject(customFilters);
 
         this.$selectedProperties = $('#js-selected-properties').selectize({
             plugins: ['remove_button'],
@@ -122,7 +102,6 @@ class UserFilterNavigation {
 
         this.$selectedProperties.selectize()[0].selectize.on('item_remove', (value, $item) => {
 
-            debugger;
             let joinPath = JSON.parse($item.closest('div').attr('data-join-path'));
 
             this.globalEventDispatcher.publish(Settings.Events.CUSTOM_FILTER_REMOVED, joinPath);
@@ -139,7 +118,7 @@ class UserFilterNavigation {
             debugger;
             let customFilter = _.get(filters, uID, false);
 
-            let text = this.getFilterTextFromCustomFilter(customFilter);
+            let text = FilterHelper.getFilterTextFromCustomFilter(customFilter);
 
             this.$selectedProperties.selectize()[0].selectize.addOption({value:i, text: text, joinPath: JSON.stringify(customFilter.joins.concat(['filters', uID]))});
             this.$selectedProperties.selectize()[0].selectize.addItem(i);
@@ -163,198 +142,6 @@ class UserFilterNavigation {
             this.globalEventDispatcher.publish(Settings.Events.EDIT_FILTER_BUTTON_CLICKED, joinPath);
 
         }) ;
-    }
-
-    getFilterTextFromCustomFilter(customFilter) {
-
-        let text = '',
-            value = '',
-            values = '',
-            label = customFilter.label;
-
-        switch(customFilter['fieldType']) {
-            case 'custom_object_field':
-                // do nothing
-                break;
-            case 'date_picker_field':
-                switch(customFilter['operator']) {
-                    case 'EQ':
-
-                        value = customFilter.value.trim() === '' ? '""' : `"${customFilter.value.trim()}"`;
-                        text = `${label} is equal to ${value}`;
-
-                        break;
-                    case 'NEQ':
-
-                        value = customFilter.value.trim() === '' ? '""' : `"${customFilter.value.trim()}"`;
-                        text = `${label} is not equal to ${value}`;
-
-                        break;
-                    case 'LT':
-
-                        value = customFilter.value.trim() === '' ? '""' : `"${customFilter.value.trim()}"`;
-                        text = `${label} is before ${value}`;
-
-                        break;
-                    case 'GT':
-
-                        value = customFilter.value.trim() === '' ? '""' : `"${customFilter.value.trim()}"`;
-                        text = `${label} is after ${value}`;
-
-                        break;
-                    case 'BETWEEN':
-
-                        let lowValue = customFilter.low_value.trim() === '' ? '""' : `"${customFilter.low_value.trim()}"`;
-                        let highValue = customFilter.high_value.trim() === '' ? '""' : `"${customFilter.high_value.trim()}"`;
-                        text = `${label} is between ${lowValue} and ${highValue}`;
-
-                        break;
-                    case 'HAS_PROPERTY':
-
-                        text = `${label} is known`;
-
-                        break;
-                    case 'NOT_HAS_PROPERTY':
-
-                        text = `${label} is unknown`;
-
-                        break;
-                }
-                break;
-            case 'single_checkbox_field':
-                debugger;
-                switch(customFilter['operator']) {
-                    case 'IN':
-
-                        debugger;
-                        values = customFilter.value.split(",");
-
-                        if(ArrayHelper.arraysEqual(values, ["0", "1"])) {
-                            value = `"Yes" or "No"`;
-                        } else if(ArrayHelper.arraysEqual(values, ["0"])) {
-                            value = `"No"`;
-                        } else if(ArrayHelper.arraysEqual(values, ["1"])) {
-                            value = `"Yes"`;
-                        }
-
-                        text = `${label} is any of ${value}`;
-
-                        break;
-                    case 'NOT_IN':
-
-                        debugger;
-                        values = customFilter.value.split(",");
-
-                        if(ArrayHelper.arraysEqual(values, ["0", "1"])) {
-                            value = `"Yes" or "No"`;
-                        } else if(ArrayHelper.arraysEqual(values, ["0"])) {
-                            value = `"No"`;
-                        } else if(ArrayHelper.arraysEqual(values, ["1"])) {
-                            value = `"Yes"`;
-                        }
-
-                        text = `${label} is none of ${value}`;
-
-                        break;
-                    case 'HAS_PROPERTY':
-
-                        text = `${label} is known`;
-
-                        break;
-                    case 'NOT_HAS_PROPERTY':
-
-                        text = `${label} is unknown`;
-
-                        break;
-                }
-                break;
-            case 'dropdown_select_field':
-            case 'multiple_checkbox_field':
-            case 'radio_select_field':
-                debugger;
-                switch(customFilter['operator']) {
-                    case 'IN':
-
-                        values = customFilter.value.split(",");
-                        values = values.join(" or ");
-
-                        text = `${label} is any of ${values}`;
-
-                        break;
-                    case 'NOT_IN':
-
-                        values = customFilter.value.split(",");
-                        values = values.join(" or ");
-
-                        text = `${label} is none of ${values}`;
-
-                        break;
-                    case 'HAS_PROPERTY':
-
-                        text = `${label} is known`;
-
-                        break;
-                    case 'NOT_HAS_PROPERTY':
-
-                        text = `${label} is unknown`;
-
-                        break;
-                }
-                break;
-            case 'single_line_text_field':
-            case 'multi_line_text_field':
-            case 'number_field':
-                switch(customFilter['operator']) {
-                    case 'EQ':
-
-                        debugger;
-                        value = customFilter.value.trim() === '' ? '""' : `"${customFilter.value.trim()}"`;
-                        text = `${customFilter.label} contains exactly ${value}`;
-
-                        break;
-                    case 'NEQ':
-
-                        value = customFilter.value.trim() === '' ? '""' : `"${customFilter.value.trim()}"`;
-                        text = `${customFilter.label} doesn't contain exactly ${value}`;
-
-                        break;
-                    case 'LT':
-
-                        value = customFilter.value.trim() === '' ? '""' : `"${customFilter.value.trim()}"`;
-                        text = `${customFilter.label} is less than ${value}`;
-
-                        break;
-                    case 'GT':
-
-                        value = customFilter.value.trim() === '' ? '""' : `"${customFilter.value.trim()}"`;
-                        text = `${customFilter.label} is greater than ${value}`;
-
-                        break;
-                    case 'BETWEEN':
-
-                        let lowValue = customFilter.low_value.trim() === '' ? '""' : `"${customFilter.low_value.trim()}"`;
-                        let highValue = customFilter.high_value.trim() === '' ? '""' : `"${customFilter.high_value.trim()}"`;
-
-                        value = customFilter.value.trim() === '' ? '""' : `"${customFilter.value.trim()}"`;
-                        text = `${customFilter.label} is between ${lowValue} and ${highValue}`;
-
-                        break;
-                    case 'HAS_PROPERTY':
-
-                        text = `${customFilter.label} is known`;
-
-                        break;
-                    case 'NOT_HAS_PROPERTY':
-
-                        text = `${customFilter.label} is unknown`;
-
-                        break;
-                }
-                break;
-        }
-
-        return text;
-
     }
 
     render() {

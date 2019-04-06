@@ -340,10 +340,6 @@ class RecordRepository extends ServiceEntityRepository
 
         $joinString = implode(" ", $joins);*/
 
-
-
-
-
         $resultStr = implode(",",$resultStr);
         $query = sprintf("SELECT DISTINCT root.id, %s from record root %s WHERE root.custom_object_id='%s' %s", $resultStr, $joinString, $customObject->getId(), $filterString);
 
@@ -384,6 +380,64 @@ class RecordRepository extends ServiceEntityRepository
         );
     }
 
+    /**
+     * @param $propertiesForDatatable
+     * @param $customFilters
+     * @param CustomObject $customObject
+     * @return string
+     */
+    public function getCustomFiltersMysqlOnly($propertiesForDatatable, $customFilters, CustomObject $customObject)
+    {
+        // Setup fields to select
+        $resultStr = [];
+        foreach($propertiesForDatatable as $property) {
+
+            switch($property->getFieldType()) {
+
+                case FieldCatalog::DATE_PICKER:
+                    $jsonExtract = $this->getDatePickerQuery('root');
+                    $resultStr[] = sprintf($jsonExtract, $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $property->getInternalName());
+                    break;
+                case FieldCatalog::SINGLE_CHECKBOX:
+                    $jsonExtract = $this->getSingleCheckboxQuery('root');
+                    $resultStr[] = sprintf($jsonExtract, $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $property->getInternalName());
+                    break;
+                case FieldCatalog::NUMBER:
+                    $field = $property->getField();
+                    if($field->isCurrency()) {
+                        $jsonExtract = $this->getNumberIsCurrencyQuery('root');
+                        $resultStr[] = sprintf($jsonExtract, $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $property->getInternalName());
+                    } elseif($field->isUnformattedNumber()) {
+                        $jsonExtract = $this->getNumberIsUnformattedQuery('root');
+                        $resultStr[] = sprintf($jsonExtract, $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $property->getInternalName());
+                    }
+                    break;
+                default:
+                    $jsonExtract = $this->getDefaultQuery('root');
+                    $resultStr[] = sprintf($jsonExtract, $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $property->getInternalName());
+                    break;
+
+            }
+
+        }
+
+        // Setup Joins
+        $joins = [];
+        $joins = $this->joins($customFilters, $joins);
+        $joinString = implode(" ", $joins);
+
+        // Setup Filters
+        $filters = [];
+        $filters = $this->filters($customFilters, $filters);
+        $filterString = implode(" OR ", $filters);
+
+        $filterString = empty($filters) ? '' : "AND $filterString";
+
+        $resultStr = implode(",",$resultStr);
+        $query = sprintf("SELECT DISTINCT root.id, %s from record root %s WHERE root.custom_object_id='%s' %s", $resultStr, $joinString, $customObject->getId(), $filterString);
+
+        return $query;
+    }
 
     private function fields($columnOrder)
     {

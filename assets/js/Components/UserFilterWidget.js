@@ -188,7 +188,7 @@ class UserFilterWidget {
         this.$wrapper.find(UserFilterWidget._selectors.filterNavigation).addClass('d-none');
         this.$wrapper.find(UserFilterWidget._selectors.propertyList).removeClass('d-none');
 
-        new UserFilterList(this.$wrapper.find('.js-property-list'), this.globalEventDispatcher, this.portalInternalIdentifier);
+        new UserFilterList(this.$wrapper.find('.js-property-list'), this.globalEventDispatcher, this.portalInternalIdentifier, 'root', null, [], this.customFilters);
     }
 
     handleBackToHomeButtonClicked() {

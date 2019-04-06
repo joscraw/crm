@@ -6,6 +6,7 @@ import $ from "jquery";
 import PropertySearch from "./PropertySearch";
 import List from "list.js";
 import SingleLineTextFieldFilterForm from "./SingleLineTextFieldFilterForm";
+import FilterHelper from "../FilterHelper";
 
 class FilterList {
 
@@ -47,7 +48,9 @@ class FilterList {
         this.loadPropertiesForFilter().then((data) => {
             debugger;
             this.propertyGroups = data.data.property_groups;
-            this.renderProperties(this.propertyGroups);
+            this.renderProperties(this.propertyGroups).then(() => {
+                this.highlightProperties(this.customFilters);
+            });
         }).catch(() => {
             debugger;
         });
@@ -110,6 +113,50 @@ class FilterList {
                     $(element).removeClass('d-none');
                 }
             }
+        });
+    }
+
+    highlightProperties(data) {
+
+        debugger;
+        $(FilterList._selectors.propertyListItem).each((index, element) => {
+
+            debugger;
+            if($(element).hasClass('c-list__list-item--active')) {
+                $(element).removeClass('c-list__list-item--active');
+            }
+
+            let propertyId = $(element).attr('data-property-id');
+            let joins = JSON.parse($(element).attr('data-joins'));
+            let propertyPath = joins.join('.');
+
+            if(_.has(data, propertyPath)) {
+
+                let properties = _.get(data, propertyPath);
+
+                let propertyMatch = null;
+
+                if(!_.has(properties, 'filters')) {
+                    return true;
+                }
+
+                let filters =  _.get(properties, 'filters');
+
+                for(let key in filters) {
+
+                    let filter = filters[key];
+
+                    if(parseInt(filter.id) === parseInt(propertyId)) {
+                        propertyMatch = filter
+                    }
+                }
+
+                if(propertyMatch) {
+
+                    $(element).addClass('c-list__list-item--active');
+                }
+            }
+
         });
     }
 
@@ -194,6 +241,11 @@ class FilterList {
         }
 
         const $listItem = $(e.currentTarget);
+
+        if($listItem.hasClass('c-list__list-item--active')) {
+            return;
+        }
+
         let propertyGroupId = $listItem.closest('.js-list').attr('data-property-group');
         let propertyId = $listItem.attr('data-property-id');
         let joins = JSON.parse($listItem.attr('data-joins'));

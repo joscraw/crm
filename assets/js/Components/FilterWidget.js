@@ -85,6 +85,17 @@ class FilterWidget {
             this.customFilterAllRecordsButtonPressedHandler.bind(this)
         );
 
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.RESET_FILTERS_BUTTON_PRESSED,
+            this.resetFiltersButtonPressedHandler.bind(this)
+        );
+
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.APPLY_SAVED_FILTER_BUTTON_CLICKED,
+            this.applySavedFilterButtonClickedHandler.bind(this)
+        );
+
+
         this.render();
     }
 
@@ -102,7 +113,6 @@ class FilterWidget {
 
     customFilterRemovedHandler(path) {
 
-        debugger;
         _.unset(this.customFilters, path);
 
         this.globalEventDispatcher.publish(Settings.Events.FILTERS_UPDATED, this.customFilters);
@@ -110,12 +120,25 @@ class FilterWidget {
 
     customFilterAllRecordsButtonPressedHandler() {
 
-        debugger;
-
-        this.customFilters = [];
+        this.customFilters = {};
 
         this.globalEventDispatcher.publish(Settings.Events.FILTERS_UPDATED, this.customFilters);
 
+    }
+
+    resetFiltersButtonPressedHandler() {
+
+        this.customFilters = {};
+
+        this.globalEventDispatcher.publish(Settings.Events.FILTERS_UPDATED, this.customFilters);
+
+    }
+
+    applySavedFilterButtonClickedHandler(customFilters) {
+
+        this.customFilters = customFilters;
+
+        this.globalEventDispatcher.publish(Settings.Events.FILTERS_UPDATED, this.customFilters);
     }
 
     filterFormBackToListButtonClickedHandler() {
@@ -169,7 +192,7 @@ class FilterWidget {
         debugger;
         this.$wrapper.find(FilterWidget._selectors.filterNavigation).addClass('d-none');
         this.$wrapper.find(FilterWidget._selectors.propertyList).removeClass('d-none');
-        new FilterList(this.$wrapper.find('.js-property-list'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);
+        new FilterList(this.$wrapper.find('.js-property-list'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, null, [], this.customFilters);
     }
 
     handleBackToHomeButtonClicked() {
