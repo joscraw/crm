@@ -145,6 +145,8 @@ class FilterWidget {
         this.$wrapper.find(FilterWidget._selectors.propertyList).removeClass('d-none');
         this.$wrapper.find(FilterWidget._selectors.propertyForm).addClass('d-none');
         this.$wrapper.find(FilterWidget._selectors.editPropertyForm).addClass('d-none');
+
+        new FilterList(this.$wrapper.find('.js-property-list'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, null, [], this.customFilters);
     }
 
     applyCustomFilterButtonPressedHandler(customFilter) {

@@ -302,7 +302,7 @@ class RecordRepository extends ServiceEntityRepository
         // Setup Filters
         $filters = [];
         $filters = $this->filters($customFilters, $filters);
-        $filterString = implode(" OR ", $filters);
+        $filterString = implode(" AND ", $filters);
 
         $filterString = empty($filters) ? '' : "AND $filterString";
 
