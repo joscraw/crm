@@ -9,13 +9,17 @@ import SingleLineTextFieldFilterForm from "./SingleLineTextFieldFilterForm";
 
 class UserFilterList {
 
-    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, internalName = 'root', join = null, joins = [], customFilters = {}) {
         debugger;
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
-        this.userProperties = [];
+        this.properties = [];
         this.list = null;
+        this.internalName = internalName;
+        this.join = join;
+        this.joins = joins;
+        this.customFilters = customFilters;
 
         this.unbindEvents();
 
@@ -41,8 +45,10 @@ class UserFilterList {
 
         this.loadUserPropertiesForFilter().then((data) => {
 
-            this.userProperties = data.data;
-            this.renderProperties(this.userProperties);
+            this.properties = data.data;
+            this.renderProperties(this.properties).then(() => {
+                this.highlightProperties(this.customFilters);
+            });
         }).catch(() => {});
     }
 
@@ -81,6 +87,50 @@ class UserFilterList {
         this.applySearch(searchObject);
     }
 
+    highlightProperties(data) {
+
+        debugger;
+        $(UserFilterList._selectors.propertyListItem).each((index, element) => {
+
+            debugger;
+            if($(element).hasClass('c-list__list-item--active')) {
+                $(element).removeClass('c-list__list-item--active');
+            }
+
+            let propertyId = $(element).attr('data-property-id');
+            let joins = JSON.parse($(element).attr('data-joins'));
+            let propertyPath = joins.join('.');
+
+            if(_.has(data, propertyPath)) {
+
+                let properties = _.get(data, propertyPath);
+
+                let propertyMatch = null;
+
+                if(!_.has(properties, 'filters')) {
+                    return true;
+                }
+
+                let filters =  _.get(properties, 'filters');
+
+                for(let key in filters) {
+
+                    let filter = filters[key];
+
+                    if(parseInt(filter.id) === parseInt(propertyId)) {
+                        propertyMatch = filter
+                    }
+                }
+
+                if(propertyMatch) {
+
+                    $(element).addClass('c-list__list-item--active');
+                }
+            }
+
+        });
+    }
+
     /**
      * @param args
      */
@@ -99,17 +149,17 @@ class UserFilterList {
         this.$wrapper.html(UserFilterList.markup(this));
     }
 
-    renderProperties(userProperties) {
+    renderProperties(properties) {
 
         return new Promise((resolve, reject) => {
 
-            this._addList(userProperties);
+            this._addList(properties);
 
             resolve();
         });
     }
 
-    _addList(userProperties) {
+    _addList(properties) {
 
         const html = listTemplate();
         const $list = $($.parseHTML(html));
@@ -119,14 +169,21 @@ class UserFilterList {
         let options = {
             valueNames: [ 'label' ],
 
-            item: `<li class="js-property-list-item c-filter-widget__list-item" data-custom-filter-joins="[]"><span class="label"></span></li>`
+            item: `<li class="js-property-list-item c-filter-widget__list-item" data-joins="[]"><span class="label"></span></li>`
         };
 
-        this.list = new List('user-property-list', options, userProperties);
+        this.list = new List('user-property-list', options, properties);
 
         $( `#user-property-list li` ).each((index, element) => {
 
-            $(element).attr('data-user-property-name', userProperties[index].name);
+            $(element).attr('data-property-id', properties[index].id);
+
+            if(this.join) {
+                let joins = this.joins.concat(this.join.internalName);
+                $(element).attr('data-joins', JSON.stringify(joins));
+            } else {
+                $(element).attr('data-joins', JSON.stringify(['root']));
+            }
 
         });
 
@@ -135,7 +192,7 @@ class UserFilterList {
     loadUserPropertiesForFilter() {
 
         return new Promise((resolve, reject) => {
-            const url = Routing.generate('user_properties_for_filter', {internalIdentifier: this.portalInternalIdentifier});
+            const url = Routing.generate('user_properties_for_filter', {internalIdentifier: this.portalInternalIdentifier, internalName: this.internalName});
 
             $.ajax({
                 url: url
@@ -156,18 +213,34 @@ class UserFilterList {
 
     handlePropertyListItemClicked(e) {
 
+        debugger;
         if(e.cancelable) {
             e.preventDefault();
         }
 
         const $listItem = $(e.currentTarget);
-        let userPropertyName = $listItem.attr('data-user-property-name');
 
-        let property = this.userProperties.filter(property => {
-            return property.name === userPropertyName;
+        if($listItem.hasClass('c-list__list-item--active')) {
+            return;
+        }
+
+        let propertyId = $listItem.attr('data-property-id');
+        let joins = JSON.parse($listItem.attr('data-joins'));
+
+        let property = this.properties.filter(property => {
+            return parseInt(property.id) === parseInt(propertyId);
         });
 
-        this.globalEventDispatcher.publish(Settings.Events.FILTER_PROPERTY_LIST_ITEM_CLICKED, property[0]);
+        property[0].joins = joins;
+
+        if(property[0].fieldType === 'custom_object_field') {
+
+            this.globalEventDispatcher.publish(Settings.Events.CUSTOM_OBJECT_FILTER_LIST_ITEM_CLICKED, property[0]);
+
+        } else {
+
+            this.globalEventDispatcher.publish(Settings.Events.FILTER_PROPERTY_LIST_ITEM_CLICKED, property[0]);
+        }
 
     }
 

@@ -4,6 +4,7 @@ namespace App\Controller\Api;
 
 use App\AuthorizationHandler\PermissionAuthorizationHandler;
 use App\Entity\CustomObject;
+use App\Entity\Filter;
 use App\Entity\Portal;
 use App\Entity\Property;
 use App\Entity\PropertyGroup;
@@ -12,8 +13,10 @@ use App\Form\CustomObjectType;
 use App\Form\PropertyGroupType;
 use App\Form\PropertyType;
 use App\Form\RecordType;
+use App\Form\SaveFilterType;
 use App\Model\FieldCatalog;
 use App\Repository\CustomObjectRepository;
+use App\Repository\FilterRepository;
 use App\Repository\PropertyGroupRepository;
 use App\Repository\PropertyRepository;
 use App\Repository\RecordRepository;
@@ -85,6 +88,11 @@ class RecordController extends ApiController
     private $permissionAuthorizationHandler;
 
     /**
+     * @var FilterRepository
+     */
+    private $filterRepository;
+
+    /**
      * RecordController constructor.
      * @param EntityManagerInterface $entityManager
      * @param CustomObjectRepository $customObjectRepository
@@ -93,6 +101,7 @@ class RecordController extends ApiController
      * @param RecordRepository $recordRepository
      * @param SerializerInterface $serializer
      * @param PermissionAuthorizationHandler $permissionAuthorizationHandler
+     * @param FilterRepository $filterRepository
      */
     public function __construct(
         EntityManagerInterface $entityManager,
@@ -101,7 +110,8 @@ class RecordController extends ApiController
         PropertyGroupRepository $propertyGroupRepository,
         RecordRepository $recordRepository,
         SerializerInterface $serializer,
-        PermissionAuthorizationHandler $permissionAuthorizationHandler
+        PermissionAuthorizationHandler $permissionAuthorizationHandler,
+        FilterRepository $filterRepository
     ) {
         $this->entityManager = $entityManager;
         $this->customObjectRepository = $customObjectRepository;
@@ -110,8 +120,8 @@ class RecordController extends ApiController
         $this->recordRepository = $recordRepository;
         $this->serializer = $serializer;
         $this->permissionAuthorizationHandler = $permissionAuthorizationHandler;
+        $this->filterRepository = $filterRepository;
     }
-
 
     /**
      * @Route("/{internalName}/create-form", name="create_record_form", methods={"GET"}, options = { "expose" = true })
@@ -387,7 +397,6 @@ class RecordController extends ApiController
      * @param Request $request
      * @return Response
      * @throws \Doctrine\DBAL\DBALException
-     * @throws \Doctrine\ORM\NonUniqueResultException
      */
     public function getRecordsForDatatableAction(Portal $portal, CustomObject $customObject, Request $request) {
 
@@ -482,5 +491,115 @@ class RecordController extends ApiController
         ],  Response::HTTP_OK);
 
         return $response;
+    }
+
+    /**
+     * @Route("/{internalName}/save-filter-form", name="save_filter_form", methods={"GET"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param CustomObject $customObject
+     * @return JsonResponse
+     */
+    public function getSaveFilterFormAction(Portal $portal, CustomObject $customObject) {
+
+        $filter = new Filter();
+
+        $form = $this->createForm(SaveFilterType::class, $filter);
+
+        $formMarkup = $this->renderView(
+            'Api/form/save_filter_form.html.twig',
+            [
+                'form' => $form->createView(),
+            ]
+        );
+
+        return new JsonResponse(
+            [
+                'success' => true,
+                'formMarkup' => $formMarkup
+            ],
+            Response::HTTP_OK
+        );
+    }
+
+    /**
+     * @Route("/{internalName}/saved-filters", name="saved_filters", methods={"GET"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param CustomObject $customObject
+     * @return JsonResponse
+     */
+    public function getSavedFiltersAction(Portal $portal, CustomObject $customObject) {
+
+        $filters = $this->filterRepository->findBy([
+            'portal' => $portal->getId(),
+            'type' => Filter::RECORD_FILTER
+        ]);
+
+
+        $json = $this->serializer->serialize($filters, 'json', ['groups' => ['SAVED_FILTERS']]);
+
+        $payload = json_decode($json, true);
+
+        return new JsonResponse([
+            'success' => true,
+            'data'  => $payload
+        ], Response::HTTP_OK);
+    }
+
+    /**
+     * @Route("/{internalName}/save-filter", name="save_filter", methods={"POST"}, options={"expose" = true})
+     * @param Portal $portal
+     * @param CustomObject $customObject
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function saveFilterAction(Portal $portal, CustomObject $customObject, Request $request)
+    {
+
+        $customFilters = $request->request->get('customFilters', []);
+        $propertiesForDatatable = $this->propertyRepository->findColumnsForTable($customObject);
+
+        $filter = new Filter();
+        $filter->setPortal($portal);
+        $filter->setType(Filter::RECORD_FILTER);
+
+        $form = $this->createForm(SaveFilterType::class, $filter);
+
+        $form->handleRequest($request);
+
+        if (!$form->isValid()) {
+            $formMarkup = $this->renderView(
+                'Api/form/save_filter_form.html.twig',
+                [
+                    'form' => $form->createView(),
+                ]
+            );
+
+            return new JsonResponse(
+                [
+                    'success' => false,
+                    'formMarkup' => $formMarkup,
+                ], Response::HTTP_BAD_REQUEST
+            );
+        }
+
+        // delete report here
+        /** @var $filter Filter */
+        $filter = $form->getData();
+
+        $query = $this->recordRepository->getCustomFiltersMysqlOnly($propertiesForDatatable, $customFilters, $customObject);
+
+        $filter->setQuery($query);
+        $filter->setCustomFilters($customFilters);
+
+        $this->entityManager->persist($filter);
+        $this->entityManager->flush();
+
+        return new JsonResponse(
+            [
+                'success' => true,
+            ],
+            Response::HTTP_OK
+        );
+
     }
 }

@@ -36,7 +36,7 @@ class CustomObjectSettings {
         <div class="l-grid">
             <div class="l-grid__top-bar js-top-bar"></div>
             <div class="l-grid__sub-bar js-sub-bar"></div>
-            <div class="l-grid__main-content js-main-content"></div>
+            <div class="l-grid__main-content js-main-content" style="min-height: 700px"></div>
         </div>
       </div>
     `;

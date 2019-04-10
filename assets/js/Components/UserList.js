@@ -104,6 +104,10 @@ class UserList {
 
     activatePlugins() {
 
+        Pace.start({
+            target: '.js-user-list'
+        });
+
         this.table = $('#user_table').DataTable({
 
             "pageLength": 10,
