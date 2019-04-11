@@ -125,11 +125,13 @@ class ListSelectCustomObject {
         });
 
         if(this.customObject) {
-            debugger;
+
             let index = _.findIndex(customObjects, (customObject) => { return customObject.id === this.customObject.id });
+
             $( `#listCustomObjects input[type="radio"]`).eq(index).prop('checked', true);
+
         } else {
-            debugger;
+
             $( `#listCustomObjects input[type="radio"]`).first().prop('checked', true);
         }
 

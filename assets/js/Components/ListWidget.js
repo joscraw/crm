@@ -247,12 +247,17 @@ class ListWidget {
 
         debugger;
 
+        // If a brand new custom object is selected then clear the data
+        if(this.listType && this.listType.name !== listType.name) {
+            this.customObject = null;
+        }
+
         this.listType = listType;
 
         this.$wrapper.find(ListWidget._selectors.listSelectListTypeContainer).addClass('d-none');
         this.$wrapper.find(ListWidget._selectors.listSelectCustomObjectContainer).removeClass('d-none');
 
-        new ListSelectCustomObject($(ListWidget._selectors.listSelectCustomObjectContainer), this.globalEventDispatcher, this.portalInternalIdentifier);
+        new ListSelectCustomObject($(ListWidget._selectors.listSelectCustomObjectContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject);
 
     }
 
