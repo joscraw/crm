@@ -180,7 +180,7 @@ class ReportFilters {
             e.preventDefault();
         }
 
-        /*this.globalEventDispatcher.unSubscribeTokens(this.tokens);*/
+        this.globalEventDispatcher.unSubscribeTokens(this.tokens);
 
         this.globalEventDispatcher.publish(Settings.Events.REPORT_BACK_TO_PROPERTIES_BUTTON_PRESSED);
 

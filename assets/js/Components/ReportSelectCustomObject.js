@@ -97,12 +97,6 @@ class ReportSelectCustomObject {
             $(element).attr('id', `customObject-${customObjects[index].id}`);
             $(element).next('label').attr('for', `customObject-${customObjects[index].id}`);
 
-            debugger;
-            if(this.customObject && customObjects[index].id === this.customObject.id) {
-
-                $(element).prop('checked', true);
-            }
-
         });
 
         debugger;

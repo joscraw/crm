@@ -13,13 +13,15 @@ class ListSelectCustomObject {
      * @param $wrapper
      * @param globalEventDispatcher
      * @param portalInternalIdentifier
+     * @param customObject
      */
-    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObject = null) {
         debugger;
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
         this.customObjects = null;
+        this.customObject = customObject;
 
         this.unbindEvents();
 
@@ -27,7 +29,7 @@ class ListSelectCustomObject {
 
         this.$wrapper.on(
             'click',
-            ListSelectCustomObject._selectors.advanceToReportPropertiesViewButton,
+            ListSelectCustomObject._selectors.advanceToListPropertiesViewButton,
             this.handleAdvanceToListPropertiesViewButtonClicked.bind(this)
         );
 
@@ -39,8 +41,7 @@ class ListSelectCustomObject {
 
         this.$wrapper.off('click', ListSelectCustomObject._selectors.backToSelectListTypeButton);
 
-        /*this.$wrapper.off('click', ReportSelectCustomObject._selectors.advanceToReportPropertiesViewButton);
-*/
+        this.$wrapper.off('click', ListSelectCustomObject._selectors.advanceToListPropertiesViewButton);
     }
 
     /**
@@ -71,12 +72,9 @@ class ListSelectCustomObject {
         let customObjectField = this.$wrapper.find(ListSelectCustomObject._selectors.customObjectField);
         let customObjectId = customObjectField.val();
 
-
         let customObject = this.customObjects.filter(customObject => {
             return parseInt(customObject.id) === parseInt(customObjectId);
         });
-
-        debugger;
 
         this.globalEventDispatcher.publish(Settings.Events.ADVANCE_TO_LIST_PROPERTIES_VIEW_BUTTON_CLICKED, customObject[0]);
     }
@@ -126,8 +124,14 @@ class ListSelectCustomObject {
             $(element).next('label').attr('for', `customObject-${customObjects[index].id}`);
         });
 
-        // set the first option checked at least for now
-        $( `#listCustomObjects input[type="radio"]`).first().prop('checked', true);
+        if(this.customObject) {
+            debugger;
+            let index = _.findIndex(customObjects, (customObject) => { return customObject.id === this.customObject.id });
+            $( `#listCustomObjects input[type="radio"]`).eq(index).prop('checked', true);
+        } else {
+            debugger;
+            $( `#listCustomObjects input[type="radio"]`).first().prop('checked', true);
+        }
 
     }
 

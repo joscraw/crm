@@ -532,7 +532,7 @@ class ReportFilterNavigation {
         return `
             <ul class="nav nav-pills flex-column">
               <li class="nav-item">
-                <a class="nav-link active js-all-records-button" href="#">All Filters</a>
+                <a class="nav-link active js-all-records-button" href="javascript:void(0)">All Filters</a>
               </li>
               <li class="nav-item">
                 <div class="js-report-selected-custom-filters c-report-widget__selected-filters"></div>

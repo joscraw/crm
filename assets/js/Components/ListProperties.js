@@ -36,6 +36,8 @@ class ListProperties {
 
     constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, data, columnOrder) {
 
+        debugger;
+
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
@@ -43,14 +45,26 @@ class ListProperties {
         this.data = data;
         this.columnOrder = columnOrder;
 
+
+        /**
+         * When you end up recreating multiple instances of a class
+         * For example: When the user keeps moving back and forth in the user interface
+         * You don't want to keep firing the old events that have
+         * different property values attached to it. We can clear the events with
+         * this.globalEventDispatcher.unSubscribeTokens(this.tokens);
+         *
+         * @type {Array}
+         */
+        this.tokens = [];
+
         this.unbindEvents();
 
         this.bindEvents();
 
-        this.globalEventDispatcher.subscribe(
+        this.tokens.push(this.globalEventDispatcher.subscribe(
             Settings.Events.LIST_BACK_BUTTON_CLICKED,
             this.handleBackButtonClicked.bind(this)
-        );
+        ));
 
         this.render();
     }
@@ -80,7 +94,7 @@ class ListProperties {
 
         this.$wrapper.on(
             'click',
-            ReportProperties._selectors.listAdvanceToFiltersView,
+            ListProperties._selectors.listAdvanceToFiltersView,
             this.handleListAdvanceToFiltersViewButtonClicked.bind(this)
         );
 
@@ -104,7 +118,7 @@ class ListProperties {
         }
 
         debugger;
-        this.globalEventDispatcher.publish(Settings.Events.ADVANCE_TO_REPORT_FILTERS_VIEW_BUTTON_CLICKED);
+        /*this.globalEventDispatcher.publish(Settings.Events.ADVANCE_TO_REPORT_FILTERS_VIEW_BUTTON_CLICKED);*/
 
     }
 
@@ -139,18 +153,13 @@ class ListProperties {
 
     handleBackButtonClicked() {
 
-        new ListPropertyList($(ReportProperties._selectors.reportPropertyListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, null, [], this.data);
-
-    }
-
-    handleCustomObjectJoinPathSet(property, joins, data) {
-
-        debugger;
-        new ReportPropertyList($(ReportProperties._selectors.reportPropertyListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, property.field.customObject.internalName, property, joins, data);
+        new ListPropertyList($(ListProperties._selectors.listPropertyListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, null, [], this.data);
 
     }
 
     handleListBackToSelectCustomObjectButton(e) {
+
+        this.globalEventDispatcher.unSubscribeTokens(this.tokens);
 
         this.globalEventDispatcher.publish(Settings.Events.LIST_BACK_TO_SELECT_CUSTOM_OBJECT_BUTTON_PRESSED, this.data);
 

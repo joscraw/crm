@@ -13,16 +13,15 @@ class ListSelectListType {
      * @param $wrapper
      * @param globalEventDispatcher
      * @param portalInternalIdentifier
-     * @param customObjectInternalName
+     * @param listType
      */
-    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, listType = null) {
         debugger;
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
-        this.customObjectInternalName = customObjectInternalName;
         this.listTypes = null;
-        this.listType = null;
+        this.listType = listType;
 
         this.unbindEvents();
 
@@ -98,8 +97,13 @@ class ListSelectListType {
             $(element).next('label').attr('for', listTypes[index].name);
         });
 
-        // set the first option checked at least for now
-        $( `#listTypes input[type="radio"]`).first().prop('checked', true);
+        if(this.listType) {
+            let index = _.findIndex(listTypes, (listType) => { return listType.name === this.listType.name });
+            $( `#listTypes input[type="radio"]`).eq(index).prop('checked', true);
+        } else {
+            $( `#listTypes input[type="radio"]`).first().prop('checked', true);
+        }
+
 
     }
 

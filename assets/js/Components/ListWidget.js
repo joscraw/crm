@@ -51,7 +51,7 @@ class ListWidget {
 
         this.columnOrder = [];
 
-        this.unbindEvents();
+        /*this.unbindEvents();*/
 
         this.globalEventDispatcher.subscribe(
             Settings.Events.LIST_BACK_TO_SELECT_LIST_TYPE_BUTTON_CLICKED,
@@ -59,41 +59,13 @@ class ListWidget {
         );
 
         this.globalEventDispatcher.subscribe(
-            Settings.Events.ADVANCE_TO_LIST_PROPERTIES_VIEW_BUTTON_CLICKED,
-            this.handleAdvanceToListPropertiesViewButtonClicked.bind(this)
-        );
-
-
-
-
-        this.globalEventDispatcher.subscribe(
             Settings.Events.ADVANCE_TO_LIST_SELECT_CUSTOM_OBJECT_VIEW_BUTTON_CLICKED,
             this.handleAdvanceToListSelectCustomObjectViewButtonClicked.bind(this)
         );
 
         this.globalEventDispatcher.subscribe(
-            Settings.Events.LIST_PROPERTY_LIST_ITEM_CLICKED,
-            this.handlePropertyListItemClicked.bind(this)
-        );
-
-        this.globalEventDispatcher.subscribe(
-            Settings.Events.REPORT_CUSTOM_OBJECT_PROPERTY_LIST_ITEM_CLICKED,
-            this.handleCustomObjectPropertyListItemClicked.bind(this)
-        );
-
-        this.globalEventDispatcher.subscribe(
-            Settings.Events.REPORT_CUSTOM_OBJECT_FILTER_LIST_ITEM_CLICKED,
-            this.handleReportCustomObjectFilterListItemClicked.bind(this)
-        );
-
-        this.globalEventDispatcher.subscribe(
-            Settings.Events.REPORT_REMOVE_SELECTED_COLUMN_ICON_CLICKED,
-            this.handleReportRemoveSelectedColumnIconClicked.bind(this)
-        );
-
-        this.globalEventDispatcher.subscribe(
-            Settings.Events.APPLY_CUSTOM_FILTER_BUTTON_PRESSED,
-            this.applyCustomFilterButtonPressedHandler.bind(this)
+            Settings.Events.ADVANCE_TO_LIST_PROPERTIES_VIEW_BUTTON_CLICKED,
+            this.handleAdvanceToListPropertiesViewButtonClicked.bind(this)
         );
 
         this.globalEventDispatcher.subscribe(
@@ -102,39 +74,71 @@ class ListWidget {
         );
 
         this.globalEventDispatcher.subscribe(
-            Settings.Events.ADVANCE_TO_REPORT_FILTERS_VIEW_BUTTON_CLICKED,
-            this.handleReportAdvanceToFiltersViewButtonClicked.bind(this)
+            Settings.Events.LIST_PROPERTY_LIST_ITEM_CLICKED,
+            this.handlePropertyListItemClicked.bind(this)
         );
 
-        this.globalEventDispatcher.subscribe(
-            Settings.Events.REPORT_REMOVE_FILTER_BUTTON_PRESSED,
-            this.handleReportRemoveFilterButtonPressed.bind(this)
-        );
 
-        this.globalEventDispatcher.subscribe(
-            Settings.Events.REPORT_BACK_TO_PROPERTIES_BUTTON_PRESSED,
-            this.handleReportBackToPropertiesButtonPressed.bind(this)
-        );
 
-        this.globalEventDispatcher.subscribe(
-            Settings.Events.REPORT_SAVE_BUTTON_PRESSED,
-            this.handleReportSaveButtonPressed.bind(this)
-        );
 
-        this.globalEventDispatcher.subscribe(
-            Settings.Events.REPORT_NAME_CHANGED,
-            this.handleReportNameChange.bind(this)
-        );
 
-        this.globalEventDispatcher.subscribe(
-            Settings.Events.REPORT_COLUMN_ORDER_CHANGED,
-            this.handleReportColumnOrderChanged.bind(this)
-        );
 
-        this.globalEventDispatcher.subscribe(
-            Settings.Events.REPORT_PREVIEW_RESULTS_BUTTON_CLICKED,
-            this.handleReportPreviewResultsButtonClicked.bind(this)
-        );
+        /*
+
+                this.globalEventDispatcher.subscribe(
+                    Settings.Events.REPORT_CUSTOM_OBJECT_PROPERTY_LIST_ITEM_CLICKED,
+                    this.handleCustomObjectPropertyListItemClicked.bind(this)
+                );
+
+                this.globalEventDispatcher.subscribe(
+                    Settings.Events.REPORT_CUSTOM_OBJECT_FILTER_LIST_ITEM_CLICKED,
+                    this.handleReportCustomObjectFilterListItemClicked.bind(this)
+                );
+
+                this.globalEventDispatcher.subscribe(
+                    Settings.Events.REPORT_REMOVE_SELECTED_COLUMN_ICON_CLICKED,
+                    this.handleReportRemoveSelectedColumnIconClicked.bind(this)
+                );
+
+                this.globalEventDispatcher.subscribe(
+                    Settings.Events.APPLY_CUSTOM_FILTER_BUTTON_PRESSED,
+                    this.applyCustomFilterButtonPressedHandler.bind(this)
+                );
+
+                this.globalEventDispatcher.subscribe(
+                    Settings.Events.ADVANCE_TO_REPORT_FILTERS_VIEW_BUTTON_CLICKED,
+                    this.handleReportAdvanceToFiltersViewButtonClicked.bind(this)
+                );
+
+                this.globalEventDispatcher.subscribe(
+                    Settings.Events.REPORT_REMOVE_FILTER_BUTTON_PRESSED,
+                    this.handleReportRemoveFilterButtonPressed.bind(this)
+                );
+
+                this.globalEventDispatcher.subscribe(
+                    Settings.Events.REPORT_BACK_TO_PROPERTIES_BUTTON_PRESSED,
+                    this.handleReportBackToPropertiesButtonPressed.bind(this)
+                );
+
+                this.globalEventDispatcher.subscribe(
+                    Settings.Events.REPORT_SAVE_BUTTON_PRESSED,
+                    this.handleReportSaveButtonPressed.bind(this)
+                );
+
+                this.globalEventDispatcher.subscribe(
+                    Settings.Events.REPORT_NAME_CHANGED,
+                    this.handleReportNameChange.bind(this)
+                );
+
+                this.globalEventDispatcher.subscribe(
+                    Settings.Events.REPORT_COLUMN_ORDER_CHANGED,
+                    this.handleReportColumnOrderChanged.bind(this)
+                );
+
+                this.globalEventDispatcher.subscribe(
+                    Settings.Events.REPORT_PREVIEW_RESULTS_BUTTON_CLICKED,
+                    this.handleReportPreviewResultsButtonClicked.bind(this)
+                );*/
 
         this.render();
     }
@@ -152,10 +156,10 @@ class ListWidget {
         }
     }
 
-    unbindEvents() {
+    /*unbindEvents() {
 
         this.$wrapper.off('click', ReportPropertyList._selectors.reportAdvanceToFiltersView);
-    }
+    }*/
 
     handleReportSaveButtonPressed() {
 
@@ -211,10 +215,11 @@ class ListWidget {
 
     listBackToSelectCustomObjectButtonHandler(e) {
 
+        debugger;
         this.$wrapper.find(ListWidget._selectors.listSelectCustomObjectContainer).removeClass('d-none');
         this.$wrapper.find(ListWidget._selectors.listPropertiesContainer).addClass('d-none');
 
-        new ListSelectCustomObject($(ListWidget._selectors.listSelectCustomObjectContainer), this.globalEventDispatcher, this.portalInternalIdentifier);
+        new ListSelectCustomObject($(ListWidget._selectors.listSelectCustomObjectContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject);
 
     }
 
@@ -231,7 +236,7 @@ class ListWidget {
     handleReportAdvanceToFiltersViewButtonClicked(e) {
 
         debugger;
-        this.$wrapper.find(ReportWidget._selectors.reportFiltersContainer).removeClass('d-none');
+        this.$wrapper.find(ListWidget._selectors.reportFiltersContainer).removeClass('d-none');
         this.$wrapper.find(ReportWidget._selectors.reportPropertiesContainer).addClass('d-none');
 
         new ReportFilters($(ReportWidget._selectors.reportFiltersContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject.internalName, this.data, this.reportName);
@@ -257,7 +262,7 @@ class ListWidget {
         this.$wrapper.find(ListWidget._selectors.listSelectListTypeContainer).removeClass('d-none');
         this.$wrapper.find(ListWidget._selectors.listSelectCustomObjectContainer).addClass('d-none');
 
-        new ListSelectListType($(ListWidget._selectors.listSelectListTypeContainer), this.globalEventDispatcher, this.portalInternalIdentifier);
+        new ListSelectListType($(ListWidget._selectors.listSelectListTypeContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.listType);
 
 
     }

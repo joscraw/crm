@@ -139,6 +139,7 @@ class ListPropertyList {
 
     handleBackButtonClicked(e) {
 
+        debugger;
         e.stopPropagation();
 
         this.globalEventDispatcher.publish(Settings.Events.LIST_BACK_BUTTON_CLICKED);
