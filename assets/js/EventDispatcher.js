@@ -86,6 +86,18 @@ class EventDispatcher {
             }
         }
     }
+
+    /**
+     * Used to unsubscribe multiple tokens at once. Just a loop wrapper for
+     * the above function unSubscribe()
+     * @param tokens
+     */
+    unSubscribeTokens(tokens) {
+
+        for(let token of tokens) {
+            this.unSubscribe(token);
+        }
+    }
 }
 
 export default EventDispatcher;

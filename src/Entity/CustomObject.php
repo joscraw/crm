@@ -81,12 +81,19 @@ class CustomObject /*implements \JsonSerializable*/
      */
     private $reports;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\MarketingList", mappedBy="customObject", orphanRemoval=true)
+     */
+    private $marketingLists;
+
+
     public function __construct()
     {
         $this->properties = new ArrayCollection();
         $this->propertyGroups = new ArrayCollection();
         $this->records = new ArrayCollection();
         $this->reports = new ArrayCollection();
+        $this->marketingLists = new ArrayCollection();
     }
 
     /**
@@ -309,6 +316,37 @@ class CustomObject /*implements \JsonSerializable*/
 
         return strtoupper($this->getInternalName());
 
+    }
+
+    /**
+     * @return Collection|MarketingList[]
+     */
+    public function getMarketingLists(): Collection
+    {
+        return $this->marketingLists;
+    }
+
+    public function addMarketingList(MarketingList $marketingList): self
+    {
+        if (!$this->marketingLists->contains($marketingList)) {
+            $this->marketingLists[] = $marketingList;
+            $marketingList->setCustomObject($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMarketingList(MarketingList $marketingList): self
+    {
+        if ($this->marketingLists->contains($marketingList)) {
+            $this->marketingLists->removeElement($marketingList);
+            // set the owning side to null (unless already changed)
+            if ($marketingList->getCustomObject() === $this) {
+                $marketingList->setCustomObject(null);
+            }
+        }
+
+        return $this;
     }
 
 }

@@ -47,47 +47,58 @@ class ReportFilters {
          */
         this.data = data;
 
+        /**
+         * When you end up recreating multiple instances of a class
+         * For example: When the user keeps moving back and forth in the user interface
+         * You don't want to keep firing the old events that have
+         * different property values attached to it. We can clear the events with
+         * this.globalEventDispatcher.unSubscribeTokens(this.tokens);
+         *
+         * @type {Array}
+         */
+        this.tokens = [];
+
         this.unbindEvents();
 
-        this.globalEventDispatcher.subscribe(
+        this.tokens.push(this.globalEventDispatcher.subscribe(
             Settings.Events.REPORT_FILTER_ITEM_CLICKED,
             this.handleReportFilterItemClicked.bind(this)
-        );
+        ));
 
-        this.globalEventDispatcher.subscribe(
+        this.tokens.push(this.globalEventDispatcher.subscribe(
             Settings.Events.FILTER_BACK_TO_LIST_BUTTON_CLICKED,
             this.handleFilterBackToListButtonClicked.bind(this)
-        );
+        ));
 
-        this.globalEventDispatcher.subscribe(
+        this.tokens.push(this.globalEventDispatcher.subscribe(
             Settings.Events.REPORT_FILTER_CUSTOM_OBJECT_JOIN_PATH_SET,
             this.handleReportFilterCustomObjectJoinPathSet.bind(this)
-        );
+        ));
 
-        this.globalEventDispatcher.subscribe(
+        this.tokens.push(this.globalEventDispatcher.subscribe(
             Settings.Events.REPORT_FILTER_ITEM_ADDED,
             this.reportFilterItemAddedHandler.bind(this)
-        );
+        ));
 
-        this.globalEventDispatcher.subscribe(
+        this.tokens.push(this.globalEventDispatcher.subscribe(
             Settings.Events.REPORT_ADD_FILTER_BUTTON_PRESSED,
             this.reportAddFilterButtonPressedHandler.bind(this)
-        );
+        ));
 
-        this.globalEventDispatcher.subscribe(
+        this.tokens.push(this.globalEventDispatcher.subscribe(
             Settings.Events.REPORT_ADD_OR_FILTER_BUTTON_PRESSED,
             this.reportAddOrFilterButtonPressedHandler.bind(this)
-        );
+        ));
 
-        this.globalEventDispatcher.subscribe(
+        this.tokens.push(this.globalEventDispatcher.subscribe(
             Settings.Events.FILTER_BACK_TO_NAVIGATION_BUTTON_CLICKED,
             this.reportFilterBackToNavigationButtonClickedHandler.bind(this)
-        );
+        ));
 
-        this.globalEventDispatcher.subscribe(
+        this.tokens.push(this.globalEventDispatcher.subscribe(
             Settings.Events.REPORT_EDIT_FILTER_BUTTON_CLICKED,
             this.handleReportEditFilterButtonClicked.bind(this)
-        );
+        ));
 
 
         this.$wrapper.on(
@@ -168,6 +179,8 @@ class ReportFilters {
         if(e.cancelable) {
             e.preventDefault();
         }
+
+        /*this.globalEventDispatcher.unSubscribeTokens(this.tokens);*/
 
         this.globalEventDispatcher.publish(Settings.Events.REPORT_BACK_TO_PROPERTIES_BUTTON_PRESSED);
 
@@ -267,20 +280,23 @@ class ReportFilters {
 
     }
 
-    handleReportBackToSelectCustomObjectButton(e) {
-
-        debugger;
-        this.$wrapper.find(ReportFilters._selectors.reportSelectCustomObjectContainer).removeClass('d-none');
-        /*this.$wrapper.find(ReportFilters._selectors.reportSelectPropertyContainer).addClass('d-none');*/
-
-        new ReportSelectCustomObject($(ReportFilters._selectors.reportSelectCustomObjectContainer), this.globalEventDispatcher, this.portalInternalIdentifier);
-
-    }
-
     handleFilterBackToListButtonClicked() {
 
+        debugger;
         this.$wrapper.find(ReportFilters._selectors.reportFilterListContainer).removeClass('d-none');
-        this.$wrapper.find(ReportFilters._selectors.propertyForm).addClass('d-none');
+
+        if(!this.$wrapper.find(ReportFilters._selectors.propertyForm).hasClass('d-none')) {
+
+            this.$wrapper.find(ReportFilters._selectors.propertyForm).addClass('d-none');
+
+        }
+
+        if(!this.$wrapper.find(ReportFilters._selectors.editPropertyForm).hasClass('d-none')) {
+
+            this.$wrapper.find(ReportFilters._selectors.editPropertyForm).addClass('d-none');
+
+        }
+
 
         new ReportFilterList($(ReportFilters._selectors.reportFilterListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);
     }
@@ -290,14 +306,6 @@ class ReportFilters {
         this.$wrapper.find(ReportFilters._selectors.reportFilterNavigation).removeClass('d-none');
         this.$wrapper.find(ReportFilters._selectors.propertyForm).addClass('d-none');
         this.$wrapper.find(ReportFilters._selectors.reportFilterListContainer).addClass('d-none');
-
-    }
-
-    handleReportAdvanceToFiltersViewButtonClicked(e) {
-
-        debugger;
-
-        new ReportFilterList($(ReportFilters._selectors.reportFilterListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);
 
     }
 
@@ -316,44 +324,15 @@ class ReportFilters {
             this.$wrapper.find(ReportFilters._selectors.editPropertyForm).addClass('d-none');
 
         }
-
-        /*new ReportFilterList($(ReportFilters._selectors.reportFilterListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);*/
-
     }
 
     handleReportFilterItemClicked(property) {
-
-        debugger;
 
         this.$wrapper.find(ReportFilters._selectors.reportFilterListContainer).addClass('d-none');
         this.$wrapper.find(ReportFilters._selectors.propertyForm).removeClass('d-none');
 
         this.renderFilterForm(property);
 
-    }
-
-    handleReportRemoveSelectedColumnIconClicked(property) {
-
-        let propertyPath = property.joins.join('.');
-
-        if(_.has(this.data, propertyPath)) {
-
-            let properties = _.get(this.data, propertyPath);
-
-            let key = null;
-
-            properties.forEach((p, k) => {
-
-                if(parseInt(p.id) === parseInt(property.id)) {
-                    key = k;
-                }
-            });
-
-            _.unset(this.data, `${propertyPath}[${key}]`);
-
-        }
-
-        this.globalEventDispatcher.publish(Settings.Events.REPORT_PROPERTY_LIST_ITEM_REMOVED, this.data);
     }
 
     handleBackButtonClicked() {

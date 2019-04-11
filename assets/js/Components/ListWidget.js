@@ -28,17 +28,20 @@ import ReportFilters from "./ReportFilters";
 import ReportProperties from "./ReportProperties";
 import StringHelper from "../StringHelper";
 import swal from "sweetalert2";
+import ListSelectListType from "./ListSelectListType";
+import ListSelectCustomObject from "./ListSelectCustomObject";
+import ListProperties from "./ListProperties";
 
-class EditReportWidget {
+class ListWidget {
 
-    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, reportId) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier) {
 
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
         this.customObject = null;
         this.reportName = '';
-        this.reportId = reportId;
+        this.listType = null;
 
         /**
          * This data object is responsible for storing all the properties and filters that will get sent to the server
@@ -50,19 +53,26 @@ class EditReportWidget {
 
         this.unbindEvents();
 
-
-     /*   this.globalEventDispatcher.subscribe(
-            Settings.Events.REPORT_BACK_BUTTON_CLICKED,
-            this.handleBackButtonClicked.bind(this)
-        );*/
-
         this.globalEventDispatcher.subscribe(
-            Settings.Events.ADVANCE_TO_REPORT_PROPERTIES_VIEW_BUTTON_CLICKED,
-            this.handleAdvanceToReportPropertiesViewButtonClicked.bind(this)
+            Settings.Events.LIST_BACK_TO_SELECT_LIST_TYPE_BUTTON_CLICKED,
+            this.handleBackToSelectListTypeButtonClicked.bind(this)
         );
 
         this.globalEventDispatcher.subscribe(
-            Settings.Events.REPORT_PROPERTY_LIST_ITEM_CLICKED,
+            Settings.Events.ADVANCE_TO_LIST_PROPERTIES_VIEW_BUTTON_CLICKED,
+            this.handleAdvanceToListPropertiesViewButtonClicked.bind(this)
+        );
+
+
+
+
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.ADVANCE_TO_LIST_SELECT_CUSTOM_OBJECT_VIEW_BUTTON_CLICKED,
+            this.handleAdvanceToListSelectCustomObjectViewButtonClicked.bind(this)
+        );
+
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.LIST_PROPERTY_LIST_ITEM_CLICKED,
             this.handlePropertyListItemClicked.bind(this)
         );
 
@@ -87,8 +97,8 @@ class EditReportWidget {
         );
 
         this.globalEventDispatcher.subscribe(
-            Settings.Events.REPORT_BACK_TO_SELECT_CUSTOM_OBJECT_BUTTON_PRESSED,
-            this.reportBackToSelectCustomObjectButtonHandler.bind(this)
+            Settings.Events.LIST_BACK_TO_SELECT_CUSTOM_OBJECT_BUTTON_PRESSED,
+            this.listBackToSelectCustomObjectButtonHandler.bind(this)
         );
 
         this.globalEventDispatcher.subscribe(
@@ -126,17 +136,7 @@ class EditReportWidget {
             this.handleReportPreviewResultsButtonClicked.bind(this)
         );
 
-        this.loadReport().then((data) => {
-
-            debugger;
-            this.data = data.data.data;
-            this.columnOrder = data.data.columnOrder;
-            this.reportName = data.data.name;
-            this.customObject = data.data.customObject;
-
-            this.render();
-        });
-
+        this.render();
     }
 
     /**
@@ -144,8 +144,9 @@ class EditReportWidget {
      */
     static get _selectors() {
         return {
-            reportSelectCustomObjectContainer: '.js-report-select-custom-object-container',
-            reportPropertiesContainer: '.js-report-properties-container',
+            listSelectListTypeContainer: '.js-list-select-list-type-container',
+            listSelectCustomObjectContainer: '.js-list-select-custom-object-container',
+            listPropertiesContainer: '.js-list-properties-container',
             reportFiltersContainer: '.js-report-filters-container'
 
         }
@@ -154,35 +155,6 @@ class EditReportWidget {
     unbindEvents() {
 
         this.$wrapper.off('click', ReportPropertyList._selectors.reportAdvanceToFiltersView);
-    }
-
-    handleReportPreviewResultsButtonClicked() {
-
-        this.loadReportPreview().then((data) => {
-
-            debugger;
-            this.globalEventDispatcher.publish(Settings.Events.REPORT_PREVIEW_RESULTS_LOADED, data.data, this.columnOrder);
-
-        });
-
-    }
-
-    loadReport() {
-        return new Promise((resolve, reject) => {
-            debugger;
-            const url = Routing.generate('get_report', {internalIdentifier: this.portalInternalIdentifier, reportId: this.reportId});
-
-            $.ajax({
-                url: url
-            }).then(data => {
-                debugger;
-                resolve(data);
-            }).catch(jqXHR => {
-                debugger;
-                const errorData = JSON.parse(jqXHR.responseText);
-                reject(errorData);
-            });
-        });
     }
 
     handleReportSaveButtonPressed() {
@@ -203,6 +175,30 @@ class EditReportWidget {
 
     }
 
+    handleReportPreviewResultsButtonClicked() {
+
+        this.loadReportPreview().then((data) => {
+
+            debugger;
+            this.globalEventDispatcher.publish(Settings.Events.REPORT_PREVIEW_RESULTS_LOADED, data.data, this.columnOrder);
+
+        });
+
+    }
+
+    handleAdvanceToListPropertiesViewButtonClicked(customObject) {
+
+        debugger;
+
+        this.customObject = customObject;
+
+        this.$wrapper.find(ListWidget._selectors.listSelectCustomObjectContainer).addClass('d-none');
+        this.$wrapper.find(ListWidget._selectors.listPropertiesContainer).removeClass('d-none');
+
+        new ListProperties($(ListWidget._selectors.listPropertiesContainer), this.globalEventDispatcher, this.portalInternalIdentifier, customObject.internalName, this.data, this.columnOrder);
+
+    }
+
     redirectToReportSettings() {
 
         window.location = Routing.generate('report_settings', {internalIdentifier: this.portalInternalIdentifier});
@@ -213,50 +209,56 @@ class EditReportWidget {
         this.reportName = reportName;
     }
 
-    reportBackToSelectCustomObjectButtonHandler(e) {
+    listBackToSelectCustomObjectButtonHandler(e) {
 
-        debugger;
-        this.$wrapper.find(EditReportWidget._selectors.reportSelectCustomObjectContainer).removeClass('d-none');
-        this.$wrapper.find(EditReportWidget._selectors.reportPropertiesContainer).addClass('d-none');
+        this.$wrapper.find(ListWidget._selectors.listSelectCustomObjectContainer).removeClass('d-none');
+        this.$wrapper.find(ListWidget._selectors.listPropertiesContainer).addClass('d-none');
 
-        new ReportSelectCustomObject($(EditReportWidget._selectors.reportSelectCustomObjectContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject);
+        new ListSelectCustomObject($(ListWidget._selectors.listSelectCustomObjectContainer), this.globalEventDispatcher, this.portalInternalIdentifier);
 
     }
 
     handleReportBackToPropertiesButtonPressed() {
         debugger;
 
-        this.$wrapper.find(EditReportWidget._selectors.reportFiltersContainer).addClass('d-none');
-        this.$wrapper.find(EditReportWidget._selectors.reportPropertiesContainer).removeClass('d-none');
+        this.$wrapper.find(ReportWidget._selectors.reportFiltersContainer).addClass('d-none');
+        this.$wrapper.find(ReportWidget._selectors.reportPropertiesContainer).removeClass('d-none');
+
+        /*new ReportProperties($(ReportWidget._selectors.reportPropertiesContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject.internalName, this.data);*/
 
     }
 
     handleReportAdvanceToFiltersViewButtonClicked(e) {
 
         debugger;
-        this.$wrapper.find(EditReportWidget._selectors.reportFiltersContainer).removeClass('d-none');
-        this.$wrapper.find(EditReportWidget._selectors.reportPropertiesContainer).addClass('d-none');
+        this.$wrapper.find(ReportWidget._selectors.reportFiltersContainer).removeClass('d-none');
+        this.$wrapper.find(ReportWidget._selectors.reportPropertiesContainer).addClass('d-none');
 
-        new ReportFilters($(EditReportWidget._selectors.reportFiltersContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject.internalName, this.data, this.reportName);
+        new ReportFilters($(ReportWidget._selectors.reportFiltersContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject.internalName, this.data, this.reportName);
 
     }
 
-    handleAdvanceToReportPropertiesViewButtonClicked(customObject) {
+    handleAdvanceToListSelectCustomObjectViewButtonClicked(listType) {
 
         debugger;
 
-        // If a brand new custom object is selected then clear the data
-        if(this.customObject.id !== customObject.id) {
-            this.data = {};
-            this.columnOrder = [];
-        }
+        this.listType = listType;
 
-        this.customObject = customObject;
+        this.$wrapper.find(ListWidget._selectors.listSelectListTypeContainer).addClass('d-none');
+        this.$wrapper.find(ListWidget._selectors.listSelectCustomObjectContainer).removeClass('d-none');
 
-        this.$wrapper.find(EditReportWidget._selectors.reportSelectCustomObjectContainer).addClass('d-none');
-        this.$wrapper.find(EditReportWidget._selectors.reportPropertiesContainer).removeClass('d-none');
+        new ListSelectCustomObject($(ListWidget._selectors.listSelectCustomObjectContainer), this.globalEventDispatcher, this.portalInternalIdentifier);
 
-        new ReportProperties($(EditReportWidget._selectors.reportPropertiesContainer), this.globalEventDispatcher, this.portalInternalIdentifier, customObject.internalName, this.data, this.columnOrder);
+    }
+
+    handleBackToSelectListTypeButtonClicked() {
+
+        debugger;
+        this.$wrapper.find(ListWidget._selectors.listSelectListTypeContainer).removeClass('d-none');
+        this.$wrapper.find(ListWidget._selectors.listSelectCustomObjectContainer).addClass('d-none');
+
+        new ListSelectListType($(ListWidget._selectors.listSelectListTypeContainer), this.globalEventDispatcher, this.portalInternalIdentifier);
+
 
     }
 
@@ -293,7 +295,7 @@ class EditReportWidget {
         }
 
         debugger;
-        this.globalEventDispatcher.publish(Settings.Events.REPORT_PROPERTY_LIST_ITEM_ADDED, this.data, this.columnOrder);
+        this.globalEventDispatcher.publish(Settings.Events.LIST_PROPERTY_LIST_ITEM_ADDED, this.data, this.columnOrder);
 
     }
 
@@ -382,7 +384,6 @@ class EditReportWidget {
             }
         }
 
-        debugger;
         this.globalEventDispatcher.publish(Settings.Events.REPORT_FILTER_ITEM_ADDED, this.data);
 
     }
@@ -416,7 +417,7 @@ class EditReportWidget {
         let propertyPath = property.joins.join('.');
 
         if(!_.has(this.data, propertyPath)) {
-            _.set(this.data, propertyPath, []);
+            _.set(this.data, propertyPath, {});
         }
 
         this.globalEventDispatcher.publish(Settings.Events.REPORT_CUSTOM_OBJECT_JOIN_PATH_SET, property, joins, this.data);
@@ -429,7 +430,7 @@ class EditReportWidget {
         let propertyPath = property.joins.join('.');
 
         if(!_.has(this.data, propertyPath)) {
-            _.set(this.data, propertyPath, []);
+            _.set(this.data, propertyPath, {});
         }
 
         this.globalEventDispatcher.publish(Settings.Events.REPORT_FILTER_CUSTOM_OBJECT_JOIN_PATH_SET, property, joins, this.data);
@@ -438,43 +439,16 @@ class EditReportWidget {
 
     render() {
 
-        this.$wrapper.html(EditReportWidget.markup(this));
+        this.$wrapper.html(ListWidget.markup(this));
 
-        new ReportProperties($(EditReportWidget._selectors.reportPropertiesContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject.internalName, this.data, this.columnOrder);
-    }
-
-
- /*   handleBackButtonClicked() {
-
-        new ReportProperties($(EditReportWidget._selectors.reportPropertiesContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject.internalName, this.data, this.columnOrder);
-
-    }*/
-
-    loadReportPreview() {
-        return new Promise((resolve, reject) => {
-            debugger;
-
-            const url = Routing.generate('get_report_preview', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObject.internalName});
-
-            $.ajax({
-                url: url,
-                data: {data: this.data, columnOrder: this.columnOrder}
-            }).then(data => {
-                debugger;
-                resolve(data);
-            }).catch(jqXHR => {
-                debugger;
-                const errorData = JSON.parse(jqXHR.responseText);
-                reject(errorData);
-            });
-        });
+        new ListSelectListType($(ListWidget._selectors.listSelectListTypeContainer), this.globalEventDispatcher, this.portalInternalIdentifier);
     }
 
     _saveReport() {
 
         return new Promise((resolve, reject) => {
             debugger;
-            const url = Routing.generate('api_edit_report', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObject.internalName, reportId: this.reportId});
+            const url = Routing.generate('save_report', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObject.internalName});
 
             $.ajax({
                 url,
@@ -496,13 +470,35 @@ class EditReportWidget {
 
     }
 
+    loadReportPreview() {
+        return new Promise((resolve, reject) => {
+            debugger;
+
+            const url = Routing.generate('get_report_preview', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObject.internalName});
+
+            $.ajax({
+                url: url,
+                data: {data: this.data, columnOrder: this.columnOrder}
+            }).then(data => {
+                debugger;
+                resolve(data);
+            }).catch(jqXHR => {
+                debugger;
+                const errorData = JSON.parse(jqXHR.responseText);
+                reject(errorData);
+            });
+        });
+    }
+
     static markup() {
 
         return `
       <div class="js-report-widget c-report-widget">
-            <div class="js-report-select-custom-object-container d-none"></div>
+            <div class="js-list-select-list-type-container"></div>
             
-            <div class="js-report-properties-container"></div>
+            <div class="js-list-select-custom-object-container d-none"></div>
+            
+            <div class="js-list-properties-container d-none"></div>
             
             <div class="js-report-filters-container d-none"></div>
             
@@ -511,4 +507,4 @@ class EditReportWidget {
     }
 }
 
-export default EditReportWidget;
+export default ListWidget;

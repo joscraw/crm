@@ -36,6 +36,12 @@
             </li>
 
             <li>
+                <a data-bypass="true" href="{{ path('list_settings', {'internalIdentifier' : portal.internalIdentifier}) }}">
+                    <i class="fa fa-th-list"></i> Lists
+                </a>
+            </li>
+
+            <li>
                 <a data-bypass="true" href="{{ path('user_settings', {'internalIdentifier' : portal.internalIdentifier}) }}">
                     <i class="fa fa-users"></i> Users
                 </a>

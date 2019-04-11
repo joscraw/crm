@@ -7,37 +7,40 @@ import Routing from "../Routing";
 import Settings from "../Settings";
 import List from "list.js";
 
-class ReportSelectCustomObject {
+class ListSelectCustomObject {
 
     /**
      * @param $wrapper
      * @param globalEventDispatcher
      * @param portalInternalIdentifier
-     * @param customObject
      */
-    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObject = null) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier) {
         debugger;
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
         this.customObjects = null;
-        this.customObject = customObject;
 
         this.unbindEvents();
 
+        this.bindEvents();
+
         this.$wrapper.on(
             'click',
-            ReportSelectCustomObject._selectors.advanceToReportPropertiesViewButton,
-            this.handleAdvanceToReportPropertiesViewButtonClicked.bind(this)
+            ListSelectCustomObject._selectors.advanceToReportPropertiesViewButton,
+            this.handleAdvanceToListPropertiesViewButtonClicked.bind(this)
         );
+
 
         this.render();
     }
 
     unbindEvents() {
 
-        this.$wrapper.off('click', ReportSelectCustomObject._selectors.advanceToReportPropertiesViewButton);
+        this.$wrapper.off('click', ListSelectCustomObject._selectors.backToSelectListTypeButton);
 
+        /*this.$wrapper.off('click', ReportSelectCustomObject._selectors.advanceToReportPropertiesViewButton);
+*/
     }
 
     /**
@@ -45,16 +48,27 @@ class ReportSelectCustomObject {
      */
     static get _selectors() {
         return {
-            advanceToReportPropertiesViewButton: '.js-advance-to-report-properties-view-button',
+            advanceToListPropertiesViewButton: '.js-advance-to-list-properties-view-button',
+            backToSelectListTypeButton: '.js-back-to-select-list-type-button',
             customObjectField: '.js-custom-object:checked',
             customObjectForm: '.custom-object-form'
         }
     }
 
-    handleAdvanceToReportPropertiesViewButtonClicked(e) {
+    bindEvents() {
+
+        this.$wrapper.on(
+            'click',
+            ListSelectCustomObject._selectors.backToSelectListTypeButton,
+            this.handleBackToSelectListTypeButtonClicked.bind(this)
+        );
+
+    }
+
+    handleAdvanceToListPropertiesViewButtonClicked(e) {
 
         debugger;
-        let customObjectField = this.$wrapper.find(ReportSelectCustomObject._selectors.customObjectField);
+        let customObjectField = this.$wrapper.find(ListSelectCustomObject._selectors.customObjectField);
         let customObjectId = customObjectField.val();
 
 
@@ -64,12 +78,26 @@ class ReportSelectCustomObject {
 
         debugger;
 
-        this.globalEventDispatcher.publish(Settings.Events.ADVANCE_TO_REPORT_PROPERTIES_VIEW_BUTTON_CLICKED, customObject[0]);
+        this.globalEventDispatcher.publish(Settings.Events.ADVANCE_TO_LIST_PROPERTIES_VIEW_BUTTON_CLICKED, customObject[0]);
+    }
+
+
+    handleBackToSelectListTypeButtonClicked(e) {
+
+        debugger;
+        if(e.cancelable) {
+            e.preventDefault();
+        }
+
+        debugger;
+
+        this.globalEventDispatcher.publish(Settings.Events.LIST_BACK_TO_SELECT_LIST_TYPE_BUTTON_CLICKED);
+
     }
 
     render() {
         debugger;
-        this.$wrapper.html(ReportSelectCustomObject.markup(this));
+        this.$wrapper.html(ListSelectCustomObject.markup(this));
 
         this.loadCustomObjects().then(data => {
             debugger;
@@ -96,26 +124,10 @@ class ReportSelectCustomObject {
             $(element).attr('data-custom-object-id', customObjects[index].id);
             $(element).attr('id', `customObject-${customObjects[index].id}`);
             $(element).next('label').attr('for', `customObject-${customObjects[index].id}`);
-
-            debugger;
-            if(this.customObject && customObjects[index].id === this.customObject.id) {
-
-                $(element).prop('checked', true);
-            }
-
         });
 
-        debugger;
-
-        if(this.customObject) {
-            debugger;
-            let index = _.findIndex(customObjects, (customObject) => { return customObject.id === this.customObject.id });
-            $( `#listCustomObjects input[type="radio"]`).eq(index).prop('checked', true);
-        } else {
-            debugger;
-            $( `#listCustomObjects input[type="radio"]`).first().prop('checked', true);
-        }
-
+        // set the first option checked at least for now
+        $( `#listCustomObjects input[type="radio"]`).first().prop('checked', true);
 
     }
 
@@ -139,8 +151,8 @@ class ReportSelectCustomObject {
         return `
             <div class="c-report-select-custom-object">
                  <nav class="navbar navbar-expand-sm l-top-bar justify-content-end c-report-widget__nav">
-                    <a class="btn btn-link" style="color:#FFF" data-bypass="true" href="${Routing.generate('report_settings', {internalIdentifier: portalInternalIdentifier})}" role="button"><i class="fa fa-angle-left" aria-hidden="true"></i> Back to reports</a>
-                    <button class="btn btn-lg btn-secondary ml-auto js-advance-to-report-properties-view-button">Next</button> 
+                    <button type="button" style="color: #FFF" class="btn btn-link js-back-to-select-list-type-button"><i class="fa fa-angle-left" aria-hidden="true"></i> Back</button>
+                    <button class="btn btn-lg btn-secondary ml-auto js-advance-to-list-properties-view-button">Next</button> 
                  </nav> 
                  
                  <div class="container">
@@ -167,4 +179,4 @@ class ReportSelectCustomObject {
     }
 }
 
-export default ReportSelectCustomObject;
+export default ListSelectCustomObject;

@@ -183,7 +183,7 @@ class ReportWidget {
         this.$wrapper.find(ReportWidget._selectors.reportSelectCustomObjectContainer).removeClass('d-none');
         this.$wrapper.find(ReportWidget._selectors.reportPropertiesContainer).addClass('d-none');
 
-        new ReportSelectCustomObject($(ReportWidget._selectors.reportSelectCustomObjectContainer), this.globalEventDispatcher, this.portalInternalIdentifier);
+        new ReportSelectCustomObject($(ReportWidget._selectors.reportSelectCustomObjectContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject);
 
     }
 
@@ -210,6 +210,12 @@ class ReportWidget {
     handleAdvanceToReportPropertiesViewButtonClicked(customObject) {
 
         debugger;
+
+        // If a brand new custom object is selected then clear the data
+        if(this.customObject && this.customObject.id !== customObject.id) {
+            this.data = {};
+            this.columnOrder = [];
+        }
 
         this.customObject = customObject;
 

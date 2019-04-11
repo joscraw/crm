@@ -24,7 +24,7 @@ class Property
     use TimestampableEntity;
 
     /**
-     * @Groups({"PROPERTY_FIELD_NORMALIZER", "PROPERTIES_FOR_FILTER", "PROPERTIES_FOR_REPORT"})
+     * @Groups({"PROPERTY_FIELD_NORMALIZER", "PROPERTIES_FOR_FILTER", "PROPERTIES_FOR_REPORT", "PROPERTIES_FOR_LIST"})
      *
      * @ORM\Id()
      * @ORM\GeneratedValue()
@@ -33,7 +33,7 @@ class Property
     private $id;
 
     /**
-     * @Groups({"PROPERTY_FIELD_NORMALIZER", "PROPERTIES_FOR_FILTER", "PROPERTIES_FOR_REPORT"})
+     * @Groups({"PROPERTY_FIELD_NORMALIZER", "PROPERTIES_FOR_FILTER", "PROPERTIES_FOR_REPORT", "PROPERTIES_FOR_LIST"})
      *
      * @Assert\NotBlank(message="Don't forget a label for your new Property!", groups={"CREATE", "EDIT"})
      * @Assert\Regex("/^[a-zA-Z0-9_\s]*$/", message="Woah! Only use letters, numbers, underscores and spaces please!", groups={"CREATE", "EDIT"})
@@ -43,7 +43,7 @@ class Property
     private $label;
 
     /**
-     * @Groups({"PROPERTY_FIELD_NORMALIZER", "PROPERTIES_FOR_FILTER", "PROPERTIES_FOR_REPORT"})
+     * @Groups({"PROPERTY_FIELD_NORMALIZER", "PROPERTIES_FOR_FILTER", "PROPERTIES_FOR_REPORT", "PROPERTIES_FOR_LIST"})
      *
      * @Assert\Regex("/^[a-zA-Z0-9_]*$/", message="Woah! Only use letters numbers and underscores please!", groups={"CREATE", "EDIT"})
      *
@@ -57,7 +57,7 @@ class Property
     private $description;
 
     /**
-     * @Groups({"PROPERTY_FIELD_NORMALIZER", "PROPERTIES_FOR_FILTER", "PROPERTIES_FOR_REPORT"})
+     * @Groups({"PROPERTY_FIELD_NORMALIZER", "PROPERTIES_FOR_FILTER", "PROPERTIES_FOR_REPORT", "PROPERTIES_FOR_LIST"})
      *
      * @Assert\NotBlank(message="Don't forget to select a field type for your new Property!", groups={"CREATE", "EDIT"})
      * @Assert\Choice(callback="getValidFieldTypes")
@@ -67,7 +67,7 @@ class Property
     private $fieldType;
 
     /**
-     * @Groups({"PROPERTIES_FOR_FILTER", "PROPERTIES_FOR_REPORT"})
+     * @Groups({"PROPERTIES_FOR_FILTER", "PROPERTIES_FOR_REPORT", "PROPERTIES_FOR_LIST"})
      *
      * @var AbstractField
      *
