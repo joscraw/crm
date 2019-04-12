@@ -41,7 +41,7 @@ class ListWidget {
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
         this.customObject = null;
-        this.reportName = '';
+        this.listName = '';
         this.listType = null;
 
         /**
@@ -84,8 +84,6 @@ class ListWidget {
             this.handleListAdvanceToFiltersViewButtonClicked.bind(this)
         );
 
-
-
         this.globalEventDispatcher.subscribe(
             Settings.Events.APPLY_CUSTOM_FILTER_BUTTON_PRESSED,
             this.applyCustomFilterButtonPressedHandler.bind(this)
@@ -111,28 +109,33 @@ class ListWidget {
             this.handleListPreviewResultsButtonClicked.bind(this)
         );
 
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.LIST_NAME_CHANGED,
+            this.handleListNameChange.bind(this)
+        );
+
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.LIST_REMOVE_SELECTED_COLUMN_ICON_CLICKED,
+            this.handleListRemoveSelectedColumnIconClicked.bind(this)
+        );
+
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.LIST_COLUMN_ORDER_CHANGED,
+            this.handleListColumnOrderChanged.bind(this)
+        );
 
         /*
 
-                this.globalEventDispatcher.subscribe(
-                    Settings.Events.REPORT_REMOVE_SELECTED_COLUMN_ICON_CLICKED,
-                    this.handleReportRemoveSelectedColumnIconClicked.bind(this)
-                );
+
 
                 this.globalEventDispatcher.subscribe(
                     Settings.Events.REPORT_SAVE_BUTTON_PRESSED,
                     this.handleReportSaveButtonPressed.bind(this)
                 );
 
-                this.globalEventDispatcher.subscribe(
-                    Settings.Events.REPORT_NAME_CHANGED,
-                    this.handleReportNameChange.bind(this)
-                );
 
-                this.globalEventDispatcher.subscribe(
-                    Settings.Events.REPORT_COLUMN_ORDER_CHANGED,
-                    this.handleReportColumnOrderChanged.bind(this)
-                );
+
+
 
                */
 
@@ -152,10 +155,7 @@ class ListWidget {
         }
     }
 
-    /*unbindEvents() {
-
-        this.$wrapper.off('click', ReportPropertyList._selectors.reportAdvanceToFiltersView);
-    }*/
+    unbindEvents() {}
 
     handleReportSaveButtonPressed() {
 
@@ -204,9 +204,9 @@ class ListWidget {
         window.location = Routing.generate('report_settings', {internalIdentifier: this.portalInternalIdentifier});
     }
 
-    handleReportNameChange(reportName) {
+    handleListNameChange(listName) {
         debugger;
-        this.reportName = reportName;
+        this.listName = listName;
     }
 
     listBackToSelectCustomObjectButtonHandler(e) {
@@ -235,7 +235,7 @@ class ListWidget {
         this.$wrapper.find(ListWidget._selectors.listFiltersContainer).removeClass('d-none');
         this.$wrapper.find(ListWidget._selectors.listPropertiesContainer).addClass('d-none');
 
-        new ListFilters($(ListWidget._selectors.listFiltersContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject.internalName, this.data, this.reportName);
+        new ListFilters($(ListWidget._selectors.listFiltersContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject.internalName, this.data, this.listName);
 
     }
 
@@ -268,14 +268,15 @@ class ListWidget {
 
     }
 
-    handleReportColumnOrderChanged(columnOrder) {
+    handleListColumnOrderChanged(columnOrder) {
 
+        debugger;
         for(let i = 0; i < columnOrder.length; i++) {
 
             this.columnOrder[i] = _.get(this.data, JSON.parse(columnOrder[i]).join('.'));
         }
 
-        this.globalEventDispatcher.publish(Settings.Events.REPORT_COLUMN_ORDER_UPDATED, this.data, this.columnOrder);
+        this.globalEventDispatcher.publish(Settings.Events.LIST_COLUMN_ORDER_UPDATED, this.data, this.columnOrder);
 
     }
 
@@ -396,7 +397,7 @@ class ListWidget {
 
     }
 
-    handleReportRemoveSelectedColumnIconClicked(property) {
+    handleListRemoveSelectedColumnIconClicked(property) {
 
         debugger;
         let propertyPath = property.joins.concat([property.uID]).join('.');
@@ -415,7 +416,7 @@ class ListWidget {
 
         console.log(this.columnOrder);
 
-        this.globalEventDispatcher.publish(Settings.Events.REPORT_PROPERTY_LIST_ITEM_REMOVED, this.data, this.columnOrder);
+        this.globalEventDispatcher.publish(Settings.Events.LIST_PROPERTY_LIST_ITEM_REMOVED, this.data, this.columnOrder);
     }
 
     handleListCustomObjectFilterListItemClicked(property, joins) {

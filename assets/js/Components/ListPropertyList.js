@@ -32,15 +32,10 @@ class ListPropertyList {
             this.handlePropertyListItemAdded.bind(this)
         );
 
-/*
-
-
         this.globalEventDispatcher.subscribe(
-            Settings.Events.REPORT_PROPERTY_LIST_ITEM_REMOVED,
+            Settings.Events.LIST_PROPERTY_LIST_ITEM_REMOVED,
             this.handlePropertyListItemRemoved.bind(this)
         );
-*/
-
 
         this.render();
 

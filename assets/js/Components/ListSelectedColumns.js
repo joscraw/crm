@@ -24,28 +24,27 @@ class ListSelectedColumns {
             this.handlePropertyListItemAdded.bind(this)
         );
 
-     /*   this.globalEventDispatcher.subscribe(
-            Settings.Events.REPORT_PROPERTY_LIST_ITEM_REMOVED,
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.LIST_PROPERTY_LIST_ITEM_REMOVED,
             this.handlePropertyListItemRemoved.bind(this)
         );
 
         this.globalEventDispatcher.subscribe(
-            Settings.Events.REPORT_COLUMN_ORDER_UPDATED,
-            this.handleReportColumnOrderUpdated.bind(this)
+            Settings.Events.LIST_COLUMN_ORDER_UPDATED,
+            this.handleListColumnOrderUpdated.bind(this)
         );
-
 
         this.unbindEvents();
 
         this.$wrapper.on(
             'click',
-            ReportSelectedColumns._selectors.removeSelectedColumnIcon,
+            ListSelectedColumns._selectors.removeSelectedColumnIcon,
             this.handleRemoveSelectedColumnIconClicked.bind(this)
         );
 
         this.setSelectedColumns(this.data, this.columnOrder);
 
-        this.activatePlugins();*/
+        this.activatePlugins();
 
     }
 
@@ -66,7 +65,7 @@ class ListSelectedColumns {
             update: (event, ui) => {
                 let columnOrder = $(event.target).sortable('toArray');
 
-                this.globalEventDispatcher.publish(Settings.Events.REPORT_COLUMN_ORDER_CHANGED, columnOrder);
+                this.globalEventDispatcher.publish(Settings.Events.LIST_COLUMN_ORDER_CHANGED, columnOrder);
 
             }
         });
@@ -75,7 +74,7 @@ class ListSelectedColumns {
 
     unbindEvents() {
 
-        this.$wrapper.off('click', ReportSelectedColumns._selectors.removeSelectedColumnIcon);
+        this.$wrapper.off('click', ListSelectedColumns._selectors.removeSelectedColumnIcon);
 
     }
 
@@ -98,7 +97,7 @@ class ListSelectedColumns {
             debugger;
             let property = _.get(this.data, propertyPath);
 
-            this.globalEventDispatcher.publish(Settings.Events.REPORT_REMOVE_SELECTED_COLUMN_ICON_CLICKED, property);
+            this.globalEventDispatcher.publish(Settings.Events.LIST_REMOVE_SELECTED_COLUMN_ICON_CLICKED, property);
         }
     }
 
@@ -121,7 +120,7 @@ class ListSelectedColumns {
 
     }
 
-    handleReportColumnOrderUpdated(data, columnOrder) {
+    handleListColumnOrderUpdated(data, columnOrder) {
 
         this.data = data;
 

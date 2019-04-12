@@ -37,13 +37,13 @@ import ListPreviewResultsTable from "./ListPreviewResultsTable";
 
 class ListFilters {
 
-    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, data = {}, reportName = '') {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, data = {}, listName = '') {
 
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
         this.customObjectInternalName = customObjectInternalName;
-        this.reportName = reportName;
+        this.listName = listName;
 
         /**
          * This data object is responsible for storing all the properties and filters that will get sent to the server
@@ -112,6 +112,12 @@ class ListFilters {
             this.handleBackToListPropertiesButtonClicked.bind(this)
         );
 
+        this.$wrapper.on(
+            'change',
+            ListFilters._selectors.listName,
+            this.handleListNameChange.bind(this)
+        );
+
 
         /*
 
@@ -122,11 +128,7 @@ class ListFilters {
                  this.handleSaveReportButtonClicked.bind(this)
              );
 
-             this.$wrapper.on(
-                 'change',
-                 ReportFilters._selectors.reportName,
-                 this.handleReportNameChange.bind(this)
-             );
+
      */
         this.render();
     }
@@ -140,11 +142,10 @@ class ListFilters {
             listFilterListContainer: '.js-list-filter-list-container',
             propertyForm: '.js-property-form',
             editPropertyForm: '.js-edit-property-form',
-            reportSelectedCustomFilters: '.js-report-selected-custom-filters',
             listFilterNavigation: '.js-list-filter-navigation',
             backToListPropertiesButton: '.js-back-to-list-properties-button',
             saveReportButton: '.js-save-report-button',
-            reportName: '.js-report-name',
+            listName: '.js-list-name',
             listPreviewResultsButtonContainer: '.js-list-preview-results-button-container',
             listPreviewResultsTableContainer: '.js-list-preview-results-table-container'
 
@@ -154,8 +155,11 @@ class ListFilters {
     unbindEvents() {
 
         this.$wrapper.off('click', ListFilters._selectors.backToListPropertiesButton);
+
+        this.$wrapper.off('change', ListFilters._selectors.listName);
+
         /*this.$wrapper.off('click', ReportFilters._selectors.saveReportButton);
-        this.$wrapper.off('change', ReportFilters._selectors.reportName);*/
+        */
     }
 
     handleSaveReportButtonClicked(e) {
@@ -176,10 +180,10 @@ class ListFilters {
 
     }
 
-    handleReportNameChange(e) {
+    handleListNameChange(e) {
         debugger;
 
-        this.globalEventDispatcher.publish(Settings.Events.REPORT_NAME_CHANGED, $(e.target).val());
+        this.globalEventDispatcher.publish(Settings.Events.LIST_NAME_CHANGED, $(e.target).val());
 
     }
 
@@ -369,13 +373,7 @@ class ListFilters {
 
         new ListPreviewResultsTable($(ListFilters._selectors.listPreviewResultsTableContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);
 
-/*        this.$wrapper.find(ReportFilters._selectors.reportName).val(this.reportName);
-
-
-
-
-
-   */
+        this.$wrapper.find(ListFilters._selectors.listName).val(this.listName);
 
     }
 
@@ -393,7 +391,7 @@ class ListFilters {
                         </ul>
                     </div>
                     
-                    <input style="width: 200px;" class="form-control navbar-brand mx-auto d-block text-center order-0 order-md-1 w-25 c-report-widget__report-name js-report-name" type="search" placeholder="List name" aria-label="Search">
+                    <input style="width: 200px;" class="form-control navbar-brand mx-auto d-block text-center order-0 order-md-1 w-25 c-report-widget__report-name js-list-name" type="search" placeholder="List name" aria-label="Search">
                     
                     <div class="navbar-collapse collapse dual-nav w-50 order-2">
                         <ul class="nav navbar-nav ml-auto">
