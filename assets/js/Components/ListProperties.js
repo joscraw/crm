@@ -118,7 +118,7 @@ class ListProperties {
         }
 
         debugger;
-        /*this.globalEventDispatcher.publish(Settings.Events.ADVANCE_TO_REPORT_FILTERS_VIEW_BUTTON_CLICKED);*/
+        this.globalEventDispatcher.publish(Settings.Events.LIST_ADVANCE_TO_FILTERS_VIEW_BUTTON_CLICKED);
 
     }
 

@@ -31,6 +31,7 @@ import swal from "sweetalert2";
 import ListSelectListType from "./ListSelectListType";
 import ListSelectCustomObject from "./ListSelectCustomObject";
 import ListProperties from "./ListProperties";
+import ListFilters from "./ListFilters";
 
 class ListWidget {
 
@@ -78,46 +79,44 @@ class ListWidget {
             this.handlePropertyListItemClicked.bind(this)
         );
 
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.LIST_ADVANCE_TO_FILTERS_VIEW_BUTTON_CLICKED,
+            this.handleListAdvanceToFiltersViewButtonClicked.bind(this)
+        );
 
 
 
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.APPLY_CUSTOM_FILTER_BUTTON_PRESSED,
+            this.applyCustomFilterButtonPressedHandler.bind(this)
+        );
+
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.LIST_REMOVE_FILTER_BUTTON_PRESSED,
+            this.handleListRemoveFilterButtonPressed.bind(this)
+        );
+
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.LIST_BACK_TO_PROPERTIES_BUTTON_PRESSED,
+            this.handleListBackToPropertiesButtonPressed.bind(this)
+        );
+
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.LIST_CUSTOM_OBJECT_FILTER_LIST_ITEM_CLICKED,
+            this.handleListCustomObjectFilterListItemClicked.bind(this)
+        );
+
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.LIST_PREVIEW_RESULTS_BUTTON_CLICKED,
+            this.handleListPreviewResultsButtonClicked.bind(this)
+        );
 
 
         /*
 
                 this.globalEventDispatcher.subscribe(
-                    Settings.Events.REPORT_CUSTOM_OBJECT_PROPERTY_LIST_ITEM_CLICKED,
-                    this.handleCustomObjectPropertyListItemClicked.bind(this)
-                );
-
-                this.globalEventDispatcher.subscribe(
-                    Settings.Events.REPORT_CUSTOM_OBJECT_FILTER_LIST_ITEM_CLICKED,
-                    this.handleReportCustomObjectFilterListItemClicked.bind(this)
-                );
-
-                this.globalEventDispatcher.subscribe(
                     Settings.Events.REPORT_REMOVE_SELECTED_COLUMN_ICON_CLICKED,
                     this.handleReportRemoveSelectedColumnIconClicked.bind(this)
-                );
-
-                this.globalEventDispatcher.subscribe(
-                    Settings.Events.APPLY_CUSTOM_FILTER_BUTTON_PRESSED,
-                    this.applyCustomFilterButtonPressedHandler.bind(this)
-                );
-
-                this.globalEventDispatcher.subscribe(
-                    Settings.Events.ADVANCE_TO_REPORT_FILTERS_VIEW_BUTTON_CLICKED,
-                    this.handleReportAdvanceToFiltersViewButtonClicked.bind(this)
-                );
-
-                this.globalEventDispatcher.subscribe(
-                    Settings.Events.REPORT_REMOVE_FILTER_BUTTON_PRESSED,
-                    this.handleReportRemoveFilterButtonPressed.bind(this)
-                );
-
-                this.globalEventDispatcher.subscribe(
-                    Settings.Events.REPORT_BACK_TO_PROPERTIES_BUTTON_PRESSED,
-                    this.handleReportBackToPropertiesButtonPressed.bind(this)
                 );
 
                 this.globalEventDispatcher.subscribe(
@@ -135,10 +134,7 @@ class ListWidget {
                     this.handleReportColumnOrderChanged.bind(this)
                 );
 
-                this.globalEventDispatcher.subscribe(
-                    Settings.Events.REPORT_PREVIEW_RESULTS_BUTTON_CLICKED,
-                    this.handleReportPreviewResultsButtonClicked.bind(this)
-                );*/
+               */
 
         this.render();
     }
@@ -151,7 +147,7 @@ class ListWidget {
             listSelectListTypeContainer: '.js-list-select-list-type-container',
             listSelectCustomObjectContainer: '.js-list-select-custom-object-container',
             listPropertiesContainer: '.js-list-properties-container',
-            reportFiltersContainer: '.js-report-filters-container'
+            listFiltersContainer: '.js-list-filters-container'
 
         }
     }
@@ -179,12 +175,12 @@ class ListWidget {
 
     }
 
-    handleReportPreviewResultsButtonClicked() {
+    handleListPreviewResultsButtonClicked() {
 
         this.loadReportPreview().then((data) => {
 
             debugger;
-            this.globalEventDispatcher.publish(Settings.Events.REPORT_PREVIEW_RESULTS_LOADED, data.data, this.columnOrder);
+            this.globalEventDispatcher.publish(Settings.Events.LIST_PREVIEW_RESULTS_LOADED, data.data, this.columnOrder);
 
         });
 
@@ -223,23 +219,23 @@ class ListWidget {
 
     }
 
-    handleReportBackToPropertiesButtonPressed() {
+    handleListBackToPropertiesButtonPressed() {
         debugger;
 
-        this.$wrapper.find(ReportWidget._selectors.reportFiltersContainer).addClass('d-none');
-        this.$wrapper.find(ReportWidget._selectors.reportPropertiesContainer).removeClass('d-none');
+        this.$wrapper.find(ListWidget._selectors.listFiltersContainer).addClass('d-none');
+        this.$wrapper.find(ListWidget._selectors.listPropertiesContainer).removeClass('d-none');
 
         /*new ReportProperties($(ReportWidget._selectors.reportPropertiesContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject.internalName, this.data);*/
 
     }
 
-    handleReportAdvanceToFiltersViewButtonClicked(e) {
+    handleListAdvanceToFiltersViewButtonClicked(e) {
 
         debugger;
-        this.$wrapper.find(ListWidget._selectors.reportFiltersContainer).removeClass('d-none');
-        this.$wrapper.find(ReportWidget._selectors.reportPropertiesContainer).addClass('d-none');
+        this.$wrapper.find(ListWidget._selectors.listFiltersContainer).removeClass('d-none');
+        this.$wrapper.find(ListWidget._selectors.listPropertiesContainer).addClass('d-none');
 
-        new ReportFilters($(ReportWidget._selectors.reportFiltersContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject.internalName, this.data, this.reportName);
+        new ListFilters($(ListWidget._selectors.listFiltersContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject.internalName, this.data, this.reportName);
 
     }
 
@@ -309,7 +305,9 @@ class ListWidget {
 
     }
 
-    handleReportRemoveFilterButtonPressed(joinPath) {
+    handleListRemoveFilterButtonPressed(joinPath) {
+
+        debugger;
 
         let filterPath = joinPath.join('.');
 
@@ -343,7 +341,7 @@ class ListWidget {
 
         _.unset(this.data, filterPath);
 
-        this.globalEventDispatcher.publish(Settings.Events.REPORT_FILTER_ITEM_REMOVED, this.data);
+        this.globalEventDispatcher.publish(Settings.Events.LIST_FILTER_ITEM_REMOVED, this.data);
 
         debugger;
 
@@ -394,7 +392,7 @@ class ListWidget {
             }
         }
 
-        this.globalEventDispatcher.publish(Settings.Events.REPORT_FILTER_ITEM_ADDED, this.data);
+        this.globalEventDispatcher.publish(Settings.Events.LIST_FILTER_ITEM_ADDED, this.data);
 
     }
 
@@ -420,21 +418,7 @@ class ListWidget {
         this.globalEventDispatcher.publish(Settings.Events.REPORT_PROPERTY_LIST_ITEM_REMOVED, this.data, this.columnOrder);
     }
 
-    handleCustomObjectPropertyListItemClicked(property, joins) {
-
-        debugger;
-
-        let propertyPath = property.joins.join('.');
-
-        if(!_.has(this.data, propertyPath)) {
-            _.set(this.data, propertyPath, {});
-        }
-
-        this.globalEventDispatcher.publish(Settings.Events.REPORT_CUSTOM_OBJECT_JOIN_PATH_SET, property, joins, this.data);
-
-    }
-
-    handleReportCustomObjectFilterListItemClicked(property, joins) {
+    handleListCustomObjectFilterListItemClicked(property, joins) {
 
         debugger;
         let propertyPath = property.joins.join('.');
@@ -443,7 +427,7 @@ class ListWidget {
             _.set(this.data, propertyPath, {});
         }
 
-        this.globalEventDispatcher.publish(Settings.Events.REPORT_FILTER_CUSTOM_OBJECT_JOIN_PATH_SET, property, joins, this.data);
+        this.globalEventDispatcher.publish(Settings.Events.LIST_FILTER_CUSTOM_OBJECT_JOIN_PATH_SET, property, joins, this.data);
 
     }
 
@@ -510,7 +494,7 @@ class ListWidget {
             
             <div class="js-list-properties-container d-none"></div>
             
-            <div class="js-report-filters-container d-none"></div>
+            <div class="js-list-filters-container d-none"></div>
             
       </div>
     `;
