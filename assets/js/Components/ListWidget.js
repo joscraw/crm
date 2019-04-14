@@ -469,7 +469,7 @@ class ListWidget {
         return new Promise((resolve, reject) => {
             debugger;
 
-            const url = Routing.generate('get_report_preview', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObject.internalName});
+            const url = Routing.generate('get_list_preview', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObject.internalName});
 
             $.ajax({
                 url: url,

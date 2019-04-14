@@ -408,7 +408,7 @@ class ListController extends ApiController
     }
 
     /**
-     * @Route("/{internalName}/report-preview", name="get_report_preview", methods={"GET"}, options = { "expose" = true })
+     * @Route("/{internalName}/list-preview", name="get_list_preview", methods={"GET"}, options = { "expose" = true })
      * @param Portal $portal
      * @param CustomObject $customObject
      * @param Request $request

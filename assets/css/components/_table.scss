@@ -14,6 +14,19 @@
 
 }
 
+.c-table__checkbox:focus, .c-table td {
+  outline:0 !important;
+  box-shadow:none !important;
+}
+
+.c-table--with-actions {
+
+  th:first-of-type {
+    width: 20px;
+  }
+
+}
+
 .c-table__data {
   position: absolute;
   top: 50%;
