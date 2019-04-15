@@ -1117,7 +1117,7 @@ class RecordRepository extends ServiceEntityRepository
                                 $conditions[] = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') = \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], strtolower($value));
                             }
 
-                            $query = ' and' . implode(" OR ", $conditions);
+                            $query = implode(" OR ", $conditions);
                         }
 
                         break;
@@ -1133,7 +1133,7 @@ class RecordRepository extends ServiceEntityRepository
                                 $conditions[] = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') != \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], strtolower($value));
                             }
 
-                            $query = ' and' . implode(" AND ", $conditions);
+                            $query = implode(" AND ", $conditions);
                         }
 
                         break;
@@ -1165,7 +1165,7 @@ class RecordRepository extends ServiceEntityRepository
                                 $conditions[] = sprintf('JSON_SEARCH(IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'[]\'), \'one\', \'%s\') IS NOT NULL', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], strtolower($value));
                             }
 
-                            $query = ' and' . implode(" OR ", $conditions);
+                            $query = implode(" OR ", $conditions);
                         }
 
                         break;
@@ -1181,7 +1181,7 @@ class RecordRepository extends ServiceEntityRepository
                                 $conditions[] = sprintf('JSON_SEARCH(IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'[]\'), \'one\', \'%s\') IS NULL', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], strtolower($value));
                             }
 
-                            $query = ' and' . implode(" AND ", $conditions);
+                            $query = implode(" AND ", $conditions);
                         }
 
                         break;
@@ -1214,7 +1214,7 @@ class RecordRepository extends ServiceEntityRepository
                 $andFilters[] = $this->getConditionForReport($filter, implode('.', $filter['joins']));
             }
 
-            $query .= ' AND ' . implode(' AND ', $andFilters);
+            $query .= implode(' AND ', $andFilters);
 
             $query = sprintf('(%s)', $query);
         }

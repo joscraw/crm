@@ -401,12 +401,12 @@ class PropertyController extends ApiController
         foreach($propertyGroups as $propertyGroup) {
 
             // We don't show Custom Objects on lists because lists are only for one object type
-            foreach($propertyGroup->getProperties() as $property) {
+            /*foreach($propertyGroup->getProperties() as $property) {
                 if($property->getFieldType() === FieldCatalog::CUSTOM_OBJECT) {
 
                     $propertyGroup->getProperties()->removeElement($property);
                 }
-            }
+            }*/
         }
 
         $json = $this->serializer->serialize($propertyGroups, 'json', ['groups' => ['PROPERTIES_FOR_LIST']]);

@@ -46,25 +46,14 @@ class ListProperties {
         this.columnOrder = columnOrder;
 
 
-        /**
-         * When you end up recreating multiple instances of a class
-         * For example: When the user keeps moving back and forth in the user interface
-         * You don't want to keep firing the old events that have
-         * different property values attached to it. We can clear the events with
-         * this.globalEventDispatcher.unSubscribeTokens(this.tokens);
-         *
-         * @type {Array}
-         */
-        this.tokens = [];
-
         this.unbindEvents();
 
         this.bindEvents();
 
-        this.tokens.push(this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.singleSubscribe(
             Settings.Events.LIST_BACK_BUTTON_CLICKED,
             this.handleBackButtonClicked.bind(this)
-        ));
+        );
 
         this.render();
     }
@@ -158,8 +147,6 @@ class ListProperties {
     }
 
     handleListBackToSelectCustomObjectButton(e) {
-
-        this.globalEventDispatcher.unSubscribeTokens(this.tokens);
 
         this.globalEventDispatcher.publish(Settings.Events.LIST_BACK_TO_SELECT_CUSTOM_OBJECT_BUTTON_PRESSED, this.data);
 

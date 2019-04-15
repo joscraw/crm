@@ -27,6 +27,7 @@ import ReportSelectedColumns from "./ReportSelectedColumns";
 import ReportSelectedColumnsCount from "./ReportSelectedColumnsCount";
 import ReportFilterList from "./ReportFilterList";
 import ReportFilters from "./ReportFilters";
+import EventDispatcher from "../EventDispatcher";
 
 class ReportProperties {
 
@@ -40,31 +41,21 @@ class ReportProperties {
         this.customObjectInternalName = customObjectInternalName;
         this.data = data;
         this.columnOrder = columnOrder;
-
-        /**
-         * When you end up recreating multiple instances of a class
-         * For example: When the user keeps moving back and forth in the user interface
-         * You don't want to keep firing the old events that have
-         * different property values attached to it. We can clear the events with
-         * this.globalEventDispatcher.unSubscribeTokens(this.tokens);
-         *
-         * @type {Array}
-         */
-        this.tokens = [];
+        this.reportPropertiesEventDispatcher = new EventDispatcher();
 
         this.unbindEvents();
 
         this.bindEvents();
 
-        this.tokens.push(this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.singleSubscribe(
             Settings.Events.REPORT_BACK_BUTTON_CLICKED,
             this.handleBackButtonClicked.bind(this)
-        ));
+        );
 
-        this.tokens.push(this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.singleSubscribe(
             Settings.Events.REPORT_CUSTOM_OBJECT_JOIN_PATH_SET,
             this.handleCustomObjectJoinPathSet.bind(this)
-        ));
+        );
 
         this.render();
     }
@@ -102,7 +93,7 @@ class ReportProperties {
 
     unbindEvents() {
 
-        this.$wrapper.off('click', ReportPropertyList._selectors.reportBackToSelectCustomObjectButton);
+        this.$wrapper.off('click', ReportProperties._selectors.reportBackToSelectCustomObjectButton);
         this.$wrapper.off('click', ReportProperties._selectors.reportAdvanceToFiltersView);
     }
 
@@ -166,8 +157,6 @@ class ReportProperties {
     }
 
     handleReportBackToSelectCustomObjectButton(e) {
-
-        this.globalEventDispatcher.unSubscribeTokens(this.tokens);
 
         this.globalEventDispatcher.publish(Settings.Events.REPORT_BACK_TO_SELECT_CUSTOM_OBJECT_BUTTON_PRESSED, this.data);
 

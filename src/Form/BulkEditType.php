@@ -87,9 +87,9 @@ class BulkEditType extends AbstractType
             foreach($propertyGroup->getProperties() as $property) {
 
 
-                if($property->getFieldType() === FieldCatalog::CUSTOM_OBJECT) {
+                /*if($property->getFieldType() === FieldCatalog::CUSTOM_OBJECT) {
                     continue;
-                }
+                }*/
 
                 $choices[$propertyGroup->getName()][$property->getLabel()] = $property->getId();
 
@@ -103,7 +103,7 @@ class BulkEditType extends AbstractType
             'expanded' => false,
             'multiple' => false,
             'attr' => [
-                'class' => 'js-selectize-single-select js-property'
+                'class' => 'js-selectize-single-select-bulk-edit-property js-property'
             ]
         ]);
 
@@ -128,6 +128,7 @@ class BulkEditType extends AbstractType
         $builderData = null;
 
         $options = [
+            'required' => false,
             'auto_initialize' => false,
             'property' => $property,
             'label' => $property->getLabel(),
@@ -141,8 +142,101 @@ class BulkEditType extends AbstractType
             case FieldCatalog::SINGLE_LINE_TEXT:
                 $fieldClass = BulkEditSingleLineTextFieldType::class;
                 break;
+            case FieldCatalog::MULTI_LINE_TEXT:
+                $fieldClass = BulkEditMultiLineTextFieldType::class;
+                break;
             case FieldCatalog::NUMBER:
                 $fieldClass = BulkEditNumberFieldType::class;
+                break;
+            case FieldCatalog::RADIO_SELECT:
+            case FieldCatalog::DROPDOWN_SELECT:
+                $choices = $property->getField()->getOptionsForChoiceTypeField();
+                $options = array_merge($options, [
+                    'choices'  => $choices,
+                    'expanded' => false,
+                    'multiple' => false,
+                    'attr' => [
+                        'class' => 'js-selectize-single-select',
+                        'data-property-id' => $property->getId(),
+                        'autocomplete' => 'off'
+                    ]
+                ]);
+
+                $fieldClass = BulkEditRadioSelectFieldType::class;
+
+                break;
+            case FieldCatalog::SINGLE_CHECKBOX:
+
+                $options = array_merge($options, [
+                    'choices'  => array(
+                        'Yes' => true,
+                        'No' => false,
+                    ),
+                    'expanded' => false,
+                    'multiple' => false,
+                    'attr' => [
+                        'class' => 'js-selectize-single-select',
+                        'data-property-id' => $property->getId(),
+                        'autocomplete' => 'off'
+                    ]
+                ]);
+
+                $fieldClass = BulkEditSingleCheckboxFieldType::class;
+
+                break;
+            case FieldCatalog::MULTIPLE_CHECKBOX:
+                $choices = $property->getField()->getOptionsForChoiceTypeField();
+                $options = array_merge($options,[
+                    'choices'  => $choices,
+                    'expanded' => false,
+                    'multiple' => true,
+                    'attr' => [
+                        'class' => 'js-selectize-multiple-select',
+                        'data-property-id' => $property->getId(),
+                        'autocomplete' => 'off'
+                    ]
+                ]);
+
+                $fieldClass = BulkEditMultipleCheckboxFieldType::class;
+
+                break;
+            case FieldCatalog::DATE_PICKER:
+                $options = array_merge($options, [
+                    'widget' => 'single_text',
+                    'format' => 'MM-dd-yyyy',
+                    // prevents rendering it as type="date", to avoid HTML5 date pickers
+                    'html5' => false,
+                    // adds a class that can be selected in JavaScript
+                    'attr' => [
+                        'class' => 'js-datepicker',
+                        'data-property-id' => $property->getId(),
+                        'autocomplete' => 'off'
+                    ],
+                ]);
+
+                $fieldClass = BulkEditDatePickerFieldType::class;
+
+                break;
+            case FieldCatalog::CUSTOM_OBJECT:
+
+                $customObject = $property->getField()->getCustomObject();
+
+                $options = array_merge($options, [
+                    'attr' => [
+                        'class' => 'js-selectize-single-select-with-search',
+                        'placeholder' => 'Start typing to search..',
+                        'data-property-id' => $property->getId(),
+                        'autocomplete' => 'off'
+                    ],
+                    'expanded' => false,
+                ]);
+
+                $fieldClass = BulkEditCustomObjectFieldType::class;
+
+                if($property->getField()->isMultiple()) {
+                    $options['multiple'] = true;
+                }
+
                 break;
 
         }

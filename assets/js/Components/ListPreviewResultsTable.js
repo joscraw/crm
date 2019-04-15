@@ -37,7 +37,7 @@ class ListPreviewResultsTable {
         this.$tableHeader = null;
         this.records = [];
 
-        this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.singleSubscribe(
             Settings.Events.LIST_PREVIEW_RESULTS_BUTTON_CLICKED,
             this.handleListPreviewResultsButtonClicked.bind(this)
         );
@@ -67,7 +67,7 @@ class ListPreviewResultsTable {
             this.listColumnOrderUpdatedHandler.bind(this)
         );
 
-        this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.singleSubscribe(
             Settings.Events.BULK_EDIT_SUCCESSFUL,
             this.handleBulkEditSuccessful.bind(this)
         );
@@ -170,7 +170,8 @@ class ListPreviewResultsTable {
 
             $.ajax({
                 url: url,
-                data: {data: this.data, columnOrder: this.columnOrder}
+                data: {data: this.data, columnOrder: this.columnOrder},
+                method: 'POST',
             }).then(data => {
                 debugger;
                 resolve(data);
@@ -195,13 +196,13 @@ class ListPreviewResultsTable {
 
         if ($(ListPreviewResultsTable._selectors.recordCheckboxChecked).length > 0) {
 
-            this.$wrapper.find(ListPreviewResultsTable._selectors.table).find('thead').replaceWith($tableActionsTemplate);
+            this.$wrapper.find(ListPreviewResultsTable._selectors.table).first().find('thead').replaceWith($tableActionsTemplate);
 
         }
         else {
-            this.$wrapper.find(ListPreviewResultsTable._selectors.table).find('thead').replaceWith(this.$tableHeader);
+            this.$wrapper.find(ListPreviewResultsTable._selectors.table).first().find('thead').replaceWith(this.$tableHeader);
 
-            this.$wrapper.find(ListPreviewResultsTable._selectors.selectAllRecordsCheckbox).prop('checked', false);
+            this.$wrapper.find(ListPreviewResultsTable._selectors.selectAllRecordsCheckbox).first().prop('checked', false);
         }
 
         this.updateRecords();
@@ -218,21 +219,21 @@ class ListPreviewResultsTable {
         const html = tableActionsTemplate();
         const $tableActionsTemplate = $($.parseHTML(html));
 
-        if(!$(ListPreviewResultsTable._selectors.selectAllRecordsCheckbox).is(':checked')) {
+        if(!$(ListPreviewResultsTable._selectors.selectAllRecordsCheckbox).first().is(':checked')) {
 
-            this.$wrapper.find(ListPreviewResultsTable._selectors.table).find('thead').replaceWith(this.$tableHeader);
+            this.$wrapper.find(ListPreviewResultsTable._selectors.table).first().find('thead').replaceWith(this.$tableHeader);
 
             this.$wrapper.find(ListPreviewResultsTable._selectors.recordCheckbox).prop('checked', false);
 
-            this.$wrapper.find(ListPreviewResultsTable._selectors.selectAllRecordsCheckbox).prop('checked', false);
+            this.$wrapper.find(ListPreviewResultsTable._selectors.selectAllRecordsCheckbox).first().prop('checked', false);
 
         } else {
 
-            this.$wrapper.find(ListPreviewResultsTable._selectors.table).find('thead').replaceWith($tableActionsTemplate);
+            this.$wrapper.find(ListPreviewResultsTable._selectors.table).first().find('thead').replaceWith($tableActionsTemplate);
 
             this.$wrapper.find(ListPreviewResultsTable._selectors.recordCheckbox).prop('checked', true);
 
-            this.$wrapper.find(ListPreviewResultsTable._selectors.selectAllRecordsCheckbox).prop('checked', true);
+            this.$wrapper.find(ListPreviewResultsTable._selectors.selectAllRecordsCheckbox).first().prop('checked', true);
 
         }
 
@@ -293,7 +294,8 @@ class ListPreviewResultsTable {
             "order": [],
             "paging": true,
             "destroy": true,
-            "responsive": true,
+            /*"responsive": true,*/
+            "scrollX": true,
             "searching":true,
             "language": {
                 "emptyTable": "No results found.",
@@ -319,7 +321,7 @@ class ListPreviewResultsTable {
             "initComplete": () => {
 
                 if(!this.$tableHeader) {
-                    this.$tableHeader = this.$wrapper.find(ListPreviewResultsTable._selectors.table).find('thead');
+                    this.$tableHeader = this.$wrapper.find(ListPreviewResultsTable._selectors.table).first().find('thead');
                 }
 
                 this.$wrapper.find(ListPreviewResultsTable._selectors.selectAllRecordsCheckbox).prop('checked', false);

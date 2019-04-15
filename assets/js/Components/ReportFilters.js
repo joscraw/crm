@@ -47,59 +47,47 @@ class ReportFilters {
          */
         this.data = data;
 
-        /**
-         * When you end up recreating multiple instances of a class
-         * For example: When the user keeps moving back and forth in the user interface
-         * You don't want to keep firing the old events that have
-         * different property values attached to it. We can clear the events with
-         * this.globalEventDispatcher.unSubscribeTokens(this.tokens);
-         *
-         * @type {Array}
-         */
-        this.tokens = [];
-
         this.unbindEvents();
 
-        this.tokens.push(this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.singleSubscribe(
             Settings.Events.REPORT_FILTER_ITEM_CLICKED,
             this.handleReportFilterItemClicked.bind(this)
-        ));
+        );
 
-        this.tokens.push(this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.singleSubscribe(
             Settings.Events.FILTER_BACK_TO_LIST_BUTTON_CLICKED,
             this.handleFilterBackToListButtonClicked.bind(this)
-        ));
+        );
 
-        this.tokens.push(this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.singleSubscribe(
             Settings.Events.REPORT_FILTER_CUSTOM_OBJECT_JOIN_PATH_SET,
             this.handleReportFilterCustomObjectJoinPathSet.bind(this)
-        ));
+        );
 
-        this.tokens.push(this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.singleSubscribe(
             Settings.Events.REPORT_FILTER_ITEM_ADDED,
             this.reportFilterItemAddedHandler.bind(this)
-        ));
+        );
 
-        this.tokens.push(this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.singleSubscribe(
             Settings.Events.REPORT_ADD_FILTER_BUTTON_PRESSED,
             this.reportAddFilterButtonPressedHandler.bind(this)
-        ));
+        );
 
-        this.tokens.push(this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.singleSubscribe(
             Settings.Events.REPORT_ADD_OR_FILTER_BUTTON_PRESSED,
             this.reportAddOrFilterButtonPressedHandler.bind(this)
-        ));
+        );
 
-        this.tokens.push(this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.singleSubscribe(
             Settings.Events.FILTER_BACK_TO_NAVIGATION_BUTTON_CLICKED,
             this.reportFilterBackToNavigationButtonClickedHandler.bind(this)
-        ));
+        );
 
-        this.tokens.push(this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.singleSubscribe(
             Settings.Events.REPORT_EDIT_FILTER_BUTTON_CLICKED,
             this.handleReportEditFilterButtonClicked.bind(this)
-        ));
-
+        );
 
         this.$wrapper.on(
             'click',
@@ -180,8 +168,6 @@ class ReportFilters {
             e.preventDefault();
         }
 
-        this.globalEventDispatcher.unSubscribeTokens(this.tokens);
-
         this.globalEventDispatcher.publish(Settings.Events.REPORT_BACK_TO_PROPERTIES_BUTTON_PRESSED);
 
         debugger;
@@ -234,8 +220,6 @@ class ReportFilters {
 
     reportAddFilterButtonPressedHandler() {
 
-        debugger;
-
         this.$wrapper.find(ReportFilters._selectors.reportFilterNavigation).addClass('d-none');
         this.$wrapper.find(ReportFilters._selectors.reportFilterListContainer).removeClass('d-none');
 
@@ -243,7 +227,6 @@ class ReportFilters {
     }
 
     reportAddOrFilterButtonPressedHandler(referencedFilterPath) {
-        debugger;
 
         this.$wrapper.find(ReportFilters._selectors.reportFilterNavigation).addClass('d-none');
         this.$wrapper.find(ReportFilters._selectors.reportFilterListContainer).removeClass('d-none');

@@ -245,13 +245,8 @@ class ListPropertyList {
 
         property[0].joins = joins;
 
-        if(property[0].fieldType === 'custom_object_field') {
 
-            this.globalEventDispatcher.publish(Settings.Events.REPORT_CUSTOM_OBJECT_PROPERTY_LIST_ITEM_CLICKED, property[0], joins);
-        } else {
-
-            this.globalEventDispatcher.publish(Settings.Events.LIST_PROPERTY_LIST_ITEM_CLICKED, property[0]);
-        }
+        this.globalEventDispatcher.publish(Settings.Events.LIST_PROPERTY_LIST_ITEM_CLICKED, property[0]);
     }
 
     renderProperties(propertyGroups) {

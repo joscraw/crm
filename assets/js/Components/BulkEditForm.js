@@ -6,6 +6,11 @@ import Routing from '../Routing';
 import Settings from '../Settings';
 import FormCollectionPrototypeUpdater from '../FormCollectionPrototypeUpdater';
 
+require('jquery-ui-dist/jquery-ui');
+require('jquery-ui-dist/jquery-ui.css');
+require('bootstrap-datepicker');
+require('bootstrap-datepicker/dist/css/bootstrap-datepicker.css');
+
 class BulkEditForm {
 
     /**
@@ -13,6 +18,7 @@ class BulkEditForm {
      * @param globalEventDispatcher
      * @param portalInternalIdentifier
      * @param customObjectInternalName
+     * @param records
      */
     constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, records) {
 
@@ -47,9 +53,10 @@ class BulkEditForm {
 
     activatePlugins() {
 
-        $('.js-selectize-single-select').selectize({
+        $('.js-selectize-single-select-bulk-edit-property').selectize({
             sortField: 'text'
         }).on('change', this.handlePropertyChange.bind(this));
+
     }
 
     handlePropertyChange(e) {
@@ -73,6 +80,56 @@ class BulkEditForm {
             $('.js-property-value-container').replaceWith(
                 $(errorData.formMarkup).find('.js-property-value-container')
             );
+
+            $('.js-selectize-single-select').selectize({
+                sortField: 'text'
+            });
+
+            $('.js-selectize-multiple-select').selectize({
+                plugins: ['remove_button'],
+                sortField: 'text'
+            });
+
+            $('.js-datepicker').datepicker({
+                format: 'mm-dd-yyyy'
+            });
+
+            const url = Routing.generate('records_for_selectize', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
+
+            debugger;
+
+            $('.js-selectize-single-select-with-search').each((index, element) => {
+
+                let select = $(element).selectize({
+                    valueField: 'valueField',
+                    labelField: 'labelField',
+                    searchField: 'searchField',
+                    load: (query, callback) => {
+
+                        if (!query.length) return callback();
+                        $.ajax({
+                            url: url,
+                            type: 'GET',
+                            dataType: 'json',
+                            data: {
+                                search: query,
+                                allowed_custom_object_to_search: $(element).data('allowedCustomObjectToSearch'),
+                                property_id: $(element).data('propertyId')
+                            },
+                            error: () => {
+                                callback();
+                            },
+                            success: (res) => {
+                                select.selectize()[0].selectize.clearOptions();
+                                select.options = res;
+                                callback(res);
+                            }
+                        })
+                    }
+                });
+
+
+            });
 
         });
     }

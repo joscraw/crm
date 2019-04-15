@@ -174,6 +174,12 @@ class ListWidget {
 
         debugger;
 
+        // If a brand new custom object is selected then clear the data
+        if(this.customObject && this.customObject.id !== customObject.id) {
+            this.data = {};
+            this.columnOrder = [];
+        }
+
         this.customObject = customObject;
 
         this.$wrapper.find(ListWidget._selectors.listSelectCustomObjectContainer).addClass('d-none');

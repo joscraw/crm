@@ -52,58 +52,46 @@ class ListFilters {
          */
         this.data = data;
 
-        /**
-         * When you end up recreating multiple instances of a class
-         * For example: When the user keeps moving back and forth in the user interface
-         * You don't want to keep firing the old events that have
-         * different property values attached to it. We can clear the events with
-         * this.globalEventDispatcher.unSubscribeTokens(this.tokens);
-         *
-         * @type {Array}
-         */
-        this.tokens = [];
-
-
-        this.tokens.push(this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.singleSubscribe(
             Settings.Events.LIST_ADD_FILTER_BUTTON_PRESSED,
             this.listAddFilterButtonPressedHandler.bind(this)
-        ));
+        );
 
-        this.tokens.push(this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.singleSubscribe(
             Settings.Events.LIST_FILTER_ITEM_CLICKED,
             this.handleListFilterItemClicked.bind(this)
-        ));
+        );
 
-        this.tokens.push(this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.singleSubscribe(
             Settings.Events.LIST_FILTER_ITEM_ADDED,
             this.listFilterItemAddedHandler.bind(this)
-        ));
+        );
 
-        this.tokens.push(this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.singleSubscribe(
             Settings.Events.LIST_ADD_OR_FILTER_BUTTON_PRESSED,
             this.listAddOrFilterButtonPressedHandler.bind(this)
-        ));
+        );
 
-        this.tokens.push(this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.singleSubscribe(
             Settings.Events.LIST_EDIT_FILTER_BUTTON_CLICKED,
             this.handleListEditFilterButtonClicked.bind(this)
-        ));
+        );
 
 
-        this.tokens.push(this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.singleSubscribe(
             Settings.Events.FILTER_BACK_TO_NAVIGATION_BUTTON_CLICKED,
             this.listFilterBackToNavigationButtonClickedHandler.bind(this)
-        ));
+        );
 
-        this.tokens.push(this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.singleSubscribe(
             Settings.Events.FILTER_BACK_TO_LIST_BUTTON_CLICKED,
             this.handleFilterBackToListButtonClicked.bind(this)
-        ));
+        );
 
-        this.tokens.push(this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.singleSubscribe(
             Settings.Events.LIST_FILTER_CUSTOM_OBJECT_JOIN_PATH_SET,
             this.handleListFilterCustomObjectJoinPathSet.bind(this)
-        ));
+        );
 
         this.unbindEvents();
 
@@ -193,8 +181,6 @@ class ListFilters {
         if(e.cancelable) {
             e.preventDefault();
         }
-
-        this.globalEventDispatcher.unSubscribeTokens(this.tokens);
 
         this.globalEventDispatcher.publish(Settings.Events.LIST_BACK_TO_PROPERTIES_BUTTON_PRESSED);
 
@@ -346,12 +332,6 @@ class ListFilters {
         this.$wrapper.find(ListFilters._selectors.propertyForm).removeClass('d-none');
 
         this.renderFilterForm(property);
-
-    }
-
-    handleBackButtonClicked() {
-
-        new ReportPropertyList($(ReportFilters._selectors.reportPropertyListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject.internalName, null, [], this.data);
 
     }
 

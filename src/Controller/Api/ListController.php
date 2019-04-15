@@ -408,20 +408,82 @@ class ListController extends ApiController
     }
 
     /**
-     * @Route("/{internalName}/list-preview", name="get_list_preview", methods={"GET"}, options = { "expose" = true })
+     * @Route("/{internalName}/list-preview", name="get_list_preview", methods={"POST"}, options = { "expose" = true })
      * @param Portal $portal
      * @param CustomObject $customObject
      * @param Request $request
      * @return Response
      * @throws \Doctrine\DBAL\DBALException
      */
-    public function getReportPreviewAction(Portal $portal, CustomObject $customObject, Request $request) {
+    public function getListPreviewAction(Portal $portal, CustomObject $customObject, Request $request) {
 
-        $data = $request->query->get('data', []);
+        $data = $request->request->get('data', []);
 
-        $columnOrder = $request->query->get('columnOrder', []);
+        $columnOrder = $request->request->get('columnOrder', []);
 
         $results = $this->recordRepository->getReportData($data, $customObject, $columnOrder);
+
+        $properties = $customObject->getProperties()->toArray();
+
+        foreach($results['results'] as &$result) {
+
+            foreach($result as $key => $value) {
+
+                $customObjectProperty = array_filter($properties, function($property) use($key) {
+                    $isCustomObjectProperty = $property->getFieldType() === FieldCatalog::CUSTOM_OBJECT;
+                    $internalNameMatches = $property->getInternalName() === $key;
+
+                    return $isCustomObjectProperty && $internalNameMatches;
+                });
+
+                if(!empty($customObjectProperty)) {
+                    $customObjectProperty = array_values($customObjectProperty);
+
+                    if(in_array($value, ['-', ''])) {
+                        continue;
+                    }
+
+                    $value = json_decode($value);
+                    $value = is_array($value) ? $value : [$value];
+
+                    $urls = [];
+                    foreach($value as $v) {
+                        $url = sprintf("%s/%s",
+                            $this->generateUrl('record_list', [
+                                'internalIdentifier' => $portal->getInternalIdentifier(),
+                                'internalName' => $customObjectProperty[0]->getField()->getCustomObject()->getInternalName()
+                            ]),
+                            $v
+                        );
+                        $urls[] = "<a href='$url'>$v</a>";
+                    }
+                    $result[$key] = implode(',', $urls);
+                }
+
+                $choiceFieldProperty = array_filter($properties, function($property) use($key) {
+                    $isChoiceFieldProperty = $property->getFieldType() === FieldCatalog::MULTIPLE_CHECKBOX;
+                    $internalNameMatches = $property->getInternalName() === $key;
+
+                    return $isChoiceFieldProperty && $internalNameMatches;
+                });
+
+                if(!empty($choiceFieldProperty)) {
+
+                    if(in_array($value, ['-', ''])) {
+                        continue;
+                    }
+
+                    $value = json_decode($value);
+                    $value = is_array($value) ? $value : [$value];
+
+                    $items = [];
+                    foreach($value as $v) {
+                        $items[] = $v;
+                    }
+                    $result[$key] = implode(',', $items);
+                }
+            }
+        }
 
         $response = new JsonResponse([
             'success' => true,

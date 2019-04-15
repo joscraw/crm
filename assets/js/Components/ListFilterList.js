@@ -51,11 +51,11 @@ class ListFilterList {
 
     bindEvents() {
 
-        /*this.$wrapper.on(
+        this.$wrapper.on(
             'keyup',
             ListFilterList._selectors.search,
             this.handleKeyupEvent.bind(this)
-        );*/
+        );
 
         this.$wrapper.on(
             'click',
@@ -77,8 +77,7 @@ class ListFilterList {
      */
     unbindEvents() {
 
-        /*this.$wrapper.off('keyup', ListFilterList._selectors.search);*/
-
+        this.$wrapper.off('keyup', ListFilterList._selectors.search);
         this.$wrapper.off('click', ListFilterList._selectors.propertyListItem);
         this.$wrapper.off('click', ListFilterList._selectors.backButton);
     }
