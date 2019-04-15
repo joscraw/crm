@@ -121,11 +121,6 @@ class EditReportWidget {
             this.handleReportColumnOrderChanged.bind(this)
         );
 
-        this.globalEventDispatcher.subscribe(
-            Settings.Events.REPORT_PREVIEW_RESULTS_BUTTON_CLICKED,
-            this.handleReportPreviewResultsButtonClicked.bind(this)
-        );
-
         this.loadReport().then((data) => {
 
             debugger;
@@ -154,17 +149,6 @@ class EditReportWidget {
     unbindEvents() {
 
         this.$wrapper.off('click', ReportPropertyList._selectors.reportAdvanceToFiltersView);
-    }
-
-    handleReportPreviewResultsButtonClicked() {
-
-        this.loadReportPreview().then((data) => {
-
-            debugger;
-            this.globalEventDispatcher.publish(Settings.Events.REPORT_PREVIEW_RESULTS_LOADED, data.data, this.columnOrder);
-
-        });
-
     }
 
     loadReport() {
@@ -237,7 +221,7 @@ class EditReportWidget {
         this.$wrapper.find(EditReportWidget._selectors.reportFiltersContainer).removeClass('d-none');
         this.$wrapper.find(EditReportWidget._selectors.reportPropertiesContainer).addClass('d-none');
 
-        new ReportFilters($(EditReportWidget._selectors.reportFiltersContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject.internalName, this.data, this.reportName);
+        new ReportFilters($(EditReportWidget._selectors.reportFiltersContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject.internalName, this.data, this.reportName, this.columnOrder);
 
     }
 
@@ -299,6 +283,7 @@ class EditReportWidget {
 
     handleReportRemoveFilterButtonPressed(joinPath) {
 
+        debugger;
         let filterPath = joinPath.join('.');
 
         /**
@@ -325,9 +310,16 @@ class EditReportWidget {
             });
         }
 
-        let referencedFilterPath = _.get(this.data, `${filterPath}.referencedFilterPath`).join('.');
 
-        _.unset(this.data, `${referencedFilterPath}.orFilters.${joinPath[joinPath.length - 1]}`);
+        if(_.keys(_.get(this.data, `${filterPath}.referencedFilterPath`, [])).length !== 0) {
+
+            debugger;
+
+            let referencedFilterPath = _.get(this.data, `${filterPath}.referencedFilterPath`).join('.');
+
+            _.unset(this.data, `${referencedFilterPath}.orFilters.${joinPath[joinPath.length - 1]}`);
+
+        }
 
         _.unset(this.data, filterPath);
 
@@ -449,26 +441,6 @@ class EditReportWidget {
         new ReportProperties($(EditReportWidget._selectors.reportPropertiesContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject.internalName, this.data, this.columnOrder);
 
     }*/
-
-    loadReportPreview() {
-        return new Promise((resolve, reject) => {
-            debugger;
-
-            const url = Routing.generate('get_report_preview', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObject.internalName});
-
-            $.ajax({
-                url: url,
-                data: {data: this.data, columnOrder: this.columnOrder}
-            }).then(data => {
-                debugger;
-                resolve(data);
-            }).catch(jqXHR => {
-                debugger;
-                const errorData = JSON.parse(jqXHR.responseText);
-                reject(errorData);
-            });
-        });
-    }
 
     _saveReport() {
 

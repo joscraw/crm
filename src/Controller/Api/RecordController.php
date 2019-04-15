@@ -457,7 +457,7 @@ class RecordController extends ApiController
      * DataTables passes unique params in the Request and expects a specific response payload
      * @see https://datatables.net/manual/server-side Documentation for ServerSide Implimentation for DataTables
      *
-     * @Route("{internalName}/datatable", name="records_for_datatable", methods={"GET"}, options = { "expose" = true })
+     * @Route("/{internalName}/datatable", name="records_for_datatable", methods={"POST"}, options = { "expose" = true })
      * @param Portal $portal
      * @param CustomObject $customObject
      * @param Request $request
@@ -466,13 +466,13 @@ class RecordController extends ApiController
      */
     public function getRecordsForDatatableAction(Portal $portal, CustomObject $customObject, Request $request) {
 
-        $draw = intval($request->query->get('draw'));
-        $start = $request->query->get('start');
-        $length = $request->query->get('length');
-        $search = $request->query->get('search');
-        $orders = $request->query->get('order');
-        $columns = $request->query->get('columns');
-        $customFilters = $request->query->get('customFilters', []);
+        $draw = intval($request->request->get('draw'));
+        $start = $request->request->get('start');
+        $length = $request->request->get('length');
+        $search = $request->request->get('search');
+        $orders = $request->request->get('order');
+        $columns = $request->request->get('columns');
+        $customFilters = $request->request->get('customFilters', []);
 
         $propertiesForDatatable = $this->propertyRepository->findColumnsForTable($customObject);
 

@@ -18,17 +18,21 @@ class ReportPreviewResultsTable {
      * @param globalEventDispatcher
      * @param portalInternalIdentifier
      * @param customObjectInternalName
+     * @param data
+     * @param columnOrder
      */
-    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, data, columnOrder) {
 
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
         this.customObjectInternalName = customObjectInternalName;
+        this.data = data;
+        this.columnOrder = columnOrder;
 
-        this.globalEventDispatcher.subscribe(
-            Settings.Events.REPORT_PREVIEW_RESULTS_LOADED,
-            this.reportPreviewResultsLoaded.bind(this)
+        this.globalEventDispatcher.singleSubscribe(
+            Settings.Events.REPORT_PREVIEW_RESULTS_BUTTON_CLICKED,
+            this.handleReportPreviewResultsButtonClicked.bind(this)
         );
 
         this.render();
@@ -39,6 +43,37 @@ class ReportPreviewResultsTable {
 
         this.activatePlugins(data, columnOrder);
 
+    }
+
+    handleReportPreviewResultsButtonClicked() {
+
+        this.loadReportPreview().then((data) => {
+
+            this.activatePlugins(data.data, this.columnOrder);
+
+        });
+
+    }
+
+    loadReportPreview() {
+        return new Promise((resolve, reject) => {
+            debugger;
+
+            const url = Routing.generate('get_report_preview', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
+
+            $.ajax({
+                url: url,
+                data: {data: this.data, columnOrder: this.columnOrder},
+                method: 'POST'
+            }).then(data => {
+                debugger;
+                resolve(data);
+            }).catch(jqXHR => {
+                debugger;
+                const errorData = JSON.parse(jqXHR.responseText);
+                reject(errorData);
+            });
+        });
     }
 
     activatePlugins(data, columnOrder) {

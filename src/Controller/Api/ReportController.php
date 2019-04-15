@@ -387,7 +387,7 @@ class ReportController extends ApiController
     }
 
     /**
-     * @Route("/{internalName}/report-preview", name="get_report_preview", methods={"GET"}, options = { "expose" = true })
+     * @Route("/{internalName}/report-preview", name="get_report_preview", methods={"POST"}, options = { "expose" = true })
      * @param Portal $portal
      * @param CustomObject $customObject
      * @param Request $request
@@ -396,9 +396,9 @@ class ReportController extends ApiController
      */
     public function getReportPreviewAction(Portal $portal, CustomObject $customObject, Request $request) {
 
-        $data = $request->query->get('data', []);
+        $data = $request->request->get('data', []);
 
-        $columnOrder = $request->query->get('columnOrder', []);
+        $columnOrder = $request->request->get('columnOrder', []);
 
         $results = $this->recordRepository->getReportData($data, $customObject, $columnOrder);
 

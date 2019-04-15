@@ -367,7 +367,7 @@ class UserController extends ApiController
     }
 
     /**
-     * @Route("/get-for-datatable", name="users_for_datatable", methods={"GET"}, options = { "expose" = true })
+     * @Route("/get-for-datatable", name="users_for_datatable", methods={"POST"}, options = { "expose" = true })
      * @param Portal $portal
      * @param Request $request
      * @return JsonResponse
@@ -375,13 +375,13 @@ class UserController extends ApiController
      */
     public function getUsersForDatatableAction(Portal $portal, Request $request) {
 
-        $draw = intval($request->query->get('draw'));
-        $start = $request->query->get('start');
-        $length = $request->query->get('length');
-        $search = $request->query->get('search');
-        $orders = $request->query->get('order');
-        $columns = $request->query->get('columns');
-        $customFilters = $request->query->get('customFilters', []);
+        $draw = intval($request->request->get('draw'));
+        $start = $request->request->get('start');
+        $length = $request->request->get('length');
+        $search = $request->request->get('search');
+        $orders = $request->request->get('order');
+        $columns = $request->request->get('columns');
+        $customFilters = $request->request->get('customFilters', []);
 
         $results = $this->userRepository->getDataTableData($portal, $start, $length, $search, $orders, $columns, $customFilters);
 

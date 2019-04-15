@@ -326,9 +326,13 @@ class ListWidget {
             });
         }
 
-        let referencedFilterPath = _.get(this.data, `${filterPath}.referencedFilterPath`).join('.');
 
-        _.unset(this.data, `${referencedFilterPath}.orFilters.${joinPath[joinPath.length - 1]}`);
+        if(_.keys(_.get(this.data, `${filterPath}.referencedFilterPath`, [])).length !== 0) {
+
+            let referencedFilterPath = _.get(this.data, `${filterPath}.referencedFilterPath`).join('.');
+
+            _.unset(this.data, `${referencedFilterPath}.orFilters.${joinPath[joinPath.length - 1]}`);
+        }
 
         _.unset(this.data, filterPath);
 

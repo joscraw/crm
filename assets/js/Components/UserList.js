@@ -173,10 +173,8 @@ class UserList {
             ],
             "ajax": {
                 url: Routing.generate('users_for_datatable', {internalIdentifier: this.portalInternalIdentifier}),
-                type: "GET",
-                dataType: "json",
-                data: {'customFilters': this.customFilters},
-                contentType: "application/json; charset=utf-8"
+                type: "POST",
+                data: {'customFilters': this.customFilters}
             },
             "drawCallback": (settings)  => {
                 this.addEditUserButton();

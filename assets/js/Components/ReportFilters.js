@@ -33,13 +33,14 @@ import ReportPreviewResultsTable from "./ReportPreviewResultsTable";
 
 class ReportFilters {
 
-    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, data = {}, reportName = '') {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, data = {}, reportName = '', columnOrder) {
 
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
         this.customObjectInternalName = customObjectInternalName;
         this.reportName = reportName;
+        this.columnOrder = columnOrder;
 
         /**
          * This data object is responsible for storing all the properties and filters that will get sent to the server
@@ -343,7 +344,7 @@ class ReportFilters {
 
         new ReportPreviewResultsButton($(ReportFilters._selectors.reportPreviewResultsButtonContainer), this.globalEventDispatcher);
 
-        new ReportPreviewResultsTable($(ReportFilters._selectors.reportPreviewResultsTableContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);
+        new ReportPreviewResultsTable($(ReportFilters._selectors.reportPreviewResultsTableContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, this.data, this.columnOrder);
 
     }
 
@@ -375,14 +376,14 @@ class ReportFilters {
              </nav> 
         
             <div class="row container">
-            <div class="col-md-6 js-report-filter-navigation c-report-widget__filter-navigation"></div>
+            <div class="col-md-4 js-report-filter-navigation c-report-widget__filter-navigation"></div>
              
-             <div class="col-md-6 js-report-filter-list-container d-none"></div>
-             <div class="col-md-6 js-property-form d-none"></div>
-             <div class="col-md-6 js-edit-property-form d-none"></div>
+             <div class="col-md-4 js-report-filter-list-container d-none"></div>
+             <div class="col-md-4 js-property-form d-none"></div>
+             <div class="col-md-4 js-edit-property-form d-none"></div>
             
             
-            <div class="col-md-6 js-report-preview-results-container">
+            <div class="col-md-8 js-report-preview-results-container">
                 <div class="col-md-12 js-report-preview-results-button-container"></div>
                 <br>
                 <div class="col-md-12 js-report-preview-results-table-container"></div>  

@@ -114,10 +114,8 @@ class RecordTable {
             "pageLength": 10,
             "ajax": {
                 url: Routing.generate('records_for_datatable', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName}),
-                type: "GET",
-                data: {'customFilters': this.customFilters},
-                dataType: "json",
-                contentType: "application/json; charset=utf-8"
+                type: "POST",
+                data: {'customFilters': this.customFilters}
             },
             "initComplete": function () {
                 Pace.stop();
