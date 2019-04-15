@@ -37,13 +37,14 @@ import ListPreviewResultsTable from "./ListPreviewResultsTable";
 
 class ListFilters {
 
-    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, data = {}, listName = '') {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, data = {}, listName = '', columnOrder) {
 
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
         this.customObjectInternalName = customObjectInternalName;
         this.listName = listName;
+        this.columnOrder = columnOrder;
 
         /**
          * This data object is responsible for storing all the properties and filters that will get sent to the server
@@ -271,7 +272,7 @@ class ListFilters {
         switch (property.fieldType) {
             case 'single_line_text_field':
             case 'multi_line_text_field':
-                new SingleLineTextFieldFilterForm($(ListFilters._selectors.propertyForm), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, property);
+                new SingleLineTextFieldFilterForm($(ListFilters._selectors.propertyForm), this.globalEventDispatcher, this.portalInternalIdentifier, property);
                 break;
             case 'number_field':
                 new NumberFieldFilterForm($(ListFilters._selectors.propertyForm), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, property);
@@ -371,7 +372,7 @@ class ListFilters {
 
         new ListPreviewResultsButton($(ListFilters._selectors.listPreviewResultsButtonContainer), this.globalEventDispatcher);
 
-        new ListPreviewResultsTable($(ListFilters._selectors.listPreviewResultsTableContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);
+        new ListPreviewResultsTable($(ListFilters._selectors.listPreviewResultsTableContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, this.data, this.columnOrder);
 
         this.$wrapper.find(ListFilters._selectors.listName).val(this.listName);
 

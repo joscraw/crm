@@ -9,6 +9,7 @@ use App\Entity\Portal;
 use App\Entity\Property;
 use App\Entity\PropertyGroup;
 use App\Entity\Record;
+use App\Form\BulkEditType;
 use App\Form\CustomObjectType;
 use App\Form\PropertyGroupType;
 use App\Form\PropertyType;
@@ -144,6 +145,71 @@ class RecordController extends ApiController
                 'form' => $form->createView(),
             ]
         );
+
+        return new JsonResponse(
+            [
+                'success' => true,
+                'formMarkup' => $formMarkup
+            ],
+            Response::HTTP_OK
+        );
+    }
+
+    /**
+     * @Route("/{internalName}/bulk-edit", name="bulk_edit", methods={"GET", "POST"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param CustomObject $customObject
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function bulkEditAction(Portal $portal, CustomObject $customObject, Request $request) {
+
+        $form = $this->createForm(BulkEditType::class, null, [
+            'customObject' => $customObject
+        ]);
+
+        $form->handleRequest($request);
+
+        $formMarkup = $this->renderView(
+            'Api/form/bulk_edit_form.html.twig',
+            [
+                'form' => $form->createView(),
+            ]
+        );
+
+        if ($form->isSubmitted() && !$form->isValid()) {
+
+            return new JsonResponse(
+                [
+                    'success' => false,
+                    'formMarkup' => $formMarkup,
+                ], Response::HTTP_BAD_REQUEST
+            );
+        }
+
+
+        if ($form->isSubmitted() && $form->isValid()) {
+
+            $propertyToUpdate = $form->get('propertyToUpdate')->getData();
+            $propertyToUpdate = $this->propertyRepository->find($propertyToUpdate);
+
+            $records = $request->request->get('records', []);
+
+            foreach($records as $record) {
+
+                $record = $this->recordRepository->find($record);
+
+                $properties = $record->getProperties();
+                $properties[$propertyToUpdate->getInternalName()] = $form->get('propertyValue')->getData();
+                $record->setProperties($properties);
+
+                $this->entityManager->persist($record);
+                $this->entityManager->flush();
+
+            }
+
+        }
+
 
         return new JsonResponse(
             [

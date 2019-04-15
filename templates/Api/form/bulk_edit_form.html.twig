@@ -1,0 +1,17 @@
+{% form_theme form 'bootstrap_4_layout.html.twig' %}
+
+{{ form_start(form, {'attr': {class: 'js-bulk-edit-form', novalidate: 'novalidate'}}) }}
+
+{{ form_row(form.propertyToUpdate, {'attr': {novalidate: 'novalidate'}}) }}
+
+<div class="js-property-value-container">
+    {% if form.propertyValue is defined %}
+        {{ form_row(form.propertyValue, {'attr': {novalidate: 'novalidate'}}) }}
+    {% endif %}
+</div>
+
+<br>
+<button type="submit" class="js-bulk-edit-update-button btn btn-primary">Update</button>
+
+{{ form_rest(form) }}
+{{ form_end(form) }}

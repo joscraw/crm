@@ -236,7 +236,7 @@ class FilterWidget {
         switch (property.fieldType) {
             case 'single_line_text_field':
             case 'multi_line_text_field':
-                new SingleLineTextFieldFilterForm($(FilterWidget._selectors.propertyForm), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, property);
+                new SingleLineTextFieldFilterForm($(FilterWidget._selectors.propertyForm), this.globalEventDispatcher, this.portalInternalIdentifier, property);
                 break;
             case 'number_field':
                 new NumberFieldFilterForm($(FilterWidget._selectors.propertyForm), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, property);

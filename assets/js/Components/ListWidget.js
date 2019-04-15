@@ -105,11 +105,6 @@ class ListWidget {
         );
 
         this.globalEventDispatcher.subscribe(
-            Settings.Events.LIST_PREVIEW_RESULTS_BUTTON_CLICKED,
-            this.handleListPreviewResultsButtonClicked.bind(this)
-        );
-
-        this.globalEventDispatcher.subscribe(
             Settings.Events.LIST_NAME_CHANGED,
             this.handleListNameChange.bind(this)
         );
@@ -175,17 +170,6 @@ class ListWidget {
 
     }
 
-    handleListPreviewResultsButtonClicked() {
-
-        this.loadReportPreview().then((data) => {
-
-            debugger;
-            this.globalEventDispatcher.publish(Settings.Events.LIST_PREVIEW_RESULTS_LOADED, data.data, this.columnOrder);
-
-        });
-
-    }
-
     handleAdvanceToListPropertiesViewButtonClicked(customObject) {
 
         debugger;
@@ -235,7 +219,7 @@ class ListWidget {
         this.$wrapper.find(ListWidget._selectors.listFiltersContainer).removeClass('d-none');
         this.$wrapper.find(ListWidget._selectors.listPropertiesContainer).addClass('d-none');
 
-        new ListFilters($(ListWidget._selectors.listFiltersContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject.internalName, this.data, this.listName);
+        new ListFilters($(ListWidget._selectors.listFiltersContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject.internalName, this.data, this.listName, this.columnOrder);
 
     }
 
@@ -463,26 +447,6 @@ class ListWidget {
             });
         });
 
-    }
-
-    loadReportPreview() {
-        return new Promise((resolve, reject) => {
-            debugger;
-
-            const url = Routing.generate('get_list_preview', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObject.internalName});
-
-            $.ajax({
-                url: url,
-                data: {data: this.data, columnOrder: this.columnOrder}
-            }).then(data => {
-                debugger;
-                resolve(data);
-            }).catch(jqXHR => {
-                debugger;
-                const errorData = JSON.parse(jqXHR.responseText);
-                reject(errorData);
-            });
-        });
     }
 
     static markup() {

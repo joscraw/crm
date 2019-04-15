@@ -3,15 +3,15 @@
 import Settings from '../Settings';
 import RecordFormModal from './RecordFormModal';
 import $ from "jquery";
+import StringHelper from "../StringHelper";
 
 class SingleLineTextFieldFilterForm {
 
-    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName = null, property, event) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, property) {
         debugger;
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
-        this.customObjectInternalName = customObjectInternalName;
         this.property = property;
 
         this.unbindEvents();
@@ -33,6 +33,8 @@ class SingleLineTextFieldFilterForm {
             SingleLineTextFieldFilterForm._selectors.backToListButton,
             this.handleBackButtonClicked.bind(this)
         );
+
+        this.setupFormAttributes();
 
         this.render();
     }
@@ -65,6 +67,15 @@ class SingleLineTextFieldFilterForm {
     render() {
         this.$wrapper.html(SingleLineTextFieldFilterForm.markup(this));
         this.$wrapper.find('.js-radio-button').first().click();
+    }
+
+    setupFormAttributes() {
+
+        this.operator1 = StringHelper.makeCharId();
+        this.operator2 = StringHelper.makeCharId();
+        this.operator3 = StringHelper.makeCharId();
+        this.operator4 = StringHelper.makeCharId();
+
     }
 
     handleNewFilterFormSubmit(e) {
@@ -100,7 +111,7 @@ class SingleLineTextFieldFilterForm {
         }
     }
 
-    static markup({property}) {
+    static markup({property, operator1, operator2, operator3, operator4}) {
 
         return `
         <button type="button" class="btn btn-link js-back-to-list-button"><i class="fa fa-chevron-left"></i> Back</button>
@@ -108,26 +119,26 @@ class SingleLineTextFieldFilterForm {
         <form name="filter" id="js-apply-filter-form" novalidate="novalidate">
             <div style="height: 200px; overflow-y: auto">
                 <div class="form-check">
-                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator1" value="EQ" checked data-has-text-input="true">
-                    <label class="form-check-label" for="operator1">
+                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="${operator1}" value="EQ" checked data-has-text-input="true">
+                    <label class="form-check-label" for="${operator1}">
                      <p>contains exactly</p>
                     </label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator2" value="NEQ" data-has-text-input="true">
-                    <label class="form-check-label" for="operator2">
+                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="${operator2}" value="NEQ" data-has-text-input="true">
+                    <label class="form-check-label" for="${operator2}">
                     <p>doesn't contain exactly</p>
                     </label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator3" value="HAS_PROPERTY">
-                    <label class="form-check-label" for="operator3">
+                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="${operator3}" value="HAS_PROPERTY">
+                    <label class="form-check-label" for="${operator3}">
                     <p>is known</p>
                     </label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="operator4" value="NOT_HAS_PROPERTY">
-                    <label class="form-check-label" for="operator4">
+                    <input class="form-check-input js-radio-button" type="radio" name="operator" id="${operator4}" value="NOT_HAS_PROPERTY">
+                    <label class="form-check-label" for="${operator4}">
                     <p>is unknown</p>
                     </label>
                 </div>

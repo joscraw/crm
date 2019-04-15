@@ -3,19 +3,21 @@
 import $ from 'jquery';
 import swal from "sweetalert2";
 import CustomObjectForm from './CustomObjectForm';
-import BulkEditRecord from "./BulkEditRecord";
+import BulkEditForm from "./BulkEditForm";
 
-class BulkEditRecordFormModal {
+class BulkEditFormModal {
 
     /**
      * @param globalEventDispatcher
      * @param portal
      * @param customObjectInternalName
+     * @param records
      */
-    constructor(globalEventDispatcher, portal, customObjectInternalName) {
+    constructor(globalEventDispatcher, portal, customObjectInternalName, records) {
         this.globalEventDispatcher = globalEventDispatcher;
         this.portal = portal;
         this.customObjectInternalName = customObjectInternalName;
+        this.records = records;
         this.render();
     }
 
@@ -23,11 +25,11 @@ class BulkEditRecordFormModal {
         swal({
             title: 'Bulk edit record',
             showConfirmButton: false,
-            html: BulkEditRecordFormModal.markup(),
+            html: BulkEditFormModal.markup(),
             customClass: "swal2-modal--left-align"
         });
 
-        new BulkEditRecord($('#js-bulk-edit-record-modal-container'), this.globalEventDispatcher, this.portal, this.customObjectInternalName);
+        new BulkEditForm($('#js-bulk-edit-record-modal-container'), this.globalEventDispatcher, this.portal, this.customObjectInternalName, this.records);
     }
 
     static markup() {
@@ -37,4 +39,4 @@ class BulkEditRecordFormModal {
     }
 }
 
-export default BulkEditRecordFormModal;
+export default BulkEditFormModal;
