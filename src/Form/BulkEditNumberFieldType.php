@@ -6,6 +6,8 @@ use App\Entity\CustomObject;
 use App\Entity\Property;
 use App\Entity\Record;
 use App\Form\DataTransformer\RecordGenericTransformer;
+use App\Form\DataTransformer\RecordNumberCurrencyTransformer;
+use App\Form\DataTransformer\RecordNumberUnformattedTransformer;
 use App\Form\DataTransformer\SelectizeSearchResultPropertyTransformer;
 use App\Form\DataTransformer\IdToRecordTransformer;
 use App\Form\Loader\RecordChoiceLoader;
@@ -16,6 +18,7 @@ use Symfony\Component\Form\ChoiceList\ArrayChoiceList;
 use Symfony\Component\Form\ChoiceList\ChoiceListInterface;
 use Symfony\Component\Form\ChoiceList\Loader\ChoiceLoaderInterface;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -27,10 +30,10 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\NotBlank;
 
 /**
- * Class BulkEditPropertyType
+ * Class BulkEditNumberFieldType
  * @package App\Form\Property
  */
-class BulkEditPropertyType extends AbstractType
+class BulkEditNumberFieldType extends AbstractType
 {
     /**
      * @var RecordRepository
@@ -43,57 +46,56 @@ class BulkEditPropertyType extends AbstractType
     private $propertyRepository;
 
     /**
-     * @var RecordGenericTransformer
+     * @var RecordNumberCurrencyTransformer
      */
-    private $recordGenericTransformer;
+    private $recordNumberCurrencyTransformer;
 
     /**
-     * BulkEditPropertyType constructor.
+     * @var RecordNumberUnformattedTransformer
+     */
+    private $recordNumberUnformattedTransformer;
+
+    /**
+     * BulkEditNumberFieldType constructor.
      * @param RecordRepository $recordRepository
      * @param PropertyRepository $propertyRepository
-     * @param RecordGenericTransformer $recordGenericTransformer
+     * @param RecordNumberCurrencyTransformer $recordNumberCurrencyTransformer
+     * @param RecordNumberUnformattedTransformer $recordNumberUnformattedTransformer
      */
     public function __construct(
         RecordRepository $recordRepository,
         PropertyRepository $propertyRepository,
-        RecordGenericTransformer $recordGenericTransformer
+        RecordNumberCurrencyTransformer $recordNumberCurrencyTransformer,
+        RecordNumberUnformattedTransformer $recordNumberUnformattedTransformer
     ) {
         $this->recordRepository = $recordRepository;
         $this->propertyRepository = $propertyRepository;
-        $this->recordGenericTransformer = $recordGenericTransformer;
+        $this->recordNumberCurrencyTransformer = $recordNumberCurrencyTransformer;
+        $this->recordNumberUnformattedTransformer = $recordNumberUnformattedTransformer;
     }
-
 
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
-        $name = "Josh";
-        /*$builder->addModelTransformer($this->recordGenericTransformer);*/
+        $property = $options['property'];
 
-        $builder->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event) {
-            $data = $event->getData();
-            $this->modifyForm($event->getForm());
-        });
+        $field = $property->getField();
+        if($field->isCurrency()) {
+            $builder->addModelTransformer($this->recordNumberCurrencyTransformer);
+        } else if($field->isUnformattedNumber()){
+            $builder->addModelTransformer($this->recordNumberUnformattedTransformer);
+        }
+
 
     }
 
-    private function modifyForm(FormInterface $form) {
-
-        $form->add('type', TextType::class, array(
-            'constraints' => [
-                new NotBlank(),
-            ]
-        ));
-
+    public function getParent()
+    {
+        return NumberType::class;
     }
 
     public function configureOptions(OptionsResolver $resolver)
     {
         $resolver->setRequired(['property']);
 
-        /*$resolver->setDefaults([
-            'constraints' => [
-                new NotBlank(),
-            ]
-        ]);*/
     }
 }

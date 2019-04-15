@@ -117,13 +117,11 @@ class ListPreviewResultsTable {
     listFilterItemAddedHandler(data) {
 
         this.data = data;
-
     }
 
     listFilterItemRemovedHandler(data) {
 
         this.data = data;
-
     }
 
     listPropertyListItemRemovedHandler(data, columnOrder) {
@@ -260,8 +258,6 @@ class ListPreviewResultsTable {
 
     handleBulkEditButtonClicked(e) {
 
-        debugger;
-
         if(e.cancelable) {
             e.preventDefault();
         }
@@ -331,14 +327,6 @@ class ListPreviewResultsTable {
         });
 
     }
-
-/*    reloadTable() {
-        this.loadColumnsForTable().then((data) => {
-            this.table.destroy();
-            this.activatePlugins(data.data);
-        }).catch(errorData => {
-        });
-    }*/
 
     render() {
         this.$wrapper.html(ListPreviewResultsTable.markup(this));

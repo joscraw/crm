@@ -122,7 +122,7 @@ class BulkEditType extends AbstractType
 
         $data = $event->getData();
 
-        $fieldClass = BulkEditPropertyType::class;
+        $fieldClass = null;
         $property = $this->propertyRepository->find($data);
 
         $builderData = null;
@@ -140,6 +140,9 @@ class BulkEditType extends AbstractType
         switch($property->getFieldType()) {
             case FieldCatalog::SINGLE_LINE_TEXT:
                 $fieldClass = BulkEditSingleLineTextFieldType::class;
+                break;
+            case FieldCatalog::NUMBER:
+                $fieldClass = BulkEditNumberFieldType::class;
                 break;
 
         }
