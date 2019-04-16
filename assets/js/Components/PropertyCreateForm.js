@@ -136,7 +136,7 @@ class PropertyCreateForm {
         formData[$(e.target).attr('name')] = $(e.target).val();
         formData[$(PropertyCreateForm._selectors.customObject).attr('name')] = $(PropertyCreateForm._selectors.customObject).val();
         formData[$(PropertyCreateForm._selectors.fieldType).attr('name')] = $(PropertyCreateForm._selectors.fieldType).val();
-        formData['validate'] = false;
+        formData['skip_validation'] = true;
 
         this._changeCustomObject(formData).then((data) => {}).catch((errorData) => {
 
@@ -158,6 +158,7 @@ class PropertyCreateForm {
 
         const formData = {};
         formData[$(e.target).attr('name')] = $(e.target).val();
+        formData['skip_validation'] = true;
 
         this._changeFieldType(formData).then((data) => {}).catch((errorData) => {
 

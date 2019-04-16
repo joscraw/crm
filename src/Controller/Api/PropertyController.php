@@ -112,10 +112,18 @@ class PropertyController extends ApiController
         $property = new Property();
         $property->setCustomObject($customObject);
 
-        $form = $this->createForm(PropertyType::class, $property, [
+        $skipValidation = $request->request->get('skip_validation', false);
+
+        $options = [
             'portal' => $portal,
             'customObject' => $customObject
-        ]);
+        ];
+
+        if(!$skipValidation) {
+            $options['validation_groups'] = ['CREATE'];
+        }
+
+        $form = $this->createForm(PropertyType::class, $property, $options);
 
         $form->handleRequest($request);
 
@@ -151,8 +159,6 @@ class PropertyController extends ApiController
         }
 
         if ($form->isSubmitted() && !$form->isValid()) {
-
-            $errors = $form->getErrors();
 
             if(!$form->isValid()) {
                 return new JsonResponse(

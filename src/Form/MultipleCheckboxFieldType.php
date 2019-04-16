@@ -27,6 +27,7 @@ class MultipleCheckboxFieldType extends AbstractType
             ->add('options', CollectionType::class, array(
                 'entry_type' => FieldOptionType::class,
                 'allow_add' => true,
+                'error_bubbling' => false,
                 'prototype' => true,
                 'prototype_name' => '__prototype_one__',
                 'label' => false

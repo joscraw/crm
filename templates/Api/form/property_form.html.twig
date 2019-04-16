@@ -2,7 +2,7 @@
 
 {{ form_start(form, {'attr': {class: 'js-new-property-form', novalidate: 'novalidate'}}) }}
 
-{#{{ form_errors(form.vars.errors) }}#}
+{{ form_errors(form) }}
 
 {#{{ dump(form.children.field.children.options) }}#}
 
@@ -67,7 +67,5 @@
 </div>
 <br>
 
-{#<input type="submit" value="submit">#}
-
-{{ form_rest(form) }}
-{{ form_end(form) }}
+{{ form_row(form._token) }}
+{{ form_row(form.submit) }}
