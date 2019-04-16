@@ -152,6 +152,8 @@ class PropertyController extends ApiController
 
         if ($form->isSubmitted() && !$form->isValid()) {
 
+            $errors = $form->getErrors();
+
             if(!$form->isValid()) {
                 return new JsonResponse(
                     [

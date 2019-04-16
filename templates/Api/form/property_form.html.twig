@@ -1,13 +1,13 @@
 {% form_theme form with ['bootstrap_4_layout.html.twig', 'form/fields.html.twig'] %}
 
-
-{#{{ dump(form) }}#}
-
-{#{% form_theme form 'bootstrap_4_layout.html.twig' %}#}
-
 {{ form_start(form, {'attr': {class: 'js-new-property-form', novalidate: 'novalidate'}}) }}
 
-{#{{ form_errors(form) }}#}
+{#{{ form_errors(form.vars.errors) }}#}
+
+{#{{ dump(form.children.field.children.options) }}#}
+
+{#{{ form_errors(form.children.field.children.options) }}#}
+
 
 {{ form_row(form.label) }}
 {{ form_row(form.internalName) }}
@@ -15,6 +15,13 @@
 {{ form_row(form.propertyGroup, {'attr': {novalidate: 'novalidate'}}) }}
 {{ form_row(form.required, {'attr': {novalidate: 'novalidate'}}) }}
 {{ form_row(form.fieldType, {'attr': {class: 'js-field-type', novalidate: 'novalidate'}}) }}
+
+
+{% if form.field.options is defined %}
+
+    {{ form_errors(form.field.options) }}
+
+{% endif %}
 
 <div class="js-field-container clearfix">
 
@@ -26,6 +33,7 @@
     {% endset %}
 
     {% if form.field.options is defined %}
+
         <ul class="list-group list-group-flush js-parent-container" data-template="{{ form_widget(form.field.options.vars.prototype)|replace({'__prototype_one__': '${index}'})|e }}">
             {% for optionItem in form.field.options %}
                 <li class="list-group-item js-child-item">
@@ -58,5 +66,8 @@
 
 </div>
 <br>
+
+{#<input type="submit" value="submit">#}
+
 {{ form_rest(form) }}
 {{ form_end(form) }}

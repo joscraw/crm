@@ -118,6 +118,8 @@ class PropertyCreateForm {
                 return;
             }
 
+            debugger;
+
             this.$wrapper.html(errorData.formMarkup);
             this.activatePlugins();
         });
@@ -158,6 +160,8 @@ class PropertyCreateForm {
         formData[$(e.target).attr('name')] = $(e.target).val();
 
         this._changeFieldType(formData).then((data) => {}).catch((errorData) => {
+
+            debugger;
 
             $('.js-field-container').replaceWith(
                 $(errorData.formMarkup).find('.js-field-container')
