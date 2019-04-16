@@ -105,7 +105,7 @@ class UserList {
     activatePlugins() {
 
         Pace.start({
-            target: '.js-user-list'
+            target: '.l-grid'
         });
 
         this.table = $('#user_table').DataTable({

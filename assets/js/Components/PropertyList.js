@@ -77,6 +77,7 @@ class PropertyList {
             );
 
         this.loadProperties().then(data => {
+
             this.render(data);
         })
     }
@@ -122,6 +123,15 @@ class PropertyList {
     }
 
     render(data) {
+
+        debugger;
+        if(data.data.property_groups.length === 0) {
+
+            this.$wrapper.html(emptyListTemplate());
+
+            return;
+        }
+
         this.$wrapper.html("");
         for(let key in data.data.property_groups) {
             if(data.data.property_groups.hasOwnProperty(key)) {
@@ -182,6 +192,11 @@ class PropertyList {
     }
 
     loadProperties() {
+
+        Pace.start({
+            target: '.l-grid'
+        });
+
         return new Promise((resolve, reject) => {
             debugger;
             const url = Routing.generate('properties_for_datatable', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
@@ -281,6 +296,13 @@ const rowTemplate = (propertyGroup) => `
           </div>
         </div>  
     </div>
+`;
+
+/**
+ * @return {string}
+ */
+const emptyListTemplate = () => `
+    <h1 style="text-align: center; margin-top: 100px">No property groups exist yet...</h1>
 `;
 
 export default PropertyList;

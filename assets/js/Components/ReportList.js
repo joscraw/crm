@@ -53,8 +53,9 @@ class ReportList {
     activatePlugins() {
 
         Pace.start({
-            target: '.js-main-content'
+            target: '.l-grid'
         });
+
 
         this.table = $('#table_id').DataTable({
 
@@ -117,9 +118,7 @@ class ReportList {
 
                 this.addDeleteReportButton();
             },
-            "initComplete": function () {
-                Pace.stop();
-            }
+            "initComplete": function () {}
         });
     }
 

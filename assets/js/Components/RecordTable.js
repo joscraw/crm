@@ -81,8 +81,9 @@ class RecordTable {
         console.log(this.customFilters);
 
         Pace.start({
-            target: '.js-record-table'
+            target: '.l-grid'
         });
+
 
         $('#table_id thead').empty();
         $('#table_id tbody').empty();
@@ -117,9 +118,7 @@ class RecordTable {
                 type: "POST",
                 data: {'customFilters': this.customFilters}
             },
-            "initComplete": function () {
-                Pace.stop();
-            }
+            "initComplete": function () {}
         });
     }
 
