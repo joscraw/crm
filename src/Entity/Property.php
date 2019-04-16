@@ -18,6 +18,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
  * @CustomAssert\PropertyInternalNameAlreadyExists(groups={"CREATE", "EDIT"})
  * @CustomAssert\PropertyLabelAlreadyExists(groups={"CREATE", "EDIT"})
  * @CustomAssert\ChoiceField(groups={"CREATE", "EDIT"})
+ * @CustomAssert\PropertyGroupDoesntExist(groups={"CREATE", "EDIT"})
  */
 class Property
 {
@@ -78,7 +79,7 @@ class Property
     private $field;
 
     /**
-     * @Assert\NotBlank(message="Don't forget to select a property group!")
+     * @Assert\NotBlank(message="Don't forget to select a property group!", groups={"CREATE", "EDIT"})
      * @ORM\ManyToOne(targetEntity="App\Entity\PropertyGroup", inversedBy="properties")
      * @ORM\JoinColumn(nullable=false)
      */

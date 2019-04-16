@@ -113,7 +113,7 @@ class UserList {
             "pageLength": 10,
             "processing": true,
             "serverSide": true,
-            "responsive": true,
+            "scrollX": true,
             "language": {
                 "emptyTable": `No users found.`,
                 "processing": `<div class="pace pace-inactive">
