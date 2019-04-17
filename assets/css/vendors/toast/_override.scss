@@ -1,0 +1,21 @@
+// -----------------------------------------------------------------------------
+// This file contains all styles related to overriding toast styles
+// -----------------------------------------------------------------------------
+
+
+#toast-container > div {
+  opacity:1;
+  width: 100% !important;
+  max-width: none !important;
+}
+
+#toast-container {
+  width: 100% !important;
+}
+
+.toast-top-right {
+  right: 0;
+  top: 0;
+}
+
+.toast-error { background-color: #2f4051 !important; } .toast-success { background-color: #2f4051 !important; }
