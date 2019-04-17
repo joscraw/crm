@@ -17,6 +17,46 @@ use App\Validator\Constraints as CustomAssert;
  */
 class Role
 {
+    use TimestampableEntity;
+
+    public static $permissions = [
+        'ALL' => 'ALL',
+        'REPORTS' => [
+            'CREATE_REPORT' => 'CREATE_REPORT',
+            'EDIT_REPORT' => 'EDIT_REPORT',
+            'DELETE_REPORT' => 'DELETE_REPORT',
+        ],
+        'LISTS' => [
+            'CREATE_LIST' => 'CREATE_LIST',
+            'EDIT_LIST' => 'EDIT_LIST',
+            'DELETE_LIST' => 'DELETE_LIST',
+        ],
+        'USERS' => [
+            'CREATE_USER' => 'CREATE_USER',
+            'EDIT_USER' => 'EDIT_USER',
+            'DELETE_USER' => 'DELETE_USER',
+        ],
+        'ROLES' => [
+            'CREATE_ROLE' => 'CREATE_ROLE',
+            'EDIT_ROLE' => 'EDIT_ROLE',
+            'DELETE_ROLE' => 'DELETE_ROLE',
+        ],
+        'CUSTOM OBJECTS' => [
+            'CREATE_CUSTOM_OBJECT' => 'CREATE_CUSTOM_OBJECT',
+            'EDIT_CUSTOM_OBJECT' => 'EDIT_CUSTOM_OBJECT',
+            'DELETE_CUSTOM_OBJECT' => 'DELETE_CUSTOM_OBJECT',
+        ],
+        'PROPERTIES' => [
+            'CREATE_PROPERTY' => 'CREATE_PROPERTY',
+            'EDIT_PROPERTY' => 'EDIT_PROPERTY',
+            'DELETE_PROPERTY' => 'DELETE_PROPERTY',
+        ],
+        'PROPERTY GROUPS' => [
+            'CREATE_PROPERTY_GROUP' => 'CREATE_PROPERTY_GROUP',
+            'EDIT_PROPERTY_GROUP' => 'EDIT_PROPERTY_GROUP',
+            'DELETE_PROPERTY_GROUP' => 'DELETE_PROPERTY_GROUP',
+        ]
+    ];
 
     const OBJECT_PERMISSION = 'OBJECT_PERMISSION';
     const SYSTEM_PERMISSION = 'SYSTEM_PERMISSION';
@@ -24,6 +64,10 @@ class Role
     const CREATE_REPORT = 'CREATE_REPORT';
     const DELETE_REPORT = 'DELETE_REPORT';
     const EDIT_REPORT = 'EDIT_REPORT';
+
+    const CREATE_LIST = 'CREATE_LIST';
+    const DELETE_LIST = 'DELETE_LIST';
+    const EDIT_LIST = 'EDIT_LIST';
 
     const CREATE_USER = 'CREATE_USER';
     const DELETE_USER = 'DELETE_USER';
@@ -45,7 +89,6 @@ class Role
     const DELETE_PROPERTY_GROUP = 'DELETE_PROPERTY_GROUP';
     const EDIT_PROPERTY_GROUP = 'EDIT_PROPERTY_GROUP';
 
-    use TimestampableEntity;
 
     /**
      * @Groups({"ROLES_FOR_DATATABLE"})

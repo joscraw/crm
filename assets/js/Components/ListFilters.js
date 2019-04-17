@@ -107,18 +107,13 @@ class ListFilters {
             this.handleListNameChange.bind(this)
         );
 
-
-        /*
-
-
-             this.$wrapper.on(
-                 'click',
-                 ReportFilters._selectors.saveReportButton,
-                 this.handleSaveReportButtonClicked.bind(this)
-             );
+        this.$wrapper.on(
+             'click',
+             ListFilters._selectors.saveListButton,
+             this.handleSaveListButtonClicked.bind(this)
+        );
 
 
-     */
         this.render();
     }
 
@@ -133,7 +128,7 @@ class ListFilters {
             editPropertyForm: '.js-edit-property-form',
             listFilterNavigation: '.js-list-filter-navigation',
             backToListPropertiesButton: '.js-back-to-list-properties-button',
-            saveReportButton: '.js-save-report-button',
+            saveListButton: '.js-save-list-button',
             listName: '.js-list-name',
             listPreviewResultsButtonContainer: '.js-list-preview-results-button-container',
             listPreviewResultsTableContainer: '.js-list-preview-results-table-container'
@@ -147,25 +142,26 @@ class ListFilters {
 
         this.$wrapper.off('change', ListFilters._selectors.listName);
 
-        /*this.$wrapper.off('click', ReportFilters._selectors.saveReportButton);
-        */
+        this.$wrapper.off('click', ListFilters._selectors.saveListButton);
     }
 
-    handleSaveReportButtonClicked(e) {
+    handleSaveListButtonClicked(e) {
+
+        debugger;
 
         if(e.cancelable) {
             e.preventDefault();
         }
 
-        if(!this.$wrapper.find(ReportFilters._selectors.reportName).val()) {
+        if(!this.$wrapper.find(ListFilters._selectors.listName).val()) {
 
-            swal("Woahhh snap!!!", "Don't forget a name for your report.", "warning");
+            swal("Woahhh snap!!!", "Don't forget a name for your list.", "warning");
 
             return;
 
         }
 
-        this.globalEventDispatcher.publish(Settings.Events.REPORT_SAVE_BUTTON_PRESSED);
+        this.globalEventDispatcher.publish(Settings.Events.LIST_SAVE_BUTTON_PRESSED);
 
     }
 
@@ -377,7 +373,7 @@ class ListFilters {
                     <div class="navbar-collapse collapse dual-nav w-50 order-2">
                         <ul class="nav navbar-nav ml-auto">
                             <li class="nav-item">
-                            <button class="btn btn-lg btn-secondary ml-auto js-save-report-button c-report-widget__report-save">Save</button>
+                            <button class="btn btn-lg btn-secondary ml-auto js-save-list-button c-report-widget__report-save">Save</button>
                             </li>
                         </ul>
                     </div>

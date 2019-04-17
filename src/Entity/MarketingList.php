@@ -3,12 +3,17 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Serializer\Annotation\Groups;
+use App\Validator\Constraints as CustomAssert;
+use Gedmo\Timestampable\Traits\TimestampableEntity;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\MarketingListRepository")
  */
 class MarketingList
 {
+    use TimestampableEntity;
 
     const DYNAMIC_LIST = 'DYNAMIC_LIST';
     const STATIC_LIST = 'STATIC_LIST';
@@ -63,6 +68,17 @@ class MarketingList
      * @ORM\Column(type="json")
      */
     private $columnOrder = [];
+
+    /**
+     * @Assert\Choice({"DYNAMIC_LIST", "STATIC_LIST"})
+     * @ORM\Column(type="string", length=255)
+     */
+    private $type;
+
+    /**
+     * @ORM\Column(type="json", nullable=true)
+     */
+    private $records = [];
 
     public function getId(): ?int
     {
@@ -137,6 +153,36 @@ class MarketingList
     public function setColumnOrder(array $columnOrder): self
     {
         $this->columnOrder = $columnOrder;
+
+        return $this;
+    }
+
+    public function getType(): ?string
+    {
+        return $this->type;
+    }
+
+    public function setType(string $type): self
+    {
+        $this->type = $type;
+
+        return $this;
+    }
+
+    public function listTypeExists($listType) {
+
+        return array_search($listType, array_column(self::$LIST_TYPES, 'name')) !== false;
+
+    }
+
+    public function getRecords(): ?array
+    {
+        return $this->records;
+    }
+
+    public function setRecords(?array $records): self
+    {
+        $this->records = $records;
 
         return $this;
     }

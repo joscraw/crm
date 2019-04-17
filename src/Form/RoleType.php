@@ -134,40 +134,6 @@ class RoleType extends AbstractType
 
     private function getSystemPermissions($portal) {
 
-        $permissions = [
-            'ALL' => 'ALL',
-            'REPORTS' => [
-                'CREATE_REPORT' => 'CREATE_REPORT',
-                'EDIT_REPORT' => 'EDIT_REPORT',
-                'DELETE_REPORT' => 'DELETE_REPORT',
-            ],
-            'USERS' => [
-                'CREATE_USER' => 'CREATE_USER',
-                'EDIT_USER' => 'EDIT_USER',
-                'DELETE_USER' => 'DELETE_USER',
-            ],
-            'ROLES' => [
-                'CREATE_ROLE' => 'CREATE_ROLE',
-                'EDIT_ROLE' => 'EDIT_ROLE',
-                'DELETE_ROLE' => 'DELETE_ROLE',
-            ],
-            'CUSTOM OBJECTS' => [
-                'CREATE_CUSTOM_OBJECT' => 'CREATE_CUSTOM_OBJECT',
-                'EDIT_CUSTOM_OBJECT' => 'EDIT_CUSTOM_OBJECT',
-                'DELETE_CUSTOM_OBJECT' => 'DELETE_CUSTOM_OBJECT',
-            ],
-            'PROPERTIES' => [
-                'CREATE_PROPERTY' => 'CREATE_PROPERTY',
-                'EDIT_PROPERTY' => 'EDIT_PROPERTY',
-                'DELETE_PROPERTY' => 'DELETE_PROPERTY',
-            ],
-            'PROPERTY GROUPS' => [
-                'CREATE_PROPERTY_GROUP' => 'CREATE_PROPERTY_GROUP',
-                'EDIT_PROPERTY_GROUP' => 'EDIT_PROPERTY_GROUP',
-                'DELETE_PROPERTY_GROUP' => 'DELETE_PROPERTY_GROUP',
-            ]
-        ];
-
-        return $permissions;
+        return Role::$permissions;
     }
 }

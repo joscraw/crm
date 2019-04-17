@@ -43,6 +43,7 @@ class ListWidget {
         this.customObject = null;
         this.listName = '';
         this.listType = null;
+        this.listId = null;
 
         /**
          * This data object is responsible for storing all the properties and filters that will get sent to the server
@@ -119,20 +120,10 @@ class ListWidget {
             this.handleListColumnOrderChanged.bind(this)
         );
 
-        /*
-
-
-
-                this.globalEventDispatcher.subscribe(
-                    Settings.Events.REPORT_SAVE_BUTTON_PRESSED,
-                    this.handleReportSaveButtonPressed.bind(this)
-                );
-
-
-
-
-
-               */
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.LIST_SAVE_BUTTON_PRESSED,
+            this.handleListSaveButtonPressed.bind(this)
+        );
 
         this.render();
     }
@@ -152,12 +143,14 @@ class ListWidget {
 
     unbindEvents() {}
 
-    handleReportSaveButtonPressed() {
+    handleListSaveButtonPressed() {
 
         debugger;
-        this._saveReport().then((data) => {
+        this._saveList().then((data) => {
 
-            swal("Woohoo!!!", "Report successfully saved.", "success");
+            this.listId = data.listId;
+
+            swal("Woohoo!!!", "List successfully saved.", "success");
 
         }).catch((errorData) => {
 
@@ -433,16 +426,21 @@ class ListWidget {
         new ListSelectListType($(ListWidget._selectors.listSelectListTypeContainer), this.globalEventDispatcher, this.portalInternalIdentifier);
     }
 
-    _saveReport() {
+    _saveList() {
 
         return new Promise((resolve, reject) => {
             debugger;
-            const url = Routing.generate('save_report', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObject.internalName});
+
+            let url = Routing.generate('save_list', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObject.internalName});
+
+            if(this.listId) {
+                url = Routing.generate('api_edit_list', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObject.internalName, listId: this.listId});
+            }
 
             $.ajax({
                 url,
                 method: 'POST',
-                data: {'data': this.data, reportName: this.reportName, columnOrder: this.columnOrder}
+                data: {'data': this.data, listName: this.listName, columnOrder: this.columnOrder, listType: this.listType}
             }).then((data, textStatus, jqXHR) => {
 
                 debugger;

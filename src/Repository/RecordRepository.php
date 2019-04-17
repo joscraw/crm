@@ -234,7 +234,42 @@ class RecordRepository extends ServiceEntityRepository
 
         $filterString = empty($filters) ? '' : "AND $filterString";
 
-        $query = sprintf("SELECT count(root.id) as count from record root %s WHERE root.custom_object_id='%s' AND %s", $joinString, $customObject->getId(), $filterString);
+        $query = sprintf("SELECT count(root.id) as count from record root %s WHERE root.custom_object_id='%s' %s", $joinString, $customObject->getId(), $filterString);
+
+        $em = $this->getEntityManager();
+        $stmt = $em->getConnection()->prepare($query);
+        $stmt->execute();
+        $results = $stmt->fetchAll();
+
+        return array(
+            "results"  => $results
+        );
+    }
+
+    /**
+     * @param $data
+     * @param CustomObject $customObject
+     * @return array
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    public function getReportRecordIds($data, CustomObject $customObject)
+    {
+
+        $this->data = $data;
+
+        // Setup Joins
+        $joins = [];
+        $joins = $this->joins($data, $joins);
+        $joinString = implode(" ", $joins);
+
+        // Setup Filters
+        $filters = [];
+        $filters = $this->filters($data, $filters);
+        $filterString = implode(" OR ", $filters);
+
+        $filterString = empty($filters) ? '' : "AND $filterString";
+
+        $query = sprintf("SELECT root.id from record root %s WHERE root.custom_object_id='%s' %s", $joinString, $customObject->getId(), $filterString);
 
         $em = $this->getEntityManager();
         $stmt = $em->getConnection()->prepare($query);

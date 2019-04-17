@@ -147,17 +147,18 @@ class ListController extends ApiController
 
 
     /**
-     * @Route("/{internalName}/save-report", name="save_report", methods={"POST"}, options = { "expose" = true })
+     * @Route("/{internalName}/save-list", name="save_list", methods={"POST"}, options = { "expose" = true })
      * @param Portal $portal
      * @param CustomObject $customObject
      * @param Request $request
      * @return Response
+     * @throws \Doctrine\DBAL\DBALException
      */
-    public function saveReportAction(Portal $portal, CustomObject $customObject, Request $request) {
+    public function saveListAction(Portal $portal, CustomObject $customObject, Request $request) {
 
         $hasPermission = $this->permissionAuthorizationHandler->isAuthorized(
             $this->getUser(),
-            Role::CREATE_REPORT,
+            Role::CREATE_LIST,
             Role::SYSTEM_PERMISSION
         );
 
@@ -171,24 +172,42 @@ class ListController extends ApiController
 
         $data = $request->request->get('data', []);
 
-        $reportName = $request->request->get('reportName', '');
+        $listName = $request->request->get('listName');
+
+        $listType = $request->request->get('listType');
 
         $columnOrder = $request->request->get('columnOrder', []);
 
         $query = $this->recordRepository->getReportMysqlOnly($data, $customObject, $columnOrder);
 
-        $report = new Report();
-        $report->setQuery($query);
-        $report->setCustomObject($customObject);
-        $report->setData($data);
-        $report->setName($reportName);
-        $report->setPortal($portal);
-        $report->setColumnOrder($columnOrder);
+        $list = new MarketingList();
 
-        $this->entityManager->persist($report);
+        $list->setQuery($query);
+        $list->setCustomObject($customObject);
+        $list->setData($data);
+        $list->setName($listName);
+        $list->setPortal($portal);
+        $list->setColumnOrder($columnOrder);
+        $list->setType($listType['name']);
+
+
+        if($listType['name'] = MarketingList::STATIC_LIST) {
+
+            $results = $this->recordRepository->getReportRecordIds($data, $customObject);
+
+            $records = $results['results'];
+
+            $list->setRecords($records);
+
+
+        }
+
+
+        $this->entityManager->persist($list);
         $this->entityManager->flush();
 
         $response = new JsonResponse([
+            'listId' => $list->getId(),
             'success' => true
         ], Response::HTTP_OK);
 
@@ -359,18 +378,18 @@ class ListController extends ApiController
     }
 
     /**
-     * @Route("/{internalName}/{reportId}/edit-report-save", name="api_edit_report", methods={"POST"}, options = { "expose" = true })
+     * @Route("/{internalName}/{listId}/edit-list-save", name="api_edit_list", methods={"POST"}, options = { "expose" = true })
      * @param Portal $portal
      * @param CustomObject $customObject
-     * @param Report $report
+     * @param MarketingList $list
      * @param Request $request
      * @return Response
      */
-    public function editReportAction(Portal $portal, CustomObject $customObject, Report $report, Request $request) {
+    public function editListAction(Portal $portal, CustomObject $customObject, MarketingList $list, Request $request) {
 
         $hasPermission = $this->permissionAuthorizationHandler->isAuthorized(
             $this->getUser(),
-            Role::EDIT_REPORT,
+            Role::EDIT_LIST,
             Role::SYSTEM_PERMISSION
         );
 
@@ -384,20 +403,23 @@ class ListController extends ApiController
 
         $data = $request->request->get('data', []);
 
-        $reportName = $request->request->get('reportName', '');
+        $listName = $request->request->get('listName');
+
+        $listType = $request->request->get('listType');
 
         $columnOrder = $request->request->get('columnOrder', []);
 
         $query = $this->recordRepository->getReportMysqlOnly($data, $customObject, $columnOrder);
 
-        $report->setQuery($query);
-        $report->setCustomObject($customObject);
-        $report->setData($data);
-        $report->setName($reportName);
-        $report->setPortal($portal);
-        $report->setColumnOrder($columnOrder);
+        $list->setQuery($query);
+        $list->setCustomObject($customObject);
+        $list->setData($data);
+        $list->setName($listName);
+        $list->setPortal($portal);
+        $list->setColumnOrder($columnOrder);
+        $list->setType($listType['name']);
 
-        $this->entityManager->persist($report);
+        $this->entityManager->persist($list);
         $this->entityManager->flush();
 
         $response = new JsonResponse([
