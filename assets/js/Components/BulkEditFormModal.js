@@ -23,7 +23,7 @@ class BulkEditFormModal {
 
     render() {
         swal({
-            title: 'Bulk edit record',
+            title: `Bulk edit ${this.records.length} records`,
             showConfirmButton: false,
             html: BulkEditFormModal.markup(),
             customClass: "swal2-modal--left-align"
