@@ -120,6 +120,16 @@ class RecordEditForm {
 
     }
 
+    openPanelsWithErrors() {
+
+        let $collapseBody = $('.form-error-message').closest(RecordEditForm._selectors.collapse)
+            .find(RecordEditForm._selectors.collapseBody);
+
+
+        $collapseBody.collapse('toggle');
+
+    }
+
     handleTitleClick(e) {
 
         debugger;
@@ -247,6 +257,8 @@ class RecordEditForm {
                 }
 
                 this.$wrapper.html(errorData.formMarkup);
+
+                this.openPanelsWithErrors();
 
                 this.activatePlugins();
 
