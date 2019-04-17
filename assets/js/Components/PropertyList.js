@@ -172,13 +172,39 @@ class PropertyList {
         ).draw();
 
         this.$wrapper.find('.js-collapse').each((index, element) => {
+
+            if(this.searchValue.trim() === '') {
+
+                $(element).find(PropertyList._selectors.collapseBody).removeClass('show');
+
+                $(element).find(PropertyList._selectors.collapseTitle).find('i').removeClass('is-active');
+
+                return true;
+            }
+
             if($(element).find('.dataTables_empty').length && this.searchValue !== '') {
-                $(element).addClass('is-disabled');
+
+
+                if(!$(element).hasClass('is-disabled')) {
+
+                    $(element).addClass('is-disabled');
+                }
+
+                $(element).find(PropertyList._selectors.collapseBody).removeClass('show');
+
+                $(element).find(PropertyList._selectors.collapseTitle).find('i').removeClass('is-active');
 
             } else {
+
                 if($(element).hasClass('is-disabled')) {
+
+                    debugger;
                     $(element).removeClass('is-disabled');
                 }
+
+                $(element).find(PropertyList._selectors.collapseBody).addClass('show');
+
+                $(element).find(PropertyList._selectors.collapseTitle).find('i').addClass('is-active');
             }
         });
     }
