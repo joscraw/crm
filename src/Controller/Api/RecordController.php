@@ -668,4 +668,27 @@ class RecordController extends ApiController
         );
 
     }
+
+    /**
+     * @Route("/{internalName}/{filterId}/remove-filter", name="remove_filter", methods={"POST"}, options={"expose" = true})
+     * @param Portal $portal
+     * @param CustomObject $customObject
+     * @param Filter $filter
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function removeFilterAction(Portal $portal, CustomObject $customObject, Filter $filter, Request $request)
+    {
+
+        $this->entityManager->remove($filter);
+        $this->entityManager->flush();
+
+        return new JsonResponse(
+            [
+                'success' => true,
+            ],
+            Response::HTTP_OK
+        );
+
+    }
 }

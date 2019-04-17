@@ -48,16 +48,13 @@ class SavedFiltersList {
             this.handleApplySavedFilterButtonClicked.bind(this)
         );
 
-        this.loadSavedFilters().then(data => {
+        this.$wrapper.on(
+            'click',
+            SavedFiltersList._selectors.removeItem,
+            this.handleRemoveButtonButtonClicked.bind(this)
+        );
 
-            this.savedFilters = data.data;
-
-            this.render(this.savedFilters).then(() => {
-
-                this.highlightFirstListItem();
-
-            })
-        });
+        this.render();
 
     }
 
@@ -67,8 +64,24 @@ class SavedFiltersList {
     static get _selectors() {
         return {
             savedFilterListItem: '.js-saved-filter-list-item',
-            applySavedFilterButton: '.js-apply-saved-filter-button'
+            applySavedFilterButton: '.js-apply-saved-filter-button',
+            removeItem: '.js-removeItem'
         }
+    }
+
+    render() {
+
+        this.loadSavedFilters().then(data => {
+
+            this.savedFilters = data.data;
+
+            this.renderFilters(this.savedFilters).then(() => {
+
+                this.highlightFirstListItem();
+
+            })
+        });
+
     }
 
     /**
@@ -78,6 +91,29 @@ class SavedFiltersList {
     unbindEvents() {
         this.$wrapper.off('click', SavedFiltersList._selectors.savedFilterListItem);
         this.$wrapper.off('click', SavedFiltersList._selectors.applySavedFilterButton);
+        this.$wrapper.off('click', SavedFiltersList._selectors.removeItem);
+
+    }
+
+    handleRemoveButtonButtonClicked(e) {
+
+        debugger;
+
+        if(e.cancelable) {
+            e.preventDefault();
+        }
+
+        e.stopPropagation();
+
+        const $listItem = $(e.currentTarget);
+
+        let filterId = $listItem.attr('data-filter-id');
+
+        this.removeFilter(filterId).then(data => {
+
+            this.render();
+
+        });
 
     }
 
@@ -94,6 +130,7 @@ class SavedFiltersList {
 
     handleSavedFilterListItemClicked(e) {
 
+        debugger;
         if(e.cancelable) {
             e.preventDefault();
         }
@@ -110,10 +147,31 @@ class SavedFiltersList {
 
         $listItem.addClass('c-list__list-item--active');
 
-        let savedFilterIndex = $listItem.attr('data-saved-filter-index');
+        let filterId = $listItem.attr('data-filter-id');
+
+        let filter = this.savedFilters.filter(savedFilter => {
+            return parseInt(savedFilter.id) === parseInt(filterId);
+        });
 
         this.savedfilterToApply = null;
-        this.savedfilterToApply = this.savedFilters[savedFilterIndex];
+        this.savedfilterToApply = filter[0];
+    }
+
+    removeFilter(filterId) {
+        return new Promise((resolve, reject) => {
+            debugger;
+            const url = Routing.generate('remove_filter', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName, filterId: filterId});
+
+            $.ajax({
+                url: url,
+                method: 'POST'
+            }).then(data => {
+                resolve(data);
+            }).catch(jqXHR => {
+                const errorData = JSON.parse(jqXHR.responseText);
+                reject(errorData);
+            });
+        });
     }
 
     handleApplySavedFilterButtonClicked(e) {
@@ -157,17 +215,16 @@ class SavedFiltersList {
         });
     }
 
-    render(savedFilters) {
+    renderFilters(savedFilters) {
         return new Promise((resolve, reject) => {
 
-            debugger;
+            this.$wrapper.html("");
             const html = mainTemplate();
             const $mainTemplate = $($.parseHTML(html));
             this.$wrapper.append($mainTemplate);
 
             this._addList(savedFilters);
 
-            debugger;
             new SavedFilterSearch(this.$wrapper.find('.js-saved-filter-search-container'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, "Search for a filter...");
 
             resolve();
@@ -190,13 +247,15 @@ class SavedFiltersList {
         let options = {
             valueNames: [ 'name' ],
 
-            item: `<li class="js-saved-filter-list-item c-list__list-item"><span class="name"></span></li>`
+            item: `<li class="js-saved-filter-list-item c-list__list-item"><span class="name"></span>
+            <button type="button" class="btn btn-link js-removeItem c-list__list-item-remove-button"><i class="fa fa-trash" aria-hidden="true"></i></button></li>`
         };
 
         this.list = new List('saved-filter-list', options, filters);
 
         $( `#saved-filter-list li` ).each((index, element) => {
-            $(element).attr('data-saved-filter-index', index);
+            $(element).attr('data-filter-id', filters[index].id);
+            $(element).find('.js-removeItem').attr('data-filter-id', filters[index].id);
         });
 
     }
