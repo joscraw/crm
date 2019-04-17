@@ -180,7 +180,7 @@ class PropertyList {
                 $(element).find(PropertyList._selectors.collapseTitle).find('i').removeClass('is-active');
 
                 if($(element).hasClass('is-disabled')) {
-                    
+
                     $(element).removeClass('is-disabled');
                 }
 
