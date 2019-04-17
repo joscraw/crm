@@ -75,6 +75,8 @@ class ListSelectListType {
         this.loadListTypes().then(data => {
             debugger;
             this.renderListTypeForm(data);
+
+            $('[data-toggle="tooltip"]').tooltip();
         })
     }
 
@@ -95,6 +97,7 @@ class ListSelectListType {
             $(element).attr('value', listTypes[index].name);
             $(element).attr('id', listTypes[index].name);
             $(element).next('label').attr('for', listTypes[index].name);
+
         });
 
         if(this.listType) {
@@ -134,7 +137,7 @@ class ListSelectListType {
                  <div class="container">
                      <div class="row c-report-widget__header">
                          <div class="col-md-12" align="center">
-                             <h2>Select list type</h2>
+                             <h2>Select list type <i class="fa fa-info-circle" data-toggle="tooltip" data-placement="right" title="A dynamic list will update continuously based on your filters. A static list will only be modified if you manually add or remove records."></i></h2>
                          </div>
                      </div>
                      
