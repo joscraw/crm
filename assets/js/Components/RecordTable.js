@@ -123,6 +123,11 @@ class RecordTable {
     }
 
     loadColumnsForTable() {
+
+        Pace.start({
+            target: '.l-grid'
+        });
+
         return new Promise((resolve, reject) => {
             const url = Routing.generate('get_columns_for_table', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
 

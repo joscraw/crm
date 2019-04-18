@@ -29,7 +29,7 @@ class SavedFiltersList {
         this.savedFilters = {};
         this.savedfilterToApply = null;
 
-        this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.singleSubscribe(
             Settings.Events.SAVED_FILTER_SEARCH_KEY_UP,
             this.applySearch.bind(this)
         );
@@ -191,6 +191,7 @@ class SavedFiltersList {
      */
     applySearch(args = {}) {
 
+        debugger;
         if(typeof args.searchValue !== 'undefined') {
             this.searchValue = args.searchValue;
         }
@@ -223,7 +224,16 @@ class SavedFiltersList {
             const $mainTemplate = $($.parseHTML(html));
             this.$wrapper.append($mainTemplate);
 
-            this._addList(savedFilters);
+            if(savedFilters.length === 0) {
+
+                $('.js-saved-filter-list').html(emptyListTemplate());
+
+                $(SavedFiltersList._selectors.applySavedFilterButton).attr('disabled', 'disabled');
+
+            } else {
+                this._addList(savedFilters);
+
+            }
 
             new SavedFilterSearch(this.$wrapper.find('.js-saved-filter-search-container'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, "Search for a filter...");
 
@@ -286,5 +296,11 @@ const mainTemplate = () => `
     </div>
 `;
 
+/**
+ * @return {string}
+ */
+const emptyListTemplate = () => `
+    <h3 style="text-align: center; margin-top: 50px">No saved filter exist yet...</h1>
+`;
 
 export default SavedFiltersList;
