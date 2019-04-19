@@ -13,15 +13,15 @@ class ReportSelectCustomObject {
      * @param $wrapper
      * @param globalEventDispatcher
      * @param portalInternalIdentifier
-     * @param customObjectInternalName
+     * @param customObject
      */
-    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObject = null) {
         debugger;
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
-        this.customObjectInternalName = customObjectInternalName;
         this.customObjects = null;
+        this.customObject = customObject;
 
         this.unbindEvents();
 
@@ -30,7 +30,6 @@ class ReportSelectCustomObject {
             ReportSelectCustomObject._selectors.advanceToReportPropertiesViewButton,
             this.handleAdvanceToReportPropertiesViewButtonClicked.bind(this)
         );
-
 
         this.render();
     }
@@ -97,10 +96,20 @@ class ReportSelectCustomObject {
             $(element).attr('data-custom-object-id', customObjects[index].id);
             $(element).attr('id', `customObject-${customObjects[index].id}`);
             $(element).next('label').attr('for', `customObject-${customObjects[index].id}`);
+
         });
 
-        // set the first option checked at least for now
-        $( `#listCustomObjects input[type="radio"]`).first().prop('checked', true);
+        debugger;
+
+        if(this.customObject) {
+            debugger;
+            let index = _.findIndex(customObjects, (customObject) => { return customObject.id === this.customObject.id });
+            $( `#listCustomObjects input[type="radio"]`).eq(index).prop('checked', true);
+        } else {
+            debugger;
+            $( `#listCustomObjects input[type="radio"]`).first().prop('checked', true);
+        }
+
 
     }
 

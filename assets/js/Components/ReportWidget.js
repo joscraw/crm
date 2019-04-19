@@ -114,11 +114,6 @@ class ReportWidget {
             this.handleReportColumnOrderChanged.bind(this)
         );
 
-        this.globalEventDispatcher.subscribe(
-            Settings.Events.REPORT_PREVIEW_RESULTS_BUTTON_CLICKED,
-            this.handleReportPreviewResultsButtonClicked.bind(this)
-        );
-
         this.render();
     }
 
@@ -157,16 +152,6 @@ class ReportWidget {
 
     }
 
-    handleReportPreviewResultsButtonClicked() {
-
-        this.loadReportPreview().then((data) => {
-
-            debugger;
-            this.globalEventDispatcher.publish(Settings.Events.REPORT_PREVIEW_RESULTS_LOADED, data.data, this.columnOrder);
-
-        });
-
-    }
 
     redirectToReportSettings() {
 
@@ -183,7 +168,7 @@ class ReportWidget {
         this.$wrapper.find(ReportWidget._selectors.reportSelectCustomObjectContainer).removeClass('d-none');
         this.$wrapper.find(ReportWidget._selectors.reportPropertiesContainer).addClass('d-none');
 
-        new ReportSelectCustomObject($(ReportWidget._selectors.reportSelectCustomObjectContainer), this.globalEventDispatcher, this.portalInternalIdentifier);
+        new ReportSelectCustomObject($(ReportWidget._selectors.reportSelectCustomObjectContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject);
 
     }
 
@@ -203,13 +188,19 @@ class ReportWidget {
         this.$wrapper.find(ReportWidget._selectors.reportFiltersContainer).removeClass('d-none');
         this.$wrapper.find(ReportWidget._selectors.reportPropertiesContainer).addClass('d-none');
 
-        new ReportFilters($(ReportWidget._selectors.reportFiltersContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject.internalName, this.data, this.reportName);
+        new ReportFilters($(ReportWidget._selectors.reportFiltersContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject.internalName, this.data, this.reportName, this.columnOrder);
 
     }
 
     handleAdvanceToReportPropertiesViewButtonClicked(customObject) {
 
         debugger;
+
+        // If a brand new custom object is selected then clear the data
+        if(this.customObject && this.customObject.id !== customObject.id) {
+            this.data = {};
+            this.columnOrder = [];
+        }
 
         this.customObject = customObject;
 
@@ -259,6 +250,8 @@ class ReportWidget {
 
     handleReportRemoveFilterButtonPressed(joinPath) {
 
+        debugger;
+
         let filterPath = joinPath.join('.');
 
         /**
@@ -285,9 +278,13 @@ class ReportWidget {
             });
         }
 
-        let referencedFilterPath = _.get(this.data, `${filterPath}.referencedFilterPath`).join('.');
 
-        _.unset(this.data, `${referencedFilterPath}.orFilters.${joinPath[joinPath.length - 1]}`);
+        if(_.keys(_.get(this.data, `${filterPath}.referencedFilterPath`, [])).length !== 0) {
+
+            let referencedFilterPath = _.get(this.data, `${filterPath}.referencedFilterPath`).join('.');
+
+            _.unset(this.data, `${referencedFilterPath}.orFilters.${joinPath[joinPath.length - 1]}`);
+        }
 
         _.unset(this.data, filterPath);
 
@@ -426,26 +423,6 @@ class ReportWidget {
             });
         });
 
-    }
-
-    loadReportPreview() {
-        return new Promise((resolve, reject) => {
-            debugger;
-
-            const url = Routing.generate('get_report_preview', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObject.internalName});
-
-            $.ajax({
-                url: url,
-                data: {data: this.data, columnOrder: this.columnOrder}
-            }).then(data => {
-                debugger;
-                resolve(data);
-            }).catch(jqXHR => {
-                debugger;
-                const errorData = JSON.parse(jqXHR.responseText);
-                reject(errorData);
-            });
-        });
     }
 
     static markup() {

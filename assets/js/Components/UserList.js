@@ -105,7 +105,7 @@ class UserList {
     activatePlugins() {
 
         Pace.start({
-            target: '.js-user-list'
+            target: '.l-grid'
         });
 
         this.table = $('#user_table').DataTable({
@@ -113,7 +113,7 @@ class UserList {
             "pageLength": 10,
             "processing": true,
             "serverSide": true,
-            "responsive": true,
+            "scrollX": true,
             "language": {
                 "emptyTable": `No users found.`,
                 "processing": `<div class="pace pace-inactive">
@@ -173,10 +173,8 @@ class UserList {
             ],
             "ajax": {
                 url: Routing.generate('users_for_datatable', {internalIdentifier: this.portalInternalIdentifier}),
-                type: "GET",
-                dataType: "json",
-                data: {'customFilters': this.customFilters},
-                contentType: "application/json; charset=utf-8"
+                type: "POST",
+                data: {'customFilters': this.customFilters}
             },
             "drawCallback": (settings)  => {
                 this.addEditUserButton();

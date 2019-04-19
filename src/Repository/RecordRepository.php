@@ -234,7 +234,42 @@ class RecordRepository extends ServiceEntityRepository
 
         $filterString = empty($filters) ? '' : "AND $filterString";
 
-        $query = sprintf("SELECT count(root.id) as count from record root %s WHERE root.custom_object_id='%s' AND %s", $joinString, $customObject->getId(), $filterString);
+        $query = sprintf("SELECT count(root.id) as count from record root %s WHERE root.custom_object_id='%s' %s", $joinString, $customObject->getId(), $filterString);
+
+        $em = $this->getEntityManager();
+        $stmt = $em->getConnection()->prepare($query);
+        $stmt->execute();
+        $results = $stmt->fetchAll();
+
+        return array(
+            "results"  => $results
+        );
+    }
+
+    /**
+     * @param $data
+     * @param CustomObject $customObject
+     * @return array
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    public function getReportRecordIds($data, CustomObject $customObject)
+    {
+
+        $this->data = $data;
+
+        // Setup Joins
+        $joins = [];
+        $joins = $this->joins($data, $joins);
+        $joinString = implode(" ", $joins);
+
+        // Setup Filters
+        $filters = [];
+        $filters = $this->filters($data, $filters);
+        $filterString = implode(" OR ", $filters);
+
+        $filterString = empty($filters) ? '' : "AND $filterString";
+
+        $query = sprintf("SELECT root.id from record root %s WHERE root.custom_object_id='%s' %s", $joinString, $customObject->getId(), $filterString);
 
         $em = $this->getEntityManager();
         $stmt = $em->getConnection()->prepare($query);
@@ -880,6 +915,7 @@ class RecordRepository extends ServiceEntityRepository
     private function getConditionForReport($customFilter, $alias) {
 
         $query = '';
+        $andFilters = [];
         switch($customFilter['fieldType']) {
             case 'number_field':
                 switch($customFilter['operator']) {
@@ -962,9 +998,9 @@ class RecordRepository extends ServiceEntityRepository
                     case 'EQ':
 
                         if(trim($customFilter['value']) === '') {
-                            $query = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') = \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
+                            $andFilters[] = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') = \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         } else {
-                            $query = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') LIKE \'%%%s%%\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], strtolower($customFilter['value']));
+                            $andFilters[] = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') LIKE \'%%%s%%\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], strtolower($customFilter['value']));
                         }
 
                         break;
@@ -1117,7 +1153,7 @@ class RecordRepository extends ServiceEntityRepository
                                 $conditions[] = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') = \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], strtolower($value));
                             }
 
-                            $query = ' and' . implode(" OR ", $conditions);
+                            $query = implode(" OR ", $conditions);
                         }
 
                         break;
@@ -1133,7 +1169,7 @@ class RecordRepository extends ServiceEntityRepository
                                 $conditions[] = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') != \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], strtolower($value));
                             }
 
-                            $query = ' and' . implode(" AND ", $conditions);
+                            $query = implode(" AND ", $conditions);
                         }
 
                         break;
@@ -1165,7 +1201,7 @@ class RecordRepository extends ServiceEntityRepository
                                 $conditions[] = sprintf('JSON_SEARCH(IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'[]\'), \'one\', \'%s\') IS NOT NULL', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], strtolower($value));
                             }
 
-                            $query = ' and' . implode(" OR ", $conditions);
+                            $query = implode(" OR ", $conditions);
                         }
 
                         break;
@@ -1181,7 +1217,7 @@ class RecordRepository extends ServiceEntityRepository
                                 $conditions[] = sprintf('JSON_SEARCH(IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'[]\'), \'one\', \'%s\') IS NULL', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], strtolower($value));
                             }
 
-                            $query = ' and' . implode(" AND ", $conditions);
+                            $query = implode(" AND ", $conditions);
                         }
 
                         break;
@@ -1203,7 +1239,7 @@ class RecordRepository extends ServiceEntityRepository
 
         if(isset($customFilter['orFilters'])) {
 
-            $andFilters = [];
+            /*$andFilters = [];*/
 
             foreach($customFilter['orFilters'] as $orFilter) {
 
@@ -1214,10 +1250,11 @@ class RecordRepository extends ServiceEntityRepository
                 $andFilters[] = $this->getConditionForReport($filter, implode('.', $filter['joins']));
             }
 
-            $query .= ' AND ' . implode(' AND ', $andFilters);
-
-            $query = sprintf('(%s)', $query);
         }
+
+        $query .= implode(' AND ', $andFilters);
+
+        $query = sprintf('(%s)', $query);
 
         return $query;
     }

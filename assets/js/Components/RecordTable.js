@@ -81,8 +81,9 @@ class RecordTable {
         console.log(this.customFilters);
 
         Pace.start({
-            target: '.js-record-table'
+            target: '.l-grid'
         });
+
 
         $('#table_id thead').empty();
         $('#table_id tbody').empty();
@@ -114,18 +115,19 @@ class RecordTable {
             "pageLength": 10,
             "ajax": {
                 url: Routing.generate('records_for_datatable', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName}),
-                type: "GET",
-                data: {'customFilters': this.customFilters},
-                dataType: "json",
-                contentType: "application/json; charset=utf-8"
+                type: "POST",
+                data: {'customFilters': this.customFilters}
             },
-            "initComplete": function () {
-                Pace.stop();
-            }
+            "initComplete": function () {}
         });
     }
 
     loadColumnsForTable() {
+
+        Pace.start({
+            target: '.l-grid'
+        });
+
         return new Promise((resolve, reject) => {
             const url = Routing.generate('get_columns_for_table', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
 

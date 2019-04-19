@@ -57,7 +57,7 @@ class CustomObjectList {
     activatePlugins() {
 
         Pace.start({
-            target: '.js-main-content'
+            target: '.l-grid'
         });
 
         this.table = $('#table_id').DataTable({

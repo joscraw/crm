@@ -50,6 +50,12 @@ class EditReportWidget {
 
         this.unbindEvents();
 
+
+     /*   this.globalEventDispatcher.subscribe(
+            Settings.Events.REPORT_BACK_BUTTON_CLICKED,
+            this.handleBackButtonClicked.bind(this)
+        );*/
+
         this.globalEventDispatcher.subscribe(
             Settings.Events.ADVANCE_TO_REPORT_PROPERTIES_VIEW_BUTTON_CLICKED,
             this.handleAdvanceToReportPropertiesViewButtonClicked.bind(this)
@@ -193,10 +199,11 @@ class EditReportWidget {
 
     reportBackToSelectCustomObjectButtonHandler(e) {
 
+        debugger;
         this.$wrapper.find(EditReportWidget._selectors.reportSelectCustomObjectContainer).removeClass('d-none');
         this.$wrapper.find(EditReportWidget._selectors.reportPropertiesContainer).addClass('d-none');
 
-        new ReportSelectCustomObject($(EditReportWidget._selectors.reportSelectCustomObjectContainer), this.globalEventDispatcher, this.portalInternalIdentifier);
+        new ReportSelectCustomObject($(EditReportWidget._selectors.reportSelectCustomObjectContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject);
 
     }
 
@@ -214,18 +221,26 @@ class EditReportWidget {
         this.$wrapper.find(EditReportWidget._selectors.reportFiltersContainer).removeClass('d-none');
         this.$wrapper.find(EditReportWidget._selectors.reportPropertiesContainer).addClass('d-none');
 
-        new ReportFilters($(EditReportWidget._selectors.reportFiltersContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject.internalName, this.data, this.reportName);
+        new ReportFilters($(EditReportWidget._selectors.reportFiltersContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject.internalName, this.data, this.reportName, this.columnOrder);
 
     }
 
     handleAdvanceToReportPropertiesViewButtonClicked(customObject) {
+
+        debugger;
+
+        // If a brand new custom object is selected then clear the data
+        if(this.customObject.id !== customObject.id) {
+            this.data = {};
+            this.columnOrder = [];
+        }
 
         this.customObject = customObject;
 
         this.$wrapper.find(EditReportWidget._selectors.reportSelectCustomObjectContainer).addClass('d-none');
         this.$wrapper.find(EditReportWidget._selectors.reportPropertiesContainer).removeClass('d-none');
 
-        new ReportProperties($(EditReportWidget._selectors.reportPropertiesContainer), this.globalEventDispatcher, this.portalInternalIdentifier, customObject.internalName, this.data);
+        new ReportProperties($(EditReportWidget._selectors.reportPropertiesContainer), this.globalEventDispatcher, this.portalInternalIdentifier, customObject.internalName, this.data, this.columnOrder);
 
     }
 
@@ -268,6 +283,7 @@ class EditReportWidget {
 
     handleReportRemoveFilterButtonPressed(joinPath) {
 
+        debugger;
         let filterPath = joinPath.join('.');
 
         /**
@@ -294,9 +310,16 @@ class EditReportWidget {
             });
         }
 
-        let referencedFilterPath = _.get(this.data, `${filterPath}.referencedFilterPath`).join('.');
 
-        _.unset(this.data, `${referencedFilterPath}.orFilters.${joinPath[joinPath.length - 1]}`);
+        if(_.keys(_.get(this.data, `${filterPath}.referencedFilterPath`, [])).length !== 0) {
+
+            debugger;
+
+            let referencedFilterPath = _.get(this.data, `${filterPath}.referencedFilterPath`).join('.');
+
+            _.unset(this.data, `${referencedFilterPath}.orFilters.${joinPath[joinPath.length - 1]}`);
+
+        }
 
         _.unset(this.data, filterPath);
 
@@ -410,8 +433,14 @@ class EditReportWidget {
         this.$wrapper.html(EditReportWidget.markup(this));
 
         new ReportProperties($(EditReportWidget._selectors.reportPropertiesContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject.internalName, this.data, this.columnOrder);
-
     }
+
+
+ /*   handleBackButtonClicked() {
+
+        new ReportProperties($(EditReportWidget._selectors.reportPropertiesContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject.internalName, this.data, this.columnOrder);
+
+    }*/
 
     _saveReport() {
 

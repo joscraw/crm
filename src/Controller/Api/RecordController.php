@@ -9,6 +9,7 @@ use App\Entity\Portal;
 use App\Entity\Property;
 use App\Entity\PropertyGroup;
 use App\Entity\Record;
+use App\Form\BulkEditType;
 use App\Form\CustomObjectType;
 use App\Form\PropertyGroupType;
 use App\Form\PropertyType;
@@ -144,6 +145,71 @@ class RecordController extends ApiController
                 'form' => $form->createView(),
             ]
         );
+
+        return new JsonResponse(
+            [
+                'success' => true,
+                'formMarkup' => $formMarkup
+            ],
+            Response::HTTP_OK
+        );
+    }
+
+    /**
+     * @Route("/{internalName}/bulk-edit", name="bulk_edit", methods={"GET", "POST"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param CustomObject $customObject
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function bulkEditAction(Portal $portal, CustomObject $customObject, Request $request) {
+
+        $form = $this->createForm(BulkEditType::class, null, [
+            'customObject' => $customObject
+        ]);
+
+        $form->handleRequest($request);
+
+        $formMarkup = $this->renderView(
+            'Api/form/bulk_edit_form.html.twig',
+            [
+                'form' => $form->createView(),
+            ]
+        );
+
+        if ($form->isSubmitted() && !$form->isValid()) {
+
+            return new JsonResponse(
+                [
+                    'success' => false,
+                    'formMarkup' => $formMarkup,
+                ], Response::HTTP_BAD_REQUEST
+            );
+        }
+
+
+        if ($form->isSubmitted() && $form->isValid()) {
+
+            $propertyToUpdate = $form->get('propertyToUpdate')->getData();
+            $propertyToUpdate = $this->propertyRepository->find($propertyToUpdate);
+
+            $records = $request->request->get('records', []);
+
+            foreach($records as $record) {
+
+                $record = $this->recordRepository->find($record);
+
+                $properties = $record->getProperties();
+                $properties[$propertyToUpdate->getInternalName()] = $form->get('propertyValue')->getData();
+                $record->setProperties($properties);
+
+                $this->entityManager->persist($record);
+                $this->entityManager->flush();
+
+            }
+
+        }
+
 
         return new JsonResponse(
             [
@@ -391,7 +457,7 @@ class RecordController extends ApiController
      * DataTables passes unique params in the Request and expects a specific response payload
      * @see https://datatables.net/manual/server-side Documentation for ServerSide Implimentation for DataTables
      *
-     * @Route("{internalName}/datatable", name="records_for_datatable", methods={"GET"}, options = { "expose" = true })
+     * @Route("/{internalName}/datatable", name="records_for_datatable", methods={"POST"}, options = { "expose" = true })
      * @param Portal $portal
      * @param CustomObject $customObject
      * @param Request $request
@@ -400,13 +466,13 @@ class RecordController extends ApiController
      */
     public function getRecordsForDatatableAction(Portal $portal, CustomObject $customObject, Request $request) {
 
-        $draw = intval($request->query->get('draw'));
-        $start = $request->query->get('start');
-        $length = $request->query->get('length');
-        $search = $request->query->get('search');
-        $orders = $request->query->get('order');
-        $columns = $request->query->get('columns');
-        $customFilters = $request->query->get('customFilters', []);
+        $draw = intval($request->request->get('draw'));
+        $start = $request->request->get('start');
+        $length = $request->request->get('length');
+        $search = $request->request->get('search');
+        $orders = $request->request->get('order');
+        $columns = $request->request->get('columns');
+        $customFilters = $request->request->get('customFilters', []);
 
         $propertiesForDatatable = $this->propertyRepository->findColumnsForTable($customObject);
 
@@ -592,6 +658,29 @@ class RecordController extends ApiController
         $filter->setCustomFilters($customFilters);
 
         $this->entityManager->persist($filter);
+        $this->entityManager->flush();
+
+        return new JsonResponse(
+            [
+                'success' => true,
+            ],
+            Response::HTTP_OK
+        );
+
+    }
+
+    /**
+     * @Route("/{internalName}/{filterId}/remove-filter", name="remove_filter", methods={"POST"}, options={"expose" = true})
+     * @param Portal $portal
+     * @param CustomObject $customObject
+     * @param Filter $filter
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function removeFilterAction(Portal $portal, CustomObject $customObject, Filter $filter, Request $request)
+    {
+
+        $this->entityManager->remove($filter);
         $this->entityManager->flush();
 
         return new JsonResponse(

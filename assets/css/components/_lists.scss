@@ -11,6 +11,8 @@
 
 .c-list__list-item {
 
+  position: relative;
+
   margin-bottom: 10px;
   padding: 10px;
 
@@ -21,4 +23,12 @@
 
 .c-list__list-item--active {
   background-color: $color-blue-94;
+}
+
+
+.c-list__list-item-remove-button {
+  right: 0;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
 }

@@ -27,10 +27,13 @@ import ReportSelectedColumns from "./ReportSelectedColumns";
 import ReportSelectedColumnsCount from "./ReportSelectedColumnsCount";
 import ReportFilterList from "./ReportFilterList";
 import ReportFilters from "./ReportFilters";
+import EventDispatcher from "../EventDispatcher";
 
 class ReportProperties {
 
     constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, data, columnOrder) {
+
+        debugger;
 
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
@@ -38,17 +41,18 @@ class ReportProperties {
         this.customObjectInternalName = customObjectInternalName;
         this.data = data;
         this.columnOrder = columnOrder;
+        this.reportPropertiesEventDispatcher = new EventDispatcher();
 
         this.unbindEvents();
 
         this.bindEvents();
 
-        this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.singleSubscribe(
             Settings.Events.REPORT_BACK_BUTTON_CLICKED,
             this.handleBackButtonClicked.bind(this)
         );
 
-        this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.singleSubscribe(
             Settings.Events.REPORT_CUSTOM_OBJECT_JOIN_PATH_SET,
             this.handleCustomObjectJoinPathSet.bind(this)
         );
@@ -89,7 +93,7 @@ class ReportProperties {
 
     unbindEvents() {
 
-        this.$wrapper.off('click', ReportPropertyList._selectors.reportBackToSelectCustomObjectButton);
+        this.$wrapper.off('click', ReportProperties._selectors.reportBackToSelectCustomObjectButton);
         this.$wrapper.off('click', ReportProperties._selectors.reportAdvanceToFiltersView);
     }
 
@@ -140,6 +144,7 @@ class ReportProperties {
 
     handleBackButtonClicked() {
 
+        debugger;
         new ReportPropertyList($(ReportProperties._selectors.reportPropertyListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, null, [], this.data);
 
     }

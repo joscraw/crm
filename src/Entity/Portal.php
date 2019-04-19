@@ -68,6 +68,12 @@ class Portal
      */
     private $filters;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\MarketingList", mappedBy="portal", orphanRemoval=true)
+     */
+    private $marketingLists;
+
+
     public function __construct()
     {
         $this->customObjects = new ArrayCollection();
@@ -75,6 +81,7 @@ class Portal
         $this->users = new ArrayCollection();
         $this->roles = new ArrayCollection();
         $this->filters = new ArrayCollection();
+        $this->marketingLists = new ArrayCollection();
     }
 
     /**
@@ -251,5 +258,35 @@ class Portal
         return $this;
     }
 
+    /**
+     * @return Collection|MarketingList[]
+     */
+    public function getMarketingLists(): Collection
+    {
+        return $this->marketingLists;
+    }
+
+    public function addMarketingList(MarketingList $marketingList): self
+    {
+        if (!$this->marketingLists->contains($marketingList)) {
+            $this->marketingLists[] = $marketingList;
+            $marketingList->setPortal($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMarketingList(MarketingList $marketingList): self
+    {
+        if ($this->marketingLists->contains($marketingList)) {
+            $this->marketingLists->removeElement($marketingList);
+            // set the owning side to null (unless already changed)
+            if ($marketingList->getPortal() === $this) {
+                $marketingList->setPortal(null);
+            }
+        }
+
+        return $this;
+    }
 
 }

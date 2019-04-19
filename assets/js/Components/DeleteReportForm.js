@@ -68,7 +68,7 @@ class DeleteReportForm {
             .then((data) => {
 
                 debugger;
-                swal("Hooray!", "Sweet! You deleted your report!", "success");
+                swal("Hooray!", "Sweet! Report successfully removed!", "success");
                 this.globalEventDispatcher.publish(Settings.Events.REPORT_DELETED);
             }).catch((errorData) => {
 

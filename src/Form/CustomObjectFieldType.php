@@ -59,7 +59,6 @@ class CustomObjectFieldType extends AbstractType
     /**
      * @param FormBuilderInterface $builder
      * @param array $options
-     * @throws \Doctrine\ORM\NonUniqueResultException
      */
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
@@ -77,7 +76,7 @@ class CustomObjectFieldType extends AbstractType
             },
             'expanded' => false,
             'multiple' => false,
-            'required' => false,
+            'required' => true,
             'by_reference' => false,
             'placeholder' => 'Select a custom object please...',
             'attr' => [

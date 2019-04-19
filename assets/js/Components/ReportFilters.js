@@ -33,13 +33,14 @@ import ReportPreviewResultsTable from "./ReportPreviewResultsTable";
 
 class ReportFilters {
 
-    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, data = {}, reportName = '') {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, data = {}, reportName = '', columnOrder) {
 
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
         this.customObjectInternalName = customObjectInternalName;
         this.reportName = reportName;
+        this.columnOrder = columnOrder;
 
         /**
          * This data object is responsible for storing all the properties and filters that will get sent to the server
@@ -49,46 +50,45 @@ class ReportFilters {
 
         this.unbindEvents();
 
-        this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.singleSubscribe(
             Settings.Events.REPORT_FILTER_ITEM_CLICKED,
             this.handleReportFilterItemClicked.bind(this)
         );
 
-        this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.singleSubscribe(
             Settings.Events.FILTER_BACK_TO_LIST_BUTTON_CLICKED,
             this.handleFilterBackToListButtonClicked.bind(this)
         );
 
-        this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.singleSubscribe(
             Settings.Events.REPORT_FILTER_CUSTOM_OBJECT_JOIN_PATH_SET,
             this.handleReportFilterCustomObjectJoinPathSet.bind(this)
         );
 
-        this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.singleSubscribe(
             Settings.Events.REPORT_FILTER_ITEM_ADDED,
             this.reportFilterItemAddedHandler.bind(this)
         );
 
-        this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.singleSubscribe(
             Settings.Events.REPORT_ADD_FILTER_BUTTON_PRESSED,
             this.reportAddFilterButtonPressedHandler.bind(this)
         );
 
-        this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.singleSubscribe(
             Settings.Events.REPORT_ADD_OR_FILTER_BUTTON_PRESSED,
             this.reportAddOrFilterButtonPressedHandler.bind(this)
         );
 
-        this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.singleSubscribe(
             Settings.Events.FILTER_BACK_TO_NAVIGATION_BUTTON_CLICKED,
             this.reportFilterBackToNavigationButtonClickedHandler.bind(this)
         );
 
-        this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.singleSubscribe(
             Settings.Events.REPORT_EDIT_FILTER_BUTTON_CLICKED,
             this.handleReportEditFilterButtonClicked.bind(this)
         );
-
 
         this.$wrapper.on(
             'click',
@@ -221,8 +221,6 @@ class ReportFilters {
 
     reportAddFilterButtonPressedHandler() {
 
-        debugger;
-
         this.$wrapper.find(ReportFilters._selectors.reportFilterNavigation).addClass('d-none');
         this.$wrapper.find(ReportFilters._selectors.reportFilterListContainer).removeClass('d-none');
 
@@ -230,7 +228,6 @@ class ReportFilters {
     }
 
     reportAddOrFilterButtonPressedHandler(referencedFilterPath) {
-        debugger;
 
         this.$wrapper.find(ReportFilters._selectors.reportFilterNavigation).addClass('d-none');
         this.$wrapper.find(ReportFilters._selectors.reportFilterListContainer).removeClass('d-none');
@@ -245,7 +242,7 @@ class ReportFilters {
         switch (property.fieldType) {
             case 'single_line_text_field':
             case 'multi_line_text_field':
-                new SingleLineTextFieldFilterForm($(ReportFilters._selectors.propertyForm), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, property);
+                new SingleLineTextFieldFilterForm($(ReportFilters._selectors.propertyForm), this.globalEventDispatcher, this.portalInternalIdentifier, property);
                 break;
             case 'number_field':
                 new NumberFieldFilterForm($(ReportFilters._selectors.propertyForm), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, property);
@@ -267,20 +264,23 @@ class ReportFilters {
 
     }
 
-    handleReportBackToSelectCustomObjectButton(e) {
-
-        debugger;
-        this.$wrapper.find(ReportFilters._selectors.reportSelectCustomObjectContainer).removeClass('d-none');
-        /*this.$wrapper.find(ReportFilters._selectors.reportSelectPropertyContainer).addClass('d-none');*/
-
-        new ReportSelectCustomObject($(ReportFilters._selectors.reportSelectCustomObjectContainer), this.globalEventDispatcher, this.portalInternalIdentifier);
-
-    }
-
     handleFilterBackToListButtonClicked() {
 
+        debugger;
         this.$wrapper.find(ReportFilters._selectors.reportFilterListContainer).removeClass('d-none');
-        this.$wrapper.find(ReportFilters._selectors.propertyForm).addClass('d-none');
+
+        if(!this.$wrapper.find(ReportFilters._selectors.propertyForm).hasClass('d-none')) {
+
+            this.$wrapper.find(ReportFilters._selectors.propertyForm).addClass('d-none');
+
+        }
+
+        if(!this.$wrapper.find(ReportFilters._selectors.editPropertyForm).hasClass('d-none')) {
+
+            this.$wrapper.find(ReportFilters._selectors.editPropertyForm).addClass('d-none');
+
+        }
+
 
         new ReportFilterList($(ReportFilters._selectors.reportFilterListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);
     }
@@ -290,14 +290,6 @@ class ReportFilters {
         this.$wrapper.find(ReportFilters._selectors.reportFilterNavigation).removeClass('d-none');
         this.$wrapper.find(ReportFilters._selectors.propertyForm).addClass('d-none');
         this.$wrapper.find(ReportFilters._selectors.reportFilterListContainer).addClass('d-none');
-
-    }
-
-    handleReportAdvanceToFiltersViewButtonClicked(e) {
-
-        debugger;
-
-        new ReportFilterList($(ReportFilters._selectors.reportFilterListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);
 
     }
 
@@ -316,44 +308,15 @@ class ReportFilters {
             this.$wrapper.find(ReportFilters._selectors.editPropertyForm).addClass('d-none');
 
         }
-
-        /*new ReportFilterList($(ReportFilters._selectors.reportFilterListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);*/
-
     }
 
     handleReportFilterItemClicked(property) {
-
-        debugger;
 
         this.$wrapper.find(ReportFilters._selectors.reportFilterListContainer).addClass('d-none');
         this.$wrapper.find(ReportFilters._selectors.propertyForm).removeClass('d-none');
 
         this.renderFilterForm(property);
 
-    }
-
-    handleReportRemoveSelectedColumnIconClicked(property) {
-
-        let propertyPath = property.joins.join('.');
-
-        if(_.has(this.data, propertyPath)) {
-
-            let properties = _.get(this.data, propertyPath);
-
-            let key = null;
-
-            properties.forEach((p, k) => {
-
-                if(parseInt(p.id) === parseInt(property.id)) {
-                    key = k;
-                }
-            });
-
-            _.unset(this.data, `${propertyPath}[${key}]`);
-
-        }
-
-        this.globalEventDispatcher.publish(Settings.Events.REPORT_PROPERTY_LIST_ITEM_REMOVED, this.data);
     }
 
     handleBackButtonClicked() {
@@ -381,7 +344,7 @@ class ReportFilters {
 
         new ReportPreviewResultsButton($(ReportFilters._selectors.reportPreviewResultsButtonContainer), this.globalEventDispatcher);
 
-        new ReportPreviewResultsTable($(ReportFilters._selectors.reportPreviewResultsTableContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);
+        new ReportPreviewResultsTable($(ReportFilters._selectors.reportPreviewResultsTableContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, this.data, this.columnOrder);
 
     }
 
@@ -413,14 +376,14 @@ class ReportFilters {
              </nav> 
         
             <div class="row container">
-            <div class="col-md-6 js-report-filter-navigation c-report-widget__filter-navigation"></div>
+            <div class="col-md-4 js-report-filter-navigation c-report-widget__filter-navigation"></div>
              
-             <div class="col-md-6 js-report-filter-list-container d-none"></div>
-             <div class="col-md-6 js-property-form d-none"></div>
-             <div class="col-md-6 js-edit-property-form d-none"></div>
+             <div class="col-md-4 js-report-filter-list-container d-none"></div>
+             <div class="col-md-4 js-property-form d-none"></div>
+             <div class="col-md-4 js-edit-property-form d-none"></div>
             
             
-            <div class="col-md-6 js-report-preview-results-container">
+            <div class="col-md-8 js-report-preview-results-container">
                 <div class="col-md-12 js-report-preview-results-button-container"></div>
                 <br>
                 <div class="col-md-12 js-report-preview-results-table-container"></div>  

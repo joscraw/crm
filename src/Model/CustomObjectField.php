@@ -6,6 +6,8 @@ use App\Entity\CustomObject;
 use Doctrine\Common\Collections\ArrayCollection;
 use App\Entity\Property;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
+use App\Validator\Constraints as CustomAssert;
 
 /**
  * Class CustomObjectField
@@ -27,6 +29,8 @@ class CustomObjectField extends AbstractField /*implements \JsonSerializable*/
 
     /**
      * @Groups({"PROPERTY_FIELD_NORMALIZER", "PROPERTIES_FOR_FILTER"})
+     *
+     * @Assert\NotBlank(message="Don't forget to select a custom object!", groups={"CREATE", "EDIT"})
      * @var CustomObject
      */
     protected $customObject;

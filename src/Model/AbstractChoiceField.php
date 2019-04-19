@@ -20,6 +20,12 @@ class AbstractChoiceField extends AbstractField
      *
      * @Assert\Valid
      *
+     * @Assert\Count(
+     *      min = 1,
+     *      minMessage = "You must specify at least one option",
+     *      groups={"CREATE", "EDIT"}
+     * )
+     *
      * @var FieldOption[]
      */
     protected $options;

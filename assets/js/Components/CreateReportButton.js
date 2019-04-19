@@ -12,21 +12,9 @@ class CreateReportButton {
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
 
-        this.$wrapper.on(
-            'click',
-            '.js-open-create-custom-report-modal-btn',
-            this.handleButtonClick.bind(this)
-        );
-
         this.render();
     }
 
-    handleButtonClick() {
-        debugger;
-        console.log("Create Custom Report Button Clicked");
-        this.globalEventDispatcher.publish(Settings.Events.CREATE_RECORD_BUTTON_CLICKED);
-        console.log(`Event Dispatched: ${Settings.Events.CREATE_RECORD_BUTTON_CLICKED}`);
-    }
 
     render() {
         this.$wrapper.html(CreateReportButton.markup(this));

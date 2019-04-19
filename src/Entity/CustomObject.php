@@ -24,7 +24,7 @@ class CustomObject /*implements \JsonSerializable*/
     use TimestampableEntity;
 
     /**
-     * @Groups({"PROPERTY_FIELD_NORMALIZER", "PROPERTIES_FOR_FILTER", "CUSTOM_OBJECTS_FOR_FILTER", "REPORT"})
+     * @Groups({"PROPERTY_FIELD_NORMALIZER", "PROPERTIES_FOR_FILTER", "CUSTOM_OBJECTS_FOR_FILTER", "REPORT", "LIST"})
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
@@ -32,7 +32,7 @@ class CustomObject /*implements \JsonSerializable*/
     private $id;
 
     /**
-     * @Groups({"PROPERTY_FIELD_NORMALIZER", "PROPERTIES_FOR_FILTER", "CUSTOM_OBJECTS_FOR_FILTER", "REPORT"})
+     * @Groups({"PROPERTY_FIELD_NORMALIZER", "PROPERTIES_FOR_FILTER", "CUSTOM_OBJECTS_FOR_FILTER", "REPORT", "LIST"})
      * @Assert\NotBlank(message="Don't forget a label for your super cool sweeeeet Custom Object!", groups={"CREATE", "EDIT"})
      * @Assert\Regex("/^[a-zA-Z0-9_\s]*$/", message="Woah! Only use letters, numbers, underscores and spaces please!", groups={"CREATE", "EDIT"})
      *
@@ -43,7 +43,7 @@ class CustomObject /*implements \JsonSerializable*/
     private $label;
 
     /**
-     * @Groups({"PROPERTY_FIELD_NORMALIZER", "PROPERTIES_FOR_FILTER", "CUSTOM_OBJECTS_FOR_FILTER", "REPORT"})
+     * @Groups({"PROPERTY_FIELD_NORMALIZER", "PROPERTIES_FOR_FILTER", "CUSTOM_OBJECTS_FOR_FILTER", "REPORT", "LIST"})
      *
      * internal name
      *
@@ -81,12 +81,19 @@ class CustomObject /*implements \JsonSerializable*/
      */
     private $reports;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\MarketingList", mappedBy="customObject", orphanRemoval=true)
+     */
+    private $marketingLists;
+
+
     public function __construct()
     {
         $this->properties = new ArrayCollection();
         $this->propertyGroups = new ArrayCollection();
         $this->records = new ArrayCollection();
         $this->reports = new ArrayCollection();
+        $this->marketingLists = new ArrayCollection();
     }
 
     /**
@@ -309,6 +316,37 @@ class CustomObject /*implements \JsonSerializable*/
 
         return strtoupper($this->getInternalName());
 
+    }
+
+    /**
+     * @return Collection|MarketingList[]
+     */
+    public function getMarketingLists(): Collection
+    {
+        return $this->marketingLists;
+    }
+
+    public function addMarketingList(MarketingList $marketingList): self
+    {
+        if (!$this->marketingLists->contains($marketingList)) {
+            $this->marketingLists[] = $marketingList;
+            $marketingList->setCustomObject($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMarketingList(MarketingList $marketingList): self
+    {
+        if ($this->marketingLists->contains($marketingList)) {
+            $this->marketingLists->removeElement($marketingList);
+            // set the owning side to null (unless already changed)
+            if ($marketingList->getCustomObject() === $this) {
+                $marketingList->setCustomObject(null);
+            }
+        }
+
+        return $this;
     }
 
 }

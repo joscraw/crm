@@ -21,6 +21,7 @@ class EventDispatcher {
     }
 
     subscribe(channel, fn) {
+
         var self = this;
         if (fn === undefined) {
             throw new Error('Subscribe must include a callback function.');
@@ -30,6 +31,45 @@ class EventDispatcher {
             self.channels[channel] = [];
         }
         var token = (++this.tokenID).toString();
+        this.channels[channel].push({ ID: token, context: self, callback: fn });
+        return token;
+    }
+
+    /**
+     * Same as subscribe() except if the same exact function has subscribed to the same
+     * event then the function gets overridden. This is extremely useful when
+     * going back and forth between JS Components and creating multiple instances of the
+     * same object and avoiding events from old instances getting dispatched
+     *
+     * @param channel
+     * @param fn
+     * @return {string}
+     */
+    singleSubscribe(channel, fn) {
+
+        var self = this;
+        if (fn === undefined) {
+            throw new Error('Subscribe must include a callback function.');
+            return;
+        }
+        if (!this.channels[channel]) {
+            self.channels[channel] = [];
+        }
+
+        let token = (++this.tokenID).toString();
+
+        for(let i = 0; i < this.channels[channel].length; i++) {
+
+            let c = this.channels[channel][i];
+
+            if(c.callback.toString === fn.toString) {
+
+                this.channels[channel][i] = { ID: token, context: self, callback: fn };
+
+                return token;
+            }
+        }
+
         this.channels[channel].push({ ID: token, context: self, callback: fn });
         return token;
     }
@@ -84,6 +124,18 @@ class EventDispatcher {
                     }
                 }
             }
+        }
+    }
+
+    /**
+     * Used to unsubscribe multiple tokens at once. Just a loop wrapper for
+     * the above function unSubscribe()
+     * @param tokens
+     */
+    unSubscribeTokens(tokens) {
+
+        for(let token of tokens) {
+            this.unSubscribe(token);
         }
     }
 }

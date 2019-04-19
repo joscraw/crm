@@ -77,6 +77,7 @@ class PropertyList {
             );
 
         this.loadProperties().then(data => {
+
             this.render(data);
         })
     }
@@ -122,6 +123,15 @@ class PropertyList {
     }
 
     render(data) {
+
+        debugger;
+        if(data.data.property_groups.length === 0) {
+
+            this.$wrapper.html(emptyListTemplate());
+
+            return;
+        }
+
         this.$wrapper.html("");
         for(let key in data.data.property_groups) {
             if(data.data.property_groups.hasOwnProperty(key)) {
@@ -162,13 +172,44 @@ class PropertyList {
         ).draw();
 
         this.$wrapper.find('.js-collapse').each((index, element) => {
-            if($(element).find('.dataTables_empty').length && this.searchValue !== '') {
-                $(element).addClass('is-disabled');
 
-            } else {
+            if(this.searchValue.trim() === '') {
+
+                $(element).find(PropertyList._selectors.collapseBody).removeClass('show');
+
+                $(element).find(PropertyList._selectors.collapseTitle).find('i').removeClass('is-active');
+
                 if($(element).hasClass('is-disabled')) {
+
                     $(element).removeClass('is-disabled');
                 }
+
+                return true;
+            }
+
+            if($(element).find('.dataTables_empty').length && this.searchValue !== '') {
+
+
+                if(!$(element).hasClass('is-disabled')) {
+
+                    $(element).addClass('is-disabled');
+                }
+
+                $(element).find(PropertyList._selectors.collapseBody).removeClass('show');
+
+                $(element).find(PropertyList._selectors.collapseTitle).find('i').removeClass('is-active');
+
+            } else {
+
+                if($(element).hasClass('is-disabled')) {
+
+                    debugger;
+                    $(element).removeClass('is-disabled');
+                }
+
+                $(element).find(PropertyList._selectors.collapseBody).addClass('show');
+
+                $(element).find(PropertyList._selectors.collapseTitle).find('i').addClass('is-active');
             }
         });
     }
@@ -182,6 +223,11 @@ class PropertyList {
     }
 
     loadProperties() {
+
+        Pace.start({
+            target: '.l-grid'
+        });
+
         return new Promise((resolve, reject) => {
             debugger;
             const url = Routing.generate('properties_for_datatable', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
@@ -281,6 +327,13 @@ const rowTemplate = (propertyGroup) => `
           </div>
         </div>  
     </div>
+`;
+
+/**
+ * @return {string}
+ */
+const emptyListTemplate = () => `
+    <h1 style="text-align: center; margin-top: 100px">No property groups exist yet...</h1>
 `;
 
 export default PropertyList;
