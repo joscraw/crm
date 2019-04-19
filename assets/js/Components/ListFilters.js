@@ -37,7 +37,7 @@ import ListPreviewResultsTable from "./ListPreviewResultsTable";
 
 class ListFilters {
 
-    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, data = {}, listName = '', columnOrder) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, data = {}, listName = '', columnOrder, listType, listId) {
 
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
@@ -45,6 +45,8 @@ class ListFilters {
         this.customObjectInternalName = customObjectInternalName;
         this.listName = listName;
         this.columnOrder = columnOrder;
+        this.listType = listType;
+        this.listId = listId;
 
         /**
          * This data object is responsible for storing all the properties and filters that will get sent to the server
@@ -344,11 +346,11 @@ class ListFilters {
 
         this.$wrapper.html(ListFilters.markup(this));
 
-        new ListFilterNavigation($(ListFilters._selectors.listFilterNavigation), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, this.data);
+        new ListFilterNavigation($(ListFilters._selectors.listFilterNavigation), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, this.data, this.listType, this.listId);
 
         new ListPreviewResultsButton($(ListFilters._selectors.listPreviewResultsButtonContainer), this.globalEventDispatcher);
 
-        new ListPreviewResultsTable($(ListFilters._selectors.listPreviewResultsTableContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, this.data, this.columnOrder);
+        new ListPreviewResultsTable($(ListFilters._selectors.listPreviewResultsTableContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, this.data, this.columnOrder, this.listType, this.listId);
 
         this.$wrapper.find(ListFilters._selectors.listName).val(this.listName);
 

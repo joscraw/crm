@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\MarketingList;
+use App\Entity\Portal;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
@@ -47,4 +48,96 @@ class MarketingListRepository extends ServiceEntityRepository
         ;
     }
     */
+
+    /**
+     * @param Portal $portal
+     * @param $start
+     * @param $length
+     * @param $search
+     * @param $orders
+     * @param $columns
+     * @return array
+     */
+    public function getDataTableData(Portal $portal, $start, $length, $search, $orders, $columns)
+    {
+
+        // Main Query
+        $mainQuerySelectColumns = ['dt.id', 'dt.name', 'dt.createdAt', 'dt.type'];
+        $searchQuery = null;
+        $query = $this->createQueryBuilder('dt')
+            ->select($mainQuerySelectColumns)
+            ->where('dt.portal = :portal')
+            ->setParameter('portal', $portal->getId());
+
+        // Search
+        $searches = [];
+        if(!empty($search['value'])) {
+
+            $searchableColumns = ['dt.name', 'dt.type'];
+            $searchItem = $search['value'];
+
+            foreach($searchableColumns as $searchableColumn) {
+
+                $searches[] = sprintf('LOWER(%s) LIKE \'%%%s%%\'', $searchableColumn, strtolower($searchItem));
+
+            }
+        }
+
+        $i = 0;
+        foreach($searches as $search) {
+
+            if($i === 0) {
+                $query->andWhere($search);
+            } else {
+                $query->orWhere($search);
+            }
+
+            $i++;
+        }
+
+        // Limit
+        $query->setFirstResult($start)->setMaxResults($length);
+
+        // Order
+        foreach ($orders as $key => $order) {
+            // Orders does not contain the name of the column, but its number,
+            // so add the name so we can handle it just like the $columns array
+            $orders[$key]['name'] = $columns[$order['column']]['name'];
+        }
+
+        foreach ($orders as $key => $order) {
+            // $order['name'] is the name of the order column as sent by the JS
+            if ($order['name'] != '') {
+
+                $orderColumn = "dt.{$order['name']}";
+
+                $query->orderBy($orderColumn, $order['dir']);
+            }
+        }
+
+
+        $results = $query->getQuery()->getResult();
+        $arrayResults = $query->getQuery()->getArrayResult();
+
+        return array(
+            "results" 		=> $results,
+            "arrayResults"  => $arrayResults
+        );
+
+    }
+
+    /**
+     * @param Portal $portal
+     * @return mixed
+     */
+    public function getTotalCount(Portal $portal)
+    {
+
+        $query = $this->createQueryBuilder('list')
+            ->where('list.portal = :portal')
+            ->setParameter('portal', $portal->getId());
+
+        return count($query->getQuery()->getResult());
+
+    }
 }

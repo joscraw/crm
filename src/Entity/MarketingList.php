@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Utils\ArrayHelper;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Serializer\Annotation\Groups;
@@ -14,6 +15,7 @@ use Gedmo\Timestampable\Traits\TimestampableEntity;
 class MarketingList
 {
     use TimestampableEntity;
+    use ArrayHelper;
 
     const DYNAMIC_LIST = 'DYNAMIC_LIST';
     const STATIC_LIST = 'STATIC_LIST';
@@ -31,6 +33,7 @@ class MarketingList
     ];
 
     /**
+     * @Groups({"LIST"})
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
@@ -38,22 +41,30 @@ class MarketingList
     private $id;
 
     /**
+     * @Groups({"LIST"})
+     *
      * @ORM\Column(type="text")
      */
     private $query;
 
     /**
+     * @Groups({"LIST"})
+     *
      * @ORM\Column(type="json")
      */
     private $data = [];
 
     /**
+     * @Groups({"LIST"})
+     *
      * @ORM\ManyToOne(targetEntity="App\Entity\CustomObject", inversedBy="marketingLists")
      * @ORM\JoinColumn(nullable=false)
      */
     private $customObject;
 
     /**
+     * @Groups({"LIST"})
+     *
      * @ORM\Column(type="string", length=255)
      */
     private $name;
@@ -65,11 +76,15 @@ class MarketingList
     private $portal;
 
     /**
+     * @Groups({"LIST"})
+     *
      * @ORM\Column(type="json")
      */
     private $columnOrder = [];
 
     /**
+     * @Groups({"LIST"})
+     *
      * @Assert\Choice({"DYNAMIC_LIST", "STATIC_LIST"})
      * @ORM\Column(type="string", length=255)
      */
@@ -185,5 +200,11 @@ class MarketingList
         $this->records = $records;
 
         return $this;
+    }
+
+    public function getStaticListQuery() {
+
+        return sprintf('%s and id in (%s)', $this->query, implode(",", $this->getArrayValuesRecursive($this->records)));
+
     }
 }

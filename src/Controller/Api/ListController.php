@@ -12,12 +12,14 @@ use App\Entity\Record;
 use App\Entity\Report;
 use App\Entity\Role;
 use App\Form\CustomObjectType;
+use App\Form\DeleteListType;
 use App\Form\DeleteReportType;
 use App\Form\PropertyGroupType;
 use App\Form\PropertyType;
 use App\Form\RecordType;
 use App\Model\FieldCatalog;
 use App\Repository\CustomObjectRepository;
+use App\Repository\MarketingListRepository;
 use App\Repository\PropertyGroupRepository;
 use App\Repository\PropertyRepository;
 use App\Repository\RecordRepository;
@@ -96,7 +98,12 @@ class ListController extends ApiController
     private $permissionAuthorizationHandler;
 
     /**
-     * ReportController constructor.
+     * @var MarketingListRepository
+     */
+    private $marketingListRepository;
+
+    /**
+     * ListController constructor.
      * @param EntityManagerInterface $entityManager
      * @param CustomObjectRepository $customObjectRepository
      * @param PropertyRepository $propertyRepository
@@ -105,6 +112,7 @@ class ListController extends ApiController
      * @param SerializerInterface $serializer
      * @param ReportRepository $reportRepository
      * @param PermissionAuthorizationHandler $permissionAuthorizationHandler
+     * @param MarketingListRepository $marketingListRepository
      */
     public function __construct(
         EntityManagerInterface $entityManager,
@@ -114,7 +122,8 @@ class ListController extends ApiController
         RecordRepository $recordRepository,
         SerializerInterface $serializer,
         ReportRepository $reportRepository,
-        PermissionAuthorizationHandler $permissionAuthorizationHandler
+        PermissionAuthorizationHandler $permissionAuthorizationHandler,
+        MarketingListRepository $marketingListRepository
     ) {
         $this->entityManager = $entityManager;
         $this->customObjectRepository = $customObjectRepository;
@@ -124,6 +133,7 @@ class ListController extends ApiController
         $this->serializer = $serializer;
         $this->reportRepository = $reportRepository;
         $this->permissionAuthorizationHandler = $permissionAuthorizationHandler;
+        $this->marketingListRepository = $marketingListRepository;
     }
 
 
@@ -188,10 +198,10 @@ class ListController extends ApiController
         $list->setName($listName);
         $list->setPortal($portal);
         $list->setColumnOrder($columnOrder);
-        $list->setType($listType['name']);
+        $list->setType($listType);
 
 
-        if($listType['name'] = MarketingList::STATIC_LIST) {
+        if($listType = MarketingList::STATIC_LIST) {
 
             $results = $this->recordRepository->getReportRecordIds($data, $customObject);
 
@@ -218,12 +228,12 @@ class ListController extends ApiController
      * DataTables passes unique params in the Request and expects a specific response payload
      * @see https://datatables.net/manual/server-side Documentation for ServerSide Implimentation for DataTables
      *
-     * @Route("/datatable", name="reports_for_datatable", methods={"GET"}, options = { "expose" = true })
+     * @Route("/datatable", name="lists_for_datatable", methods={"GET"}, options = { "expose" = true })
      * @param Portal $portal
      * @param Request $request
      * @return Response
      */
-    public function getReportsForDatatableAction(Portal $portal, Request $request) {
+    public function getListsForDatatableAction(Portal $portal, Request $request) {
 
         $draw = intval($request->query->get('draw'));
         $start = $request->query->get('start');
@@ -232,16 +242,16 @@ class ListController extends ApiController
         $orders = $request->query->get('order');
         $columns = $request->query->get('columns');
 
-        $results = $this->reportRepository->getDataTableData($portal, $start, $length, $search, $orders, $columns);
+        $results = $this->marketingListRepository->getDataTableData($portal, $start, $length, $search, $orders, $columns);
 
-        $totalReportCount = $this->reportRepository->getTotalCount($portal);
+        $totalListCount = $this->marketingListRepository->getTotalCount($portal);
         $arrayResults = $results['arrayResults'];
-        $filteredReportCount = count($arrayResults);
+        $filteredListCount = count($arrayResults);
 
         $response = new JsonResponse([
             'draw'  => $draw,
-            'recordsFiltered' => !empty($search['value']) ? $filteredReportCount : $totalReportCount,
-            'recordsTotal'  => $totalReportCount,
+            'recordsFiltered' => !empty($search['value']) ? $filteredListCount : $totalListCount,
+            'recordsTotal'  => $totalListCount,
             'data'  => $arrayResults
         ],  Response::HTTP_OK);
 
@@ -249,40 +259,45 @@ class ListController extends ApiController
     }
 
     /**
-     * @Route("/{reportId}/download", name="download_report", methods={"GET"}, options = { "expose" = true })
+     * @Route("/{listId}/download", name="download_list", methods={"GET"}, options = { "expose" = true })
      * @param Portal $portal
-     * @param Report $report
+     * @param MarketingList $list
      * @return \Symfony\Component\HttpFoundation\Response
      * @throws \Doctrine\DBAL\DBALException
      */
-    public function downloadAction(Portal $portal, Report $report) {
+    public function downloadAction(Portal $portal, MarketingList $list) {
+
+        $query = $list->getQuery();
+        if($list->getType() === MarketingList::STATIC_LIST) {
+            $query = $list->getStaticListQuery();
+        }
 
         $em = $this->entityManager;
-        $stmt = $em->getConnection()->prepare($report->getQuery());
+        $stmt = $em->getConnection()->prepare($query);
         $stmt->execute();
         $results = $stmt->fetchAll();
 
         $response = new Response($this->serializer->encode($results, 'csv'));
 
         $response->headers->set('Content-Type', 'text/csv');
-        $response->headers->set('Content-Disposition', "attachment; filename={$report->getName()}.csv");
+        $response->headers->set('Content-Disposition', "attachment; filename={$list->getName()}.csv");
 
         return $response;
 
     }
 
     /**
-     * @Route("/{reportId}/delete-form", name="delete_report_form", methods={"GET"}, options = { "expose" = true })
+     * @Route("/{listId}/delete-form", name="delete_list_form", methods={"GET"}, options = { "expose" = true })
      * @param Portal $portal
-     * @param Report $report
+     * @param MarketingList $list
      * @return JsonResponse
      */
-    public function getDeleteReportFormAction(Portal $portal, Report $report) {
+    public function getDeleteListFormAction(Portal $portal, MarketingList $list) {
 
-        $form = $this->createForm(DeleteReportType::class, $report);
+        $form = $this->createForm(DeleteListType::class, $list);
 
         $formMarkup = $this->renderView(
-            'Api/form/delete_report_form.html.twig',
+            'Api/form/delete_list_form.html.twig',
             [
                 'form' => $form->createView(),
             ]
@@ -298,18 +313,18 @@ class ListController extends ApiController
     }
 
     /**
-     * @Route("/{reportId}/delete", name="delete_report", methods={"POST"}, options={"expose" = true})
+     * @Route("/{listId}/delete", name="delete_list", methods={"POST"}, options={"expose" = true})
      * @param Portal $portal
-     * @param Report $report
+     * @param MarketingList $list
      * @param Request $request
      * @return JsonResponse
      */
-    public function deleteReportAction(Portal $portal, Report $report, Request $request)
+    public function deleteListAction(Portal $portal, MarketingList $list, Request $request)
     {
 
         $hasPermission = $this->permissionAuthorizationHandler->isAuthorized(
             $this->getUser(),
-            Role::DELETE_REPORT,
+            Role::DELETE_LIST,
             Role::SYSTEM_PERMISSION
         );
 
@@ -321,13 +336,13 @@ class ListController extends ApiController
             );
         }
 
-        $form = $this->createForm(DeleteReportType::class, $report);
+        $form = $this->createForm(DeleteListType::class, $list);
 
         $form->handleRequest($request);
 
         if (!$form->isValid()) {
             $formMarkup = $this->renderView(
-                'Api/form/delete_report_form.html.twig',
+                'Api/form/delete_list_form.html.twig',
                 [
                     'form' => $form->createView(),
                 ]
@@ -342,9 +357,9 @@ class ListController extends ApiController
         }
 
         // delete report here
-        /** @var $report Report */
-        $report = $form->getData();
-        $this->entityManager->remove($report);
+        /** @var $list MarketingList */
+        $list = $form->getData();
+        $this->entityManager->remove($list);
         $this->entityManager->flush();
 
         return new JsonResponse(
@@ -357,17 +372,15 @@ class ListController extends ApiController
     }
 
     /**
-     * @Route("/{reportId}", name="get_report", methods={"GET"}, options = { "expose" = true })
+     * @Route("/{listId}", name="get_list", methods={"GET"}, options = { "expose" = true })
      * @param Portal $portal
-     * @param Report $report
+     * @param MarketingList $list
      * @param Request $request
      * @return JsonResponse
      */
-    public function getReportAction(Portal $portal, Report $report, Request $request) {
+    public function getReportAction(Portal $portal, MarketingList $list, Request $request) {
 
-        $report = $this->reportRepository->find($report->getId());
-
-        $json = $this->serializer->serialize($report, 'json', ['groups' => ['REPORT']]);
+        $json = $this->serializer->serialize($list, 'json', ['groups' => ['LIST']]);
 
         $payload = json_decode($json, true);
 
@@ -417,7 +430,7 @@ class ListController extends ApiController
         $list->setName($listName);
         $list->setPortal($portal);
         $list->setColumnOrder($columnOrder);
-        $list->setType($listType['name']);
+        $list->setType($listType);
 
         $this->entityManager->persist($list);
         $this->entityManager->flush();
@@ -443,11 +456,30 @@ class ListController extends ApiController
 
         $columnOrder = $request->request->get('columnOrder', []);
 
-        $results = $this->recordRepository->getReportData($data, $customObject, $columnOrder);
+        $listType = $request->request->get('listType');
+
+        $listId = $request->request->get('listId');
+
+        if($listType === MarketingList::STATIC_LIST && $listId) {
+
+            $list = $this->marketingListRepository->find($listId);
+
+            $query = $list->getStaticListQuery();
+
+            $em = $this->entityManager;
+            $stmt = $em->getConnection()->prepare($query);
+            $stmt->execute();
+            $results = $stmt->fetchAll();
+
+        } else {
+
+            $results = $this->recordRepository->getReportData($data, $customObject, $columnOrder);
+            $results = $results['results'];
+        }
 
         $properties = $customObject->getProperties()->toArray();
 
-        foreach($results['results'] as &$result) {
+        foreach($results as &$result) {
 
             foreach($result as $key => $value) {
 
@@ -509,7 +541,7 @@ class ListController extends ApiController
 
         $response = new JsonResponse([
             'success' => true,
-            'data'  => $results['results']
+            'data'  => $results
         ], Response::HTTP_OK);
 
         return $response;

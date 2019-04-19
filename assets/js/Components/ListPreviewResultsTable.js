@@ -22,8 +22,10 @@ class ListPreviewResultsTable {
      * @param customObjectInternalName
      * @param data
      * @param columnOrder
+     * @param listType
+     * @param listId
      */
-    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, data, columnOrder) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, data, columnOrder, listType, listId) {
 
 
         debugger;
@@ -33,6 +35,8 @@ class ListPreviewResultsTable {
         this.customObjectInternalName = customObjectInternalName;
         this.data = data;
         this.columnOrder = columnOrder;
+        this.listType = listType;
+        this.listId = listId;
 
         this.$tableHeader = null;
         this.records = [];
@@ -170,7 +174,7 @@ class ListPreviewResultsTable {
 
             $.ajax({
                 url: url,
-                data: {data: this.data, columnOrder: this.columnOrder},
+                data: {data: this.data, columnOrder: this.columnOrder, listType: this.listType, listId: this.listId},
                 method: 'POST',
             }).then(data => {
                 debugger;

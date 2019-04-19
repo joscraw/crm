@@ -33,9 +33,9 @@ import ListSelectCustomObject from "./ListSelectCustomObject";
 import ListProperties from "./ListProperties";
 import ListFilters from "./ListFilters";
 
-class ListWidget {
+class EditListWidget {
 
-    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, listId) {
 
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
@@ -43,7 +43,7 @@ class ListWidget {
         this.customObject = null;
         this.listName = '';
         this.listType = null;
-        this.listId = null;
+        this.listId = listId;
 
         /**
          * This data object is responsible for storing all the properties and filters that will get sent to the server
@@ -125,7 +125,19 @@ class ListWidget {
             this.handleListSaveButtonPressed.bind(this)
         );
 
-        this.render();
+
+        this.loadList().then((data) => {
+
+            debugger;
+            this.data = data.data.data;
+            this.columnOrder = data.data.columnOrder;
+            this.listName = data.data.name;
+            this.customObject = data.data.customObject;
+            this.listType = data.data.type;
+
+            this.render();
+        });
+
     }
 
     /**
@@ -163,6 +175,24 @@ class ListWidget {
 
     }
 
+    loadList() {
+        return new Promise((resolve, reject) => {
+            debugger;
+            const url = Routing.generate('get_list', {internalIdentifier: this.portalInternalIdentifier, listId: this.listId});
+
+            $.ajax({
+                url: url
+            }).then(data => {
+                debugger;
+                resolve(data);
+            }).catch(jqXHR => {
+                debugger;
+                const errorData = JSON.parse(jqXHR.responseText);
+                reject(errorData);
+            });
+        });
+    }
+
     handleAdvanceToListPropertiesViewButtonClicked(customObject) {
 
         debugger;
@@ -175,10 +205,10 @@ class ListWidget {
 
         this.customObject = customObject;
 
-        this.$wrapper.find(ListWidget._selectors.listSelectCustomObjectContainer).addClass('d-none');
-        this.$wrapper.find(ListWidget._selectors.listPropertiesContainer).removeClass('d-none');
+        this.$wrapper.find(EditListWidget._selectors.listSelectCustomObjectContainer).addClass('d-none');
+        this.$wrapper.find(EditListWidget._selectors.listPropertiesContainer).removeClass('d-none');
 
-        new ListProperties($(ListWidget._selectors.listPropertiesContainer), this.globalEventDispatcher, this.portalInternalIdentifier, customObject.internalName, this.data, this.columnOrder);
+        new ListProperties($(EditListWidget._selectors.listPropertiesContainer), this.globalEventDispatcher, this.portalInternalIdentifier, customObject.internalName, this.data, this.columnOrder);
 
     }
 
@@ -195,18 +225,18 @@ class ListWidget {
     listBackToSelectCustomObjectButtonHandler(e) {
 
         debugger;
-        this.$wrapper.find(ListWidget._selectors.listSelectCustomObjectContainer).removeClass('d-none');
-        this.$wrapper.find(ListWidget._selectors.listPropertiesContainer).addClass('d-none');
+        this.$wrapper.find(EditListWidget._selectors.listSelectCustomObjectContainer).removeClass('d-none');
+        this.$wrapper.find(EditListWidget._selectors.listPropertiesContainer).addClass('d-none');
 
-        new ListSelectCustomObject($(ListWidget._selectors.listSelectCustomObjectContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject);
+        new ListSelectCustomObject($(EditListWidget._selectors.listSelectCustomObjectContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject);
 
     }
 
     handleListBackToPropertiesButtonPressed() {
         debugger;
 
-        this.$wrapper.find(ListWidget._selectors.listFiltersContainer).addClass('d-none');
-        this.$wrapper.find(ListWidget._selectors.listPropertiesContainer).removeClass('d-none');
+        this.$wrapper.find(EditListWidget._selectors.listFiltersContainer).addClass('d-none');
+        this.$wrapper.find(EditListWidget._selectors.listPropertiesContainer).removeClass('d-none');
 
         /*new ReportProperties($(ReportWidget._selectors.reportPropertiesContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject.internalName, this.data);*/
 
@@ -215,10 +245,10 @@ class ListWidget {
     handleListAdvanceToFiltersViewButtonClicked(e) {
 
         debugger;
-        this.$wrapper.find(ListWidget._selectors.listFiltersContainer).removeClass('d-none');
-        this.$wrapper.find(ListWidget._selectors.listPropertiesContainer).addClass('d-none');
+        this.$wrapper.find(EditListWidget._selectors.listFiltersContainer).removeClass('d-none');
+        this.$wrapper.find(EditListWidget._selectors.listPropertiesContainer).addClass('d-none');
 
-        new ListFilters($(ListWidget._selectors.listFiltersContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject.internalName, this.data, this.listName, this.columnOrder, this.listType, this.listId);
+        new ListFilters($(EditListWidget._selectors.listFiltersContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject.internalName, this.data, this.listName, this.columnOrder, this.listType, this.listId);
 
     }
 
@@ -226,27 +256,27 @@ class ListWidget {
 
         debugger;
 
-        // If a brand new list type is selected then clear the data
-        if(this.listType && this.listType !== listType) {
+        // If a brand new custom object is selected then clear the data
+        if(this.listType && this.listType.name !== listType.name) {
             this.customObject = null;
         }
 
         this.listType = listType;
 
-        this.$wrapper.find(ListWidget._selectors.listSelectListTypeContainer).addClass('d-none');
-        this.$wrapper.find(ListWidget._selectors.listSelectCustomObjectContainer).removeClass('d-none');
+        this.$wrapper.find(EditListWidget._selectors.listSelectListTypeContainer).addClass('d-none');
+        this.$wrapper.find(EditListWidget._selectors.listSelectCustomObjectContainer).removeClass('d-none');
 
-        new ListSelectCustomObject($(ListWidget._selectors.listSelectCustomObjectContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject);
+        new ListSelectCustomObject($(EditListWidget._selectors.listSelectCustomObjectContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject);
 
     }
 
     handleBackToSelectListTypeButtonClicked() {
 
         debugger;
-        this.$wrapper.find(ListWidget._selectors.listSelectListTypeContainer).removeClass('d-none');
-        this.$wrapper.find(ListWidget._selectors.listSelectCustomObjectContainer).addClass('d-none');
+        this.$wrapper.find(EditListWidget._selectors.listSelectListTypeContainer).removeClass('d-none');
+        this.$wrapper.find(EditListWidget._selectors.listSelectCustomObjectContainer).addClass('d-none');
 
-        new ListSelectListType($(ListWidget._selectors.listSelectListTypeContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.listType);
+        new ListSelectListType($(EditListWidget._selectors.listSelectListTypeContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.listType);
 
 
     }
@@ -421,9 +451,11 @@ class ListWidget {
 
     render() {
 
-        this.$wrapper.html(ListWidget.markup(this));
+        this.$wrapper.html(EditListWidget.markup(this));
 
-        new ListSelectListType($(ListWidget._selectors.listSelectListTypeContainer), this.globalEventDispatcher, this.portalInternalIdentifier);
+        new ListProperties($(EditListWidget._selectors.listPropertiesContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject.internalName, this.data, this.columnOrder);
+
+        /*new ListSelectListType($(EditListWidget._selectors.listSelectListTypeContainer), this.globalEventDispatcher, this.portalInternalIdentifier);*/
     }
 
     _saveList() {
@@ -431,11 +463,7 @@ class ListWidget {
         return new Promise((resolve, reject) => {
             debugger;
 
-            let url = Routing.generate('save_list', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObject.internalName});
-
-            if(this.listId) {
-                url = Routing.generate('api_edit_list', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObject.internalName, listId: this.listId});
-            }
+            let url = Routing.generate('api_edit_list', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObject.internalName, listId: this.listId});
 
             $.ajax({
                 url,
@@ -461,11 +489,11 @@ class ListWidget {
 
         return `
       <div class="js-report-widget c-report-widget">
-            <div class="js-list-select-list-type-container"></div>
+            <div class="js-list-select-list-type-container d-none"></div>
             
             <div class="js-list-select-custom-object-container d-none"></div>
             
-            <div class="js-list-properties-container d-none"></div>
+            <div class="js-list-properties-container"></div>
             
             <div class="js-list-filters-container d-none"></div>
             
@@ -474,4 +502,4 @@ class ListWidget {
     }
 }
 
-export default ListWidget;
+export default EditListWidget;

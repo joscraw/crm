@@ -104,13 +104,13 @@ class ListController extends AbstractController
 
     /**
      * @Route("/{listId}/edit/{routing}", name="edit_list", requirements={"routing"=".+"}, defaults={"routing": null}, methods={"GET"}, options = { "expose" = true })
-     * @param Report $report
+     * @param MarketingList $list
      * @param Portal $portal
      * @return \Symfony\Component\HttpFoundation\Response
      */
-    public function editAction(Report $report, Portal $portal) {
+    public function editAction(MarketingList $list, Portal $portal) {
 
-        return $this->render('report/edit.html.twig', array(
+        return $this->render('list/edit.html.twig', array(
             'portal' => $portal
         ));
     }

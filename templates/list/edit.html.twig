@@ -1,0 +1,16 @@
+{% extends 'baseNoNavBars.html.twig' %}
+
+{% block title %}Edit List{% endblock %}
+
+{% block containerComponent %}js-edit-list{% endblock %}
+
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link href="{{ asset('build/list_settings.css') }}" rel="stylesheet" />
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('build/list_settings.js') }}"></script>
+{% endblock %}

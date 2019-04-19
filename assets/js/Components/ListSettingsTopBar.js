@@ -10,6 +10,7 @@ import CreateReportButton from "./CreateReportButton";
 import CustomObjectSearch from "./CustomObjectSearch";
 import ReportSearch from "./ReportSearch";
 import CreateListButton from "./CreateListButton";
+import ListSearch from "./ListSearch";
 
 
 class ListSettingsTopBar {
@@ -31,9 +32,8 @@ class ListSettingsTopBar {
 
         this.$wrapper.html(ListSettingsTopBar.markup());
 
-/*        new ReportSearch(this.$wrapper.find('.js-top-bar-search-container'), this.globalEventDispatcher, this.portalInternalIdentifier, "Search for a report");
+        new ListSearch(this.$wrapper.find('.js-top-bar-search-container'), this.globalEventDispatcher, this.portalInternalIdentifier, "Search for a list");
 
-       */
 
         new CreateListButton(this.$wrapper.find('.js-create-list-button'), this.globalEventDispatcher, this.portalInternalIdentifier);
 

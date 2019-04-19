@@ -30,12 +30,15 @@ import FilterHelper from "../FilterHelper";
 
 class ListFilterNavigation {
 
-    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, data = {}) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, data = {}, listType, listId) {
 
+        debugger;
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
         this.customObjectInternalName = customObjectInternalName;
+        this.listType = listType;
+        this.listId = listId;
 
         /**
          * This data object is responsible for storing all the properties and filters that will get sent to the server
@@ -102,6 +105,8 @@ class ListFilterNavigation {
         this.$wrapper.off('click', ListFilterNavigation._selectors.addOrFilterButton);
 
         this.$wrapper.off('click', ListFilterNavigation._selectors.removeFilterIcon);
+
+        this.$wrapper.off('click', ListFilterNavigation._selectors.filter);
 
     }
 
@@ -306,8 +311,19 @@ class ListFilterNavigation {
 
         this.$wrapper.html(ListFilterNavigation.markup());
 
-
         this.renderCustomFilters(data);
+
+        if(this.listType === 'STATIC_LIST' && this.listId) {
+
+            $(ListFilterNavigation._selectors.addFilterButton).remove();
+
+            $(ListFilterNavigation._selectors.addOrFilterButton).remove();
+
+            $(ListFilterNavigation._selectors.removeFilterIcon).remove();
+
+            this.$wrapper.off('click', ListFilterNavigation._selectors.filter);
+
+        }
 
     }
 

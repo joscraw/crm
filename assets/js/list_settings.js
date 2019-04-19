@@ -7,11 +7,13 @@ import ReportWidget from "./Components/ReportWidget";
 import EditReportWidget from "./Components/EditReportWidget";
 import ListSettings from "./Components/Page/ListSettings";
 import ListWidget from "./Components/ListWidget";
+import EditListWidget from "./Components/EditListWidget";
 
 require('backbone/backbone.js');
 
 $(document).ready(function() {
 
+    debugger;
     var Router = Backbone.Router.extend({
         routes: {
             ":internalIdentifier/lists": "index",
@@ -32,11 +34,11 @@ $(document).ready(function() {
             $('#side-nav').html("");
             new ListWidget($('#app'), window.globalEventDispatcher, internalIdentifier);
         },
-        edit: function(internalIdentifier, reportId) {
+        edit: function(internalIdentifier, listId) {
             debugger;
             $('#side-nav').html("");
             debugger;
-            new EditReportWidget($('#app'), window.globalEventDispatcher, internalIdentifier, reportId);
+            new EditListWidget($('#app'), window.globalEventDispatcher, internalIdentifier, listId);
         }
     });
 

@@ -12,6 +12,7 @@ import ReportSettingsTopBar from "../ReportSettingsTopBar";
 import CustomObjectList from "../CustomObjectList";
 import ReportList from "../ReportList";
 import ListSettingsTopBar from "../ListSettingsTopBar";
+import ListTable from "../ListTable";
 
 class ListSettings {
 
@@ -33,7 +34,7 @@ class ListSettings {
 
         new ListSettingsTopBar(this.$wrapper.find('.js-top-bar'), this.globalEventDispatcher, this.portalInternalIdentifier);
 
-        new ReportList(this.$wrapper.find('.js-main-content'), this.globalEventDispatcher, this.portalInternalIdentifier);
+        new ListTable(this.$wrapper.find('.js-main-content'), this.globalEventDispatcher, this.portalInternalIdentifier);
 
     }
 

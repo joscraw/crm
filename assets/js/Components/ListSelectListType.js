@@ -56,16 +56,9 @@ class ListSelectListType {
 
         debugger;
         let listTypeField = this.$wrapper.find(ListSelectListType._selectors.listTypeField);
-        let listTypeName = listTypeField.val();
+        let listType = listTypeField.val();
 
-
-        let listType = this.listTypes.filter(listType => {
-            return listType.name === listTypeName;
-        });
-
-        debugger;
-
-        this.globalEventDispatcher.publish(Settings.Events.ADVANCE_TO_LIST_SELECT_CUSTOM_OBJECT_VIEW_BUTTON_CLICKED, listType[0]);
+        this.globalEventDispatcher.publish(Settings.Events.ADVANCE_TO_LIST_SELECT_CUSTOM_OBJECT_VIEW_BUTTON_CLICKED, listType);
     }
 
     render() {
@@ -101,7 +94,7 @@ class ListSelectListType {
         });
 
         if(this.listType) {
-            let index = _.findIndex(listTypes, (listType) => { return listType.name === this.listType.name });
+            let index = _.findIndex(listTypes, (listType) => { return listType.name === this.listType });
             $( `#listTypes input[type="radio"]`).eq(index).prop('checked', true);
         } else {
             $( `#listTypes input[type="radio"]`).first().prop('checked', true);

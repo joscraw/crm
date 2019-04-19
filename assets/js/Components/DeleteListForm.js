@@ -5,20 +5,20 @@ import swal from 'sweetalert2';
 import Routing from '../Routing';
 import Settings from '../Settings';
 
-class DeleteReportForm {
+class DeleteListForm {
 
     /**
      * @param $wrapper
      * @param globalEventDispatcher
      * @param portal
-     * @param reportId
+     * @param listId
      */
-    constructor($wrapper, globalEventDispatcher, portal, reportId) {
+    constructor($wrapper, globalEventDispatcher, portal, listId) {
 
         debugger;
         this.$wrapper = $wrapper;
         this.portal = portal;
-        this.reportId = reportId;
+        this.listId = listId;
 
         /**
          * @type {EventDispatcher}
@@ -27,10 +27,11 @@ class DeleteReportForm {
 
         this.$wrapper.on(
             'submit',
-            DeleteReportForm._selectors.deleteReportForm,
+            DeleteListForm._selectors.deleteListForm,
             this.handleDeleteFormSubmit.bind(this)
         );
-        this.loadDeleteReportForm();
+
+        this.loadForm();
     }
 
     /**
@@ -38,14 +39,14 @@ class DeleteReportForm {
      */
     static get _selectors() {
         return {
-            deleteReportForm: '.js-delete-report-form',
+            deleteListForm: '.js-delete-list-form',
         }
     }
 
-    loadDeleteReportForm() {
+    loadForm() {
         debugger;
         $.ajax({
-            url: Routing.generate('delete_report_form', {internalIdentifier: this.portal, reportId: this.reportId}),
+            url: Routing.generate('delete_list_form', {internalIdentifier: this.portal, listId: this.listId}),
         }).then(data => {
             this.$wrapper.html(data.formMarkup);
         })
@@ -64,12 +65,11 @@ class DeleteReportForm {
         const $form = $(e.currentTarget);
         let formData = new FormData($form.get(0));
 
-        this._deleteReport(formData)
+        this._delete(formData)
             .then((data) => {
 
-                debugger;
-                swal("Hooray!", "Sweet! Report successfully removed!", "success");
-                this.globalEventDispatcher.publish(Settings.Events.REPORT_DELETED);
+                swal("Hooray!", "Sweet! List successfully removed!", "success");
+                this.globalEventDispatcher.publish(Settings.Events.LIST_DELETED);
             }).catch((errorData) => {
 
                 if(errorData.httpCode === 401) {
@@ -79,8 +79,6 @@ class DeleteReportForm {
 
                 this.$wrapper.html(errorData.formMarkup);
 
-            // Use for when the form is being generated on the JS side
-            /*this._mapErrorsToForm(errorData.errors);*/
         });
     }
 
@@ -89,10 +87,10 @@ class DeleteReportForm {
      * @return {Promise<any>}
      * @private
      */
-    _deleteReport(data) {
+    _delete(data) {
         return new Promise( (resolve, reject) => {
 
-            const url = Routing.generate('delete_report', {internalIdentifier: this.portal, reportId: this.reportId});
+            const url = Routing.generate('delete_list', {internalIdentifier: this.portal, listId: this.listId});
             debugger;
 
             $.ajax({
@@ -116,4 +114,4 @@ class DeleteReportForm {
     }
 }
 
-export default DeleteReportForm;
+export default DeleteListForm;
