@@ -66,7 +66,6 @@ class RecordEditForm {
      */
     applySearch(args = {}) {
 
-        debugger;
         if(typeof args.searchValue !== 'undefined') {
             this.searchValue = args.searchValue;
         }
@@ -76,6 +75,18 @@ class RecordEditForm {
         $collapsePanels.each((index, element) => {
             debugger;
             let $formItems = $(element).find('.js-form-item');
+            let showPanel = false;
+
+            if(this.searchValue.trim() === '') {
+
+                $(element).find(RecordEditForm._selectors.collapseBody).removeClass('show');
+
+                $(element).find(RecordEditForm._selectors.collapseTitle).find('i').removeClass('is-active');
+
+                if($(element).hasClass('d-none')) {
+                    $(element).removeClass('d-none');
+                }
+            }
 
             $formItems.each((index, element) => {
 
@@ -84,8 +95,15 @@ class RecordEditForm {
                 let label = $search.data('label');
                 let value = $search.data('value');
 
-                console.log(value);
-                console.log(this.searchValue);
+                if(this.searchValue.trim() === '') {
+
+                    if($(element).hasClass('d-none')) {
+
+                        $(element).removeClass('d-none');
+                    }
+
+                    return true;
+                }
 
                 if (Array.isArray(value)) {
                     value = JSON.stringify(value);
@@ -96,15 +114,32 @@ class RecordEditForm {
                 if((value === null || value.toLowerCase().indexOf(this.searchValue.toLowerCase()) === -1) && (label === null || label.toLowerCase().indexOf(this.searchValue.toLowerCase()) === -1)) {
                     debugger;
                     if(!$(element).hasClass('d-none')) {
+
                         $(element).addClass('d-none');
                     }
+
                 } else {
                     if($(element).hasClass('d-none')) {
+
                         $(element).removeClass('d-none');
                     }
+
+                    showPanel = true;
                 }
 
             });
+
+            if(showPanel) {
+
+                $(element).find(RecordEditForm._selectors.collapseBody).addClass('show');
+
+                $(element).find(RecordEditForm._selectors.collapseTitle).find('i').addClass('is-active');
+            } else {
+
+                $(element).find(RecordEditForm._selectors.collapseBody).removeClass('show');
+
+                $(element).find(RecordEditForm._selectors.collapseTitle).find('i').removeClass('is-active');
+            }
 
             if($(element).find('.js-form-item').not('.d-none').length === 0) {
                 if(!$(element).hasClass('d-none')) {
