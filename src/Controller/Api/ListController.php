@@ -397,6 +397,7 @@ class ListController extends ApiController
      * @param MarketingList $list
      * @param Request $request
      * @return Response
+     * @throws \Doctrine\DBAL\DBALException
      */
     public function editListAction(Portal $portal, CustomObject $customObject, MarketingList $list, Request $request) {
 
@@ -423,6 +424,16 @@ class ListController extends ApiController
         $columnOrder = $request->request->get('columnOrder', []);
 
         $query = $this->recordRepository->getReportMysqlOnly($data, $customObject, $columnOrder);
+
+        if($listType = MarketingList::STATIC_LIST) {
+
+            $results = $this->recordRepository->getReportRecordIds($data, $customObject);
+
+            $records = $results['results'];
+
+            $list->setRecords($records);
+
+        }
 
         $list->setQuery($query);
         $list->setCustomObject($customObject);
