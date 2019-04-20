@@ -43,9 +43,9 @@ class RecordEditForm {
             this.handleTitleClick.bind(this)
         );
 
-        this.loadEditRecordForm().then(() => { this.activatePlugins(); });
+        this.render();
 
-       /* this.activatePlugins();*/
+        this.loadEditRecordForm().then(() => { this.activatePlugins(); });
 
     }
 
@@ -57,8 +57,16 @@ class RecordEditForm {
             editRecordForm: '.js-edit-record-form',
             collapse: '.js-collapse',
             collapseTitle: '.js-collapse__title',
-            collapseBody: '.js-collapse__body'
+            collapseBody: '.js-collapse__body',
+            forms: '.js-forms',
+            noResults: '.js-no-results'
         }
+    }
+
+    render() {
+        const html = mainTemplate();
+        const $mainTemplate = $($.parseHTML(html));
+        this.$wrapper.html($mainTemplate);
     }
 
     /**
@@ -71,6 +79,8 @@ class RecordEditForm {
         }
 
         let $collapsePanels = this.$wrapper.find('.js-collapse');
+        let numOfPanels = $collapsePanels.length;
+        let numOfPanelsHidden = 0;
 
         $collapsePanels.each((index, element) => {
             debugger;
@@ -139,6 +149,30 @@ class RecordEditForm {
                 $(element).find(RecordEditForm._selectors.collapseBody).removeClass('show');
 
                 $(element).find(RecordEditForm._selectors.collapseTitle).find('i').removeClass('is-active');
+
+                numOfPanelsHidden++;
+            }
+
+            if(this.searchValue.trim() !== '' && numOfPanelsHidden === numOfPanels) {
+
+                if(!this.$wrapper.find(RecordEditForm._selectors.forms).hasClass('d-none')) {
+                    this.$wrapper.find(RecordEditForm._selectors.forms).addClass('d-none');
+                }
+
+                if(this.$wrapper.find(RecordEditForm._selectors.noResults).hasClass('d-none')) {
+                    this.$wrapper.find(RecordEditForm._selectors.noResults).removeClass('d-none');
+                }
+
+            } else {
+
+                if(this.$wrapper.find(RecordEditForm._selectors.forms).hasClass('d-none')) {
+                    this.$wrapper.find(RecordEditForm._selectors.forms).removeClass('d-none');
+                }
+
+                if(!this.$wrapper.find(RecordEditForm._selectors.noResults).hasClass('d-none')) {
+                    this.$wrapper.find(RecordEditForm._selectors.noResults).addClass('d-none');
+                }
+
             }
 
             if($(element).find('.js-form-item').not('.d-none').length === 0) {
@@ -258,7 +292,7 @@ class RecordEditForm {
             $.ajax({
                 url: Routing.generate('edit_record_form', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName, recordId: this.recordId}),
             }).then(data => {
-                this.$wrapper.html(data.formMarkup);
+                this.$wrapper.find(RecordEditForm._selectors.forms).html(data.formMarkup);
                 resolve(data);
             }).catch(errorData => {
                 reject(errorData);
@@ -291,7 +325,7 @@ class RecordEditForm {
                     return;
                 }
 
-                this.$wrapper.html(errorData.formMarkup);
+                this.$wrapper.find(RecordEditForm._selectors.forms).html(errorData.formMarkup);
 
                 this.openPanelsWithErrors();
 
@@ -327,5 +361,12 @@ class RecordEditForm {
         });
     }
 }
+
+const mainTemplate = () => `
+    <div class="js-forms"></div>
+    <div class="js-no-results d-none">
+        <h1 style="text-align: center; margin-top: 100px">No properties or values found...</h1>
+    </div>
+`;
 
 export default RecordEditForm;

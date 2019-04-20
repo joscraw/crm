@@ -31,7 +31,7 @@ class EditRecord {
     render() {
         this.$wrapper.html(EditRecord.markup());
 
-        new RecordEditForm($('.js-forms'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, this.recordId);
+        new RecordEditForm($('.js-forms-container'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, this.recordId);
         new EditRecordTopBar(this.$wrapper.find('.js-top-bar'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, this.recordId);
         new EditDefaultPropertiesWidget(this.$wrapper.find('.js-edit-default-properties-widget'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);
     }
@@ -46,7 +46,7 @@ class EditRecord {
             <div class="l-grid__main-content js-main-content">
                 <div class="row">
                     <div class="col-md-4 js-edit-default-properties-widget"></div>
-                    <div class="col-md-8 js-forms"></div>
+                    <div class="col-md-8 js-forms-container"></div>
                     <div class="col-md-3"></div>
                     <div class="col-md-3"></div>
                     <div class="col-md-3"></div>
