@@ -34,8 +34,7 @@ class RecordNumberUnformattedTransformer implements DataTransformerInterface
      */
     public function transform($number)
     {
-
-        if($number === null || empty($number)) {
+        if($number === null || empty($number) || !is_numeric($number)) {
             return;
         }
 
