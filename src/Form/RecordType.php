@@ -11,6 +11,7 @@ use App\Form\DataTransformer\IdToRecordTransformer;
 use App\Form\DataTransformer\RecordCheckboxTransformer;
 use App\Form\DataTransformer\RecordDateTimeTransformer;
 use App\Form\DataTransformer\RecordGenericTransformer;
+use App\Form\DataTransformer\RecordMultipleCheckboxTransformer;
 use App\Form\DataTransformer\RecordNumberCurrencyTransformer;
 use App\Form\DataTransformer\RecordNumberUnformattedTransformer;
 use App\Model\DatePickerField;
@@ -83,6 +84,11 @@ class RecordType extends AbstractType
     private $recordRepository;
 
     /**
+     * @var RecordMultipleCheckboxTransformer
+     */
+    private $recordMultipleCheckboxTransformer;
+
+    /**
      * RecordType constructor.
      * @param IdToRecordTransformer $transformer
      * @param IdArrayToRecordArrayTransformer $idArrayToRecordArrayTransformer
@@ -92,6 +98,7 @@ class RecordType extends AbstractType
      * @param RecordCheckboxTransformer $recordCheckboxTranformer
      * @param RecordNumberUnformattedTransformer $recordNumberUnformattedTransformer
      * @param RecordRepository $recordRepository
+     * @param RecordMultipleCheckboxTransformer $recordMultipleCheckboxTransformer
      */
     public function __construct(
         IdToRecordTransformer $transformer,
@@ -101,7 +108,8 @@ class RecordType extends AbstractType
         RecordGenericTransformer $recordGenericTransformer,
         RecordCheckboxTransformer $recordCheckboxTranformer,
         RecordNumberUnformattedTransformer $recordNumberUnformattedTransformer,
-        RecordRepository $recordRepository
+        RecordRepository $recordRepository,
+        RecordMultipleCheckboxTransformer $recordMultipleCheckboxTransformer
     ) {
         $this->transformer = $transformer;
         $this->idArrayToRecordArrayTransformer = $idArrayToRecordArrayTransformer;
@@ -111,6 +119,7 @@ class RecordType extends AbstractType
         $this->recordCheckboxTranformer = $recordCheckboxTranformer;
         $this->recordNumberUnformattedTransformer = $recordNumberUnformattedTransformer;
         $this->recordRepository = $recordRepository;
+        $this->recordMultipleCheckboxTransformer = $recordMultipleCheckboxTransformer;
     }
 
 
@@ -227,6 +236,8 @@ class RecordType extends AbstractType
                         ]
                     ], $options);
                     $builder->add($property->getInternalName(), ChoiceType::class, $options);
+                    $builder->get($property->getInternalName())
+                        ->addModelTransformer($this->recordMultipleCheckboxTransformer);
                     break;
                 case FieldCatalog::RADIO_SELECT:
                     $choices = $property->getField()->getOptionsForChoiceTypeField();
