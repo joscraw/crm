@@ -249,8 +249,7 @@ class EditPropertyType extends AbstractType
     public function configureOptions(OptionsResolver $resolver)
     {
         $resolver->setDefaults(array(
-            'data_class' => Property::class,
-            'validation_groups' => ['EDIT'],
+            'data_class' => Property::class
         ));
 
         $resolver->setRequired([

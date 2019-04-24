@@ -154,8 +154,7 @@ class PropertyEditForm {
         formData[$(e.target).attr('name')] = $(e.target).val();
         formData[$(PropertyEditForm._selectors.customObject).attr('name')] = $(PropertyEditForm._selectors.customObject).val();
         formData[$(PropertyEditForm._selectors.fieldType).attr('name')] = $(PropertyEditForm._selectors.fieldType).val();
-
-        formData['validate'] = false;
+        formData['skip_validation'] = true;
 
         debugger;
         this._changeCustomObject(formData)
@@ -185,7 +184,7 @@ class PropertyEditForm {
 
         const formData = {};
         formData[$(e.target).attr('name')] = $(e.target).val();
-        formData['validate'] = false;
+        formData['skip_validation'] = true;
 
         this._changeFieldType(formData)
             .then((data) => {

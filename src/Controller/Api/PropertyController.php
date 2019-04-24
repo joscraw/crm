@@ -198,11 +198,19 @@ class PropertyController extends ApiController
 
         $property->setCustomObject($customObject);
 
-        $form = $this->createForm(EditPropertyType::class, $property, [
+        $skipValidation = $request->request->get('skip_validation', false);
+
+        $options = [
             'portal' => $portal,
             'customObject' => $customObject,
             'property' => $property
-        ]);
+        ];
+
+        if(!$skipValidation) {
+            $options['validation_groups'] = ['EDIT'];
+        }
+
+        $form = $this->createForm(EditPropertyType::class, $property, $options);
 
         $form->handleRequest($request);
 
