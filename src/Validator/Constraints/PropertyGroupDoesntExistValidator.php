@@ -37,14 +37,7 @@ class PropertyGroupDoesntExistValidator extends ConstraintValidator
      */
     public function validate($protocol, Constraint $constraint)
     {
-/*
-        $this->context->buildViolation($constraint->message)
-            ->setParameter('{{ string }}', 'hi')
-            ->atPath('field.options')
-            ->addViolation();*/
-
-
-      /*  $customObject = $protocol->getCustomObject();
+        $customObject = $protocol->getCustomObject();
         $propertyGroups = $this->propertyGroupRepository->findBy(['customObject' => $customObject->getId()]);
 
         if(count($propertyGroups) === 0) {
@@ -52,6 +45,6 @@ class PropertyGroupDoesntExistValidator extends ConstraintValidator
                 ->setParameter('{{ string }}', $customObject->getLabel())
                 ->atPath('propertyGroup')
                 ->addViolation();
-        }*/
+        }
     }
 }
