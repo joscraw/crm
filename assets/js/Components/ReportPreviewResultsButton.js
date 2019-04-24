@@ -16,6 +16,16 @@ class ReportPreviewResultsButton {
 
         debugger;
 
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.REPORT_FILTER_ITEM_ADDED,
+            this.reportFiltersUpdatedHandler.bind(this)
+        );
+
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.REPORT_FILTER_ITEM_REMOVED,
+            this.reportFiltersUpdatedHandler.bind(this)
+        );
+
         this.unbindEvents();
 
         this.$wrapper.on(
@@ -30,7 +40,13 @@ class ReportPreviewResultsButton {
         this.$wrapper.off('click', '.js-report-preview-results-btn');
     }
 
+    reportFiltersUpdatedHandler() {
+
+        this.$wrapper.find('.js-report-preview-results-btn').html("Refresh Results");
+    }
+
     handleButtonClick() {
+        this.$wrapper.find('.js-report-preview-results-btn').html("Preview Results");
         console.log("Report Preview Results Button Clicked");
         this.globalEventDispatcher.publish(Settings.Events.REPORT_PREVIEW_RESULTS_BUTTON_CLICKED);
         console.log(`Event Dispatched: ${Settings.Events.REPORT_PREVIEW_RESULTS_BUTTON_CLICKED}`);
