@@ -146,6 +146,10 @@ class RecordType extends AbstractType
                 $options['required'] = true;
             }
 
+            if($property->getDescription()) {
+                $options['help'] = $property->getDescription();
+            }
+
             switch($property->getFieldType()) {
                 case FieldCatalog::SINGLE_LINE_TEXT:
                     $options = array_merge([

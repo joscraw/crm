@@ -111,7 +111,6 @@ class BulkEditForm {
 
     handlePropertyChange(e) {
 
-        debugger;
         if(e.cancelable) {
             e.preventDefault();
         }
@@ -120,16 +119,11 @@ class BulkEditForm {
 
         let propertyId = $(e.target).val();
 
-
         formData[$(e.target).attr('name')] = $(e.target).val();
-
-        debugger;
 
         this._changeProperty(formData).then((data) => {}).catch((errorData) => {
 
-            $('.js-property-value-container').replaceWith(
-                $(errorData.formMarkup).find('.js-property-value-container')
-            );
+            this.$wrapper.html(errorData.formMarkup);
 
             this.activatePlugins();
 

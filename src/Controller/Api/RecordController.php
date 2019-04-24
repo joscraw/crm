@@ -503,6 +503,13 @@ class RecordController extends ApiController
 
                     $urls = [];
                     foreach($values as $v) {
+
+                        $record = $this->recordRepository->find($v);
+
+                        if(!$record) {
+                            continue;
+                        }
+
                         $url = sprintf("%s/%s",
                             $this->generateUrl('record_list', [
                                 'internalIdentifier' => $portal->getInternalIdentifier(),
