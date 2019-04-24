@@ -211,6 +211,7 @@ class ReportFilterNavigation {
 
         this.$wrapper.find(ReportFilterNavigation._selectors.reportSelectedCustomFilters).html("");
 
+        let i = 1;
         for(let uID in customFilters) {
             debugger;
             let customFilter = _.get(customFilters, uID, false);
@@ -253,6 +254,11 @@ class ReportFilterNavigation {
                     continue;
                 }
 
+                let conditionalHtml = conditionalTemplate("And");
+                let $conditionalTemplate = $($.parseHTML(conditionalHtml));
+
+                $filters.append($conditionalTemplate);
+
                 let customFilter = _.get(data, filterPath);
 
                 text = FilterHelper.getFilterTextFromCustomFilter(customFilter);
@@ -266,6 +272,16 @@ class ReportFilterNavigation {
 
             this.$wrapper.find(ReportFilterNavigation._selectors.reportSelectedCustomFilters).append($filterContainerTemplate);
 
+            if(Object.keys(customFilters).length !== i) {
+
+                let conditionalHtml = conditionalTemplate("Or");
+                let $conditionalTemplate = $($.parseHTML(conditionalHtml));
+
+                this.$wrapper.find(ReportFilterNavigation._selectors.reportSelectedCustomFilters).append($conditionalTemplate);
+
+            }
+
+            i++;
         }
 
     }
@@ -357,6 +373,11 @@ const filterTemplate = (text, joinPath) => `
         </div>
     </div>
 `;
+
+const conditionalTemplate = (text) => `
+    <p style="margin-top: 10px; margin-bottom: 10px">${text}</p>
+`;
+
 
 
 export default ReportFilterNavigation;

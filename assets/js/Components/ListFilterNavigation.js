@@ -219,6 +219,7 @@ class ListFilterNavigation {
 
         this.$wrapper.find(ListFilterNavigation._selectors.listSelectedCustomFilters).html("");
 
+        let i = 1;
         for(let uID in customFilters) {
             debugger;
             let customFilter = _.get(customFilters, uID, false);
@@ -256,6 +257,11 @@ class ListFilterNavigation {
                     continue;
                 }
 
+                let conditionalHtml = conditionalTemplate("And");
+                let $conditionalTemplate = $($.parseHTML(conditionalHtml));
+
+                $filters.append($conditionalTemplate);
+
                 let customFilter = _.get(data, filterPath);
 
                 text = FilterHelper.getFilterTextFromCustomFilter(customFilter);
@@ -269,6 +275,17 @@ class ListFilterNavigation {
 
             this.$wrapper.find(ListFilterNavigation._selectors.listSelectedCustomFilters).append($filterContainerTemplate);
 
+
+            if(Object.keys(customFilters).length !== i) {
+
+                let conditionalHtml = conditionalTemplate("Or");
+                let $conditionalTemplate = $($.parseHTML(conditionalHtml));
+
+                this.$wrapper.find(ListFilterNavigation._selectors.listSelectedCustomFilters).append($conditionalTemplate);
+
+            }
+
+            i++;
         }
 
     }
@@ -363,6 +380,10 @@ const filterTemplate = (text, joinPath) => `
         <span><i class="fa fa-times js-remove-filter-icon c-report-widget__filter-remove-icon" data-join-path=${joinPath} aria-hidden="true"></i></span>
         </div>
     </div>
+`;
+
+const conditionalTemplate = (text) => `
+    <p style="margin-top: 10px; margin-bottom: 10px">${text}</p>
 `;
 
 
