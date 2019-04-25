@@ -16,6 +16,8 @@ class CustomObjectFixtures extends Fixture implements DependentFixtureInterface
         $customObject->setLabel('Contact');
         $customObject->setPortal($this->getReference('portal_1'));
 
+        $this->addReference('custom_object_1', $customObject);
+
         $manager->persist($customObject);
 
         $manager->flush();

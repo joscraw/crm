@@ -32,6 +32,9 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
 
         $user->setPortal($this->getReference('portal_1'));
         $user->addCustomRole($this->getReference('role_1'));
+        $user->setIsActive(true);
+        $user->setIsAdminUser(true);
+        $user->setRoles(['ROLE_ADMIN_USER']);
 
         $manager->persist($user);
 

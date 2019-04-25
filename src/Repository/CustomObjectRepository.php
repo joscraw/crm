@@ -71,6 +71,9 @@ class CustomObjectRepository extends ServiceEntityRepository
         $query->setFirstResult($start)->setMaxResults($length);
 
         // Order
+
+        /*$query->addOrderBy('dt.label', 'ASC');*/
+
         foreach ($orders as $key => $order) {
             // Orders does not contain the name of the column, but its number,
             // so add the name so we can handle it just like the $columns array
