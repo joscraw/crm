@@ -16,6 +16,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
  * @ORM\HasLifecycleCallbacks()
  * @CustomAssert\PropertyGroupDeletion(groups={"DELETE"})
  * @CustomAssert\PropertyGroupNameAlreadyExists(groups={"CREATE", "EDIT"})
+ * @CustomAssert\SystemDefined(groups={"FIRST"})
  */
 class PropertyGroup
 {
@@ -60,6 +61,11 @@ class PropertyGroup
      * @ORM\JoinColumn(nullable=false)
      */
     private $customObject;
+
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $systemDefined = false;
 
     public function __construct()
     {
@@ -155,6 +161,18 @@ class PropertyGroup
     public function setInternalName(?string $internalName): self
     {
         $this->internalName = $internalName;
+
+        return $this;
+    }
+
+    public function isSystemDefined(): ?bool
+    {
+        return $this->systemDefined;
+    }
+
+    public function setSystemDefined(bool $systemDefined): self
+    {
+        $this->systemDefined = $systemDefined;
 
         return $this;
     }

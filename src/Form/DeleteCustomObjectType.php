@@ -8,6 +8,7 @@ use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\GroupSequence;
 
 /**
  * Class DeleteCustomObjectType
@@ -33,7 +34,7 @@ class DeleteCustomObjectType extends AbstractType
     {
         $resolver->setDefaults(array(
             'data_class' => CustomObject::class,
-            'validation_groups' => ['DELETE'],
+            'validation_groups' => new GroupSequence(['FIRST', 'DELETE'])
         ));
     }
 }

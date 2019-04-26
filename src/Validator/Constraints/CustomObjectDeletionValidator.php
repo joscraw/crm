@@ -35,18 +35,6 @@ class CustomObjectDeletionValidator extends ConstraintValidator
      */
     public function validate($protocol, Constraint $constraint)
     {
-
-        // Check to make sure the object isn't a system defined object
-        $systemDefinedObjects = ['contacts'];
-
-        if(in_array($protocol->getInternalName(), $systemDefinedObjects)) {
-
-            $this->context->buildViolation($constraint->systemDefinedObjectMessage)
-                ->addViolation();
-
-            return;
-        }
-
         // Check to make sure the custom object doesn't have any property groups
         $results = $this->propertyGroupRepository->getCountByCustomObject($protocol);
 

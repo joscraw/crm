@@ -23,8 +23,36 @@ class PropertyFixtures extends Fixture implements DependentFixtureInterface
         $property->setField($singleLineTextField);
         $property->setCustomObject($this->getReference('custom_object_1'));
         $property->setPropertyGroup($this->getReference('property_group_1'));
+        $property->setSystemDefined(true);
 
         $manager->persist($property);
+
+        $property = new Property();
+        $property->setInternalName('last_name');
+        $property->setLabel('Last Name');
+        $property->setRequired(true);
+        $property->setFieldType(FieldCatalog::SINGLE_LINE_TEXT);
+        $singleLineTextField = new SingleLineTextField();
+        $property->setField($singleLineTextField);
+        $property->setCustomObject($this->getReference('custom_object_1'));
+        $property->setPropertyGroup($this->getReference('property_group_1'));
+        $property->setSystemDefined(true);
+
+        $manager->persist($property);
+
+        $property = new Property();
+        $property->setInternalName('email');
+        $property->setLabel('Email');
+        $property->setRequired(true);
+        $property->setFieldType(FieldCatalog::SINGLE_LINE_TEXT);
+        $singleLineTextField = new SingleLineTextField();
+        $property->setField($singleLineTextField);
+        $property->setCustomObject($this->getReference('custom_object_1'));
+        $property->setPropertyGroup($this->getReference('property_group_1'));
+        $property->setSystemDefined(true);
+
+        $manager->persist($property);
+
         $manager->flush();
     }
 

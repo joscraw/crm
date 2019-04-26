@@ -19,6 +19,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
  * @CustomAssert\PropertyLabelAlreadyExists(groups={"CREATE", "EDIT"})
  * @CustomAssert\ChoiceField(groups={"CREATE", "EDIT"})
  * @CustomAssert\PropertyGroupDoesntExist(groups={"CREATE", "EDIT"})
+ * @CustomAssert\SystemDefined(groups={"FIRST"})
  */
 class Property
 {
@@ -116,6 +117,11 @@ class Property
      * @ORM\Column(type="integer", nullable=true)
      */
     private $defaultPropertyOrder;
+
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $systemDefined = false;
 
 
     /**
@@ -331,5 +337,17 @@ class Property
     public function setDefaultPropertyOrder($defaultPropertyOrder): void
     {
         $this->defaultPropertyOrder = $defaultPropertyOrder;
+    }
+
+    public function isSystemDefined(): ?bool
+    {
+        return $this->systemDefined;
+    }
+
+    public function setSystemDefined(bool $systemDefined): self
+    {
+        $this->systemDefined = $systemDefined;
+
+        return $this;
     }
 }

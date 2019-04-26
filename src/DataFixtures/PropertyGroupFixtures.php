@@ -16,6 +16,7 @@ class PropertyGroupFixtures extends Fixture implements DependentFixtureInterface
         $propertyGroup->setName('General Information');
         $propertyGroup->getCustomObject();
         $propertyGroup->setCustomObject($this->getReference('custom_object_1'));
+        $propertyGroup->setSystemDefined(true);
         $manager->persist($propertyGroup);
 
         $this->addReference('property_group_1', $propertyGroup);

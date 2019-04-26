@@ -128,7 +128,16 @@ class PropertyEditForm {
             }).catch((errorData) => {
 
             if(errorData.httpCode === 401) {
-                swal("Woah!", `You don't have proper permissions for this!`, "error");
+
+                if(_.has(errorData, 'message')) {
+
+                    swal("Woah!", `${errorData.message}`, "error");
+
+                } else {
+
+                    swal("Woah!", `You don't have proper permissions for this!`, "error");
+                }
+
                 return;
             }
 

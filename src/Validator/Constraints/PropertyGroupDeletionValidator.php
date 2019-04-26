@@ -35,17 +35,7 @@ class PropertyGroupDeletionValidator extends ConstraintValidator
     public function validate($protocol, Constraint $constraint)
     {
 
-        // Check to make sure the property group isn't a system defined property group for that custom object
-        $systemDefinedObjects = ['contacts'];
-
-        if(in_array($protocol->getInternalName(), $systemDefinedObjects)) {
-
-            $this->context->buildViolation($constraint->systemDefinedObjectMessage)
-                ->addViolation();
-
-            return;
-        }
-
+        // Check to make sure the property group doesn't have any properties
         $results = $this->propertyRepository->getCountByPropertyGroup($protocol);
 
         $count = $results[0]['count'];
@@ -54,8 +44,9 @@ class PropertyGroupDeletionValidator extends ConstraintValidator
             $this->context->buildViolation($constraint->propertyGroupHasPropertiesMessage)
                 ->setParameter('{{ string }}', $protocol->getName())
                 ->addViolation();
-        }
 
+            return;
+        }
 
     }
 }
