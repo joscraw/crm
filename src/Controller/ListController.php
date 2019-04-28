@@ -13,6 +13,7 @@ use App\Form\PropertyGroupType;
 use App\Form\PropertyType;
 use App\Model\FieldCatalog;
 use App\Repository\CustomObjectRepository;
+use App\Repository\FolderRepository;
 use App\Repository\PropertyGroupRepository;
 use App\Repository\PropertyRepository;
 use App\Repository\RecordRepository;
@@ -68,25 +69,33 @@ class ListController extends AbstractController
     private $recordRepository;
 
     /**
-     * RecordController constructor.
+     * @var FolderRepository
+     */
+    private $folderRepository;
+
+    /**
+     * ListController constructor.
      * @param EntityManagerInterface $entityManager
      * @param CustomObjectRepository $customObjectRepository
      * @param PropertyRepository $propertyRepository
      * @param PropertyGroupRepository $propertyGroupRepository
      * @param RecordRepository $recordRepository
+     * @param FolderRepository $folderRepository
      */
     public function __construct(
         EntityManagerInterface $entityManager,
         CustomObjectRepository $customObjectRepository,
         PropertyRepository $propertyRepository,
         PropertyGroupRepository $propertyGroupRepository,
-        RecordRepository $recordRepository
+        RecordRepository $recordRepository,
+        FolderRepository $folderRepository
     ) {
         $this->entityManager = $entityManager;
         $this->customObjectRepository = $customObjectRepository;
         $this->propertyRepository = $propertyRepository;
         $this->propertyGroupRepository = $propertyGroupRepository;
         $this->recordRepository = $recordRepository;
+        $this->folderRepository = $folderRepository;
     }
 
 

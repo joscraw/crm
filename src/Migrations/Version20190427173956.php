@@ -8,7 +8,7 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20190425213757 extends AbstractMigration
+final class Version20190427173956 extends AbstractMigration
 {
     public function up(Schema $schema) : void
     {
@@ -25,6 +25,7 @@ final class Version20190425213757 extends AbstractMigration
         $this->addSql('CREATE TABLE user (id INT AUTO_INCREMENT NOT NULL, portal_id INT NOT NULL, email VARCHAR(180) NOT NULL, roles JSON NOT NULL, password VARCHAR(255) NOT NULL, is_active TINYINT(1) NOT NULL, is_admin_user TINYINT(1) NOT NULL, first_name VARCHAR(24) NOT NULL, last_name VARCHAR(24) NOT NULL, password_reset_token VARCHAR(64) DEFAULT NULL, password_reset_token_timestamp DATETIME DEFAULT NULL, created_at DATETIME NOT NULL, updated_at DATETIME NOT NULL, UNIQUE INDEX UNIQ_8D93D649E7927C74 (email), INDEX IDX_8D93D649B887E1DD (portal_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ENGINE = InnoDB');
         $this->addSql('CREATE TABLE user_role (user_id INT NOT NULL, role_id INT NOT NULL, INDEX IDX_2DE8C6A3A76ED395 (user_id), INDEX IDX_2DE8C6A3D60322AC (role_id), PRIMARY KEY(user_id, role_id)) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ENGINE = InnoDB');
         $this->addSql('CREATE TABLE role (id INT AUTO_INCREMENT NOT NULL, portal_id INT NOT NULL, name VARCHAR(255) NOT NULL, object_permissions JSON NOT NULL, system_permissions JSON NOT NULL, created_at DATETIME NOT NULL, updated_at DATETIME NOT NULL, INDEX IDX_57698A6AB887E1DD (portal_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ENGINE = InnoDB');
+        $this->addSql('CREATE TABLE folder (id INT AUTO_INCREMENT NOT NULL, parent_folder_id INT DEFAULT NULL, portal_id INT NOT NULL, type VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NULL, created_at DATETIME NOT NULL, updated_at DATETIME NOT NULL, INDEX IDX_ECA209CDE76796AC (parent_folder_id), INDEX IDX_ECA209CDB887E1DD (portal_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ENGINE = InnoDB');
         $this->addSql('CREATE TABLE filter (id INT AUTO_INCREMENT NOT NULL, portal_id INT NOT NULL, custom_filters JSON NOT NULL, query LONGTEXT NOT NULL, name VARCHAR(255) NOT NULL, type VARCHAR(255) NOT NULL, created_at DATETIME NOT NULL, updated_at DATETIME NOT NULL, INDEX IDX_7FC45F1DB887E1DD (portal_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ENGINE = InnoDB');
         $this->addSql('ALTER TABLE custom_object ADD CONSTRAINT FK_9C007FE8B887E1DD FOREIGN KEY (portal_id) REFERENCES portal (id)');
         $this->addSql('ALTER TABLE property ADD CONSTRAINT FK_8BF21CDEA0D3ED03 FOREIGN KEY (property_group_id) REFERENCES property_group (id)');
@@ -39,6 +40,8 @@ final class Version20190425213757 extends AbstractMigration
         $this->addSql('ALTER TABLE user_role ADD CONSTRAINT FK_2DE8C6A3A76ED395 FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE');
         $this->addSql('ALTER TABLE user_role ADD CONSTRAINT FK_2DE8C6A3D60322AC FOREIGN KEY (role_id) REFERENCES role (id) ON DELETE CASCADE');
         $this->addSql('ALTER TABLE role ADD CONSTRAINT FK_57698A6AB887E1DD FOREIGN KEY (portal_id) REFERENCES portal (id)');
+        $this->addSql('ALTER TABLE folder ADD CONSTRAINT FK_ECA209CDE76796AC FOREIGN KEY (parent_folder_id) REFERENCES folder (id)');
+        $this->addSql('ALTER TABLE folder ADD CONSTRAINT FK_ECA209CDB887E1DD FOREIGN KEY (portal_id) REFERENCES portal (id)');
         $this->addSql('ALTER TABLE filter ADD CONSTRAINT FK_7FC45F1DB887E1DD FOREIGN KEY (portal_id) REFERENCES portal (id)');
     }
 
@@ -58,9 +61,11 @@ final class Version20190425213757 extends AbstractMigration
         $this->addSql('ALTER TABLE marketing_list DROP FOREIGN KEY FK_C6EF1A40B887E1DD');
         $this->addSql('ALTER TABLE user DROP FOREIGN KEY FK_8D93D649B887E1DD');
         $this->addSql('ALTER TABLE role DROP FOREIGN KEY FK_57698A6AB887E1DD');
+        $this->addSql('ALTER TABLE folder DROP FOREIGN KEY FK_ECA209CDB887E1DD');
         $this->addSql('ALTER TABLE filter DROP FOREIGN KEY FK_7FC45F1DB887E1DD');
         $this->addSql('ALTER TABLE user_role DROP FOREIGN KEY FK_2DE8C6A3A76ED395');
         $this->addSql('ALTER TABLE user_role DROP FOREIGN KEY FK_2DE8C6A3D60322AC');
+        $this->addSql('ALTER TABLE folder DROP FOREIGN KEY FK_ECA209CDE76796AC');
         $this->addSql('DROP TABLE custom_object');
         $this->addSql('DROP TABLE property');
         $this->addSql('DROP TABLE property_group');
@@ -71,6 +76,7 @@ final class Version20190425213757 extends AbstractMigration
         $this->addSql('DROP TABLE user');
         $this->addSql('DROP TABLE user_role');
         $this->addSql('DROP TABLE role');
+        $this->addSql('DROP TABLE folder');
         $this->addSql('DROP TABLE filter');
     }
 }

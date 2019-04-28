@@ -1,0 +1,27 @@
+// -----------------------------------------------------------------------------
+// This file contains all styles related to the toggle component
+// -----------------------------------------------------------------------------
+
+.c-toggle {
+
+}
+
+.c-toggle__button {
+  border-radius: 0;
+  float: left;
+}
+
+.c-toggle__button--left {
+  border-bottom-left-radius: 5px;
+  border-top-left-radius: 5px;
+}
+
+.c-toggle__button--right {
+  border-bottom-right-radius: 5px;
+  border-top-right-radius: 5px;
+}
+
+
+.c-toggle__button--active {
+  background-color: #cbd6e2;
+}
