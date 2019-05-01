@@ -68,6 +68,7 @@ class DeleteListForm {
         this._delete(formData)
             .then((data) => {
 
+                debugger;
                 swal("Hooray!", "Sweet! List successfully removed!", "success");
                 this.globalEventDispatcher.publish(Settings.Events.LIST_DELETED);
             }).catch((errorData) => {

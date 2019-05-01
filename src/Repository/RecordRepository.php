@@ -127,7 +127,7 @@ class RecordRepository extends ServiceEntityRepository
         }
         $resultStr = empty($resultStr) ? '' : ',' . implode(",",$resultStr);
 
-        $recordIds = implode(',', $recordIds);
+        $recordIds = "'" . implode("','", $recordIds) . "'";
 
         $query = sprintf("SELECT id, properties %s from record WHERE id IN (%s)", $resultStr, $recordIds);
 
@@ -533,11 +533,24 @@ class RecordRepository extends ServiceEntityRepository
 
             } else {
 
-                /*$joins[] = sprintf('INNER JOIN record %s on JSON_SEARCH(%s.properties->>\'$.%s\', \'one\', %s.id) IS NOT NULL', "root.$key", $lastJoin, $key, $lastJoin);*/
-
                 $newJoin = "$lastJoin.$key";
 
-                $joins[] = sprintf('LEFT JOIN record `%s` on `%s`.properties->>\'$.%s\' = `%s`.id', $newJoin, $lastJoin, $key, $newJoin);
+                $joins[] = sprintf(
+                    $this->getJoinQuery(),
+                    $newJoin,
+                    $lastJoin,
+                    $key,
+                    $newJoin,
+                    $lastJoin,
+                    $key,
+                    $newJoin,
+                    $lastJoin,
+                    $key,
+                    $newJoin,
+                    $lastJoin,
+                    $key,
+                    $newJoin
+                );
 
                 $this->joins($data[$key], $joins, $newJoin);
             }
@@ -1198,7 +1211,7 @@ class RecordRepository extends ServiceEntityRepository
 
                             $conditions = [];
                             foreach($values as $value) {
-                                $conditions[] = sprintf('JSON_SEARCH(IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'[]\'), \'one\', \'%s\') IS NOT NULL', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], strtolower($value));
+                                $conditions[] = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') LIKE \'%%%s%%\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], strtolower($value));
                             }
 
                             $query = implode(" OR ", $conditions);
@@ -1214,7 +1227,7 @@ class RecordRepository extends ServiceEntityRepository
 
                             $conditions = [];
                             foreach($values as $value) {
-                                $conditions[] = sprintf('JSON_SEARCH(IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'[]\'), \'one\', \'%s\') IS NULL', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], strtolower($value));
+                                $conditions[] = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') NOT LIKE \'%%%s%%\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], strtolower($value));
                             }
 
                             $query = implode(" AND ", $conditions);
@@ -1254,7 +1267,7 @@ class RecordRepository extends ServiceEntityRepository
 
         $query .= implode(' AND ', $andFilters);
 
-        $query = sprintf('(%s)', $query);
+        $query = sprintf('(%s)', $query) . PHP_EOL . PHP_EOL;
 
         return $query;
     }
@@ -1322,6 +1335,30 @@ HERE;
         WHEN `${alias}`.properties->>'$.%s' = 'false' THEN "no"
         ELSE `${alias}`.properties->>'$.%s'
     END AS "%s"
+HERE;
+    }
+
+    /**
+     * We store relations to a single object as a string.
+     * We store relations to multiple objects as a semicolon delimited string
+     * Single object example: {chapter: "11"}
+     * Multiple object example: {chapter: "11;12;13"}
+     * @return string
+     */
+    private function getJoinQuery() {
+        return <<<HERE
+    
+    
+    /* Given the id "11" This first statement matches: {"property_name": "11"} */
+    LEFT JOIN record `%s` on `%s`.properties->>'$.%s' REGEXP concat('^', `%s`.id, '$')
+    /* Given the id "11" This second statement matches: {"property_name": "12;11"} */
+    OR `%s`.properties->>'$.%s' REGEXP concat(';', `%s`.id, '$') 
+    /* Given the id "11" This second statement matches: {"property_name": "12;11;13"} */
+    OR `%s`.properties->>'$.%s' REGEXP concat(';', `%s`.id, ';') 
+    /* Given the id "11" This second statement matches: {"property_name": "11;12;13"} */
+    OR `%s`.properties->>'$.%s' REGEXP concat('^', `%s`.id, ';') 
+    
+    
 HERE;
     }
 }

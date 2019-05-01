@@ -367,10 +367,14 @@ class EditListWidget {
 
     applyCustomFilterButtonPressedHandler(customFilter) {
 
-        debugger;
         let filterPath = customFilter.joins.join('.') + `.filters`,
-            referencedFilterPath = customFilter.referencedFilterPath.join('.'),
+            referencedFilterPath = "",
             uID = StringHelper.makeCharId();
+
+        if(_.keys(_.get(this.data, `${filterPath}.referencedFilterPath`, [])).length !== 0) {
+
+            referencedFilterPath = customFilter.referencedFilterPath.join('.');
+        }
 
         // if it has a joinPath we are editing the filter and th4e uID already exists
         if(_.has(customFilter, 'joinPath')) {

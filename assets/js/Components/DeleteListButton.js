@@ -41,7 +41,7 @@ class DeleteListButton {
 
     static markup({label}) {
         return `
-      <button type="button" class="js-open-delete-list-modal-btn btn btn-primary btn-sm">${label}</button>
+      <button type="button" class="js-open-delete-list-modal-btn dropdown-item">${label}</button>
     `;
     }
 }

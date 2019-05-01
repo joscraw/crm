@@ -74,7 +74,7 @@ class RecordTable {
                         <span class="js-delete-property c-table__delete-button" data-record-id="${row['id']}"></span>
                          `;
 
-            }
+            };
         }
 
         debugger;
@@ -171,7 +171,6 @@ class RecordTable {
     static markup() {
         return `
             <table id="table_id" class="table table-striped table-bordered c-table" style="width:100%">
-             <col width="300">
                 <thead>
                 <tr><th></th></tr>
                 </thead>

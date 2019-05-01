@@ -19,11 +19,19 @@
 }
 
 .btn-light {
-  @include button-variant($color-blue-84, $color-blue-84, lighten($color-blue-84, 5%), $color-blue-84, lighten($color-blue-84, 5%), $color-blue-84);
+  @include button-variant($color-white-94, $color-white-94, darken($color-white-94, 5%), $color-white-94, darken($color-white-94, 5%), $color-white-94);
+
+  color: #506E91;
+}
+
+
+.btn-light:hover {
+  color: #506E91;
+  /*border: darken($color-white-94, 5%);*/
 }
 
 .btn-outline-light {
-  @include button-outline-variant($color-blue-44, #222222, lighten($color-blue-44,5%), $color-blue-44);
+  @include button-outline-variant($color-white-94, $color-white-94, darken($color-white-94,5%), $color-white-94);
 }
 
 .btn {
@@ -37,5 +45,6 @@
     display: none;
   }
 }
+
 
 

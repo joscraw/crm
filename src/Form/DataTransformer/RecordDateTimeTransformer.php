@@ -40,6 +40,11 @@ class RecordDateTimeTransformer implements DataTransformerInterface
         }
 
         $date = \DateTime::createFromFormat(DatePickerField::$storedFormat, $date);
+
+        if($date === false) {
+            return;
+        }
+
         return $date;
 
     }

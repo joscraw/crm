@@ -73,6 +73,11 @@ class Portal
      */
     private $marketingLists;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Folder", mappedBy="portal", orphanRemoval=true)
+     */
+    private $folders;
+
 
     public function __construct()
     {
@@ -82,6 +87,7 @@ class Portal
         $this->roles = new ArrayCollection();
         $this->filters = new ArrayCollection();
         $this->marketingLists = new ArrayCollection();
+        $this->folders = new ArrayCollection();
     }
 
     /**
@@ -283,6 +289,37 @@ class Portal
             // set the owning side to null (unless already changed)
             if ($marketingList->getPortal() === $this) {
                 $marketingList->setPortal(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Folder[]
+     */
+    public function getFolders(): Collection
+    {
+        return $this->folders;
+    }
+
+    public function addFolder(Folder $folder): self
+    {
+        if (!$this->folders->contains($folder)) {
+            $this->folders[] = $folder;
+            $folder->setPortal($this);
+        }
+
+        return $this;
+    }
+
+    public function removeFolder(Folder $folder): self
+    {
+        if ($this->folders->contains($folder)) {
+            $this->folders->removeElement($folder);
+            // set the owning side to null (unless already changed)
+            if ($folder->getPortal() === $this) {
+                $folder->setPortal(null);
             }
         }
 

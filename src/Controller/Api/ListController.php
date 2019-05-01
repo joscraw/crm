@@ -4,6 +4,7 @@ namespace App\Controller\Api;
 
 use App\AuthorizationHandler\PermissionAuthorizationHandler;
 use App\Entity\CustomObject;
+use App\Entity\Folder;
 use App\Entity\MarketingList;
 use App\Entity\Portal;
 use App\Entity\Property;
@@ -14,11 +15,14 @@ use App\Entity\Role;
 use App\Form\CustomObjectType;
 use App\Form\DeleteListType;
 use App\Form\DeleteReportType;
+use App\Form\FolderType;
+use App\Form\MoveListToFolderType;
 use App\Form\PropertyGroupType;
 use App\Form\PropertyType;
 use App\Form\RecordType;
 use App\Model\FieldCatalog;
 use App\Repository\CustomObjectRepository;
+use App\Repository\FolderRepository;
 use App\Repository\MarketingListRepository;
 use App\Repository\PropertyGroupRepository;
 use App\Repository\PropertyRepository;
@@ -26,6 +30,7 @@ use App\Repository\RecordRepository;
 use App\Repository\ReportRepository;
 use App\Service\MessageGenerator;
 use App\Utils\ArrayHelper;
+use App\Utils\ListFolderBreadcrumbs;
 use App\Utils\MultiDimensionalArrayExtractor;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
@@ -103,6 +108,16 @@ class ListController extends ApiController
     private $marketingListRepository;
 
     /**
+     * @var FolderRepository
+     */
+    private $folderRepository;
+
+    /**
+     * @var ListFolderBreadcrumbs
+     */
+    private $folderBreadcrumbs;
+
+    /**
      * ListController constructor.
      * @param EntityManagerInterface $entityManager
      * @param CustomObjectRepository $customObjectRepository
@@ -113,6 +128,8 @@ class ListController extends ApiController
      * @param ReportRepository $reportRepository
      * @param PermissionAuthorizationHandler $permissionAuthorizationHandler
      * @param MarketingListRepository $marketingListRepository
+     * @param FolderRepository $folderRepository
+     * @param ListFolderBreadcrumbs $folderBreadcrumbs
      */
     public function __construct(
         EntityManagerInterface $entityManager,
@@ -123,7 +140,9 @@ class ListController extends ApiController
         SerializerInterface $serializer,
         ReportRepository $reportRepository,
         PermissionAuthorizationHandler $permissionAuthorizationHandler,
-        MarketingListRepository $marketingListRepository
+        MarketingListRepository $marketingListRepository,
+        FolderRepository $folderRepository,
+        ListFolderBreadcrumbs $folderBreadcrumbs
     ) {
         $this->entityManager = $entityManager;
         $this->customObjectRepository = $customObjectRepository;
@@ -134,6 +153,8 @@ class ListController extends ApiController
         $this->reportRepository = $reportRepository;
         $this->permissionAuthorizationHandler = $permissionAuthorizationHandler;
         $this->marketingListRepository = $marketingListRepository;
+        $this->folderRepository = $folderRepository;
+        $this->folderBreadcrumbs = $folderBreadcrumbs;
     }
 
 
@@ -153,6 +174,123 @@ class ListController extends ApiController
         ],  Response::HTTP_OK);
 
         return $response;
+    }
+
+    /**
+     * @Route("/create-folder", name="create_list_folder", methods={"GET", "POST"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function createFolderAction(Portal $portal, Request $request) {
+
+        $folder = new Folder();
+
+        $form = $this->createForm(FolderType::class, $folder);
+
+        $form->handleRequest($request);
+
+        $formMarkup = $this->renderView(
+            'Api/form/folder_form.html.twig',
+            [
+                'form' => $form->createView()
+            ]
+        );
+
+        if ($form->isSubmitted() && !$form->isValid()) {
+
+            return new JsonResponse(
+                [
+                    'success' => false,
+                    'formMarkup' => $formMarkup,
+                ], Response::HTTP_BAD_REQUEST
+            );
+        }
+
+        if ($form->isSubmitted() && $form->isValid()) {
+
+            $folderId = $request->request->get('folderId', null);
+
+
+            /** @var $folder Folder */
+            $folder = $form->getData();
+
+            if($folderId) {
+                $parentFolder = $this->folderRepository->find($folderId);
+                $folder->setParentFolder($parentFolder);
+            }
+
+            $folder->setPortal($portal);
+            $folder->setType(Folder::LIST_FOLDER);
+            $this->entityManager->persist($folder);
+            $this->entityManager->flush();
+        }
+
+        return new JsonResponse(
+            [
+                'success' => true,
+                'formMarkup' => $formMarkup,
+            ],
+            Response::HTTP_OK
+        );
+    }
+
+    /**
+     * @Route("/{listId}/move-to-folder", name="move_list_to_folder", methods={"GET", "POST"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param MarketingList $list
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function moveListToFolderAction(Portal $portal, MarketingList $list, Request $request) {
+
+        $form = $this->createForm(MoveListToFolderType::class, null, [
+            'portal' => $portal
+        ]);
+
+        $form->handleRequest($request);
+
+        $formMarkup = $this->renderView(
+            'Api/form/move_list_to_folder_form.html.twig',
+            [
+                'form' => $form->createView()
+            ]
+        );
+
+        if ($form->isSubmitted() && !$form->isValid()) {
+
+            return new JsonResponse(
+                [
+                    'success' => false,
+                    'formMarkup' => $formMarkup,
+                ], Response::HTTP_BAD_REQUEST
+            );
+        }
+
+        if ($form->isSubmitted() && $form->isValid()) {
+
+            $folderId = $form->get('folder')->getData();
+
+            if($folderId) {
+
+                $folder = $this->folderRepository->find($folderId);
+                $list->setFolder($folder);
+            } else {
+                $list->setFolder(null);
+            }
+
+
+            $this->entityManager->persist($list);
+            $this->entityManager->flush();
+        }
+
+        return new JsonResponse(
+            [
+                'success' => true,
+                'formMarkup' => $formMarkup,
+            ],
+            Response::HTTP_OK
+        );
     }
 
 
@@ -253,6 +391,85 @@ class ListController extends ApiController
             'recordsFiltered' => !empty($search['value']) ? $filteredListCount : $totalListCount,
             'recordsTotal'  => $totalListCount,
             'data'  => $arrayResults
+        ],  Response::HTTP_OK);
+
+        return $response;
+    }
+
+    /**
+     * DataTables passes unique params in the Request and expects a specific response payload
+     * @see https://datatables.net/manual/server-side Documentation for ServerSide Implimentation for DataTables
+     *
+     * @Route("/folders/datatable", name="list_folders_for_datatable", methods={"GET"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param Request $request
+     * @return Response
+     */
+    public function getFoldersForDatatableAction(Portal $portal, Request $request) {
+
+        $draw = intval($request->query->get('draw'));
+        $start = $request->query->get('start');
+        $length = $request->query->get('length');
+        $search = $request->query->get('search');
+        $orders = $request->query->get('order');
+        $columns = $request->query->get('columns');
+        $folderId = $request->query->get('folderId', null);
+
+        $folderResults = $this->folderRepository->getDataTableData($portal, $start, $length, $search, $orders, $columns, $folderId);
+
+        $listResults = $this->marketingListRepository->getDataTableDataForFolder($portal, $start, $length, $search, $orders, $columns, $folderId);
+
+        $totalListCount = $this->marketingListRepository->getTotalCount($portal);
+
+        $arrayResults = array_merge($folderResults['arrayResults'], $listResults['arrayResults']);
+
+        $filteredListCount = count($arrayResults);
+
+        $response = new JsonResponse([
+            'draw'  => $draw,
+            'recordsFiltered' => !empty($search['value']) ? $filteredListCount : $totalListCount,
+            'recordsTotal'  => $totalListCount,
+            'data'  => $arrayResults
+        ],  Response::HTTP_OK);
+
+        return $response;
+    }
+
+    /**
+     * @Route("/count", name="list_count", methods={"GET"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param Request $request
+     * @return Response
+     */
+    public function getListCountAction(Portal $portal, Request $request) {
+
+        $count = $this->marketingListRepository->getTotalCount($portal);
+
+        $response = new JsonResponse([
+            'data'  => $count
+        ],  Response::HTTP_OK);
+
+        return $response;
+    }
+
+    /**
+     * DataTables passes unique params in the Request and expects a specific response payload
+     * @see https://datatables.net/manual/server-side Documentation for ServerSide Implimentation for DataTables
+     *
+     * @Route("/folders/breadcrumbs", name="list_folder_breadcrumbs", methods={"GET"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param Request $request
+     * @return Response
+     */
+    public function getFolderBreadcrumbsAction(Portal $portal, Request $request) {
+
+        $folderId = $request->query->get('folderId', null);
+
+        $payload = $this->folderBreadcrumbs->generate($folderId, $portal);
+
+        $response = new JsonResponse([
+            'success' => true,
+            'data'  => $payload,
         ],  Response::HTTP_OK);
 
         return $response;

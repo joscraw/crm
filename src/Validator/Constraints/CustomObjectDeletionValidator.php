@@ -35,15 +35,17 @@ class CustomObjectDeletionValidator extends ConstraintValidator
      */
     public function validate($protocol, Constraint $constraint)
     {
+        // Check to make sure the custom object doesn't have any property groups
         $results = $this->propertyGroupRepository->getCountByCustomObject($protocol);
 
         $count = $results[0]['count'];
 
         if($count > 0) {
-            $this->context->buildViolation($constraint->customObjectHasPropertyGroups)
+            $this->context->buildViolation($constraint->customObjectHasPropertyGroupsMessage)
                 ->setParameter('{{ string }}', $protocol->getLabel())
-                /*->atPath('submit')*/
                 ->addViolation();
+
+            return;
         }
 
 

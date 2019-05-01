@@ -17,6 +17,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
  * @CustomAssert\CustomObjectLabelAlreadyExists(groups={"CREATE", "EDIT"})
  * @CustomAssert\CustomObjectInternalNameAlreadyExists(groups={"CREATE", "EDIT"})
  * @CustomAssert\CustomObjectDeletion(groups={"DELETE"})
+ * @CustomAssert\SystemDefined(groups={"FIRST"})
  */
 class CustomObject /*implements \JsonSerializable*/
 {
@@ -85,6 +86,11 @@ class CustomObject /*implements \JsonSerializable*/
      * @ORM\OneToMany(targetEntity="App\Entity\MarketingList", mappedBy="customObject", orphanRemoval=true)
      */
     private $marketingLists;
+
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $systemDefined = false;
 
 
     public function __construct()
@@ -345,6 +351,18 @@ class CustomObject /*implements \JsonSerializable*/
                 $marketingList->setCustomObject(null);
             }
         }
+
+        return $this;
+    }
+
+    public function isSystemDefined(): ?bool
+    {
+        return $this->systemDefined;
+    }
+
+    public function setSystemDefined(bool $systemDefined): self
+    {
+        $this->systemDefined = $systemDefined;
 
         return $this;
     }

@@ -1,0 +1,11 @@
+{% form_theme form with ['bootstrap_4_layout.html.twig', 'form/fields.html.twig'] %}
+
+{{ form_start(form, {'attr': {class: 'js-new-folder-form', novalidate: 'novalidate'}}) }}
+
+{{ form_errors(form) }}
+
+{{ form_row(form.name) }}
+
+<br>
+{{ form_rest(form) }}
+{{ form_end(form) }}

@@ -495,17 +495,21 @@ class RecordController extends ApiController
                 });
 
                 if(!empty($customObjectProperty)) {
+
+                    // We need to reset the array keys to start at 0 after using array_filter
                     $customObjectProperty = array_values($customObjectProperty);
 
-                    if(in_array($value, ['-', ''])) {
-                        continue;
-                    }
-
-                    $value = json_decode($value);
-                    $value = is_array($value) ? $value : [$value];
+                    $values = explode(";", $value);
 
                     $urls = [];
-                    foreach($value as $v) {
+                    foreach($values as $v) {
+
+                        $record = $this->recordRepository->find($v);
+
+                        if(!$record) {
+                            continue;
+                        }
+
                         $url = sprintf("%s/%s",
                             $this->generateUrl('record_list', [
                                 'internalIdentifier' => $portal->getInternalIdentifier(),
@@ -527,18 +531,9 @@ class RecordController extends ApiController
 
                 if(!empty($choiceFieldProperty)) {
 
-                    if(in_array($value, ['-', ''])) {
-                        continue;
-                    }
+                    $values = explode(";", $value);
 
-                    $value = json_decode($value);
-                    $value = is_array($value) ? $value : [$value];
-
-                    $items = [];
-                    foreach($value as $v) {
-                        $items[] = $v;
-                    }
-                    $result[$key] = implode(',', $items);
+                    $result[$key] = implode(',', $values);
                 }
             }
         }

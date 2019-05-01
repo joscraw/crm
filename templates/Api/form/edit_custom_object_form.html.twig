@@ -1,6 +1,7 @@
 {% form_theme form 'bootstrap_4_layout.html.twig' %}
 
 {{ form_start(form, {'attr': {class: 'js-edit-custom-object-form', novalidate: 'novalidate'}}) }}
+{{ form_errors(form) }}
 {{ form_row(form.label, {'attr': {autofocus: 'autofocus'}}) }}
 {{ form_row(form.internalName) }}
 <small class="form-text text-muted">Used for page URLs and super cool behind the scene stuff! Can't be edited.</small>

@@ -7,6 +7,8 @@ import $ from "jquery";
 import DeleteCustomObjectButton from "./DeleteCustomObjectButton";
 import DeleteReportButton from "./DeleteReportButton";
 import DeleteListButton from "./DeleteListButton";
+import ListTableDropdown from "./ListTableDropdown";
+import ContextHelper from "../ContextHelper";
 
 require( 'datatables.net-bs4' );
 require( 'datatables.net-responsive-bs4' );
@@ -34,8 +36,15 @@ class ListTable {
 
         this.render().then(() => {this.activatePlugins();});
 
-        this.globalEventDispatcher.subscribe(
+        debugger;
+
+        this.globalEventDispatcher.singleSubscribe(
             Settings.Events.LIST_DELETED,
+            ContextHelper.bind(this.reloadList, this)
+        );
+
+        this.globalEventDispatcher.singleSubscribe(
+            Settings.Events.LIST_MOVED_TO_FOLDER,
             this.reloadList.bind(this)
         );
 
@@ -44,6 +53,15 @@ class ListTable {
             this.applySearch.bind(this)
         );
 
+    }
+
+    /**
+     * Call like this.selectors
+     */
+    static get _selectors() {
+        return {
+            listTableDropdown: '.js-list-table-dropdown',
+        }
     }
 
     activatePlugins() {
@@ -86,8 +104,7 @@ class ListTable {
             "columns": [
                 { "data": "name", "name": "name", "title": "name", mRender: (data, type, row) => {
             return `
-                        ${row['name']} <span class="c-table__edit-button"><a href="${Routing.generate('edit_list', {'listId' : row['id'], 'internalIdentifier' : this.portal})}" data-bypass="true" class="btn btn-primary btn-sm">Edit</a></span>
-                        <span class="js-delete-list c-table__delete-button" data-list-id="${row['id']}"></span>
+                        ${row['name']} <span class="c-table__edit-button js-list-table-dropdown" data-list-id="${row['id']}"></span>
                     `;
                 }},
                 { "data": "type", "name": "type", "title": "Type", mRender: (data, type, row) => {
@@ -122,18 +139,21 @@ class ListTable {
             },
             "drawCallback": (settings)  => {
 
-                this.addDeleteListButton();
+                this.addDropdown();
             },
             "initComplete": function () {}
         });
     }
 
-    addDeleteListButton() {
+    addDropdown() {
 
-        debugger;
-        this.$wrapper.find('.js-delete-list').each((index, element) => {
-            new DeleteListButton($(element), this.globalEventDispatcher, this.portal, $(element).data('listId'), "Delete");
+        this.$wrapper.find(ListTable._selectors.listTableDropdown).each((index, element) => {
+
+            let listId = $(element).attr('data-list-id');
+
+            new ListTableDropdown($(element), this.globalEventDispatcher, this.portal, listId, "Actions");
         });
+
     }
 
     /**

@@ -17,6 +17,7 @@ $(document).ready(function() {
     var Router = Backbone.Router.extend({
         routes: {
             ":internalIdentifier/lists": "index",
+            ":internalIdentifier/lists/folders(/:folderId)": "folder",
             ":internalIdentifier/lists/create": "create",
             ":internalIdentifier/lists/:listId/edit": "edit"
         },
@@ -25,6 +26,14 @@ $(document).ready(function() {
             debugger;
 
             new ListSettings($('#app'), window.globalEventDispatcher, internalIdentifier);
+
+            new SideNavigationMenu($('#side-nav'), window.globalEventDispatcher, internalIdentifier);
+
+        },
+        folder: function(internalIdentifier, folderId) {
+            debugger;
+
+            new ListSettings($('#app'), window.globalEventDispatcher, internalIdentifier, folderId, true);
 
             new SideNavigationMenu($('#side-nav'), window.globalEventDispatcher, internalIdentifier);
 

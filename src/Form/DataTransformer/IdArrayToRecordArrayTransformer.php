@@ -33,15 +33,12 @@ class IdArrayToRecordArrayTransformer implements DataTransformerInterface
     public function transform($records)
     {
 
-        if($records === null) {
+        if($records === null || empty($records)) {
             return [];
         }
 
-        $records = $this->getArrayValuesRecursive($records);
+        return explode(";", $records);
 
-        $records = array_map('strval', $records);
-
-        return $records;
     }
 
     /**
@@ -52,18 +49,10 @@ class IdArrayToRecordArrayTransformer implements DataTransformerInterface
     public function reverseTransform($records)
     {
         // no issue number? It's optional, so that's ok
-        if (empty($records)) {
-            return [];
+        if (empty($records) || $records === null) {
+            return '';
         }
 
-        return $records;
-
-        $results = [];
-        foreach($records as $record) {
-            $record = $this->recordRepository->find($record);
-            $results[] = $record;
-        }
-
-        return $results;
+        return implode(";", $records);
     }
 }

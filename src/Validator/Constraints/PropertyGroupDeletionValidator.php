@@ -34,6 +34,8 @@ class PropertyGroupDeletionValidator extends ConstraintValidator
      */
     public function validate($protocol, Constraint $constraint)
     {
+
+        // Check to make sure the property group doesn't have any properties
         $results = $this->propertyRepository->getCountByPropertyGroup($protocol);
 
         $count = $results[0]['count'];
@@ -42,8 +44,9 @@ class PropertyGroupDeletionValidator extends ConstraintValidator
             $this->context->buildViolation($constraint->propertyGroupHasPropertiesMessage)
                 ->setParameter('{{ string }}', $protocol->getName())
                 ->addViolation();
-        }
 
+            return;
+        }
 
     }
 }

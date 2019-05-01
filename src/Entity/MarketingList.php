@@ -95,6 +95,11 @@ class MarketingList
      */
     private $records = [];
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Folder", inversedBy="marketingLists")
+     */
+    private $folder;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -206,5 +211,17 @@ class MarketingList
 
         return sprintf('%s and id in (%s)', $this->query, implode(",", $this->getArrayValuesRecursive($this->records)));
 
+    }
+
+    public function getFolder(): ?Folder
+    {
+        return $this->folder;
+    }
+
+    public function setFolder(?Folder $folder): self
+    {
+        $this->folder = $folder;
+
+        return $this;
     }
 }

@@ -56,11 +56,11 @@ class MarketingListRepository extends ServiceEntityRepository
      * @param $search
      * @param $orders
      * @param $columns
+     * @param null $folderId
      * @return array
      */
     public function getDataTableData(Portal $portal, $start, $length, $search, $orders, $columns)
     {
-
         // Main Query
         $mainQuerySelectColumns = ['dt.id', 'dt.name', 'dt.createdAt', 'dt.type'];
         $searchQuery = null;
@@ -94,6 +94,87 @@ class MarketingListRepository extends ServiceEntityRepository
 
             $i++;
         }
+
+        // Limit
+        $query->setFirstResult($start)->setMaxResults($length);
+
+        // Order
+        foreach ($orders as $key => $order) {
+            // Orders does not contain the name of the column, but its number,
+            // so add the name so we can handle it just like the $columns array
+            $orders[$key]['name'] = $columns[$order['column']]['name'];
+        }
+
+        foreach ($orders as $key => $order) {
+            // $order['name'] is the name of the order column as sent by the JS
+            if ($order['name'] != '') {
+
+                $orderColumn = "dt.{$order['name']}";
+
+                $query->orderBy($orderColumn, $order['dir']);
+            }
+        }
+
+
+        $results = $query->getQuery()->getResult();
+        $arrayResults = $query->getQuery()->getArrayResult();
+
+        return array(
+            "results" 		=> $results,
+            "arrayResults"  => $arrayResults
+        );
+
+    }
+
+    /**
+     * @param Portal $portal
+     * @param $start
+     * @param $length
+     * @param $search
+     * @param $orders
+     * @param $columns
+     * @param null $folderId
+     * @return array
+     */
+    public function getDataTableDataForFolder(Portal $portal, $start, $length, $search, $orders, $columns, $folderId = null)
+    {
+        // Main Query
+        $mainQuerySelectColumns = ['dt.id', 'dt.name', 'dt.createdAt', 'dt.type'];
+        $searchQuery = null;
+        $query = $this->createQueryBuilder('dt')
+            ->select($mainQuerySelectColumns)
+            ->where('dt.portal = :portal')
+            ->setParameter('portal', $portal->getId());
+
+        if(!$folderId) {
+            $query->andWhere('dt.folder is NULL');
+
+        } else {
+            $query->andWhere('dt.folder = :folder')
+                ->setParameter('folder', $folderId);
+        }
+
+        // Search
+        $searches = [];
+        if(!empty($search['value'])) {
+
+            $searchableColumns = ['dt.name', 'dt.type'];
+            $searchItem = $search['value'];
+
+            foreach($searchableColumns as $searchableColumn) {
+
+                $searches[] = sprintf('LOWER(%s) LIKE \'%%%s%%\'', $searchableColumn, strtolower($searchItem));
+
+            }
+        }
+
+        /**
+         * @see https://symfonycasts.com/screencast/doctrine-queries/and-where-or-where
+         */
+        if(!empty($searches)) {
+            $query->andWhere(implode(" OR ", $searches));
+        }
+
 
         // Limit
         $query->setFirstResult($start)->setMaxResults($length);

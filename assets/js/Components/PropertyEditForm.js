@@ -128,7 +128,16 @@ class PropertyEditForm {
             }).catch((errorData) => {
 
             if(errorData.httpCode === 401) {
-                swal("Woah!", `You don't have proper permissions for this!`, "error");
+
+                if(_.has(errorData, 'message')) {
+
+                    swal("Woah!", `${errorData.message}`, "error");
+
+                } else {
+
+                    swal("Woah!", `You don't have proper permissions for this!`, "error");
+                }
+
                 return;
             }
 
@@ -154,8 +163,7 @@ class PropertyEditForm {
         formData[$(e.target).attr('name')] = $(e.target).val();
         formData[$(PropertyEditForm._selectors.customObject).attr('name')] = $(PropertyEditForm._selectors.customObject).val();
         formData[$(PropertyEditForm._selectors.fieldType).attr('name')] = $(PropertyEditForm._selectors.fieldType).val();
-
-        formData['validate'] = false;
+        formData['skip_validation'] = true;
 
         debugger;
         this._changeCustomObject(formData)
@@ -185,7 +193,7 @@ class PropertyEditForm {
 
         const formData = {};
         formData[$(e.target).attr('name')] = $(e.target).val();
-        formData['validate'] = false;
+        formData['skip_validation'] = true;
 
         this._changeFieldType(formData)
             .then((data) => {

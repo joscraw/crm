@@ -8,6 +8,7 @@ use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\GroupSequence;
 
 /**
  * Class EditPropertyGroupType
@@ -38,7 +39,7 @@ class EditPropertyGroupType extends AbstractType
     {
         $resolver->setDefaults(array(
             'data_class' => PropertyGroup::class,
-            'validation_groups' => ['EDIT'],
+            'validation_groups' => new GroupSequence(['FIRST', 'EDIT'])
         ));
     }
 }

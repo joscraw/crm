@@ -27,7 +27,7 @@ class IdToRecordTransformer implements DataTransformerInterface
     /**
      * Transforms an object (record) to a string (number).
      *
-     * @param $records
+     * @param $record
      * @return string
      */
     public function transform($record)

@@ -34,6 +34,7 @@ use Symfony\Component\Serializer\Encoder\XmlEncoder;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\Validator\Constraints\GroupSequence;
 
 
 /**
@@ -198,11 +199,19 @@ class PropertyController extends ApiController
 
         $property->setCustomObject($customObject);
 
-        $form = $this->createForm(EditPropertyType::class, $property, [
+        $skipValidation = $request->request->get('skip_validation', false);
+
+        $options = [
             'portal' => $portal,
             'customObject' => $customObject,
             'property' => $property
-        ]);
+        ];
+
+        if(!$skipValidation) {
+            $options['validation_groups'] = new GroupSequence(['FIRST', 'EDIT']);
+        }
+
+        $form = $this->createForm(EditPropertyType::class, $property, $options);
 
         $form->handleRequest($request);
 
@@ -234,7 +243,6 @@ class PropertyController extends ApiController
                     ], Response::HTTP_UNAUTHORIZED
                 );
             }
-
         }
 
         if ($form->isSubmitted() && !$form->isValid()) {
