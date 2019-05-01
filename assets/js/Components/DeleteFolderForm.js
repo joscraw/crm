@@ -5,20 +5,20 @@ import swal from 'sweetalert2';
 import Routing from '../Routing';
 import Settings from '../Settings';
 
-class DeleteListForm {
+class DeleteFolderForm {
 
     /**
      * @param $wrapper
      * @param globalEventDispatcher
      * @param portal
-     * @param listId
+     * @param folderId
      */
-    constructor($wrapper, globalEventDispatcher, portal, listId) {
+    constructor($wrapper, globalEventDispatcher, portal, folderId) {
 
         debugger;
         this.$wrapper = $wrapper;
         this.portal = portal;
-        this.listId = listId;
+        this.folderId = folderId;
 
         /**
          * @type {EventDispatcher}
@@ -27,7 +27,7 @@ class DeleteListForm {
 
         this.$wrapper.on(
             'submit',
-            DeleteListForm._selectors.deleteListForm,
+            DeleteFolderForm._selectors.deleteFolderForm,
             this.handleDeleteFormSubmit.bind(this)
         );
 
@@ -39,14 +39,14 @@ class DeleteListForm {
      */
     static get _selectors() {
         return {
-            deleteListForm: '.js-delete-list-form',
+            deleteFolderForm: '.js-delete-folder-form',
         }
     }
 
     loadForm() {
         debugger;
         $.ajax({
-            url: Routing.generate('delete_list_form', {internalIdentifier: this.portal, listId: this.listId}),
+            url: Routing.generate('delete_folder_form', {internalIdentifier: this.portal, folderId: this.folderId}),
         }).then(data => {
             this.$wrapper.html(data.formMarkup);
         })
@@ -69,8 +69,8 @@ class DeleteListForm {
             .then((data) => {
 
                 debugger;
-                swal("Hooray!", "Sweet! List successfully removed!", "success");
-                this.globalEventDispatcher.publish(Settings.Events.LIST_DELETED);
+                swal("Hooray!", "Sweet! Folder successfully removed!", "success");
+                this.globalEventDispatcher.publish(Settings.Events.FOLDER_DELETED);
             }).catch((errorData) => {
 
                 if(errorData.httpCode === 401) {
@@ -91,7 +91,7 @@ class DeleteListForm {
     _delete(data) {
         return new Promise( (resolve, reject) => {
 
-            const url = Routing.generate('delete_list', {internalIdentifier: this.portal, listId: this.listId});
+            const url = Routing.generate('delete_folder', {internalIdentifier: this.portal, folderId: this.folderId});
             debugger;
 
             $.ajax({
@@ -115,4 +115,4 @@ class DeleteListForm {
     }
 }
 
-export default DeleteListForm;
+export default DeleteFolderForm;

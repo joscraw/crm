@@ -5,20 +5,20 @@ import swal from 'sweetalert2';
 import Routing from '../Routing';
 import Settings from '../Settings';
 
-class DeleteListForm {
+class EditFolderForm {
 
     /**
      * @param $wrapper
      * @param globalEventDispatcher
      * @param portal
-     * @param listId
+     * @param folderId
      */
-    constructor($wrapper, globalEventDispatcher, portal, listId) {
+    constructor($wrapper, globalEventDispatcher, portal, folderId) {
 
         debugger;
         this.$wrapper = $wrapper;
         this.portal = portal;
-        this.listId = listId;
+        this.folderId = folderId;
 
         /**
          * @type {EventDispatcher}
@@ -27,8 +27,8 @@ class DeleteListForm {
 
         this.$wrapper.on(
             'submit',
-            DeleteListForm._selectors.deleteListForm,
-            this.handleDeleteFormSubmit.bind(this)
+            EditFolderForm._selectors.editFolderForm,
+            this.handleNewFormSubmit.bind(this)
         );
 
         this.loadForm();
@@ -39,14 +39,13 @@ class DeleteListForm {
      */
     static get _selectors() {
         return {
-            deleteListForm: '.js-delete-list-form',
+            editFolderForm: '.js-edit-folder-form',
         }
     }
 
     loadForm() {
-        debugger;
         $.ajax({
-            url: Routing.generate('delete_list_form', {internalIdentifier: this.portal, listId: this.listId}),
+            url: Routing.generate('edit_folder', {internalIdentifier: this.portal, folderId: this.folderId}),
         }).then(data => {
             this.$wrapper.html(data.formMarkup);
         })
@@ -55,31 +54,32 @@ class DeleteListForm {
     /**
      * @param e
      */
-    handleDeleteFormSubmit(e) {
+    handleNewFormSubmit(e) {
+
+        debugger;
 
         if(e.cancelable) {
             e.preventDefault();
         }
 
-        debugger;
         const $form = $(e.currentTarget);
         let formData = new FormData($form.get(0));
 
-        this._delete(formData)
+        this._editFolder(formData)
             .then((data) => {
-
-                debugger;
-                swal("Hooray!", "Sweet! List successfully removed!", "success");
-                this.globalEventDispatcher.publish(Settings.Events.LIST_DELETED);
+                swal("Hooray!", "Well done, you've edited your folder!", "success");
+                this.globalEventDispatcher.publish(Settings.Events.FOLDER_MODIFIED);
             }).catch((errorData) => {
 
-                if(errorData.httpCode === 401) {
-                    swal("Woah!", `You don't have proper permissions for this!`, "error");
-                    return;
-                }
+            if(errorData.httpCode === 401) {
+                swal("Woah!", `You don't have proper permissions for this!`, "error");
+                return;
+            }
 
-                this.$wrapper.html(errorData.formMarkup);
+            this.$wrapper.html(errorData.formMarkup);
 
+            // Use for when the form is being generated on the JS side
+            /*this._mapErrorsToForm(errorData.errors);*/
         });
     }
 
@@ -88,11 +88,9 @@ class DeleteListForm {
      * @return {Promise<any>}
      * @private
      */
-    _delete(data) {
+    _editFolder(data) {
         return new Promise( (resolve, reject) => {
-
-            const url = Routing.generate('delete_list', {internalIdentifier: this.portal, listId: this.listId});
-            debugger;
+            const url = Routing.generate('edit_folder', {internalIdentifier: this.portal, folderId: this.folderId});
 
             $.ajax({
                 url,
@@ -101,18 +99,14 @@ class DeleteListForm {
                 processData: false,
                 contentType: false
             }).then((data, textStatus, jqXHR) => {
-                debugger;
                 resolve(data);
             }).catch((jqXHR) => {
-                debugger;
                 const errorData = JSON.parse(jqXHR.responseText);
-
                 errorData.httpCode = jqXHR.status;
-
                 reject(errorData);
             });
         });
     }
 }
 
-export default DeleteListForm;
+export default EditFolderForm;

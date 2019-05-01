@@ -27,10 +27,11 @@
 
 .btn-light:hover {
   color: #506E91;
+  /*border: darken($color-white-94, 5%);*/
 }
 
 .btn-outline-light {
-  @include button-outline-variant($color-white-84, $color-white-84, darken($color-white-84,5%), $color-white-84);
+  @include button-outline-variant($color-white-94, $color-white-94, darken($color-white-94,5%), $color-white-94);
 }
 
 .btn {

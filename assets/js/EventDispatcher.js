@@ -47,6 +47,7 @@ class EventDispatcher {
      */
     singleSubscribe(channel, fn) {
 
+        debugger;
         var self = this;
         if (fn === undefined) {
             throw new Error('Subscribe must include a callback function.');
@@ -61,6 +62,8 @@ class EventDispatcher {
         for(let i = 0; i < this.channels[channel].length; i++) {
 
             let c = this.channels[channel][i];
+
+            let s = c.callback.toString();
 
             if(c.callback.toString === fn.toString) {
 

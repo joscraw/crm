@@ -6,6 +6,9 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
+use Symfony\Component\Validator\Constraints as Assert;
+use App\Validator\Constraints as CustomAssert;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\FolderRepository")
@@ -30,7 +33,7 @@ class Folder
     private $parentFolder;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Folder", mappedBy="parentFolder")
+     * @ORM\OneToMany(targetEntity="App\Entity\Folder", mappedBy="parentFolder", cascade={"remove"})
      */
     private $childFolders;
 
@@ -40,6 +43,7 @@ class Folder
     private $type;
 
     /**
+     * @Assert\NotBlank(message="Don't forget a name for your super cool folder!!", groups={"CREATE", "EDIT"})
      * @ORM\Column(type="string", length=255)
      */
     private $name;

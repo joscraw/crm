@@ -63,12 +63,14 @@ class FolderRepository extends ServiceEntityRepository
     {
 
         // Main Query
-        $mainQuerySelectColumns = ['dt.id', 'dt.name', 'dt.createdAt'];
+        $mainQuerySelectColumns = ['dt.id', 'dt.name', 'dt.createdAt', 'count(list.id) as size'];
         $searchQuery = null;
         $query = $this->createQueryBuilder('dt')
             ->select($mainQuerySelectColumns)
+            ->leftJoin('dt.marketingLists', 'list')
             ->where('dt.portal = :portal')
             ->andWhere('dt.type = :type')
+            ->groupby('dt.id')
             ->setParameter('type', Folder::LIST_FOLDER)
             ->setParameter('portal', $portal->getId());
 

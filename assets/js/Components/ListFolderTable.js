@@ -7,6 +7,9 @@ import $ from "jquery";
 import DeleteCustomObjectButton from "./DeleteCustomObjectButton";
 import DeleteReportButton from "./DeleteReportButton";
 import DeleteListButton from "./DeleteListButton";
+import DeleteListFormModal from "./DeleteListFormModal";
+import ListTableDropdown from "./ListTableDropdown";
+import FolderTableDropdown from "./FolderTableDropdown";
 
 require( 'datatables.net-bs4' );
 require( 'datatables.net-responsive-bs4' );
@@ -38,10 +41,40 @@ class ListFolderTable {
         );
 
         this.globalEventDispatcher.singleSubscribe(
+            Settings.Events.FOLDER_CREATED,
+            this.reloadList.bind(this)
+        );
+
+        this.globalEventDispatcher.singleSubscribe(
+            Settings.Events.FOLDER_DELETED,
+            this.reloadList.bind(this)
+        );
+
+        this.globalEventDispatcher.singleSubscribe(
+            Settings.Events.FOLDER_MODIFIED,
+            this.reloadList.bind(this)
+        );
+
+
+        this.globalEventDispatcher.singleSubscribe(
+            Settings.Events.LIST_MOVED_TO_FOLDER,
+            this.reloadList.bind(this)
+        );
+
+        this.globalEventDispatcher.singleSubscribe(
             Settings.Events.LIST_SEARCH_KEY_UP,
             this.applySearch.bind(this)
         );
+    }
 
+    /**
+     * Call like this.selectors
+     */
+    static get _selectors() {
+        return {
+            listTableDropdown: '.js-list-table-dropdown',
+            folderTableDropdown: '.js-folder-table-dropdown',
+        }
     }
 
     activatePlugins() {
@@ -64,12 +97,6 @@ class ListFolderTable {
             "responsive": true,
             "language": {
                 "emptyTable": `No folders found.`
-            /*    "processing": `<div class="pace pace-inactive">
-                                <div class="pace-progress" data-progress-text="100%" data-progress="99" style="width: 100%;">
-                                <div class="pace-progress-inner"></div>
-                                </div>
-                                <div class="pace-activity"></div>
-                                </div>`*/
             },
             /*
             the "dom" property determines what components DataTables shows by default
@@ -86,42 +113,67 @@ class ListFolderTable {
             For more information on the "dom" property and how to use it
             https://datatables.net/reference/option/dom
             */
-            "dom": "lpirt",
+            "dom": "lprt",
             "columns": [
-                { "data": "name", "name": "name", "title": "name", mRender: (data, type, row) => {
+                { "data": "name", "name": "name", "title": "Name", mRender: (data, type, row) => {
 
                     let html = ``;
 
                     if(_.indexOf(['DYNAMIC_LIST', 'STATIC_LIST'], row['type']) !== -1) {
 
                         html += `${row['name']}`;
+
+                        html += `<span class="c-table__edit-button js-list-table-dropdown" data-list-id="${row['id']}"></span>`;
+
                     } else {
 
                         html += `<a href="${Routing.generate('list_settings', {internalIdentifier: this.portal})}/folders/${row['id']}" role="button"><i class="fa fa-folder"></i>  ${row['name']} </a>`;
+
+                        html += `<span class="c-table__edit-button js-folder-table-dropdown" data-folder-id="${row['id']}"></span>`;
                     }
 
                     return html;
                 }},
                 { "data": "type", "name": "type", "title": "Type", mRender: (data, type, row) => {
 
-                    let listType = "";
-                    if(data === 'DYNAMIC_LIST') {
-                        listType = 'Dynamic List';
-                    } else if(data === 'STATIC_LIST') {
-                        listType = 'Static List';
+                    let html = '-';
+
+                    if(_.indexOf(['DYNAMIC_LIST', 'STATIC_LIST'], row['type']) !== -1) {
+
+                        if(data === 'DYNAMIC_LIST') {
+                            html = 'Dynamic List';
+                        } else if(data === 'STATIC_LIST') {
+                            html = 'Static List';
+                        }
                     }
 
-                    return listType;
+                    return html;
+                    }},
+                { "data": "size", "name": "size", "title": "Size", mRender: (data, type, row) => {
+
+                        let html = `-`;
+
+                        if(_.indexOf(['DYNAMIC_LIST', 'STATIC_LIST'], row['type']) === -1) {
+
+                            html = `${row['size']}`;
+
+                        }
+                        return html;
                     }},
                 {
                     data: null,
                     className: "center",
-                    title: "download",
+                    title: "Download",
                     mRender: (data, type, row) => {
-                        debugger;
-                        return `
-                        <a href="${Routing.generate('download_list', {'listId' : data['id'], 'internalIdentifier' : this.portal})}" data-bypass="true" class="btn btn-primary" download><i class="fa fa-download"></i> Export</a>
-                        `;
+
+                        let html = '-';
+
+                        if(_.indexOf(['DYNAMIC_LIST', 'STATIC_LIST'], row['type']) !== -1) {
+
+                        html = `<a href="${Routing.generate('download_list', {'listId' : data['id'], 'internalIdentifier' : this.portal})}" data-bypass="true" class="btn btn-primary" download><i class="fa fa-download"></i> Export</a>`;
+                        }
+
+                        return html;
                     }
                 }
             ],
@@ -134,18 +186,35 @@ class ListFolderTable {
             },
             "drawCallback": (settings)  => {
 
-                this.addDeleteListButton();
+                this.addListDropdown();
+
+                this.addFolderDropdown();
+
             },
             "initComplete": function () {}
         });
     }
 
-    addDeleteListButton() {
+    addListDropdown() {
 
-        debugger;
-        this.$wrapper.find('.js-delete-list').each((index, element) => {
-            new DeleteListButton($(element), this.globalEventDispatcher, this.portal, $(element).data('listId'), "Delete");
+        this.$wrapper.find(ListFolderTable._selectors.listTableDropdown).each((index, element) => {
+
+            let listId = $(element).attr('data-list-id');
+
+            new ListTableDropdown($(element), this.globalEventDispatcher, this.portal, listId, "Actions");
         });
+
+    }
+
+    addFolderDropdown() {
+
+        this.$wrapper.find(ListFolderTable._selectors.folderTableDropdown).each((index, element) => {
+
+            let folderId = $(element).attr('data-folder-id');
+
+            new FolderTableDropdown($(element), this.globalEventDispatcher, this.portal, folderId, "Actions");
+        });
+
     }
 
     /**
@@ -167,20 +236,15 @@ class ListFolderTable {
                 break;
         }
 
-
-
         $('#table_id').DataTable().search(
             this.searchValue
         ).draw();
     }
 
-
     reloadList() {
-        debugger;
         this.table.destroy();
         this.activatePlugins();
     }
-
 
     render() {
         return new Promise((resolve, reject) => {

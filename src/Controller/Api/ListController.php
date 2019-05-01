@@ -4,6 +4,7 @@ namespace App\Controller\Api;
 
 use App\AuthorizationHandler\PermissionAuthorizationHandler;
 use App\Entity\CustomObject;
+use App\Entity\Folder;
 use App\Entity\MarketingList;
 use App\Entity\Portal;
 use App\Entity\Property;
@@ -14,6 +15,8 @@ use App\Entity\Role;
 use App\Form\CustomObjectType;
 use App\Form\DeleteListType;
 use App\Form\DeleteReportType;
+use App\Form\FolderType;
+use App\Form\MoveListToFolderType;
 use App\Form\PropertyGroupType;
 use App\Form\PropertyType;
 use App\Form\RecordType;
@@ -173,6 +176,123 @@ class ListController extends ApiController
         return $response;
     }
 
+    /**
+     * @Route("/create-folder", name="create_list_folder", methods={"GET", "POST"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function createFolderAction(Portal $portal, Request $request) {
+
+        $folder = new Folder();
+
+        $form = $this->createForm(FolderType::class, $folder);
+
+        $form->handleRequest($request);
+
+        $formMarkup = $this->renderView(
+            'Api/form/folder_form.html.twig',
+            [
+                'form' => $form->createView()
+            ]
+        );
+
+        if ($form->isSubmitted() && !$form->isValid()) {
+
+            return new JsonResponse(
+                [
+                    'success' => false,
+                    'formMarkup' => $formMarkup,
+                ], Response::HTTP_BAD_REQUEST
+            );
+        }
+
+        if ($form->isSubmitted() && $form->isValid()) {
+
+            $folderId = $request->request->get('folderId', null);
+
+
+            /** @var $folder Folder */
+            $folder = $form->getData();
+
+            if($folderId) {
+                $parentFolder = $this->folderRepository->find($folderId);
+                $folder->setParentFolder($parentFolder);
+            }
+
+            $folder->setPortal($portal);
+            $folder->setType(Folder::LIST_FOLDER);
+            $this->entityManager->persist($folder);
+            $this->entityManager->flush();
+        }
+
+        return new JsonResponse(
+            [
+                'success' => true,
+                'formMarkup' => $formMarkup,
+            ],
+            Response::HTTP_OK
+        );
+    }
+
+    /**
+     * @Route("/{listId}/move-to-folder", name="move_list_to_folder", methods={"GET", "POST"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param MarketingList $list
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function moveListToFolderAction(Portal $portal, MarketingList $list, Request $request) {
+
+        $form = $this->createForm(MoveListToFolderType::class, null, [
+            'portal' => $portal
+        ]);
+
+        $form->handleRequest($request);
+
+        $formMarkup = $this->renderView(
+            'Api/form/move_list_to_folder_form.html.twig',
+            [
+                'form' => $form->createView()
+            ]
+        );
+
+        if ($form->isSubmitted() && !$form->isValid()) {
+
+            return new JsonResponse(
+                [
+                    'success' => false,
+                    'formMarkup' => $formMarkup,
+                ], Response::HTTP_BAD_REQUEST
+            );
+        }
+
+        if ($form->isSubmitted() && $form->isValid()) {
+
+            $folderId = $form->get('folder')->getData();
+
+            if($folderId) {
+
+                $folder = $this->folderRepository->find($folderId);
+                $list->setFolder($folder);
+            } else {
+                $list->setFolder(null);
+            }
+
+
+            $this->entityManager->persist($list);
+            $this->entityManager->flush();
+        }
+
+        return new JsonResponse(
+            [
+                'success' => true,
+                'formMarkup' => $formMarkup,
+            ],
+            Response::HTTP_OK
+        );
+    }
+
 
     /**
      * @Route("/{internalName}/save-list", name="save_list", methods={"POST"}, options = { "expose" = true })
@@ -310,6 +430,23 @@ class ListController extends ApiController
             'recordsFiltered' => !empty($search['value']) ? $filteredListCount : $totalListCount,
             'recordsTotal'  => $totalListCount,
             'data'  => $arrayResults
+        ],  Response::HTTP_OK);
+
+        return $response;
+    }
+
+    /**
+     * @Route("/count", name="list_count", methods={"GET"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param Request $request
+     * @return Response
+     */
+    public function getListCountAction(Portal $portal, Request $request) {
+
+        $count = $this->marketingListRepository->getTotalCount($portal);
+
+        $response = new JsonResponse([
+            'data'  => $count
         ],  Response::HTTP_OK);
 
         return $response;

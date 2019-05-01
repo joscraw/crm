@@ -1,0 +1,8 @@
+{% form_theme form 'bootstrap_4_layout.html.twig' %}
+
+{{ form_start(form, {'attr': {class: 'js-delete-folder-form', novalidate: 'novalidate'}}) }}
+{{ form_errors(form) }}
+<small class="form-text text-muted">Deleting a folder will also delete all child folders. But rest easy, deleting a folder will not delete any of the lists that belong to it! Are you sure you want to do this?</small>
+<br>
+{{ form_rest(form) }}
+{{ form_end(form) }}
