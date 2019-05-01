@@ -36,7 +36,7 @@ use Symfony\Component\Serializer\SerializerInterface;
  * Class CustomObjectController
  * @package App\Controller\Api
  *
- * @Route("{internalIdentifier}/api/custom-objects")
+ * @Route("{internalIdentifier}/api/objects")
  */
 class CustomObjectController extends ApiController
 {

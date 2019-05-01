@@ -15,7 +15,7 @@
             </li>
 
             <li  data-toggle="collapse" data-target="#products" class="collapsed">
-                <a href="javascript:void(0)"><i class="fa fa-object-ungroup"></i> Custom Objects <span class="arrow"></span></a>
+                <a href="javascript:void(0)"><i class="fa fa-object-ungroup"></i> Objects <span class="arrow"></span></a>
             </li>
             <ul class="sub-menu collapse" id="products">
                 {% for customObject in customObjects %}
@@ -47,13 +47,23 @@
                 </a>
             </li>
 
-            <li  data-toggle="collapse" data-target="#marketing" class="collapsed">
-                <a href="javascript:void(0)"><i class="fa fa-wpforms"></i> Marketing <span class="arrow"></span></a>
+            <li>
+                <a data-bypass="true" href="{{ path('user_settings', {'internalIdentifier' : portal.internalIdentifier}) }}">
+                    <i class="fa fa-wpforms"></i> Forms
+                </a>
             </li>
 
-            <ul class="sub-menu collapse" id="marketing">
-                <li><a data-bypass="true" href="#">Forms</a></li>
-            </ul>
+            <li>
+                <a data-bypass="true" href="{{ path('user_settings', {'internalIdentifier' : portal.internalIdentifier}) }}">
+                    <i class="fa fa-bar-chart"></i> Dashboards
+                </a>
+            </li>
+
+            <li>
+                <a data-bypass="true" href="{{ path('user_settings', {'internalIdentifier' : portal.internalIdentifier}) }}">
+                    <i class="fa fa-wrench"></i> Workflows
+                </a>
+            </li>
 
             <li>
                 <a data-bypass="true" href="{{ path('logout') }}">

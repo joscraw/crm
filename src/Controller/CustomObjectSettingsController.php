@@ -30,7 +30,7 @@ use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
  * Class CustomObjectSettingsController
  * @package App\Controller
  *
- * @Route("{internalIdentifier}/custom-objects")
+ * @Route("{internalIdentifier}/objects")
  *
  */
 class CustomObjectSettingsController extends AbstractController
