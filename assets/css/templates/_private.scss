@@ -1,0 +1,36 @@
+// -----------------------------------------------------------------------------
+// This file contains styles that are specific to the private template
+// -----------------------------------------------------------------------------
+
+
+
+.t-private-template {
+  display: flex;
+  flex-direction: column;
+  -webkit-box-flex: 1;
+  flex-grow: 1;
+  background-color: rgb(255, 255, 255);
+  min-height: calc(100vh - 55px);
+  margin-top: 55px;
+}
+
+.t-private-template__inner {
+  align-items: stretch;
+  display: flex;
+  height: calc(100vh - 55px);
+  width: 100%;
+}
+
+.t-private-template__sidebar {
+  display: flex;
+  flex: 0 0 500px;
+  flex-direction: column;
+  position: relative;
+  box-shadow: 1px 0 3px 0 rgba(81,111,144,.25);
+  padding: 10px;
+}
+
+
+.t-private-template__main {
+  flex: 1;
+}

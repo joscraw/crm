@@ -34,15 +34,15 @@
 
 
 .c-report-widget__list {
-  margin-top: 20px;
+  margin: 20px 0 0 0;
   list-style-type: none;
-  margin: 0;
   padding: 0;
 }
 
 .c-report-widget__property-list {
   overflow-y: scroll;
   height: 600px;
+  padding: 10px;
 }
 
 .c-report-widget__selected-columns {
@@ -69,7 +69,7 @@
 }
 
 .c-report-widget__card-body {
-  cursor: pointer;
+  cursor: grab;
 }
 
 .c-report-widget__report-name {

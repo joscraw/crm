@@ -78,6 +78,11 @@ class Portal
      */
     private $folders;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Form", mappedBy="portal")
+     */
+    private $forms;
+
 
     public function __construct()
     {
@@ -88,6 +93,7 @@ class Portal
         $this->filters = new ArrayCollection();
         $this->marketingLists = new ArrayCollection();
         $this->folders = new ArrayCollection();
+        $this->forms = new ArrayCollection();
     }
 
     /**
@@ -320,6 +326,37 @@ class Portal
             // set the owning side to null (unless already changed)
             if ($folder->getPortal() === $this) {
                 $folder->setPortal(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Form[]
+     */
+    public function getForms(): Collection
+    {
+        return $this->forms;
+    }
+
+    public function addForm(Form $form): self
+    {
+        if (!$this->forms->contains($form)) {
+            $this->forms[] = $form;
+            $form->setPortal($this);
+        }
+
+        return $this;
+    }
+
+    public function removeForm(Form $form): self
+    {
+        if ($this->forms->contains($form)) {
+            $this->forms->removeElement($form);
+            // set the owning side to null (unless already changed)
+            if ($form->getPortal() === $this) {
+                $form->setPortal(null);
             }
         }
 

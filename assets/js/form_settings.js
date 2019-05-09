@@ -5,6 +5,9 @@ import SideNavigationMenu from "./Components/SideNavigationMenu";
 import ReportSettings from "./Components/Page/ReportSettings";
 import ReportWidget from "./Components/ReportWidget";
 import EditReportWidget from "./Components/EditReportWidget";
+import FormSettings from "./Components/Page/FormSettings";
+import FormSelectObject from "./Components/FormSelectObject";
+import FormEditorEditForm from "./Components/FormEditorEditForm";
 
 require('backbone/backbone.js');
 
@@ -12,17 +15,39 @@ $(document).ready(function() {
 
     var Router = Backbone.Router.extend({
         routes: {
-            ":internalIdentifier/reports": "index",
-            ":internalIdentifier/reports/create": "create",
-            ":internalIdentifier/reports/:reportId/edit": "edit"
+            ":internalIdentifier/forms": "index",
+            ":internalIdentifier/forms/type": "type",
+            ":internalIdentifier/forms/object": "object",
+            ":internalIdentifier/forms/editor/:uid/edit/form": "editorEditForm"
+
+            /*":internalIdentifier/forms/create": "create",
+            ":internalIdentifier/forms/:formId/edit": "edit"*/
         },
 
         index: function(internalIdentifier) {
 
-            new ReportSettings($('#app'), window.globalEventDispatcher, internalIdentifier);
+            new FormSettings($('#app'), window.globalEventDispatcher, internalIdentifier);
             new SideNavigationMenu($('#side-nav'), window.globalEventDispatcher, internalIdentifier);
         },
+
+        editorEditForm: function(internalIdentifier, uid) {
+
+            debugger;
+
+            new FormEditorEditForm($('#app'), window.globalEventDispatcher, internalIdentifier, uid);
+        },
+
+        object: function(internalIdentifier) {
+
+            new FormSelectObject($('#app'), window.globalEventDispatcher, internalIdentifier);
+        },
+
+
         create: function(internalIdentifier) {
+
+            debugger;
+
+            /*this.navigate("help/troubleshooting");*/
 
             $('#side-nav').html("");
             new ReportWidget($('#app'), window.globalEventDispatcher, internalIdentifier);
