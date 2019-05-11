@@ -87,7 +87,9 @@ class FormEditorFormPreview {
 
         this.data = data;
 
-        this.loadFormPreview(data);
+        this.loadFormPreview(data).then(() => {
+           this.activatePlugins();
+        });
     }
 
     loadFormPreview() {
@@ -108,7 +110,7 @@ class FormEditorFormPreview {
 
     activatePlugins() {
 
-        this.$wrapper.sortable({
+       /* this.$wrapper.sortable({
             placeholder: "ui-state-highlight",
             cursor: 'crosshair',
             update: (event, ui) => {
@@ -117,6 +119,15 @@ class FormEditorFormPreview {
                 this.globalEventDispatcher.publish(Settings.Events.LIST_COLUMN_ORDER_CHANGED, columnOrder);
 
             }
+        });*/
+
+        $('.js-selectize-multiple-select').selectize({
+            plugins: ['remove_button'],
+            sortField: 'text'
+        });
+
+        $('.js-selectize-single-select').selectize({
+            sortField: 'text'
         });
 
     }

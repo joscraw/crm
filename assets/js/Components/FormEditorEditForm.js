@@ -46,14 +46,8 @@ class FormEditorEditForm {
         this.portalInternalIdentifier = portalInternalIdentifier;
         this.uid = uid;
         this.formName = '';
+        this.data = [];
 
-        /**
-         * This data object is responsible for storing all the properties and filters that will get sent to the server
-         * @type {{}}
-         */
-        this.data = {};
-
-        this.columnOrder = [];
 
        /* this.unbindEvents();
 
@@ -130,15 +124,14 @@ class FormEditorEditForm {
 
     handlePropertyListItemClicked(property) {
 
-        debugger;
         let uID = StringHelper.makeCharId();
+        _.set(property, 'uID', uID);
 
-        _.set(this.data, uID, property);
+        this.data.push(property);
 
-        this.globalEventDispatcher.publish(Settings.Events.FORM_EDITOR_PROPERTY_LIST_ITEM_ADDED, this.data, this.columnOrder);
-
-        debugger;
         this._saveFormData();
+
+        this.globalEventDispatcher.publish(Settings.Events.FORM_EDITOR_PROPERTY_LIST_ITEM_ADDED, this.data);
     }
 
 
@@ -162,7 +155,7 @@ class FormEditorEditForm {
             $.ajax({
                 url,
                 method: 'POST',
-                data: {'data': this.data, formName: this.formName, columnOrder: this.columnOrder}
+                data: {'data': this.data, formName: this.formName}
             }).then((data, textStatus, jqXHR) => {
 
                 debugger;

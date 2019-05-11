@@ -23,7 +23,7 @@ class PropertyGroup
     use TimestampableEntity;
 
     /**
-     * @Groups({"PROPERTIES_FOR_FILTER", "PROPERTIES_FOR_REPORT", "PROPERTIES_FOR_LIST"})
+     * @Groups({"SELECTABLE_PROPERTIES"})
      *
      * @ORM\Id()
      * @ORM\GeneratedValue()
@@ -32,7 +32,7 @@ class PropertyGroup
     private $id;
 
     /**
-     * @Groups({"PROPERTIES_FOR_FILTER", "PROPERTIES_FOR_REPORT", "PROPERTIES_FOR_LIST"})
+     * @Groups({"SELECTABLE_PROPERTIES"})
      *
      * @Assert\NotBlank(message="Don't forget a name for your super cool Property Group!", groups={"CREATE", "EDIT"})
      *
@@ -41,7 +41,7 @@ class PropertyGroup
     private $name;
 
     /**
-     * @Groups({"PROPERTIES_FOR_FILTER", "PROPERTIES_FOR_REPORT", "PROPERTIES_FOR_LIST"})
+     * @Groups({"SELECTABLE_PROPERTIES"})
      *
      * @Assert\Regex("/^[a-zA-Z0-9_]*$/", message="Woah! Only use letters numbers and underscores please!")
      *
@@ -50,7 +50,7 @@ class PropertyGroup
     private $internalName;
 
     /**
-     * @Groups({"PROPERTIES_FOR_FILTER", "PROPERTIES_FOR_REPORT", "PROPERTIES_FOR_LIST"})
+     * @Groups({"SELECTABLE_PROPERTIES"})
      * 
      * @ORM\OneToMany(targetEntity="App\Entity\Property", mappedBy="propertyGroup", cascade={"remove"})
      */

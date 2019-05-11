@@ -11,7 +11,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 class SingleLineTextField extends AbstractField implements \JsonSerializable
 {
     /**
-     * @Groups({"PROPERTIES_FOR_FILTER"})
+     * @Groups({"SELECTABLE_PROPERTIES"})
      *
      * @var string
      */

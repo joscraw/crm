@@ -17,6 +17,7 @@ use App\Form\CustomObjectType;
 use App\Form\DeleteListType;
 use App\Form\DeleteReportType;
 use App\Form\FolderType;
+use App\Form\FormType;
 use App\Form\MoveListToFolderType;
 use App\Form\PropertyGroupType;
 use App\Form\PropertyType;
@@ -262,22 +263,15 @@ class FormController extends ApiController
      */
     public function getFormPreviewAction(Portal $portal, CustomObject $customObject, Request $request) {
 
-        $data = $request->request->get('data', []);
+        $properties = $request->request->get('data', []);
 
-        $propertyIds = [];
-        foreach($data as $uid => $property) {
-            $propertyIds[] = $property['id'];
-        }
-
-        $properties = $this->propertyRepository->findBy( array('id' => $propertyIds));
-
-        $form = $this->createForm(RecordType::class, null, [
+        $form = $this->createForm(FormType::class, null, [
             'properties' => $properties,
             'portal' => $portal
         ]);
 
         $formMarkup = $this->renderView(
-            'Api/form/record_form.html.twig',
+            'Api/form/form_editor_preview_form.html.twig',
             [
                 'form' => $form->createView(),
             ]

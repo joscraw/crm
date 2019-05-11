@@ -166,7 +166,7 @@ class FormEditorPropertyList {
 
     loadProperties() {
 
-        this.loadPropertiesForReport().then(data => {
+        this.loadPropertiesForFormEditor().then(data => {
             this.propertyGroups = data.data.property_groups;
             this.renderProperties(this.propertyGroups).then(() => {
                 debugger;
@@ -178,8 +178,6 @@ class FormEditorPropertyList {
 
     handlePropertyListItemAdded(data) {
 
-        debugger;
-
         this.data = data;
 
         this.highlightProperties(data);
@@ -187,8 +185,6 @@ class FormEditorPropertyList {
     }
 
     handlePropertyListItemRemoved(data) {
-
-        debugger;
 
         this.data = data;
 
@@ -205,42 +201,23 @@ class FormEditorPropertyList {
             }
 
             let propertyId = $(element).attr('data-property-id');
-            let joins = JSON.parse($(element).attr('data-joins'));
-            let propertyPath = joins.join('.');
 
-            if(_.has(data, propertyPath)) {
+            let property = data.filter(property => {
+                return parseInt(property.id) === parseInt(propertyId);
+            });
 
-                let properties = _.get(data, propertyPath);
-
-                let propertyMatch = null;
-
-                for(let key in properties) {
-
-                    let property = properties[key];
-
-                    if(parseInt(property.id) === parseInt(propertyId)) {
-                        propertyMatch = property;
-                    }
-                }
-
-                if(propertyMatch) {
-
-                    $(element).addClass('c-private-card__item--active');
-                }
+            if(property[0]) {
+                $(element).addClass('c-private-card__item--active');
             }
-
         });
     }
 
-
     render() {
-        debugger;
         this.$wrapper.html(FormEditorPropertyList.markup(this));
     }
 
     handlePropertyListItemClicked(e) {
 
-        debugger;
         if(e.cancelable) {
             e.preventDefault();
         }
@@ -253,8 +230,6 @@ class FormEditorPropertyList {
 
         let propertyGroupId = $listItem.closest(FormEditorPropertyList._selectors.list).attr('data-property-group');
         let propertyId = $listItem.attr('data-property-id');
-        let joins = JSON.parse($listItem.attr('data-joins'));
-
 
         let propertyGroup = this.propertyGroups.filter(propertyGroup => {
             return parseInt(propertyGroup.id) === parseInt(propertyGroupId);
@@ -265,8 +240,6 @@ class FormEditorPropertyList {
         let property = properties.filter(property => {
             return parseInt(property.id) === parseInt(propertyId);
         });
-
-        property[0].joins = joins;
 
         this.globalEventDispatcher.publish(Settings.Events.FORM_EDITOR_PROPERTY_LIST_ITEM_CLICKED, property[0]);
     }
@@ -282,7 +255,6 @@ class FormEditorPropertyList {
                 let propertyGroup = propertyGroups[i];
                 let properties = propertyGroup.properties;
 
-                debugger;
                 this._addList(propertyGroup, properties);
 
             }
@@ -290,10 +262,10 @@ class FormEditorPropertyList {
         });
     }
 
-    loadPropertiesForReport() {
+    loadPropertiesForFormEditor() {
         return new Promise((resolve, reject) => {
             debugger;
-            const url = Routing.generate('properties_for_list', {internalIdentifier: this.portalInternalIdentifier, internalName: this.form.customObject.internalName});
+            const url = Routing.generate('get_properties', {internalIdentifier: this.portalInternalIdentifier, internalName: this.form.customObject.internalName});
 
             $.ajax({
                 url: url

@@ -276,7 +276,7 @@ class ReportPropertyList {
     loadPropertiesForReport() {
         return new Promise((resolve, reject) => {
             debugger;
-            const url = Routing.generate('properties_for_report', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
+            const url = Routing.generate('get_properties', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
 
             $.ajax({
                 url: url

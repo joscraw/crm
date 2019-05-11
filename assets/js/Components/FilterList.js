@@ -216,7 +216,7 @@ class FilterList {
     loadPropertiesForFilter() {
 
         return new Promise((resolve, reject) => {
-            const url = Routing.generate('properties_for_filter', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
+            const url = Routing.generate('get_properties', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
 
             $.ajax({
                 url: url

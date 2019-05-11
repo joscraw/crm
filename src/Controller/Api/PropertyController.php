@@ -315,29 +315,6 @@ class PropertyController extends ApiController
     }
 
     /**
-     * @Route("/{internalName}/get-for-filter", name="properties_for_filter", methods={"GET"}, options = { "expose" = true })
-     * @param Portal $portal
-     * @param CustomObject $customObject
-     * @param Request $request
-     * @return JsonResponse
-     */
-    public function getPropertiesForFilter(Portal $portal, CustomObject $customObject, Request $request) {
-
-        $propertyGroups = $this->propertyGroupRepository->getPropertyGroupsAndProperties($customObject);
-
-        $payload['property_groups'] = [];
-        foreach($propertyGroups as $propertyGroup) {
-            $json = $this->serializer->serialize($propertyGroup, 'json', ['groups' => ['PROPERTIES_FOR_FILTER']]);
-            $payload['property_groups'][] = json_decode($json, true);
-        }
-
-        return new JsonResponse([
-            'success' => true,
-            'data'  => $payload
-        ], Response::HTTP_OK);
-    }
-
-    /**
      * @Route("/{internalName}/get-for-columns", name="properties_for_columns", methods={"GET"}, options = { "expose" = true })
      * @param Portal $portal
      * @param CustomObject $customObject
@@ -380,52 +357,19 @@ class PropertyController extends ApiController
     }
 
     /**
-     * @Route("/{internalName}/get-for-report", name="properties_for_report", methods={"GET"}, options = { "expose" = true })
+     * @Route("/{internalName}", name="get_properties", methods={"GET"}, options = { "expose" = true })
      * @param Portal $portal
      * @param CustomObject $customObject
      * @param Request $request
      * @return JsonResponse
      */
-    public function getPropertiesForReportAction(Portal $portal, CustomObject $customObject, Request $request) {
+    public function getPropertiesAction(Portal $portal, CustomObject $customObject, Request $request) {
 
         $propertyGroups = $this->propertyGroupRepository->getPropertyGroupsAndProperties($customObject);
 
         $payload['property_groups'] = [];
-        foreach($propertyGroups as $propertyGroup) {
-            $json = $this->serializer->serialize($propertyGroup, 'json', ['groups' => ['PROPERTIES_FOR_REPORT']]);
-            $payload['property_groups'][] = json_decode($json, true);
-        }
 
-        return new JsonResponse([
-            'success' => true,
-            'data'  => $payload
-        ], Response::HTTP_OK);
-    }
-
-    /**
-     * @Route("/{internalName}/get-for-list", name="properties_for_list", methods={"GET"}, options = { "expose" = true })
-     * @param Portal $portal
-     * @param CustomObject $customObject
-     * @param Request $request
-     * @return JsonResponse
-     */
-    public function getPropertiesForListAction(Portal $portal, CustomObject $customObject, Request $request) {
-
-        $propertyGroups = $this->propertyGroupRepository->getPropertyGroupsAndProperties($customObject);
-
-        $payload['property_groups'] = [];
-        foreach($propertyGroups as $propertyGroup) {
-
-            // We don't show Custom Objects on lists because lists are only for one object type
-            /*foreach($propertyGroup->getProperties() as $property) {
-                if($property->getFieldType() === FieldCatalog::CUSTOM_OBJECT) {
-
-                    $propertyGroup->getProperties()->removeElement($property);
-                }
-            }*/
-        }
-
-        $json = $this->serializer->serialize($propertyGroups, 'json', ['groups' => ['PROPERTIES_FOR_LIST']]);
+        $json = $this->serializer->serialize($propertyGroups, 'json', ['groups' => ['SELECTABLE_PROPERTIES']]);
         $payload['property_groups'] = json_decode($json, true);
 
         return new JsonResponse([

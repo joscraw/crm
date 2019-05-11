@@ -139,7 +139,7 @@ class ListFilterList {
 
     loadProperties() {
 
-        this.loadPropertiesForReport().then(data => {
+        this.loadPropertiesForFilterList().then(data => {
             debugger;
             this.propertyGroups = data.data.property_groups;
             this.renderProperties(this.propertyGroups).then(() => {
@@ -271,10 +271,10 @@ class ListFilterList {
         });
     }
 
-    loadPropertiesForReport() {
+    loadPropertiesForFilterList() {
         return new Promise((resolve, reject) => {
             debugger;
-            const url = Routing.generate('properties_for_report', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
+            const url = Routing.generate('get_properties', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
 
             $.ajax({
                 url: url

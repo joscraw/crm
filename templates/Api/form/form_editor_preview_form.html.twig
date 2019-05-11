@@ -1,0 +1,9 @@
+{% form_theme form 'bootstrap_4_layout.html.twig' %}
+
+
+<div class="c-private-form-preview">
+    {{ form_start(form, {'attr': {class: 'js-new-record-form', novalidate: 'novalidate'}}) }}
+    <br>
+    {{ form_rest(form) }}
+    {{ form_end(form) }}
+</div>
