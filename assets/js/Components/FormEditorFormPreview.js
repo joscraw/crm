@@ -11,15 +11,12 @@ require('jquery-ui-dist/jquery-ui');
 
 class FormEditorFormPreview {
 
-    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, data, columnOrder, uid) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, form) {
         debugger;
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
-        this.data = data;
-        this.columnOrder = columnOrder;
-        this.uid = uid;
-
+        this.form = form;
 /*
         this.globalEventDispatcher.subscribe(
             Settings.Events.FORM_EDITOR_PROPERTY_LIST_ITEM_ADDED,
@@ -29,7 +26,12 @@ class FormEditorFormPreview {
 
         this.globalEventDispatcher.subscribe(
             Settings.Events.FORM_EDITOR_DATA_SAVED,
-            this.handleDataSaved.bind(this)
+            this.render.bind(this)
+        );
+
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.FORM_EDITOR_PROPERTY_LIST_ITEM_REMOVED,
+            this.render.bind(this)
         );
 
         /*this.globalEventDispatcher.subscribe(
@@ -59,7 +61,32 @@ class FormEditorFormPreview {
 
         this.activatePlugins();*/
 
-        this.render(data);
+        this.$wrapper.on(
+            'mouseover',
+            FormEditorFormPreview._selectors.formField,
+            this.handleFormFieldMouseOver.bind(this)
+        );
+
+        this.$wrapper.on(
+            'mouseout',
+            FormEditorFormPreview._selectors.formField,
+            this.handleFormFieldMouseOut.bind(this)
+        );
+
+        this.$wrapper.on(
+            'click',
+            FormEditorFormPreview._selectors.deleteButton,
+            this.handleDeleteButtonClicked.bind(this)
+        );
+
+        this.$wrapper.on(
+            'click',
+            FormEditorFormPreview._selectors.editButton,
+            this.handleEditButtonClicked.bind(this)
+        );
+
+
+        this.render(this.form);
 
     }
 
@@ -68,19 +95,71 @@ class FormEditorFormPreview {
      */
     static get _selectors() {
         return {
-            removeSelectedColumnIcon: '.js-remove-selected-column-icon'
+            formField: '.js-form-field',
+            sharedButtonMarkup: '.js-shared-button-markup',
+            deleteButton: '.js-delete-button',
+            editButton: '.js-edit-button',
+            formFieldsContainer: '.js-form-fields-container',
+            arrows: '.js-arrows'
         }
     }
 
-    render(data) {
+    render(form) {
 
         debugger;
-        if(_.isEmpty(data)) {
+        if(_.isEmpty(form.data)) {
 
             this.$wrapper.html(emptyListTemplate());
 
             return;
         }
+
+        this.form = form;
+
+        this.loadFormPreview(form).then(() => {
+            this.activatePlugins();
+        });
+    }
+
+    handleFormFieldMouseOver(e) {
+        let $field = $(e.target);
+        let $parent = $field.closest('.js-form-field');
+
+        if($parent.find(FormEditorFormPreview._selectors.sharedButtonMarkup).hasClass('d-none')) {
+            $parent.find(FormEditorFormPreview._selectors.sharedButtonMarkup).removeClass('d-none');
+        }
+
+        if($parent.find(FormEditorFormPreview._selectors.arrows).hasClass('d-none')) {
+            $parent.find(FormEditorFormPreview._selectors.arrows).removeClass('d-none');
+        }
+    }
+
+    handleFormFieldMouseOut(e) {
+        let $field = $(e.target);
+        let $parent = $field.closest('.js-form-field');
+
+        if(!$parent.find(FormEditorFormPreview._selectors.sharedButtonMarkup).hasClass('d-none')) {
+            $parent.find(FormEditorFormPreview._selectors.sharedButtonMarkup).addClass('d-none');
+        }
+
+        if(!$parent.find(FormEditorFormPreview._selectors.arrows).hasClass('d-none')) {
+            $parent.find(FormEditorFormPreview._selectors.arrows).addClass('d-none');
+        }
+    }
+
+    handleDeleteButtonClicked(e) {
+        let $button = $(e.target);
+        let uid = $button.attr('data-property-uid');
+
+        this.globalEventDispatcher.publish(Settings.Events.FORM_PREVIEW_DELETE_BUTTON_CLICKED, uid);
+    }
+
+    handleEditButtonClicked(e) {
+
+        let $button = $(e.target);
+        let uid = $button.attr('data-property-uid');
+
+        this.globalEventDispatcher.publish(Settings.Events.FORM_PREVIEW_EDIT_BUTTON_CLICKED, uid);
     }
 
     handleDataSaved(data) {
@@ -92,13 +171,13 @@ class FormEditorFormPreview {
         });
     }
 
-    loadFormPreview() {
+    loadFormPreview(form) {
 
         return new Promise((resolve, reject) => {
             $.ajax({
-                url: Routing.generate('form_preview', {internalIdentifier: this.portalInternalIdentifier, uid: this.uid}),
+                url: Routing.generate('form_preview', {internalIdentifier: this.portalInternalIdentifier, uid: form.uid}),
                 method: 'POST',
-                data: {'data': this.data, columnOrder: this.columnOrder}
+                data: {'data': form.data}
             }).then(data => {
                 this.$wrapper.html(data.formMarkup);
                 resolve(data);
@@ -110,16 +189,17 @@ class FormEditorFormPreview {
 
     activatePlugins() {
 
-       /* this.$wrapper.sortable({
+        this.$wrapper.find(FormEditorFormPreview._selectors.formFieldsContainer).sortable({
             placeholder: "ui-state-highlight",
             cursor: 'crosshair',
             update: (event, ui) => {
-                let columnOrder = $(event.target).sortable('toArray');
+                debugger;
+                let fieldOrder = $(event.target).sortable('toArray');
 
-                this.globalEventDispatcher.publish(Settings.Events.LIST_COLUMN_ORDER_CHANGED, columnOrder);
+                this.globalEventDispatcher.publish(Settings.Events.FORM_EDITOR_FIELD_ORDER_CHANGED, fieldOrder);
 
             }
-        });*/
+        });
 
         $('.js-selectize-multiple-select').selectize({
             plugins: ['remove_button'],
@@ -130,6 +210,38 @@ class FormEditorFormPreview {
             sortField: 'text'
         });
 
+        const url = Routing.generate('records_for_selectize', {internalIdentifier: this.portalInternalIdentifier, internalName: this.form.customObject.internalName});
+
+        $('.js-selectize-single-select-with-search').each((index, element) => {
+
+            let select = $(element).selectize({
+                valueField: 'valueField',
+                labelField: 'labelField',
+                searchField: 'searchField',
+                load: (query, callback) => {
+
+                    if (!query.length) return callback();
+                    $.ajax({
+                        url: url,
+                        type: 'GET',
+                        dataType: 'json',
+                        data: {
+                            search: query,
+                            allowed_custom_object_to_search: $(element).data('allowedCustomObjectToSearch'),
+                            property_id: $(element).data('propertyId')
+                        },
+                        error: () => {
+                            callback();
+                        },
+                        success: (res) => {
+                            select.selectize()[0].selectize.clearOptions();
+                            select.options = res;
+                            callback(res);
+                        }
+                    })
+                }
+            });
+        });
     }
 
     unbindEvents() {
@@ -220,7 +332,7 @@ class FormEditorFormPreview {
 }
 
 const selectedColumnTemplate = (label, id, joins) => `
-    <div class="card js-selected-column" id=${joins}>
+    <div class="card js-selected-form-field" id=${joins}>
         <div class="card-body c-report-widget__card-body">${label}<span><i class="fa fa-times js-remove-selected-column-icon c-report-widget__remove-column-icon" data-property-id="${id}" data-joins='${joins}' aria-hidden="true"></i></span></div>
     </div>
 `;

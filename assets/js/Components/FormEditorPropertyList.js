@@ -10,15 +10,13 @@ import ColumnSearch from "./ColumnSearch";
 
 class FormEditorPropertyList {
 
-    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, uid, data) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, form) {
         debugger;
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
         this.lists = [];
-        this.uid = uid;
-        this.form = null;
-        this.data = data;
+        this.form = form;
 
         this.unbindEvents();
 
@@ -29,6 +27,12 @@ class FormEditorPropertyList {
             this.handlePropertyListItemAdded.bind(this)
         );
 
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.FORM_EDITOR_PROPERTY_LIST_ITEM_REMOVED,
+            this.handlePropertyListItemRemoved.bind(this)
+        );
+
+
 /*
 
         this.globalEventDispatcher.subscribe(
@@ -37,14 +41,16 @@ class FormEditorPropertyList {
         );
 */
 
-        this.loadForm().then((data) => {
+        /*this.loadForm().then((data) => {
 
             this.form = data.data;
 
             this.render();
 
-            this.loadProperties()
-        });
+        });*/
+
+        this.render();
+        this.loadProperties()
     }
 
     /**
@@ -95,24 +101,6 @@ class FormEditorPropertyList {
         this.$wrapper.off('click', FormEditorPropertyList._selectors.propertyListItem);
         /*
         this.$wrapper.off('click', ListPropertyList._selectors.backButton);*/
-    }
-
-    loadForm() {
-        return new Promise((resolve, reject) => {
-            debugger;
-            const url = Routing.generate('get_form', {internalIdentifier: this.portalInternalIdentifier, uid: this.uid});
-
-            $.ajax({
-                url: url
-            }).then(data => {
-                debugger;
-                resolve(data);
-            }).catch(jqXHR => {
-                debugger;
-                const errorData = JSON.parse(jqXHR.responseText);
-                reject(errorData);
-            });
-        });
     }
 
     handleKeyupEvent(e) {
@@ -169,26 +157,25 @@ class FormEditorPropertyList {
         this.loadPropertiesForFormEditor().then(data => {
             this.propertyGroups = data.data.property_groups;
             this.renderProperties(this.propertyGroups).then(() => {
-                debugger;
-                this.highlightProperties(this.data);
+                this.highlightProperties(this.form.data);
             })
         });
 
     }
 
-    handlePropertyListItemAdded(data) {
+    handlePropertyListItemAdded(form) {
 
-        this.data = data;
+        this.form = form;
 
-        this.highlightProperties(data);
+        this.highlightProperties(form.data);
 
     }
 
-    handlePropertyListItemRemoved(data) {
+    handlePropertyListItemRemoved(form) {
 
-        this.data = data;
+        this.form = form;
 
-        this.highlightProperties(data);
+        this.highlightProperties(form.data);
 
     }
 
@@ -246,6 +233,7 @@ class FormEditorPropertyList {
 
     renderProperties(propertyGroups) {
 
+        debugger;
         let $propertyList = this.$wrapper.find(FormEditorPropertyList._selectors.propertyList);
         $propertyList.html("");
 
@@ -255,6 +243,7 @@ class FormEditorPropertyList {
                 let propertyGroup = propertyGroups[i];
                 let properties = propertyGroup.properties;
 
+                debugger;
                 this._addList(propertyGroup, properties);
 
             }

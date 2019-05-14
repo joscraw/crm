@@ -16,7 +16,6 @@ $(document).ready(function() {
     var Router = Backbone.Router.extend({
         routes: {
             ":internalIdentifier/forms": "index",
-            ":internalIdentifier/forms/type": "type",
             ":internalIdentifier/forms/object": "object",
             ":internalIdentifier/forms/editor/:uid/edit/form": "editorEditForm"
 

@@ -34,6 +34,7 @@ import ListSelectedColumnsCount from "./ListSelectedColumnsCount";
 import FormEditorPropertyList from "./FormEditorPropertyList";
 import StringHelper from "../StringHelper";
 import FormEditorFormPreview from "./FormEditorFormPreview";
+import FormEditorEditFieldForm from "./FormEditorEditFieldForm";
 
 class FormEditorEditForm {
 
@@ -47,24 +48,55 @@ class FormEditorEditForm {
         this.uid = uid;
         this.formName = '';
         this.data = [];
+        this.form = null;
 
 
        /* this.unbindEvents();
 
         this.bindEvents();
 
+
+*/
+
         this.globalEventDispatcher.singleSubscribe(
-            Settings.Events.LIST_BACK_BUTTON_CLICKED,
+            Settings.Events.FORM_EDITOR_BACK_TO_LIST_BUTTON_CLICKED,
             this.handleBackButtonClicked.bind(this)
         );
-*/
 
         this.globalEventDispatcher.subscribe(
             Settings.Events.FORM_EDITOR_PROPERTY_LIST_ITEM_CLICKED,
             this.handlePropertyListItemClicked.bind(this)
         );
 
-        this.render();
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.FORM_PREVIEW_DELETE_BUTTON_CLICKED,
+            this.handleDeleteButtonClicked.bind(this)
+        );
+
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.FORM_PREVIEW_EDIT_BUTTON_CLICKED,
+            this.handleEditButtonClicked.bind(this)
+        );
+
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.FORM_EDITOR_FIELD_ORDER_CHANGED,
+            this.handleFieldOrderChanged.bind(this)
+        );
+
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.FORM_EDITOR_EDIT_FIELD_FORM_CHANGED,
+            this.handleEditFieldFormChanged.bind(this)
+        );
+
+
+        this.loadForm().then((data) => {
+
+            debugger;
+            this.form = data.data;
+            this.data = data.data.data;
+
+            this.render();
+        });
 
     }
 
@@ -75,11 +107,12 @@ class FormEditorEditForm {
         return {
 
             listSelectedColumnsContainer: '.js-list-selected-columns-container',
-            listPropertyListContainer: '.js-property-list',
+            propertyList: '.js-property-list',
             listSelectedColumnsCountContainer: '.js-list-selected-columns-count-container',
             listBackToSelectCustomObjectButton: '.js-back-to-select-custom-object-button',
             listAdvanceToFiltersView: '.js-advance-to-filters-view',
-            formContainer: '.js-form'
+            formContainer: '.js-form',
+            editFieldForm: '.js-edit-field-form'
 
         }
     }
@@ -106,6 +139,59 @@ class FormEditorEditForm {
         this.$wrapper.off('click', ListProperties._selectors.listAdvanceToFiltersView);
     }
 
+    handleDeleteButtonClicked(uid) {
+
+        this.form.data = $.grep(this.form.data, function(form){
+
+            return !(form.uid === uid);
+
+        });
+
+        this._saveFormData();
+
+        this.globalEventDispatcher.publish(Settings.Events.FORM_EDITOR_PROPERTY_LIST_ITEM_REMOVED, this.form);
+    }
+
+    handleEditButtonClicked(uid) {
+
+        let fields = this.form.data;
+        debugger;
+
+        let field = fields.filter(field => {
+            return field.uid === uid;
+        });
+
+        this.$wrapper.find(FormEditorEditForm._selectors.propertyList).addClass('d-none');
+        this.$wrapper.find(FormEditorEditForm._selectors.editFieldForm).removeClass('d-none');
+
+        new FormEditorEditFieldForm($(FormEditorEditForm._selectors.editFieldForm), this.globalEventDispatcher, this.portalInternalIdentifier, field[0]);
+
+    }
+
+    handleFieldOrderChanged(fieldOrder) {
+
+        let fields = this.form.data;
+        this.form.data = [];
+        for(let i = 0; i < fieldOrder.length; i++) {
+
+            let field = fields.filter(field => {
+                return field.uid === fieldOrder[i];
+            });
+
+            this.form.data[i] = field[0];
+        }
+
+        this._saveFormData();
+    }
+
+    handleEditFieldFormChanged(field) {
+
+        let index = this.form.data.findIndex(f => f.uid === field.uid);
+        this.form.data[index] = field;
+
+        this._saveFormData();
+    }
+
     handleListAdvanceToFiltersViewButtonClicked(e) {
 
         let properties = this.getPropertiesFromData();
@@ -124,38 +210,36 @@ class FormEditorEditForm {
 
     handlePropertyListItemClicked(property) {
 
+        debugger;
         let uID = StringHelper.makeCharId();
-        _.set(property, 'uID', uID);
+        _.set(property, 'uid', uID);
 
-        this.data.push(property);
+        this.form.data.push(property);
 
         this._saveFormData();
 
-        this.globalEventDispatcher.publish(Settings.Events.FORM_EDITOR_PROPERTY_LIST_ITEM_ADDED, this.data);
+        this.globalEventDispatcher.publish(Settings.Events.FORM_EDITOR_PROPERTY_LIST_ITEM_ADDED, this.form);
     }
 
 
     _saveFormData() {
 
-        debugger;
-        this._saveForm().then((data) => {
+        this._saveForm().then(() => {
 
-            this.globalEventDispatcher.publish(Settings.Events.FORM_EDITOR_DATA_SAVED, this.data);
+            this.globalEventDispatcher.publish(Settings.Events.FORM_EDITOR_DATA_SAVED, this.form);
 
         }).catch((errorData) => {});
     }
 
     _saveForm() {
 
-        debugger;
         return new Promise((resolve, reject) => {
-            debugger;
             const url = Routing.generate('save_form', {internalIdentifier: this.portalInternalIdentifier, uid: this.uid});
 
             $.ajax({
                 url,
                 method: 'POST',
-                data: {'data': this.data, formName: this.formName}
+                data: {'form': this.form}
             }).then((data, textStatus, jqXHR) => {
 
                 debugger;
@@ -204,7 +288,8 @@ class FormEditorEditForm {
 
     handleBackButtonClicked() {
 
-        new ListPropertyList($(ListProperties._selectors.listPropertyListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, null, [], this.data);
+        this.$wrapper.find(FormEditorEditForm._selectors.propertyList).removeClass('d-none');
+        this.$wrapper.find(FormEditorEditForm._selectors.editFieldForm).addClass('d-none');
 
     }
 
@@ -218,14 +303,25 @@ class FormEditorEditForm {
 
         this.$wrapper.html(FormEditorEditForm.markup(this));
 
-        new FormEditorPropertyList($(FormEditorEditForm._selectors.listPropertyListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.uid, this.data);
+        new FormEditorPropertyList($(FormEditorEditForm._selectors.propertyList), this.globalEventDispatcher, this.portalInternalIdentifier, this.form);
 
-        new FormEditorFormPreview(this.$wrapper.find(FormEditorEditForm._selectors.formContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.data, this.columnOrder, this.uid);
+        new FormEditorFormPreview(this.$wrapper.find(FormEditorEditForm._selectors.formContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.form);
+    }
 
-        /*
-        new ListSelectedColumnsCount(this.$wrapper.find(ListProperties._selectors.listSelectedColumnsCountContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.data, this.columnOrder);
+    loadForm() {
+        return new Promise((resolve, reject) => {
+            debugger;
+            const url = Routing.generate('get_form', {internalIdentifier: this.portalInternalIdentifier, uid: this.uid});
 
-*/
+            $.ajax({
+                url: url
+            }).then(data => {
+                resolve(data);
+            }).catch(jqXHR => {
+                const errorData = JSON.parse(jqXHR.responseText);
+                reject(errorData);
+            });
+        });
     }
 
     static markup({portalInternalIdentifier}) {
@@ -238,6 +334,7 @@ class FormEditorEditForm {
             <div class="t-private-template">                 
                 <div class="t-private-template__inner">
                     <div class="t-private-template__sidebar js-property-list"></div>
+                    <div class="t-private-template__sidebar js-edit-field-form d-none"></div>
                     <div class="t-private-template__main js-form" style="background-color: rgb(245, 248, 250);"></div>
                 </div>
             </div>

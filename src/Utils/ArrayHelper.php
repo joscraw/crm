@@ -77,7 +77,7 @@ trait ArrayHelper
      * @param null $default
      * @return array|mixed|null
      */
-    function getValueByDotNotation($key, array $data, $default = null)
+    public function getValueByDotNotation($key, array $data, $default = null)
     {
         // @assert $key is a non-empty string
         // @assert $data is a loopable array
@@ -109,5 +109,29 @@ trait ArrayHelper
 
         // @fallback returning value of $key in $data or $default value
         return array_key_exists($key, $data) ? $data[$key] : $default;
+    }
+
+    /**
+     * @param array $array1
+     * @param array $array2
+     * @return array
+     */
+    public function arrayMergeRecursive(array $array1, array $array2)
+    {
+        $merged = $array1;
+
+        foreach ($array2 as $key => & $value) {
+            if (is_array($value) && isset($merged[$key]) && is_array($merged[$key])) {
+                $merged[$key] = $this->arrayMergeRecursive($merged[$key], $value);
+            } else if (is_numeric($key)) {
+                if (!in_array($value, $merged)) {
+                    $merged[] = $value;
+                }
+            } else {
+                $merged[$key] = $value;
+            }
+        }
+
+        return $merged;
     }
 }

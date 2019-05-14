@@ -240,7 +240,8 @@ class FormController extends ApiController
      */
     public function saveFormAction(Portal $portal, Form $form, Request $request) {
 
-        $data = $request->request->get('data', []);
+        $formData = $request->request->get('form', null);
+        $data = !empty($formData['data']) ? $formData['data'] : [];
 
         $form->setData($data);
         $this->entityManager->persist($form);
@@ -274,6 +275,7 @@ class FormController extends ApiController
             'Api/form/form_editor_preview_form.html.twig',
             [
                 'form' => $form->createView(),
+                'properties' => $properties
             ]
         );
 
