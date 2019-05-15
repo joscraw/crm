@@ -241,9 +241,55 @@ class FormController extends ApiController
     public function saveFormAction(Portal $portal, Form $form, Request $request) {
 
         $formData = $request->request->get('form', null);
-        $data = !empty($formData['data']) ? $formData['data'] : [];
+        $data = !empty($formData['draft']) ? $formData['draft'] : [];
+        $name = !empty($formData['name']) ? $formData['name'] : '';
 
-        $form->setData($data);
+
+        $form->setDraft($data);
+        $form->setName($name);
+        $this->entityManager->persist($form);
+        $this->entityManager->flush();
+
+        $response = new JsonResponse([
+            'success' => true
+        ], Response::HTTP_OK);
+
+        return $response;
+
+    }
+
+    /**
+     * @Route("/{uid}/publish-form", name="publish_form", methods={"POST"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param Form $form
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function publishFormAction(Portal $portal, Form $form, Request $request) {
+
+        $form->setPublished(true);
+        $form->setData($form->getDraft());
+        $this->entityManager->persist($form);
+        $this->entityManager->flush();
+
+        $response = new JsonResponse([
+            'success' => true
+        ], Response::HTTP_OK);
+
+        return $response;
+
+    }
+
+    /**
+     * @Route("/{uid}/unpublish-form", name="unpublish_form", methods={"POST"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param Form $form
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function unpublishFormAction(Portal $portal, Form $form, Request $request) {
+
+        $form->setPublished(false);
         $this->entityManager->persist($form);
         $this->entityManager->flush();
 
@@ -264,7 +310,8 @@ class FormController extends ApiController
      */
     public function getFormPreviewAction(Portal $portal, CustomObject $customObject, Request $request) {
 
-        $properties = $request->request->get('data', []);
+        $formData = $request->request->get('form', null);
+        $properties = !empty($formData['draft']) ? $formData['draft'] : [];
 
         $form = $this->createForm(FormType::class, null, [
             'properties' => $properties,

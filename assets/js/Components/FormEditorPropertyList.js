@@ -157,7 +157,7 @@ class FormEditorPropertyList {
         this.loadPropertiesForFormEditor().then(data => {
             this.propertyGroups = data.data.property_groups;
             this.renderProperties(this.propertyGroups).then(() => {
-                this.highlightProperties(this.form.data);
+                this.highlightProperties(this.form.draft);
             })
         });
 
@@ -167,7 +167,7 @@ class FormEditorPropertyList {
 
         this.form = form;
 
-        this.highlightProperties(form.data);
+        this.highlightProperties(form.draft);
 
     }
 
@@ -175,7 +175,7 @@ class FormEditorPropertyList {
 
         this.form = form;
 
-        this.highlightProperties(form.data);
+        this.highlightProperties(form.draft);
 
     }
 

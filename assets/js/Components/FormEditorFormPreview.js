@@ -107,7 +107,7 @@ class FormEditorFormPreview {
     render(form) {
 
         debugger;
-        if(_.isEmpty(form.data)) {
+        if(_.isEmpty(form.draft)) {
 
             this.$wrapper.html(emptyListTemplate());
 
@@ -177,7 +177,7 @@ class FormEditorFormPreview {
             $.ajax({
                 url: Routing.generate('form_preview', {internalIdentifier: this.portalInternalIdentifier, uid: form.uid}),
                 method: 'POST',
-                data: {'data': form.data}
+                data: {'form': form}
             }).then(data => {
                 this.$wrapper.html(data.formMarkup);
                 resolve(data);

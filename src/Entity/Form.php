@@ -3,13 +3,16 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Gedmo\Timestampable\Traits\TimestampableEntity;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\FormRepository")
+ * @ORM\HasLifecycleCallbacks()
  */
 class Form
 {
+    use TimestampableEntity;
 
     const REGULAR_FORM = 'REGULAR_FORM';
 
@@ -55,6 +58,29 @@ class Form
      * @ORM\Column(type="string", length=255)
      */
     private $uid;
+
+    /**
+     * @Groups({"FORMS"})
+     * @ORM\Column(type="boolean")
+     */
+    private $published = false;
+
+    /**
+     * @Groups({"FORMS"})
+     * @ORM\Column(type="json", nullable=true)
+     */
+    private $draft = [];
+
+    /**
+     * @ORM\PrePersist
+     * @throws \Exception
+     */
+    public function setFormName()
+    {
+        if(empty($this->name)) {
+            $this->name = sprintf('New form (%s)', date("M j, Y g:i:s A"));
+        }
+    }
 
     public function getId(): ?int
     {
@@ -129,6 +155,30 @@ class Form
     public function setUid(string $uid): self
     {
         $this->uid = $uid;
+
+        return $this;
+    }
+
+    public function getPublished(): ?bool
+    {
+        return $this->published;
+    }
+
+    public function setPublished(bool $published): self
+    {
+        $this->published = $published;
+
+        return $this;
+    }
+
+    public function getDraft(): ?array
+    {
+        return $this->draft;
+    }
+
+    public function setDraft(?array $draft): self
+    {
+        $this->draft = $draft;
 
         return $this;
     }
