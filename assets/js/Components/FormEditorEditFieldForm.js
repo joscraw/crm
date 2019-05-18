@@ -14,21 +14,7 @@ class FormEditorEditFieldForm {
         this.portalInternalIdentifier = portalInternalIdentifier;
         this.field = field;
 
-        /*this.unbindEvents();
-
-        this.$wrapper.on(
-            'click',
-            SingleLineTextFieldFilterForm._selectors.radioButton,
-            this.handleOperatorRadioButtonClicked.bind(this)
-        );
-
-        this.$wrapper.on(
-            'submit',
-            SingleLineTextFieldFilterForm._selectors.applyFilterForm,
-            this.handleNewFilterFormSubmit.bind(this)
-        );
-
-        this.setupFormAttributes();*/
+        this.unbindEvents();
 
         this.$wrapper.on(
             'click',
@@ -46,12 +32,6 @@ class FormEditorEditFieldForm {
             'change',
             FormEditorEditFieldForm._selectors.formFieldCheckbox,
             this.handleFieldChange.bind(this)
-        );
-
-        this.$wrapper.on(
-            'submit',
-            FormEditorEditFieldForm._selectors.editFieldForm,
-            this.handleNewFilterFormSubmit.bind(this)
         );
 
         this.render();
@@ -77,9 +57,9 @@ class FormEditorEditFieldForm {
      * you need to remove the handlers otherwise they will keep stacking up
      */
     unbindEvents() {
-        this.$wrapper.off('submit', '#js-apply-filter-form');
-        this.$wrapper.off('click', '.js-radio-button');
-        this.$wrapper.off('click', SingleLineTextFieldFilterForm._selectors.backToListButton);
+        this.$wrapper.off('click', FormEditorEditFieldForm._selectors.backToListButton);
+        this.$wrapper.off('keyup', FormEditorEditFieldForm._selectors.formField);
+        this.$wrapper.off('change', FormEditorEditFieldForm._selectors.formFieldCheckbox);
     }
 
     handleBackButtonClicked() {
@@ -88,40 +68,6 @@ class FormEditorEditFieldForm {
 
     render() {
         this.$wrapper.html(FormEditorEditFieldForm.markup(this));
-        /*this.$wrapper.find('.js-radio-button').first().click();*/
-    }
-
-    setupFormAttributes() {
-
-        this.operator1 = StringHelper.makeCharId();
-        this.operator2 = StringHelper.makeCharId();
-        this.operator3 = StringHelper.makeCharId();
-        this.operator4 = StringHelper.makeCharId();
-
-    }
-
-    handleNewFilterFormSubmit(e) {
-
-        debugger;
-        if(e.cancelable) {
-            e.preventDefault();
-        }
-
-        const $form = $(e.currentTarget);
-
-        if(document.getElementById("required").checked) {
-            document.getElementById('required2').disabled = true;
-        }
-
-        const formData = {};
-
-        for (let fieldData of $form.serializeArray()) {
-            formData[fieldData.name] = fieldData.value
-        }
-
-        debugger;
-        const customFilter = {...this.field, ...formData};
-
     }
 
     handleFieldChange(e) {
@@ -150,18 +96,6 @@ class FormEditorEditFieldForm {
 
     }
 
-    handleOperatorRadioButtonClicked(e) {
-
-        this.$wrapper.find('.js-operator-value').remove();
-
-        let $radioButton = $(e.currentTarget);
-        if($radioButton.attr('data-has-text-input')) {
-            const html = textFieldTemplate();
-            const $textField = $($.parseHTML(html));
-            $radioButton.closest('div').after($textField);
-        }
-    }
-
     static markup({field}) {
 
         let checked = 'required' in field ? 'checked' : '';
@@ -185,10 +119,10 @@ class FormEditorEditFieldForm {
             <input name="placeholderText" type="text" class="form-control js-form-field" id="placeholderText" value="${placeholderText}">
           </div>
           <div class="form-check">
-            <input type="checkbox" name="required" class="form-check-input js-form-field-checkbox" value="Yes" id="required" ${checked}>
+            <input type="checkbox" name="required" class="form-check-input js-form-field-checkbox" value="true" id="required" ${checked}>
             <label class="form-check-label" for="required">Required</label>
           </div>
-          <input id='required2' type='hidden' value='No' name='required'>
+          <input id='required2' type='hidden' value='false' name='required'>
         </form>
     `;
     }

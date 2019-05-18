@@ -36,9 +36,6 @@ use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 /**
  * Class FormController
  * @package App\Controller
- *
- * @Route("/{internalIdentifier}/forms")
- *
  */
 class FormController extends AbstractController
 {
@@ -90,7 +87,7 @@ class FormController extends AbstractController
     }
 
     /**
-     * @Route("/object", name="form_object", requirements={"routing"=".+"}, defaults={"routing": null}, methods={"GET"}, options = { "expose" = true })
+     * @Route("/{internalIdentifier}/forms/object", name="form_object", requirements={"routing"=".+"}, defaults={"routing": null}, methods={"GET"}, options = { "expose" = true })
      * @param Portal $portal
      * @return \Symfony\Component\HttpFoundation\Response
      */
@@ -102,7 +99,7 @@ class FormController extends AbstractController
     }
 
     /**
-     * @Route("/editor/{uid}/edit/form", name="editor_edit_form", requirements={"routing"=".+"}, defaults={"routing": null}, methods={"GET"}, options = { "expose" = true })
+     * @Route("/{internalIdentifier}/forms/editor/{uid}/edit/form", name="editor_edit_form", requirements={"routing"=".+"}, defaults={"routing": null}, methods={"GET"}, options = { "expose" = true })
      * @param Portal $portal
      * @param Form $form
      * @return \Symfony\Component\HttpFoundation\Response
@@ -116,19 +113,7 @@ class FormController extends AbstractController
     }
 
     /**
-     * @Route("/editor/edit/form", name="form_type", requirements={"routing"=".+"}, defaults={"routing": null}, methods={"GET"}, options = { "expose" = true })
-     * @param Portal $portal
-     * @return \Symfony\Component\HttpFoundation\Response
-     */
-    public function editAction(Portal $portal) {
-
-        return $this->render('form/type.html.twig', array(
-            'portal' => $portal
-        ));
-    }
-
-    /**
-     * @Route("/{routing}", name="form_settings", requirements={"routing"=".+"}, defaults={"routing": null}, methods={"GET"}, options = { "expose" = true })
+     * @Route("/{internalIdentifier}/forms/{routing}", name="form_settings", requirements={"routing"=".+"}, defaults={"routing": null}, methods={"GET"}, options = { "expose" = true })
      * @param Portal $portal
      * @return \Symfony\Component\HttpFoundation\Response
      */
@@ -136,6 +121,18 @@ class FormController extends AbstractController
 
         return $this->render('form/settings.html.twig', array(
             'portal' => $portal
+        ));
+    }
+
+    /**
+     * @Route("/forms/{uid}", name="form", methods={"GET", "POST"}, options = { "expose" = true })
+     * @param Form $form
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function formAction(Form $form) {
+
+        return $this->render('form/form.html.twig', array(
+            'form' => $form
         ));
     }
 

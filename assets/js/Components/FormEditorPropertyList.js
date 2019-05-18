@@ -23,31 +23,9 @@ class FormEditorPropertyList {
         this.bindEvents();
 
         this.globalEventDispatcher.subscribe(
-            Settings.Events.FORM_EDITOR_PROPERTY_LIST_ITEM_ADDED,
-            this.handlePropertyListItemAdded.bind(this)
+            Settings.Events.FORM_EDITOR_DATA_SAVED,
+            this.handleDataSaved.bind(this)
         );
-
-        this.globalEventDispatcher.subscribe(
-            Settings.Events.FORM_EDITOR_PROPERTY_LIST_ITEM_REMOVED,
-            this.handlePropertyListItemRemoved.bind(this)
-        );
-
-
-/*
-
-        this.globalEventDispatcher.subscribe(
-            Settings.Events.LIST_PROPERTY_LIST_ITEM_REMOVED,
-            this.handlePropertyListItemRemoved.bind(this)
-        );
-*/
-
-        /*this.loadForm().then((data) => {
-
-            this.form = data.data;
-
-            this.render();
-
-        });*/
 
         this.render();
         this.loadProperties()
@@ -163,20 +141,11 @@ class FormEditorPropertyList {
 
     }
 
-    handlePropertyListItemAdded(form) {
+    handleDataSaved(form) {
 
         this.form = form;
 
         this.highlightProperties(form.draft);
-
-    }
-
-    handlePropertyListItemRemoved(form) {
-
-        this.form = form;
-
-        this.highlightProperties(form.draft);
-
     }
 
     highlightProperties(data) {

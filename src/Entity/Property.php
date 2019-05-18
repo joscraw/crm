@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Model\AbstractField;
 use App\Model\DropdownSelectField;
 use App\Model\FieldCatalog;
+use App\Model\FormFieldProperties;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -24,6 +25,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 class Property
 {
     use TimestampableEntity;
+    use FormFieldProperties;
 
     /**
      * @Groups({"PROPERTY_FIELD_NORMALIZER", "SELECTABLE_PROPERTIES"})
@@ -93,6 +95,7 @@ class Property
     private $customObject;
 
     /**
+     * @Groups({"PROPERTY_FIELD_NORMALIZER", "SELECTABLE_PROPERTIES"})
      * @ORM\Column(type="boolean", nullable=false)
      * @var bool
      */
@@ -150,7 +153,7 @@ class Property
         return FieldCatalog::getValidFieldTypes();
     }
 
-    public function getId(): ?int
+    public function getId()
     {
         return $this->id;
     }

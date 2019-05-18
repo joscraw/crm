@@ -22,6 +22,7 @@ use App\Form\MoveListToFolderType;
 use App\Form\PropertyGroupType;
 use App\Form\PropertyType;
 use App\Form\RecordType;
+use App\Model\AbstractField;
 use App\Model\FieldCatalog;
 use App\Repository\CustomObjectRepository;
 use App\Repository\FolderRepository;
@@ -46,6 +47,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 use Symfony\Component\Serializer\Encoder\CsvEncoder;
 use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
+use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\GetSetMethodNormalizer;
 use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
@@ -57,8 +59,6 @@ use Symfony\Component\Serializer\SerializerInterface;
 /**
  * Class FormController
  * @package App\Controller\Api
- *
- * @Route("{internalIdentifier}/api/forms")
  */
 class FormController extends ApiController
 {
@@ -122,7 +122,12 @@ class FormController extends ApiController
     private $folderBreadcrumbs;
 
     /**
-     * ListController constructor.
+     * @var DenormalizerInterface
+     */
+    private $denormalizer;
+
+    /**
+     * FormController constructor.
      * @param EntityManagerInterface $entityManager
      * @param CustomObjectRepository $customObjectRepository
      * @param PropertyRepository $propertyRepository
@@ -134,6 +139,7 @@ class FormController extends ApiController
      * @param MarketingListRepository $marketingListRepository
      * @param FolderRepository $folderRepository
      * @param ListFolderBreadcrumbs $folderBreadcrumbs
+     * @param DenormalizerInterface $denormalizer
      */
     public function __construct(
         EntityManagerInterface $entityManager,
@@ -146,7 +152,8 @@ class FormController extends ApiController
         PermissionAuthorizationHandler $permissionAuthorizationHandler,
         MarketingListRepository $marketingListRepository,
         FolderRepository $folderRepository,
-        ListFolderBreadcrumbs $folderBreadcrumbs
+        ListFolderBreadcrumbs $folderBreadcrumbs,
+        DenormalizerInterface $denormalizer
     ) {
         $this->entityManager = $entityManager;
         $this->customObjectRepository = $customObjectRepository;
@@ -159,11 +166,12 @@ class FormController extends ApiController
         $this->marketingListRepository = $marketingListRepository;
         $this->folderRepository = $folderRepository;
         $this->folderBreadcrumbs = $folderBreadcrumbs;
+        $this->denormalizer = $denormalizer;
     }
 
 
     /**
-     * @Route("/list-types", name="get_list_types", methods={"GET"}, options = { "expose" = true })
+     * @Route("/{internalIdentifier}/api/forms/list-types", name="get_list_types", methods={"GET"}, options = { "expose" = true })
      * @param Portal $portal
      * @param Request $request
      * @return Response
@@ -181,7 +189,7 @@ class FormController extends ApiController
     }
 
     /**
-     * @Route("/initialize", name="initialize_form", methods={"POST"}, options = { "expose" = true })
+     * @Route("{internalIdentifier}/api/forms/initialize", name="initialize_form", methods={"POST"}, options = { "expose" = true })
      * @param Portal $portal
      * @param Request $request
      * @return JsonResponse
@@ -213,13 +221,12 @@ class FormController extends ApiController
     }
 
     /**
-     * @Route("/{uid}", name="get_form", methods={"GET"}, options = { "expose" = true })
-     * @param Portal $portal
+     * @Route("/api/forms/{uid}/form-data", name="get_form_data", methods={"GET"}, options = { "expose" = true })
      * @param Form $form
      * @param Request $request
      * @return JsonResponse
      */
-    public function getFormAction(Portal $portal, Form $form, Request $request) {
+    public function getFormDataAction(Form $form, Request $request) {
 
         $json = $this->serializer->serialize($form, 'json', ['groups' => ['FORMS']]);
 
@@ -232,7 +239,104 @@ class FormController extends ApiController
     }
 
     /**
-     * @Route("/{uid}/save-form", name="save_form", methods={"POST"}, options = { "expose" = true })
+     * This is the final form the user actually ses on the frontend to fill out
+     *
+     * @Route("/api/forms/{uid}/get-form", name="get_form", methods={"GET"}, options = { "expose" = true })
+     * @param Form $form
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getFormAction(Form $form, Request $request) {
+
+        $properties = $form->getData();
+
+        $properties = $this->setValidPropertyTypes($properties);
+
+        foreach ($properties as &$property) {
+            $property = $this->serializer->deserialize(json_encode($property, true), Property::class, 'json');
+        }
+
+        $form = $this->createForm(FormType::class, null, [
+            'properties' => $properties
+        ]);
+
+        $formMarkup = $this->renderView(
+            'Api/form/form_editor_form.html.twig',
+            [
+                'form' => $form->createView(),
+                'properties' => $properties
+            ]
+        );
+
+        return new JsonResponse(
+            [
+                'success' => true,
+                'formMarkup' => $formMarkup
+            ],
+            Response::HTTP_OK
+        );
+    }
+
+    /**
+     * @Route("/api/forms/{uid}/submit-form", name="form_submit", methods={"POST"}, options = { "expose" = true })
+     * @param Form $formEntity
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function submitFormAction(Form $formEntity, Request $request) {
+
+        $properties = $formEntity->getData();
+
+        $properties = $this->setValidPropertyTypes($properties);
+
+        foreach ($properties as &$property) {
+            $property = $this->serializer->deserialize(json_encode($property, true), Property::class, 'json');
+        }
+
+        $form = $this->createForm(FormType::class, null, [
+            'properties' => $properties
+        ]);
+
+
+        $form->handleRequest($request);
+
+        if (!$form->isValid()) {
+
+            $formMarkup = $this->renderView(
+                'Api/form/form_editor_form.html.twig',
+                [
+                    'form' => $form->createView(),
+                    'properties' => $properties
+                ]
+            );
+
+            return new JsonResponse(
+                [
+                    'success' => false,
+                    'formMarkup' => $formMarkup,
+                ], Response::HTTP_BAD_REQUEST
+            );
+        }
+
+        $data = $form->getData();
+
+        $record = new Record();
+        $record->setCustomObject($formEntity->getCustomObject());
+        $record->setProperties($data);
+        $record->setProperties($form->getData());
+        $this->entityManager->persist($record);
+        $this->entityManager->flush();
+
+        return new JsonResponse(
+            [
+                'success' => true,
+            ],
+            Response::HTTP_OK
+        );
+    }
+
+    /**
+     * @Route("/{internalIdentifier}/api/forms/{uid}/save-form", name="save_form", methods={"POST"}, options = { "expose" = true })
      * @param Portal $portal
      * @param Form $form
      * @param Request $request
@@ -259,7 +363,7 @@ class FormController extends ApiController
     }
 
     /**
-     * @Route("/{uid}/publish-form", name="publish_form", methods={"POST"}, options = { "expose" = true })
+     * @Route("/{internalIdentifier}/api/forms/{uid}/publish-form", name="publish_form", methods={"POST"}, options = { "expose" = true })
      * @param Portal $portal
      * @param Form $form
      * @param Request $request
@@ -281,28 +385,7 @@ class FormController extends ApiController
     }
 
     /**
-     * @Route("/{uid}/unpublish-form", name="unpublish_form", methods={"POST"}, options = { "expose" = true })
-     * @param Portal $portal
-     * @param Form $form
-     * @param Request $request
-     * @return JsonResponse
-     */
-    public function unpublishFormAction(Portal $portal, Form $form, Request $request) {
-
-        $form->setPublished(false);
-        $this->entityManager->persist($form);
-        $this->entityManager->flush();
-
-        $response = new JsonResponse([
-            'success' => true
-        ], Response::HTTP_OK);
-
-        return $response;
-
-    }
-
-    /**
-     * @Route("/{uid}/form-preview", name="form_preview", methods={"POST"}, options = { "expose" = true })
+     * @Route("/{internalIdentifier}/api/forms/{uid}/form-preview", name="form_preview", methods={"POST"}, options = { "expose" = true })
      * @param Portal $portal
      * @param CustomObject $customObject
      * @param Request $request
@@ -313,9 +396,15 @@ class FormController extends ApiController
         $formData = $request->request->get('form', null);
         $properties = !empty($formData['draft']) ? $formData['draft'] : [];
 
+        $properties = $this->setValidPropertyTypes($properties);
+
+        foreach ($properties as &$property) {
+            $property = $this->serializer->deserialize(json_encode($property, true), Property::class, 'json');
+        }
+
         $form = $this->createForm(FormType::class, null, [
             'properties' => $properties,
-            'portal' => $portal
+            'isPreview' => true
         ]);
 
         $formMarkup = $this->renderView(
@@ -335,545 +424,33 @@ class FormController extends ApiController
         );
     }
 
-
     /**
-     * @Route("/{listId}/move-to-folder", name="move_list_to_folder", methods={"GET", "POST"}, options = { "expose" = true })
-     * @param Portal $portal
-     * @param MarketingList $list
-     * @param Request $request
-     * @return JsonResponse
+     * @param $properties
+     * @return array
      */
-    public function moveListToFolderAction(Portal $portal, MarketingList $list, Request $request) {
+    private function setValidPropertyTypes($properties) {
 
-        $form = $this->createForm(MoveListToFolderType::class, null, [
-            'portal' => $portal
-        ]);
+        $propertiesArray = [];
 
-        $form->handleRequest($request);
+        foreach ($properties as &$property) {
 
-        $formMarkup = $this->renderView(
-            'Api/form/move_list_to_folder_form.html.twig',
-            [
-                'form' => $form->createView()
-            ]
-        );
+            $property['id'] = (int) $property['id'];
+            $property['required'] = $property['required'] === 'true'? true: false;
 
-        if ($form->isSubmitted() && !$form->isValid()) {
+            if($property['fieldType'] === FieldCatalog::CUSTOM_OBJECT) {
 
-            return new JsonResponse(
-                [
-                    'success' => false,
-                    'formMarkup' => $formMarkup,
-                ], Response::HTTP_BAD_REQUEST
-            );
-        }
+                $property['field']['customObject']['id'] = (int) $property['field']['customObject']['id'];
+                $property['field']['multiple'] = $property['field']['multiple'] === 'true'? true: false;
 
-        if ($form->isSubmitted() && $form->isValid()) {
-
-            $folderId = $form->get('folder')->getData();
-
-            if($folderId) {
-
-                $folder = $this->folderRepository->find($folderId);
-                $list->setFolder($folder);
-            } else {
-                $list->setFolder(null);
-            }
-
-
-            $this->entityManager->persist($list);
-            $this->entityManager->flush();
-        }
-
-        return new JsonResponse(
-            [
-                'success' => true,
-                'formMarkup' => $formMarkup,
-            ],
-            Response::HTTP_OK
-        );
-    }
-
-
-    /**
-     * @Route("/{internalName}/save-list", name="save_list", methods={"POST"}, options = { "expose" = true })
-     * @param Portal $portal
-     * @param CustomObject $customObject
-     * @param Request $request
-     * @return Response
-     * @throws \Doctrine\DBAL\DBALException
-     */
-    public function saveListAction(Portal $portal, CustomObject $customObject, Request $request) {
-
-        $hasPermission = $this->permissionAuthorizationHandler->isAuthorized(
-            $this->getUser(),
-            Role::CREATE_LIST,
-            Role::SYSTEM_PERMISSION
-        );
-
-        if(!$hasPermission) {
-            return new JsonResponse(
-                [
-                    'success' => false,
-                ], Response::HTTP_UNAUTHORIZED
-            );
-        }
-
-        $data = $request->request->get('data', []);
-
-        $listName = $request->request->get('listName');
-
-        $listType = $request->request->get('listType');
-
-        $columnOrder = $request->request->get('columnOrder', []);
-
-        $query = $this->recordRepository->getReportMysqlOnly($data, $customObject, $columnOrder);
-
-        $list = new MarketingList();
-
-        $list->setQuery($query);
-        $list->setCustomObject($customObject);
-        $list->setData($data);
-        $list->setName($listName);
-        $list->setPortal($portal);
-        $list->setColumnOrder($columnOrder);
-        $list->setType($listType);
-
-
-        if($listType = MarketingList::STATIC_LIST) {
-
-            $results = $this->recordRepository->getReportRecordIds($data, $customObject);
-
-            $records = $results['results'];
-
-            $list->setRecords($records);
-
-
-        }
-
-        $this->entityManager->persist($list);
-        $this->entityManager->flush();
-
-        $response = new JsonResponse([
-            'listId' => $list->getId(),
-            'success' => true
-        ], Response::HTTP_OK);
-
-        return $response;
-    }
-
-    /**
-     * DataTables passes unique params in the Request and expects a specific response payload
-     * @see https://datatables.net/manual/server-side Documentation for ServerSide Implimentation for DataTables
-     *
-     * @Route("/datatable", name="lists_for_datatable", methods={"GET"}, options = { "expose" = true })
-     * @param Portal $portal
-     * @param Request $request
-     * @return Response
-     */
-    public function getListsForDatatableAction(Portal $portal, Request $request) {
-
-        $draw = intval($request->query->get('draw'));
-        $start = $request->query->get('start');
-        $length = $request->query->get('length');
-        $search = $request->query->get('search');
-        $orders = $request->query->get('order');
-        $columns = $request->query->get('columns');
-
-        $results = $this->marketingListRepository->getDataTableData($portal, $start, $length, $search, $orders, $columns);
-
-        $totalListCount = $this->marketingListRepository->getTotalCount($portal);
-        $arrayResults = $results['arrayResults'];
-        $filteredListCount = count($arrayResults);
-
-        $response = new JsonResponse([
-            'draw'  => $draw,
-            'recordsFiltered' => !empty($search['value']) ? $filteredListCount : $totalListCount,
-            'recordsTotal'  => $totalListCount,
-            'data'  => $arrayResults
-        ],  Response::HTTP_OK);
-
-        return $response;
-    }
-
-    /**
-     * DataTables passes unique params in the Request and expects a specific response payload
-     * @see https://datatables.net/manual/server-side Documentation for ServerSide Implimentation for DataTables
-     *
-     * @Route("/folders/datatable", name="list_folders_for_datatable", methods={"GET"}, options = { "expose" = true })
-     * @param Portal $portal
-     * @param Request $request
-     * @return Response
-     */
-    public function getFoldersForDatatableAction(Portal $portal, Request $request) {
-
-        $draw = intval($request->query->get('draw'));
-        $start = $request->query->get('start');
-        $length = $request->query->get('length');
-        $search = $request->query->get('search');
-        $orders = $request->query->get('order');
-        $columns = $request->query->get('columns');
-        $folderId = $request->query->get('folderId', null);
-
-        $folderResults = $this->folderRepository->getDataTableData($portal, $start, $length, $search, $orders, $columns, $folderId);
-
-        $listResults = $this->marketingListRepository->getDataTableDataForFolder($portal, $start, $length, $search, $orders, $columns, $folderId);
-
-        $totalListCount = $this->marketingListRepository->getTotalCount($portal);
-
-        $arrayResults = array_merge($folderResults['arrayResults'], $listResults['arrayResults']);
-
-        $filteredListCount = count($arrayResults);
-
-        $response = new JsonResponse([
-            'draw'  => $draw,
-            'recordsFiltered' => !empty($search['value']) ? $filteredListCount : $totalListCount,
-            'recordsTotal'  => $totalListCount,
-            'data'  => $arrayResults
-        ],  Response::HTTP_OK);
-
-        return $response;
-    }
-
-    /**
-     * @Route("/count", name="list_count", methods={"GET"}, options = { "expose" = true })
-     * @param Portal $portal
-     * @param Request $request
-     * @return Response
-     */
-    public function getListCountAction(Portal $portal, Request $request) {
-
-        $count = $this->marketingListRepository->getTotalCount($portal);
-
-        $response = new JsonResponse([
-            'data'  => $count
-        ],  Response::HTTP_OK);
-
-        return $response;
-    }
-
-    /**
-     * DataTables passes unique params in the Request and expects a specific response payload
-     * @see https://datatables.net/manual/server-side Documentation for ServerSide Implimentation for DataTables
-     *
-     * @Route("/folders/breadcrumbs", name="list_folder_breadcrumbs", methods={"GET"}, options = { "expose" = true })
-     * @param Portal $portal
-     * @param Request $request
-     * @return Response
-     */
-    public function getFolderBreadcrumbsAction(Portal $portal, Request $request) {
-
-        $folderId = $request->query->get('folderId', null);
-
-        $payload = $this->folderBreadcrumbs->generate($folderId, $portal);
-
-        $response = new JsonResponse([
-            'success' => true,
-            'data'  => $payload,
-        ],  Response::HTTP_OK);
-
-        return $response;
-    }
-
-    /**
-     * @Route("/{listId}/download", name="download_list", methods={"GET"}, options = { "expose" = true })
-     * @param Portal $portal
-     * @param MarketingList $list
-     * @return \Symfony\Component\HttpFoundation\Response
-     * @throws \Doctrine\DBAL\DBALException
-     */
-    public function downloadAction(Portal $portal, MarketingList $list) {
-
-        $query = $list->getQuery();
-        if($list->getType() === MarketingList::STATIC_LIST) {
-            $query = $list->getStaticListQuery();
-        }
-
-        $em = $this->entityManager;
-        $stmt = $em->getConnection()->prepare($query);
-        $stmt->execute();
-        $results = $stmt->fetchAll();
-
-        $response = new Response($this->serializer->encode($results, 'csv'));
-
-        $response->headers->set('Content-Type', 'text/csv');
-        $response->headers->set('Content-Disposition', "attachment; filename={$list->getName()}.csv");
-
-        return $response;
-
-    }
-
-    /**
-     * @Route("/{listId}/delete-form", name="delete_list_form", methods={"GET"}, options = { "expose" = true })
-     * @param Portal $portal
-     * @param MarketingList $list
-     * @return JsonResponse
-     */
-    public function getDeleteListFormAction(Portal $portal, MarketingList $list) {
-
-        $form = $this->createForm(DeleteListType::class, $list);
-
-        $formMarkup = $this->renderView(
-            'Api/form/delete_list_form.html.twig',
-            [
-                'form' => $form->createView(),
-            ]
-        );
-
-        return new JsonResponse(
-            [
-                'success' => true,
-                'formMarkup' => $formMarkup
-            ],
-            Response::HTTP_OK
-        );
-    }
-
-    /**
-     * @Route("/{listId}/delete", name="delete_list", methods={"POST"}, options={"expose" = true})
-     * @param Portal $portal
-     * @param MarketingList $list
-     * @param Request $request
-     * @return JsonResponse
-     */
-    public function deleteListAction(Portal $portal, MarketingList $list, Request $request)
-    {
-
-        $hasPermission = $this->permissionAuthorizationHandler->isAuthorized(
-            $this->getUser(),
-            Role::DELETE_LIST,
-            Role::SYSTEM_PERMISSION
-        );
-
-        if(!$hasPermission) {
-            return new JsonResponse(
-                [
-                    'success' => false,
-                ], Response::HTTP_UNAUTHORIZED
-            );
-        }
-
-        $form = $this->createForm(DeleteListType::class, $list);
-
-        $form->handleRequest($request);
-
-        if (!$form->isValid()) {
-            $formMarkup = $this->renderView(
-                'Api/form/delete_list_form.html.twig',
-                [
-                    'form' => $form->createView(),
-                ]
-            );
-
-            return new JsonResponse(
-                [
-                    'success' => false,
-                    'formMarkup' => $formMarkup,
-                ], Response::HTTP_BAD_REQUEST
-            );
-        }
-
-        // delete report here
-        /** @var $list MarketingList */
-        $list = $form->getData();
-        $this->entityManager->remove($list);
-        $this->entityManager->flush();
-
-        return new JsonResponse(
-            [
-                'success' => true,
-            ],
-            Response::HTTP_OK
-        );
-
-    }
-
-    /**
-     * @Route("/{listId}", name="get_list", methods={"GET"}, options = { "expose" = true })
-     * @param Portal $portal
-     * @param MarketingList $list
-     * @param Request $request
-     * @return JsonResponse
-     */
-    public function getReportAction(Portal $portal, MarketingList $list, Request $request) {
-
-        $json = $this->serializer->serialize($list, 'json', ['groups' => ['LIST']]);
-
-        $payload = json_decode($json, true);
-
-        return new JsonResponse([
-            'success' => true,
-            'data'  => $payload
-        ], Response::HTTP_OK);
-    }
-
-    /**
-     * @Route("/{internalName}/{listId}/edit-list-save", name="api_edit_list", methods={"POST"}, options = { "expose" = true })
-     * @param Portal $portal
-     * @param CustomObject $customObject
-     * @param MarketingList $list
-     * @param Request $request
-     * @return Response
-     * @throws \Doctrine\DBAL\DBALException
-     */
-    public function editListAction(Portal $portal, CustomObject $customObject, MarketingList $list, Request $request) {
-
-        $hasPermission = $this->permissionAuthorizationHandler->isAuthorized(
-            $this->getUser(),
-            Role::EDIT_LIST,
-            Role::SYSTEM_PERMISSION
-        );
-
-        if(!$hasPermission) {
-            return new JsonResponse(
-                [
-                    'success' => false,
-                ], Response::HTTP_UNAUTHORIZED
-            );
-        }
-
-        $data = $request->request->get('data', []);
-
-        $listName = $request->request->get('listName');
-
-        $listType = $request->request->get('listType');
-
-        $columnOrder = $request->request->get('columnOrder', []);
-
-        $query = $this->recordRepository->getReportMysqlOnly($data, $customObject, $columnOrder);
-
-        if($listType = MarketingList::STATIC_LIST) {
-
-            $results = $this->recordRepository->getReportRecordIds($data, $customObject);
-
-            $records = $results['results'];
-
-            $list->setRecords($records);
-
-        }
-
-        $list->setQuery($query);
-        $list->setCustomObject($customObject);
-        $list->setData($data);
-        $list->setName($listName);
-        $list->setPortal($portal);
-        $list->setColumnOrder($columnOrder);
-        $list->setType($listType);
-
-        $this->entityManager->persist($list);
-        $this->entityManager->flush();
-
-        $response = new JsonResponse([
-            'success' => true
-        ], Response::HTTP_OK);
-
-        return $response;
-    }
-
-    /**
-     * @Route("/{internalName}/list-preview", name="get_list_preview", methods={"POST"}, options = { "expose" = true })
-     * @param Portal $portal
-     * @param CustomObject $customObject
-     * @param Request $request
-     * @return Response
-     * @throws \Doctrine\DBAL\DBALException
-     */
-    public function getListPreviewAction(Portal $portal, CustomObject $customObject, Request $request) {
-
-        $data = $request->request->get('data', []);
-
-        $columnOrder = $request->request->get('columnOrder', []);
-
-        $listType = $request->request->get('listType');
-
-        $listId = $request->request->get('listId');
-
-        if($listType === MarketingList::STATIC_LIST && $listId) {
-
-            $list = $this->marketingListRepository->find($listId);
-
-            $query = $list->getStaticListQuery();
-
-            $em = $this->entityManager;
-            $stmt = $em->getConnection()->prepare($query);
-            $stmt->execute();
-            $results = $stmt->fetchAll();
-
-        } else {
-
-            $results = $this->recordRepository->getReportData($data, $customObject, $columnOrder);
-            $results = $results['results'];
-        }
-
-        $properties = $customObject->getProperties()->toArray();
-
-        foreach($results as &$result) {
-
-            foreach($result as $key => $value) {
-
-                $customObjectProperty = array_filter($properties, function($property) use($key) {
-                    $isCustomObjectProperty = $property->getFieldType() === FieldCatalog::CUSTOM_OBJECT;
-                    $internalNameMatches = $property->getInternalName() === $key;
-
-                    return $isCustomObjectProperty && $internalNameMatches;
-                });
-
-                if(!empty($customObjectProperty)) {
-                    $customObjectProperty = array_values($customObjectProperty);
-
-                    if(in_array($value, ['-', ''])) {
-                        continue;
-                    }
-
-                    $value = json_decode($value);
-                    $value = is_array($value) ? $value : [$value];
-
-                    $urls = [];
-                    foreach($value as $v) {
-                        $url = sprintf("%s/%s",
-                            $this->generateUrl('record_list', [
-                                'internalIdentifier' => $portal->getInternalIdentifier(),
-                                'internalName' => $customObjectProperty[0]->getField()->getCustomObject()->getInternalName()
-                            ]),
-                            $v
-                        );
-                        $urls[] = "<a href='$url'>$v</a>";
-                    }
-                    $result[$key] = implode(',', $urls);
-                }
-
-                $choiceFieldProperty = array_filter($properties, function($property) use($key) {
-                    $isChoiceFieldProperty = $property->getFieldType() === FieldCatalog::MULTIPLE_CHECKBOX;
-                    $internalNameMatches = $property->getInternalName() === $key;
-
-                    return $isChoiceFieldProperty && $internalNameMatches;
-                });
-
-                if(!empty($choiceFieldProperty)) {
-
-                    if(in_array($value, ['-', ''])) {
-                        continue;
-                    }
-
-                    $value = json_decode($value);
-                    $value = is_array($value) ? $value : [$value];
-
-                    $items = [];
-                    foreach($value as $v) {
-                        $items[] = $v;
-                    }
-                    $result[$key] = implode(',', $items);
+                foreach ($property['field']['selectizeSearchResultProperties'] as &$selectizeSearchResultProperty) {
+                    $selectizeSearchResultProperty['id'] = (int) $selectizeSearchResultProperty['id'];
+                    $selectizeSearchResultProperty['required'] = $selectizeSearchResultProperty['required'] === 'true'? true: false;
                 }
             }
+
+            $propertiesArray[] = $property;
         }
 
-        $response = new JsonResponse([
-            'success' => true,
-            'data'  => $results
-        ], Response::HTTP_OK);
-
-        return $response;
-
+        return $propertiesArray;
     }
-
 }

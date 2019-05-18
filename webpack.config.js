@@ -24,7 +24,6 @@ Encore
     .addEntry('record_list', './assets/js/record_list.js')
     .addEntry('report_settings', './assets/js/report_settings.js')
     .addEntry('list_settings', './assets/js/list_settings.js')
-    .addEntry('routing_settings', './assets/js/routing_settings.js')
     .addEntry('user_settings', './assets/js/user_settings.js')
     .addEntry('security', './assets/js/security.js')
     .addEntry('form_settings', './assets/js/form_settings.js')

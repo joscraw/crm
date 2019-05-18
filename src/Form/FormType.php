@@ -129,114 +129,106 @@ class FormType extends AbstractType
 
     /**
      * @param FormBuilderInterface $builder
-     * @param array $options
+     * @param array $formOptions
      */
-    public function buildForm(FormBuilderInterface $builder, array $options)
+    public function buildForm(FormBuilderInterface $builder, array $formOptions)
     {
 
         /** @var Property $properties[] */
-        $properties = $options['properties'];
-
-        /** @var Portal $portal */
-        $portal = $options['portal'];
+        $properties = $formOptions['properties'];
 
         foreach($properties as $property) {
 
             $options = [
-                'help' => isset($property['helpText']) ? $property['helpText'] : '',
+                'help' => !empty($property->getHelpText()) ? $property->getHelpText() : '',
                 'attr' => [
-                    'placeholder' => isset($property['placeholderText']) ? $property['placeholderText'] : ''
+                    'placeholder' => !empty($property->getPlaceholderText()) ? $property->getPlaceholderText() : ''
                 ]
             ];
 
-            if(isset($property['required']) && $property['required'] === 'Yes') {
+            if($property->isRequired()) {
                 $options['constraints'] = [
                     new NotBlank(),
                 ];
                 $options['required'] = true;
             }
 
-            switch($property['fieldType']) {
+            switch($property->getFieldType()) {
                 case FieldCatalog::SINGLE_LINE_TEXT:
                     $options = $this->arrayMergeRecursive([
                         'required' => false,
-                        'label' => $property['label'],
+                        'label' => $property->getLabel(),
                         'attr' => [
-                            'data-property-id' => $property['id'],
+                            'data-property-id' => $property->getId(),
                             'autocomplete' => 'off'
                         ]
                     ], $options);
-                    $builder->add($property['internalName'], TextType::class, $options);
-                    $builder->get($property['internalName'])
+                    $builder->add($property->getInternalName(), TextType::class, $options);
+                    $builder->get($property->getInternalName())
                         ->addModelTransformer($this->recordGenericTransformer);
 
                     break;
                 case FieldCatalog::MULTI_LINE_TEXT:
                     $options = $this->arrayMergeRecursive([
                             'required' => false,
-                            'label' => $property['label'],
+                            'label' => $property->getLabel(),
                             'attr' => [
-                                'data-property-id' => $property['id'],
+                                'data-property-id' => $property->getId(),
                                 'autocomplete' => 'off'
                             ]
                         ], $options);
 
-                    $builder->add($property['internalName'], TextareaType::class, $options);
-                    $builder->get($property['internalName'])
+                    $builder->add($property->getInternalName(), TextareaType::class, $options);
+                    $builder->get($property->getInternalName())
                         ->addModelTransformer($this->recordGenericTransformer);
                     break;
                 case FieldCatalog::DROPDOWN_SELECT:
-                    $fieldOptions = $property['field']['options'];
-                    $choices = [];
-                    foreach($fieldOptions as $fieldOption) {
-                        $choices[$fieldOption['label']] = $fieldOption['label'];
-                    }
-
+                    $choices = $property->getField()->getOptionsForChoiceTypeField();
                     $options = $this->arrayMergeRecursive([
                             'choices'  => $choices,
-                            'label' => $property['label'],
+                            'label' => $property->getLabel(),
                             'required' => false,
                             'expanded' => false,
                             'multiple' => false,
                             'attr' => [
                                 'class' => 'js-selectize-single-select',
-                                'data-property-id' => $property['id'],
+                                'data-property-id' => $property->getId(),
                                 'autocomplete' => 'off'
                             ]
                         ], $options);
 
-                    $builder->add($property['internalName'], ChoiceType::class, $options);
-                    $builder->get($property['internalName'])
+                    $builder->add($property->getInternalName(), ChoiceType::class, $options);
+                    $builder->get($property->getInternalName())
                         ->addModelTransformer($this->recordGenericTransformer);
                     break;
                 case FieldCatalog::SINGLE_CHECKBOX:
 
                     // for a single checkbox you need to check for not null instead of not blank
-                /*    if($property->isRequired()) {
+                    if($property->isRequired()) {
                         $options['constraints'] = [
                             new NotNull(),
                         ];
                         $options['required'] = true;
-                    }*/
+                    }
 
                 $options = $this->arrayMergeRecursive([
                         'choices'  => array(
                             'Yes' => true,
                             'No' => false,
                         ),
-                        'label' => $property['label'],
+                        'label' => $property->getLabel(),
                         'expanded' => false,
                         'multiple' => false,
                         'required' => false,
                         'attr' => [
                             'class' => 'js-selectize-single-select',
-                            'data-property-id' => $property['id'],
+                            'data-property-id' => $property->getId(),
                             'autocomplete' => 'off'
                         ]
                     ], $options);
 
-                    $builder->add($property['internalName'], ChoiceType::class, $options);
-                    $builder->get($property['internalName'])
+                    $builder->add($property->getInternalName(), ChoiceType::class, $options);
+                    $builder->get($property->getInternalName())
                         ->addModelTransformer($this->recordCheckboxTranformer);
                     break;
                 case FieldCatalog::MULTIPLE_CHECKBOX:
@@ -244,18 +236,18 @@ class FormType extends AbstractType
 
                     $options = $this->arrayMergeRecursive([
                         'choices'  => $choices,
-                        'label' => $property['label'],
+                        'label' => $property->getLabel(),
                         'expanded' => false,
                         'multiple' => true,
                         'required' => false,
                         'attr' => [
                             'class' => 'js-selectize-multiple-select',
-                            'data-property-id' => $property['id'],
+                            'data-property-id' => $property->getId(),
                             'autocomplete' => 'off'
                         ]
                     ], $options);
-                    $builder->add($property['internalName'], ChoiceType::class, $options);
-                    $builder->get($property['internalName'])
+                    $builder->add($property->getInternalName(), ChoiceType::class, $options);
+                    $builder->get($property->getInternalName())
                         ->addModelTransformer($this->recordMultipleCheckboxTransformer);
                     break;
                 case FieldCatalog::RADIO_SELECT:
@@ -263,40 +255,40 @@ class FormType extends AbstractType
 
                     $options = $this->arrayMergeRecursive([
                             'choices'  => $choices,
-                            'label' => $property['label'],
+                            'label' => $property->getLabel(),
                             'required' => false,
                             'expanded' => false,
                             'multiple' => false,
                             'attr' => [
                                 'class' => 'js-selectize-single-select',
-                                'data-property-id' => $property['id'],
+                                'data-property-id' => $property->getId(),
                                 'autocomplete' => 'off'
                             ]
                         ], $options);
 
-                    $builder->add($property['internalName'], ChoiceType::class, $options);
-                    $builder->get($property['internalName'])
+                    $builder->add($property->getInternalName(), ChoiceType::class, $options);
+                    $builder->get($property->getInternalName())
                         ->addModelTransformer($this->recordGenericTransformer);
                     break;
                 case FieldCatalog::NUMBER:
 
                     $options = $this->arrayMergeRecursive([
                         'required' => false,
-                        'label' => $property['label'],
+                        'label' => $property->getLabel(),
                         'attr' => [
-                            'data-property-id' => $property['id'],
+                            'data-property-id' => $property->getId(),
                             'autocomplete' => 'off'
                         ]
                     ], $options);
 
-                    $builder->add($property['internalName'], NumberType::class, $options);
+                    $builder->add($property->getInternalName(), NumberType::class, $options);
 
-                    $field = $property['field'];
-                    if($field['type'] === NumberField::CURRENCY) {
-                        $builder->get($property['internalName'])
+                    $field = $property->getField();
+                    if($field->isCurrency()) {
+                        $builder->get($property->getInternalName())
                             ->addModelTransformer($this->recordNumberCurrencyTransformer);
-                    } else if($field['type'] === NumberField::UNFORMATTED_NUMBER){
-                        $builder->get($property['internalName'])
+                    } else if($field->isUnformattedNumber()){
+                        $builder->get($property->getInternalName())
                             ->addModelTransformer($this->recordNumberUnformattedTransformer);
                     }
                     break;
@@ -304,7 +296,7 @@ class FormType extends AbstractType
 
                     $options = $this->arrayMergeRecursive([
                         'required' => false,
-                        'label' => $property['label'],
+                        'label' => $property->getLabel(),
                         'widget' => 'single_text',
                         'format' => 'MM-dd-yyyy',
                         // prevents rendering it as type="date", to avoid HTML5 date pickers
@@ -312,58 +304,71 @@ class FormType extends AbstractType
                         // adds a class that can be selected in JavaScript
                         'attr' => [
                             'class' => 'js-datepicker',
-                            'data-property-id' => $property['id'],
+                            'data-property-id' => $property->getId(),
                             'autocomplete' => 'off'
                         ],
                     ], $options);
 
-                    $builder->add($property['internalName'], DateType::class, $options);
+                    $builder->add($property->getInternalName(), DateType::class, $options);
 
-                    $builder->get($property['internalName'])
+                    $builder->get($property->getInternalName())
                         ->addModelTransformer($this->recordDateTimeTransformer);
                     break;
                 case FieldCatalog::CUSTOM_OBJECT:
 
                     $options = $this->arrayMergeRecursive([
                         'required' => false,
-                        'label' => $property['label'],
+                        'label' => $property->getLabel(),
                         'attr' => [
                             'class' => 'js-selectize-single-select-with-search',
                             'placeholder' => 'Start typing to search..',
-                            'data-property-id' => $property['id'],
+                            'data-property-id' => $property->getId(),
                             'autocomplete' => 'off'
                         ],
                         'expanded' => false,
                     ], $options);
 
-                    if($property['field']['multiple'] === 'true') {
+                    if($property->getField()->isMultiple()) {
                         $options['multiple'] = true;
                     }
 
                     $options['property'] = $property;
 
-                    $builder->add($property['internalName'], RecordChoiceType::class, $options);
+                    $builder->add($property->getInternalName(), RecordChoiceType::class, $options);
 
-                    if($property['field']['multiple'] === 'true') {
-                         $builder->get($property['internalName'])
-                        ->addModelTransformer($this->idArrayToRecordArrayTransformer);
+                    if($property->getField()->isMultiple()) {
+                        $builder->get($property->getInternalName())
+                            ->addModelTransformer($this->idArrayToRecordArrayTransformer);
                     } else {
-                         $builder->get($property['internalName'])
-                        ->addModelTransformer($this->transformer);
+                        $builder->get($property->getInternalName())
+                            ->addModelTransformer($this->transformer);
                     }
-
                     break;
             }
         }
 
-        $builder->add('submit', ButtonType::class);
+        if($formOptions['isPreview']) {
+            $builder->add('submit', ButtonType::class, [
+                'attr' => [
+                    'class' => 'btn-secondary'
+                ]
+            ]);
+        } else {
+            $builder->add('submit', SubmitType::class, [
+                'attr' => [
+                    'class' => 'btn-secondary'
+                ]
+            ]);
+        }
     }
 
     public function configureOptions(OptionsResolver $resolver)
     {
         $resolver->setRequired([
-            'properties',
-            'portal'
+            'properties'
+        ])->setDefaults([
+            'isPreview' => false
         ]);
+
     }
 }

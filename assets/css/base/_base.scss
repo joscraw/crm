@@ -53,3 +53,13 @@ p {
     text-decoration: underline;
   }
 }*/
+
+.no-left-radius {
+  border-top-left-radius: unset;
+  border-bottom-left-radius: unset;
+}
+
+.no-right-radius {
+  border-top-right-radius: unset;
+  border-bottom-right-radius: unset;
+}

@@ -144,6 +144,7 @@ class ReportPropertyList {
     loadProperties() {
 
         this.loadPropertiesForReport().then(data => {
+            debugger;
             this.propertyGroups = data.data.property_groups;
             this.renderProperties(this.propertyGroups).then(() => {
                 debugger;

@@ -36,6 +36,7 @@ import StringHelper from "../StringHelper";
 import FormEditorFormPreview from "./FormEditorFormPreview";
 import FormEditorEditFieldForm from "./FormEditorEditFieldForm";
 import FormEditorEditFormTopBar from "./FormEditorEditFormTopBar";
+import FormEditorShareYourFormModal from "./FormEditorShareYourFormModal";
 
 
 class FormEditorEditForm {
@@ -92,6 +93,11 @@ class FormEditorEditForm {
             this.handlePublishFormButtonClicked.bind(this)
         );
 
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.FORM_EDITOR_REVERT_BUTTON_CLICKED,
+            this.handleRevertButtonClicked.bind(this)
+        );
+
         this.loadForm().then((data) => {
             this.form = data.data;
             this.render();
@@ -123,12 +129,19 @@ class FormEditorEditForm {
             return;
         }
 
+        if(_.isEmpty(this.form.draft)) {
+            swal("Woahhh snap!!!", "Don't forget to select at least one field for your form.", "warning");
+            return;
+        }
+
         this.form.published = true;
         this.form.data = _.cloneDeep(this.form.draft);
         this.publishForm().then(() => {
-            debugger;
             this.globalEventDispatcher.publish(Settings.Events.FORM_PUBLISHED, this.form);
-            swal("Woohoo!!!", "Form successfully published!.", "success");
+
+            swal("Sweeeet!", "Form successully published.", "success").then(() => {
+                new FormEditorShareYourFormModal(this.globalEventDispatcher, this.portalInternalIdentifier, this.form);
+            });
         });
     }
 
@@ -138,7 +151,6 @@ class FormEditorEditForm {
         });
 
         this.saveFormData();
-        this.globalEventDispatcher.publish(Settings.Events.FORM_EDITOR_PROPERTY_LIST_ITEM_REMOVED, this.form);
     }
 
     handleEditButtonClicked(uid) {
@@ -191,8 +203,14 @@ class FormEditorEditForm {
         this.form.draft.push(property);
 
         this.saveFormData();
+    }
 
-        this.globalEventDispatcher.publish(Settings.Events.FORM_EDITOR_PROPERTY_LIST_ITEM_ADDED, this.form);
+    handleRevertButtonClicked() {
+
+        debugger;
+        this.form.draft = _.cloneDeep(this.form.data);
+
+        this.saveFormData();
     }
 
     saveFormData() {
@@ -256,7 +274,7 @@ class FormEditorEditForm {
 
     loadForm() {
         return new Promise((resolve, reject) => {
-            const url = Routing.generate('get_form', {internalIdentifier: this.portalInternalIdentifier, uid: this.uid});
+            const url = Routing.generate('get_form_data', {uid: this.uid});
             $.ajax({
                 url: url
             }).then(data => {

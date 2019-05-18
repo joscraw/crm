@@ -4,16 +4,14 @@
 
 <div class="js-form-fields-container">
 {% for property in properties %}
-    <div class="js-form-field" id="{{ property['uid'] }}">
-        {% if (attribute(form, property['internalName']) is defined) %}
+    <div class="js-form-field" id="{{ property.uid }}">
+        {% if (attribute(form, property.internalName) is defined) %}
             <div class="form-type form-type-hoverable">
-                {#<i class="fa fa-arrows-v js-arrows d-none" style="color: hsl(210, 27%, 60%)"></i>#}
-                {#{{ form_label(attribute(form, property['internalName'])) }}#}
                 <div class="js-shared-button-markup d-none" style="float:right">
-                    <button data-property-uid="{{ property['uid'] }}" type="button" class="btn btn-link js-edit-button float-left"><i class="fa fa-pencil" aria-hidden="true"></i> Edit</button>
-                    <button data-property-uid="{{ property['uid'] }}" type="button" class="btn btn-link js-delete-button float-left"><i class="fa fa-trash-o" aria-hidden="true"></i> Delete</button>
+                    <button data-property-uid="{{ property.uid }}" type="button" class="btn btn-link js-edit-button float-left"><i class="fa fa-pencil" aria-hidden="true"></i> Edit</button>
+                    <button data-property-uid="{{ property.uid }}" type="button" class="btn btn-link js-delete-button float-left"><i class="fa fa-trash-o" aria-hidden="true"></i> Delete</button>
                 </div>
-                {{ form_row(attribute(form, property['internalName'])) }}
+                {{ form_row(attribute(form, property.internalName)) }}
             </div>
         {% endif %}
     </div>

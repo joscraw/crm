@@ -12,82 +12,21 @@ require('jquery-ui-dist/jquery-ui');
 class FormEditorFormPreview {
 
     constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, form) {
-        debugger;
+
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
         this.form = form;
-/*
-        this.globalEventDispatcher.subscribe(
-            Settings.Events.FORM_EDITOR_PROPERTY_LIST_ITEM_ADDED,
-            this.handlePropertyListItemAdded.bind(this)
-        );
-*/
 
         this.globalEventDispatcher.subscribe(
             Settings.Events.FORM_EDITOR_DATA_SAVED,
             this.render.bind(this)
         );
 
-        this.globalEventDispatcher.subscribe(
-            Settings.Events.FORM_EDITOR_PROPERTY_LIST_ITEM_REMOVED,
-            this.render.bind(this)
-        );
-
-        /*this.globalEventDispatcher.subscribe(
-            Settings.Events.LIST_PROPERTY_LIST_ITEM_ADDED,
-            this.handlePropertyListItemAdded.bind(this)
-        );
-
-        this.globalEventDispatcher.subscribe(
-            Settings.Events.LIST_PROPERTY_LIST_ITEM_REMOVED,
-            this.handlePropertyListItemRemoved.bind(this)
-        );
-
-        this.globalEventDispatcher.subscribe(
-            Settings.Events.LIST_COLUMN_ORDER_UPDATED,
-            this.handleListColumnOrderUpdated.bind(this)
-        );
-*/
-        /*this.unbindEvents();
-
-        this.$wrapper.on(
-            'click',
-            ListSelectedColumns._selectors.removeSelectedColumnIcon,
-            this.handleRemoveSelectedColumnIconClicked.bind(this)
-        );
-
-        this.setSelectedColumns(this.data, this.columnOrder);
-
-        this.activatePlugins();*/
-
-        this.$wrapper.on(
-            'mouseover',
-            FormEditorFormPreview._selectors.formField,
-            this.handleFormFieldMouseOver.bind(this)
-        );
-
-        this.$wrapper.on(
-            'mouseout',
-            FormEditorFormPreview._selectors.formField,
-            this.handleFormFieldMouseOut.bind(this)
-        );
-
-        this.$wrapper.on(
-            'click',
-            FormEditorFormPreview._selectors.deleteButton,
-            this.handleDeleteButtonClicked.bind(this)
-        );
-
-        this.$wrapper.on(
-            'click',
-            FormEditorFormPreview._selectors.editButton,
-            this.handleEditButtonClicked.bind(this)
-        );
-
+        this.unbindEvents();
+        this.bindEvents();
 
         this.render(this.form);
-
     }
 
     /**
@@ -104,13 +43,24 @@ class FormEditorFormPreview {
         }
     }
 
+    bindEvents() {
+        this.$wrapper.on('mouseover', FormEditorFormPreview._selectors.formField, this.handleFormFieldMouseOver.bind(this));
+        this.$wrapper.on('mouseout', FormEditorFormPreview._selectors.formField, this.handleFormFieldMouseOut.bind(this));
+        this.$wrapper.on('click', FormEditorFormPreview._selectors.deleteButton, this.handleDeleteButtonClicked.bind(this));
+        this.$wrapper.on('click', FormEditorFormPreview._selectors.editButton, this.handleEditButtonClicked.bind(this));
+    }
+
+    unbindEvents() {
+        this.$wrapper.off('mouseover', FormEditorFormPreview._selectors.formField);
+        this.$wrapper.off('mouseout', FormEditorFormPreview._selectors.formField);
+        this.$wrapper.off('click', FormEditorFormPreview._selectors.deleteButton);
+        this.$wrapper.off('click', FormEditorFormPreview._selectors.editButton);
+    }
+
     render(form) {
 
-        debugger;
         if(_.isEmpty(form.draft)) {
-
             this.$wrapper.html(emptyListTemplate());
-
             return;
         }
 
@@ -243,100 +193,7 @@ class FormEditorFormPreview {
             });
         });
     }
-
-    unbindEvents() {
-
-        this.$wrapper.off('click', ListSelectedColumns._selectors.removeSelectedColumnIcon);
-
-    }
-
-    handleRemoveSelectedColumnIconClicked(e) {
-
-        if(e.cancelable) {
-            e.preventDefault();
-        }
-
-        e.stopPropagation();
-
-        let propertyId = $(e.target).attr('data-property-id');
-        let joinString = $(e.target).attr('data-joins');
-        let joins = JSON.parse(joinString);
-        let propertyPath = joins.join('.');
-
-        debugger;
-        if(_.has(this.data, propertyPath)) {
-
-            debugger;
-            let property = _.get(this.data, propertyPath);
-
-            this.globalEventDispatcher.publish(Settings.Events.LIST_REMOVE_SELECTED_COLUMN_ICON_CLICKED, property);
-        }
-    }
-
-    handlePropertyListItemAdded(data, columnOrder) {
-
-        this.data = data;
-
-        this.columnOrder = columnOrder;
-
-        this.setSelectedColumns(data, columnOrder);
-    }
-
-    handlePropertyListItemRemoved(data, columnOrder) {
-
-        this.data = data;
-
-        this.columnOrder = columnOrder;
-
-        this.setSelectedColumns(data, columnOrder);
-
-    }
-
-    handleListColumnOrderUpdated(data, columnOrder) {
-
-        this.data = data;
-
-        this.columnOrder = columnOrder;
-
-        this.setSelectedColumns(data, columnOrder);
-
-    }
-
-    setSelectedColumns(data, columnOrder) {
-
-        this.$wrapper.html("");
-
-        for(let i = 0; i < columnOrder.length; i ++) {
-
-            let column = columnOrder[i];
-
-            let joins = column.joins.concat([column.uID]);
-
-            this._addSelectedColumn(column.label, column.id, JSON.stringify(joins));
-
-        }
-
-    }
-
-
-    _addSelectedColumn(label, propertyId, joins) {
-
-        debugger;
-        const html = selectedColumnTemplate(label, propertyId, joins);
-        const $selectedColumnTemplate = $($.parseHTML(html));
-        this.$wrapper.append($selectedColumnTemplate);
-
-        this.activatePlugins();
-
-    }
 }
-
-const selectedColumnTemplate = (label, id, joins) => `
-    <div class="card js-selected-form-field" id=${joins}>
-        <div class="card-body c-report-widget__card-body">${label}<span><i class="fa fa-times js-remove-selected-column-icon c-report-widget__remove-column-icon" data-property-id="${id}" data-joins='${joins}' aria-hidden="true"></i></span></div>
-    </div>
-`;
-
 
 /**
  * @return {string}

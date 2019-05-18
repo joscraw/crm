@@ -68,7 +68,8 @@ class FormEditorEditFormTopBar {
         return {
             formName: '.js-form-name',
             publishFormButton: '.js-publish-form-button',
-            autosaveMessage: '.js-autosave-message'
+            autosaveMessage: '.js-autosave-message',
+            revertButton: '.js-revert-button'
 
         }
     }
@@ -76,11 +77,13 @@ class FormEditorEditFormTopBar {
     bindEvents() {
         this.$wrapper.on('keyup', FormEditorEditFormTopBar._selectors.formName, this.handleFormNameChange.bind(this));
         this.$wrapper.on('click', FormEditorEditFormTopBar._selectors.publishFormButton, this.handlePublishFormButtonClicked.bind(this));
+        this.$wrapper.on('click', FormEditorEditFormTopBar._selectors.revertButton, this.handleRevertButtonClicked.bind(this));
     }
 
     unbindEvents() {
         this.$wrapper.off('keyup', FormEditorEditFormTopBar._selectors.formName);
         this.$wrapper.off('click', FormEditorEditFormTopBar._selectors.publishFormButton);
+        this.$wrapper.off('click', FormEditorEditFormTopBar._selectors.revertButton);
     }
 
     render() {
@@ -105,7 +108,7 @@ class FormEditorEditFormTopBar {
     setAutoSaveMessage() {
         let autosaveMessage = '';
         if(!_.isEqual(this.form.data, this.form.draft)) {
-            autosaveMessage = 'Autosaved with unpublished changes <a href="#">revert</a>';
+            autosaveMessage = 'Autosaved with unpublished changes <button type="button" class="btn btn-link js-revert-button">revert</button>';
         }
 
         this.$wrapper.find(FormEditorEditFormTopBar._selectors.autosaveMessage).html(autosaveMessage);
@@ -116,6 +119,13 @@ class FormEditorEditFormTopBar {
             e.preventDefault();
         }
         this.globalEventDispatcher.publish(Settings.Events.FORM_EDITOR_PUBLISH_FORM_BUTTON_CLICKED);
+    }
+
+    handleRevertButtonClicked(e) {
+        if(e.cancelable) {
+            e.preventDefault();
+        }
+        this.globalEventDispatcher.publish(Settings.Events.FORM_EDITOR_REVERT_BUTTON_CLICKED);
     }
 
     static markup({portalInternalIdentifier, form}) {

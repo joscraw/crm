@@ -8,6 +8,7 @@ import EditReportWidget from "./Components/EditReportWidget";
 import FormSettings from "./Components/Page/FormSettings";
 import FormSelectObject from "./Components/FormSelectObject";
 import FormEditorEditForm from "./Components/FormEditorEditForm";
+import Form from "./Components/Form";
 
 require('backbone/backbone.js');
 
@@ -17,45 +18,24 @@ $(document).ready(function() {
         routes: {
             ":internalIdentifier/forms": "index",
             ":internalIdentifier/forms/object": "object",
-            ":internalIdentifier/forms/editor/:uid/edit/form": "editorEditForm"
-
-            /*":internalIdentifier/forms/create": "create",
-            ":internalIdentifier/forms/:formId/edit": "edit"*/
+            ":internalIdentifier/forms/editor/:uid/edit/form": "editorEditForm",
+            "forms/:uid": "form"
         },
 
         index: function(internalIdentifier) {
-
             new FormSettings($('#app'), window.globalEventDispatcher, internalIdentifier);
             new SideNavigationMenu($('#side-nav'), window.globalEventDispatcher, internalIdentifier);
         },
-
         editorEditForm: function(internalIdentifier, uid) {
-
-            debugger;
-
             new FormEditorEditForm($('#app'), window.globalEventDispatcher, internalIdentifier, uid);
         },
-
         object: function(internalIdentifier) {
-
             new FormSelectObject($('#app'), window.globalEventDispatcher, internalIdentifier);
         },
-
-
-        create: function(internalIdentifier) {
-
+        form: function(uid) {
             debugger;
-
-            /*this.navigate("help/troubleshooting");*/
-
-            $('#side-nav').html("");
-            new ReportWidget($('#app'), window.globalEventDispatcher, internalIdentifier);
+            new Form($('#app'), window.globalEventDispatcher, uid);
         },
-        edit: function(internalIdentifier, reportId) {
-
-            $('#side-nav').html("");
-            new EditReportWidget($('#app'), window.globalEventDispatcher, internalIdentifier, reportId);
-        }
     });
 
     var app_router = new Router;

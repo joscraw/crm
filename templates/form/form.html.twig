@@ -1,0 +1,16 @@
+{% extends 'baseFullWidth.html.twig' %}
+
+{% block title %}Forms - {{ form.name }}{% endblock %}
+
+{% block pageClass %}p-form{% endblock %}
+
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link href="{{ asset('build/form_settings.css') }}" rel="stylesheet" />
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('build/form_settings.js') }}"></script>
+{% endblock %}

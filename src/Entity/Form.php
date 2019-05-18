@@ -43,6 +43,7 @@ class Form
     private $name;
 
     /**
+     * @Groups({"FORMS"})
      * @ORM\ManyToOne(targetEntity="App\Entity\Portal", inversedBy="forms")
      */
     private $portal;
