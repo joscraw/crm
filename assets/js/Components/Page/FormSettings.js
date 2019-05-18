@@ -12,6 +12,7 @@ import ReportSettingsTopBar from "../ReportSettingsTopBar";
 import CustomObjectList from "../CustomObjectList";
 import ReportList from "../ReportList";
 import FormSettingsTopBar from "../FormSettingsTopBar";
+import FormList from "../FormList";
 
 class FormSettings {
 
@@ -33,7 +34,7 @@ class FormSettings {
 
         new FormSettingsTopBar(this.$wrapper.find('.js-top-bar'), this.globalEventDispatcher, this.portalInternalIdentifier);
 
-        /*new ReportList(this.$wrapper.find('.js-main-content'), this.globalEventDispatcher, this.portalInternalIdentifier);*/
+        new FormList(this.$wrapper.find('.js-main-content'), this.globalEventDispatcher, this.portalInternalIdentifier);
 
     }
 

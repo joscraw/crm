@@ -10,6 +10,7 @@ import CreateReportButton from "./CreateReportButton";
 import CustomObjectSearch from "./CustomObjectSearch";
 import ReportSearch from "./ReportSearch";
 import CreateFormButton from "./CreateFormButton";
+import FormSearch from "./FormSearch";
 
 class FormSettingsTopBar {
 
@@ -30,7 +31,7 @@ class FormSettingsTopBar {
 
         this.$wrapper.html(FormSettingsTopBar.markup());
 
-        new ReportSearch(this.$wrapper.find('.js-top-bar-search-container'), this.globalEventDispatcher, this.portalInternalIdentifier, "Search for a report");
+        new FormSearch(this.$wrapper.find('.js-top-bar-search-container'), this.globalEventDispatcher, this.portalInternalIdentifier, "Search for a form");
 
         new CreateFormButton(this.$wrapper.find('.js-create-form-button'), this.globalEventDispatcher, this.portalInternalIdentifier);
 

@@ -14,6 +14,7 @@ use App\Entity\Record;
 use App\Entity\Report;
 use App\Entity\Role;
 use App\Form\CustomObjectType;
+use App\Form\DeleteFormType;
 use App\Form\DeleteListType;
 use App\Form\DeleteReportType;
 use App\Form\FolderType;
@@ -26,6 +27,7 @@ use App\Model\AbstractField;
 use App\Model\FieldCatalog;
 use App\Repository\CustomObjectRepository;
 use App\Repository\FolderRepository;
+use App\Repository\FormRepository;
 use App\Repository\MarketingListRepository;
 use App\Repository\PropertyGroupRepository;
 use App\Repository\PropertyRepository;
@@ -35,6 +37,7 @@ use App\Service\MessageGenerator;
 use App\Utils\ArrayHelper;
 use App\Utils\ListFolderBreadcrumbs;
 use App\Utils\MultiDimensionalArrayExtractor;
+use App\Utils\PropertyHelper;
 use App\Utils\RandomStringGenerator;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
@@ -65,6 +68,7 @@ class FormController extends ApiController
     use MultiDimensionalArrayExtractor;
     use ArrayHelper;
     use RandomStringGenerator;
+    use PropertyHelper;
 
     /**
      * @var EntityManagerInterface
@@ -97,9 +101,9 @@ class FormController extends ApiController
     private $serializer;
 
     /**
-     * @var ReportRepository
+     * @var FormRepository
      */
-    private $reportRepository;
+    private $formRepository;
 
     /**
      * @var PermissionAuthorizationHandler
@@ -134,7 +138,7 @@ class FormController extends ApiController
      * @param PropertyGroupRepository $propertyGroupRepository
      * @param RecordRepository $recordRepository
      * @param SerializerInterface $serializer
-     * @param ReportRepository $reportRepository
+     * @param FormRepository $formRepository
      * @param PermissionAuthorizationHandler $permissionAuthorizationHandler
      * @param MarketingListRepository $marketingListRepository
      * @param FolderRepository $folderRepository
@@ -148,7 +152,7 @@ class FormController extends ApiController
         PropertyGroupRepository $propertyGroupRepository,
         RecordRepository $recordRepository,
         SerializerInterface $serializer,
-        ReportRepository $reportRepository,
+        FormRepository $formRepository,
         PermissionAuthorizationHandler $permissionAuthorizationHandler,
         MarketingListRepository $marketingListRepository,
         FolderRepository $folderRepository,
@@ -161,14 +165,13 @@ class FormController extends ApiController
         $this->propertyGroupRepository = $propertyGroupRepository;
         $this->recordRepository = $recordRepository;
         $this->serializer = $serializer;
-        $this->reportRepository = $reportRepository;
+        $this->formRepository = $formRepository;
         $this->permissionAuthorizationHandler = $permissionAuthorizationHandler;
         $this->marketingListRepository = $marketingListRepository;
         $this->folderRepository = $folderRepository;
         $this->folderBreadcrumbs = $folderBreadcrumbs;
         $this->denormalizer = $denormalizer;
     }
-
 
     /**
      * @Route("/{internalIdentifier}/api/forms/list-types", name="get_list_types", methods={"GET"}, options = { "expose" = true })
@@ -325,6 +328,10 @@ class FormController extends ApiController
         $record->setProperties($data);
         $record->setProperties($form->getData());
         $this->entityManager->persist($record);
+
+        $formEntity->incrementSubmissionCount();
+        $this->entityManager->persist($formEntity);
+
         $this->entityManager->flush();
 
         return new JsonResponse(
@@ -425,32 +432,107 @@ class FormController extends ApiController
     }
 
     /**
-     * @param $properties
-     * @return array
+     * DataTables passes unique params in the Request and expects a specific response payload
+     * @see https://datatables.net/manual/server-side Documentation for ServerSide Implimentation for DataTables
+     *
+     * @Route("/{internalIdentifier}/api/forms/datatable", name="forms_for_datatable", methods={"GET"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param Request $request
+     * @return Response
      */
-    private function setValidPropertyTypes($properties) {
+    public function getFormsForDatatableAction(Portal $portal, Request $request) {
 
-        $propertiesArray = [];
+        $draw = intval($request->query->get('draw'));
+        $start = $request->query->get('start');
+        $length = $request->query->get('length');
+        $search = $request->query->get('search');
+        $orders = $request->query->get('order');
+        $columns = $request->query->get('columns');
 
-        foreach ($properties as &$property) {
+        $results = $this->formRepository->getDataTableData($portal, $start, $length, $search, $orders, $columns);
 
-            $property['id'] = (int) $property['id'];
-            $property['required'] = $property['required'] === 'true'? true: false;
+        $totalReportCount = $this->formRepository->getTotalCount($portal);
+        $arrayResults = $results['arrayResults'];
+        $filteredReportCount = count($arrayResults);
 
-            if($property['fieldType'] === FieldCatalog::CUSTOM_OBJECT) {
+        $response = new JsonResponse([
+            'draw'  => $draw,
+            'recordsFiltered' => !empty($search['value']) ? $filteredReportCount : $totalReportCount,
+            'recordsTotal'  => $totalReportCount,
+            'data'  => $arrayResults
+        ],  Response::HTTP_OK);
 
-                $property['field']['customObject']['id'] = (int) $property['field']['customObject']['id'];
-                $property['field']['multiple'] = $property['field']['multiple'] === 'true'? true: false;
+        return $response;
+    }
 
-                foreach ($property['field']['selectizeSearchResultProperties'] as &$selectizeSearchResultProperty) {
-                    $selectizeSearchResultProperty['id'] = (int) $selectizeSearchResultProperty['id'];
-                    $selectizeSearchResultProperty['required'] = $selectizeSearchResultProperty['required'] === 'true'? true: false;
-                }
-            }
+    /**
+     * @Route("/{internalIdentifier}/api/forms/{uid}/delete-form", name="get_delete_form", methods={"GET"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param Form $form
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getDeleteFormAction(Portal $portal, Form $form, Request $request) {
 
-            $propertiesArray[] = $property;
+        $form = $this->createForm(DeleteFormType::class, $form);
+
+        $formMarkup = $this->renderView(
+            'Api/form/delete_form_form.html.twig',
+            [
+                'form' => $form->createView(),
+            ]
+        );
+
+        return new JsonResponse(
+            [
+                'success' => true,
+                'formMarkup' => $formMarkup
+            ],
+            Response::HTTP_OK
+        );
+    }
+
+    /**
+     * @Route("/{internalIdentifier}/api/forms/{uid}/delete", name="delete_form", methods={"POST"}, options={"expose" = true})
+     * @param Portal $portal
+     * @param Form $form
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function deleteReportAction(Portal $portal, Form $form, Request $request)
+    {
+
+        $form = $this->createForm(DeleteFormType::class, $form);
+        $form->handleRequest($request);
+
+        if (!$form->isValid()) {
+            $formMarkup = $this->renderView(
+                'Api/form/delete_form_form.html.twig',
+                [
+                    'form' => $form->createView(),
+                ]
+            );
+
+            return new JsonResponse(
+                [
+                    'success' => false,
+                    'formMarkup' => $formMarkup,
+                ], Response::HTTP_BAD_REQUEST
+            );
         }
 
-        return $propertiesArray;
+        // delete report here
+        /** @var $report Report */
+        $form = $form->getData();
+        $this->entityManager->remove($form);
+        $this->entityManager->flush();
+
+        return new JsonResponse(
+            [
+                'success' => true,
+            ],
+            Response::HTTP_OK
+        );
+
     }
 }

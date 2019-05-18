@@ -73,6 +73,11 @@ class Form
     private $draft = [];
 
     /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private $submissionCount = 0;
+
+    /**
      * @ORM\PrePersist
      * @throws \Exception
      */
@@ -182,5 +187,21 @@ class Form
         $this->draft = $draft;
 
         return $this;
+    }
+
+    public function getSubmissionCount(): ?int
+    {
+        return $this->submissionCount;
+    }
+
+    public function setSubmissionCount(?int $submissionCount): self
+    {
+        $this->submissionCount = $submissionCount;
+
+        return $this;
+    }
+
+    public function incrementSubmissionCount() {
+        $this->submissionCount++;
     }
 }
