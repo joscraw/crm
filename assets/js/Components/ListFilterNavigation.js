@@ -48,15 +48,17 @@ class ListFilterNavigation {
 
         this.unbindEvents();
 
-        this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
             Settings.Events.LIST_FILTER_ITEM_ADDED,
             this.listFilterItemAddedHandler.bind(this)
-        );
+        ));
 
-        this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
             Settings.Events.LIST_FILTER_ITEM_REMOVED,
             this.listFilterItemRemovedHandler.bind(this)
-        );
+        ));
 
         this.$wrapper.on(
             'click',

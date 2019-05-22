@@ -17,15 +17,17 @@ class ListPreviewResultsButton {
 
         debugger;
 
-        this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
             Settings.Events.LIST_FILTER_ITEM_ADDED,
             this.listFiltersUpdatedHandler.bind(this)
-        );
+        ));
 
-        this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
             Settings.Events.LIST_FILTER_ITEM_REMOVED,
             this.listFiltersUpdatedHandler.bind(this)
-        );
+        ));
 
         this.unbindEvents();
 

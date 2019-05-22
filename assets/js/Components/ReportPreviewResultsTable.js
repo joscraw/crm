@@ -30,10 +30,11 @@ class ReportPreviewResultsTable {
         this.data = data;
         this.columnOrder = columnOrder;
 
-        this.globalEventDispatcher.singleSubscribe(
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
             Settings.Events.REPORT_PREVIEW_RESULTS_BUTTON_CLICKED,
             this.handleReportPreviewResultsButtonClicked.bind(this)
-        );
+        ));
 
         this.render();
 

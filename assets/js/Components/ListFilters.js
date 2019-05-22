@@ -54,46 +54,56 @@ class ListFilters {
          */
         this.data = data;
 
-        this.globalEventDispatcher.singleSubscribe(
+        this.globalEventDispatcher.removeRemovableTokens();
+
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
             Settings.Events.LIST_ADD_FILTER_BUTTON_PRESSED,
             this.listAddFilterButtonPressedHandler.bind(this)
-        );
+        ));
 
-        this.globalEventDispatcher.singleSubscribe(
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
             Settings.Events.LIST_FILTER_ITEM_CLICKED,
             this.handleListFilterItemClicked.bind(this)
-        );
+        ));
 
-        this.globalEventDispatcher.singleSubscribe(
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
             Settings.Events.LIST_FILTER_ITEM_ADDED,
             this.listFilterItemAddedHandler.bind(this)
-        );
+        ));
 
-        this.globalEventDispatcher.singleSubscribe(
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
             Settings.Events.LIST_ADD_OR_FILTER_BUTTON_PRESSED,
             this.listAddOrFilterButtonPressedHandler.bind(this)
-        );
+        ));
 
-        this.globalEventDispatcher.singleSubscribe(
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
             Settings.Events.LIST_EDIT_FILTER_BUTTON_CLICKED,
             this.handleListEditFilterButtonClicked.bind(this)
-        );
+        ));
 
 
-        this.globalEventDispatcher.singleSubscribe(
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
             Settings.Events.FILTER_BACK_TO_NAVIGATION_BUTTON_CLICKED,
             this.listFilterBackToNavigationButtonClickedHandler.bind(this)
-        );
+        ));
 
-        this.globalEventDispatcher.singleSubscribe(
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
             Settings.Events.FILTER_BACK_TO_LIST_BUTTON_CLICKED,
             this.handleFilterBackToListButtonClicked.bind(this)
-        );
+        ));
 
-        this.globalEventDispatcher.singleSubscribe(
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
             Settings.Events.LIST_FILTER_CUSTOM_OBJECT_JOIN_PATH_SET,
             this.handleListFilterCustomObjectJoinPathSet.bind(this)
-        );
+        ));
 
         this.unbindEvents();
 

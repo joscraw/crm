@@ -45,15 +45,17 @@ class ReportFilterNavigation {
 
         this.unbindEvents();
 
-        this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
             Settings.Events.REPORT_FILTER_ITEM_ADDED,
             this.reportFilterItemAddedHandler.bind(this)
-        );
+        ));
 
-        this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
             Settings.Events.REPORT_FILTER_ITEM_REMOVED,
             this.reportFilterItemRemovedHandler.bind(this)
-        );
+        ));
 
         this.$wrapper.on(
             'click',
