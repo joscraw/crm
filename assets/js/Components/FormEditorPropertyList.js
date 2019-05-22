@@ -7,6 +7,7 @@ import PropertySearch from "./PropertySearch";
 import List from "list.js";
 import SingleLineTextFieldFilterForm from "./SingleLineTextFieldFilterForm";
 import ColumnSearch from "./ColumnSearch";
+import ContextHelper from "../ContextHelper";
 
 class FormEditorPropertyList {
 
@@ -22,10 +23,11 @@ class FormEditorPropertyList {
 
         this.bindEvents();
 
-        this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
             Settings.Events.FORM_EDITOR_DATA_SAVED,
             this.handleDataSaved.bind(this)
-        );
+        ));
 
         this.render();
         this.loadProperties()

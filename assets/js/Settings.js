@@ -150,8 +150,9 @@ const Settings = {
 
     },
 
-    OPERATORS: {
-
+    PAGES: {
+        FORM_EDITOR_EDIT_FORM: 'FORM_EDITOR_EDIT_FORM',
+        FORM_EDITOR_EDIT_OPTIONS: 'FORM_EDITOR_EDIT_OPTIONS',
     }
 
 };

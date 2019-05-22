@@ -10,15 +10,21 @@
   -webkit-box-flex: 1;
   flex-grow: 1;
   background-color: rgb(255, 255, 255);
-  min-height: calc(100vh - 55px);
-  margin-top: 55px;
+  min-height: calc(100vh - 103px);
+  margin-top: 103px;
 }
 
 .t-private-template__inner {
   align-items: stretch;
   display: flex;
-  height: calc(100vh - 55px);
+  height: calc( 100vh - 103px );
   width: 100%;
+}
+
+.t-private-template__inner--center {
+  width: 1000px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .t-private-template__sidebar {

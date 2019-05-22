@@ -7,6 +7,7 @@ import PropertySearch from "./PropertySearch";
 import List from "list.js";
 import SingleLineTextFieldFilterForm from "./SingleLineTextFieldFilterForm";
 import ColumnSearch from "./ColumnSearch";
+import ContextHelper from "../ContextHelper";
 require('jquery-ui-dist/jquery-ui');
 
 class FormEditorFormPreview {
@@ -18,10 +19,11 @@ class FormEditorFormPreview {
         this.portalInternalIdentifier = portalInternalIdentifier;
         this.form = form;
 
-        this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
             Settings.Events.FORM_EDITOR_DATA_SAVED,
             this.render.bind(this)
-        );
+        ));
 
         this.unbindEvents();
         this.bindEvents();

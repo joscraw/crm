@@ -133,7 +133,6 @@ class Form {
      */
     handleFormSubmit(e) {
 
-        debugger;
         if(e.cancelable) {
             e.preventDefault();
         }
@@ -143,15 +142,24 @@ class Form {
 
         this._submit(formData)
             .then((data) => {
-
-                swal("Hooray!", `Form submitted successfully!`, "success");
-                this.globalEventDispatcher.publish(Settings.Events.RECORD_CREATED);
-
+                this.submitAction();
             }).catch((errorData) => {
-
             this.$wrapper.find(Form._selectors.formContainer).html(errorData.formMarkup);
             this.activatePlugins();
         });
+    }
+
+    submitAction() {
+
+        switch(this.form.submitAction) {
+            case 'REDIRECT':
+                debugger;
+                window.location = this.form.redirectUrl;
+                break;
+            case 'MESSAGE':
+                debugger;
+                break;
+        }
     }
 
     /**

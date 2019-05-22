@@ -1,0 +1,22 @@
+# Read the documentation: https://symfony.com/doc/current/bundles/FOSCKEditorBundle/index.html
+
+twig:
+    form_themes:
+        - '@FOSCKEditor/Form/ckeditor_widget.html.twig'
+
+
+# app/config/config.yml
+# https://ckeditor.com/latest/samples/toolbarconfigurator/index.html#advanced
+# https://symfony.com/doc/master/bundles/FOSCKEditorBundle/usage/toolbar.html
+fos_ck_editor:
+  configs:
+    my_config_1:
+      toolbar: "my_toolbar_1"
+      uiColor: "#000000"
+  toolbars:
+    configs:
+      my_toolbar_1: [ "@basicstyles", "@paragraph", "@link"]
+    items:
+      basicstyles: [ 'Bold', 'Italic', 'Underline' ]
+      paragraph:     [ 'NumberedList', 'BulletedList', 'JustifyLeft', 'JustifyCenter', 'JustifyRight' ]
+      link:     [ 'Link']

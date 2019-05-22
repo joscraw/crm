@@ -35,11 +35,13 @@ import FormEditorPropertyList from "./FormEditorPropertyList";
 import StringHelper from "../StringHelper";
 import FormEditorFormPreview from "./FormEditorFormPreview";
 import FormEditorEditFieldForm from "./FormEditorEditFieldForm";
+import ContextHelper from "../ContextHelper";
 
-class FormEditorEditFormTopBar {
+class FormEditorTopBar {
 
     constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, form) {
 
+        debugger;
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
@@ -48,15 +50,17 @@ class FormEditorEditFormTopBar {
         this.unbindEvents();
         this.bindEvents();
 
-        this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
             Settings.Events.FORM_EDITOR_DATA_SAVED,
             this.handleDataSaved.bind(this)
-        );
+        ));
 
-        this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
             Settings.Events.FORM_PUBLISHED,
             this.handleDataSaved.bind(this)
-        );
+        ));
 
         this.render();
     }
@@ -75,23 +79,24 @@ class FormEditorEditFormTopBar {
     }
 
     bindEvents() {
-        this.$wrapper.on('keyup', FormEditorEditFormTopBar._selectors.formName, this.handleFormNameChange.bind(this));
-        this.$wrapper.on('click', FormEditorEditFormTopBar._selectors.publishFormButton, this.handlePublishFormButtonClicked.bind(this));
-        this.$wrapper.on('click', FormEditorEditFormTopBar._selectors.revertButton, this.handleRevertButtonClicked.bind(this));
+        this.$wrapper.on('keyup', FormEditorTopBar._selectors.formName, this.handleFormNameChange.bind(this));
+        this.$wrapper.on('click', FormEditorTopBar._selectors.publishFormButton, this.handlePublishFormButtonClicked.bind(this));
+        this.$wrapper.on('click', FormEditorTopBar._selectors.revertButton, this.handleRevertButtonClicked.bind(this));
     }
 
     unbindEvents() {
-        this.$wrapper.off('keyup', FormEditorEditFormTopBar._selectors.formName);
-        this.$wrapper.off('click', FormEditorEditFormTopBar._selectors.publishFormButton);
-        this.$wrapper.off('click', FormEditorEditFormTopBar._selectors.revertButton);
+        this.$wrapper.off('keyup', FormEditorTopBar._selectors.formName);
+        this.$wrapper.off('click', FormEditorTopBar._selectors.publishFormButton);
+        this.$wrapper.off('click', FormEditorTopBar._selectors.revertButton);
     }
 
     render() {
-        this.$wrapper.html(FormEditorEditFormTopBar.markup(this));
+        this.$wrapper.html(FormEditorTopBar.markup(this));
         this.setAutoSaveMessage();
     }
 
     handleDataSaved(form) {
+        debugger;
         this.form = form;
 
         this.setAutoSaveMessage();
@@ -111,7 +116,7 @@ class FormEditorEditFormTopBar {
             autosaveMessage = 'Autosaved with unpublished changes <button type="button" class="btn btn-link js-revert-button">revert</button>';
         }
 
-        this.$wrapper.find(FormEditorEditFormTopBar._selectors.autosaveMessage).html(autosaveMessage);
+        this.$wrapper.find(FormEditorTopBar._selectors.autosaveMessage).html(autosaveMessage);
     }
 
     handlePublishFormButtonClicked(e) {
@@ -156,4 +161,4 @@ class FormEditorEditFormTopBar {
     }
 }
 
-export default FormEditorEditFormTopBar;
+export default FormEditorTopBar;

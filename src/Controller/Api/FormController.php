@@ -18,6 +18,7 @@ use App\Form\DeleteFormType;
 use App\Form\DeleteListType;
 use App\Form\DeleteReportType;
 use App\Form\FolderType;
+use App\Form\FormEditorEditOptionsType;
 use App\Form\FormType;
 use App\Form\MoveListToFolderType;
 use App\Form\PropertyGroupType;
@@ -174,24 +175,6 @@ class FormController extends ApiController
     }
 
     /**
-     * @Route("/{internalIdentifier}/api/forms/list-types", name="get_list_types", methods={"GET"}, options = { "expose" = true })
-     * @param Portal $portal
-     * @param Request $request
-     * @return Response
-     */
-    public function getListTypesAction(Portal $portal, Request $request) {
-
-        $payload['list_types'] = MarketingList::$LIST_TYPES;
-
-        $response = new JsonResponse([
-            'success' => true,
-            'data'  => $payload,
-        ],  Response::HTTP_OK);
-
-        return $response;
-    }
-
-    /**
      * @Route("{internalIdentifier}/api/forms/initialize", name="initialize_form", methods={"POST"}, options = { "expose" = true })
      * @param Portal $portal
      * @param Request $request
@@ -275,6 +258,99 @@ class FormController extends ApiController
             [
                 'success' => true,
                 'formMarkup' => $formMarkup
+            ],
+            Response::HTTP_OK
+        );
+    }
+
+    /**
+     * @Route("{internalIdentifier}/api/forms/{uid}/get-edit-options-form", name="get_edit_options_form", methods={"GET"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param Form $form
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getEditOptionsFormAction(Portal $portal, Form $form, Request $request) {
+
+        $form = $this->createForm(FormEditorEditOptionsType::class, $form, []);
+
+        $formMarkup = $this->renderView(
+            'Api/form/form_editor_edit_options_form.html.twig',
+            [
+                'form' => $form->createView(),
+            ]
+        );
+
+        return new JsonResponse(
+            [
+                'success' => true,
+                'formMarkup' => $formMarkup
+            ],
+            Response::HTTP_OK
+        );
+    }
+
+    /**
+     * @Route("{internalIdentifier}/api/forms/{uid}/submit-edit-options-form", name="submit_edit_options_form", methods={"POST"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param Form $formObj
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function createPropertyAction(Portal $portal, Form $formObj, Request $request) {
+
+    /*    $property = new Property();
+        $property->setCustomObject($customObject);
+
+        $skipValidation = $request->request->get('skip_validation', false);
+
+        $options = [
+            'portal' => $portal,
+            'customObject' => $customObject
+        ];
+
+        if(!$skipValidation) {
+            $options['validation_groups'] = ['CREATE'];
+        }*/
+
+        $form = $this->createForm(FormEditorEditOptionsType::class, $formObj, []);
+        $form->handleRequest($request);
+
+     /*   $fieldHelpMessage = FieldCatalog::getOptionsForFieldType(FieldCatalog::SINGLE_LINE_TEXT)['description'];
+        if($property->getFieldType()) {
+            $fieldHelpMessage = FieldCatalog::getOptionsForFieldType($property->getFieldType())['description'];
+        }*/
+
+        $formMarkup = $this->renderView(
+            'Api/form/form_editor_edit_options_form.html.twig',
+            [
+                'form' => $form->createView(),
+            ]
+        );
+
+        if ($form->isSubmitted() && !$form->isValid()) {
+
+            if(!$form->isValid()) {
+                return new JsonResponse(
+                    [
+                        'success' => false,
+                        'formMarkup' => $formMarkup,
+                    ], Response::HTTP_BAD_REQUEST
+                );
+            }
+        }
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            /** @var $form Form */
+            $formObj = $form->getData();
+            $this->entityManager->persist($formObj);
+            $this->entityManager->flush();
+        }
+
+        return new JsonResponse(
+            [
+                'success' => true,
+                'formMarkup' => $formMarkup,
             ],
             Response::HTTP_OK
         );

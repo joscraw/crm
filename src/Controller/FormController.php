@@ -113,6 +113,20 @@ class FormController extends AbstractController
     }
 
     /**
+     * @Route("/{internalIdentifier}/forms/editor/{uid}/edit/options", name="editor_edit_options", requirements={"routing"=".+"}, defaults={"routing": null}, methods={"GET"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param Form $form
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function editorEditOptionsAction(Portal $portal, Form $form) {
+
+        return $this->render('form/editor_edit_options.html.twig', array(
+            'portal' => $portal,
+            'form' => $form,
+        ));
+    }
+
+    /**
      * @Route("/{internalIdentifier}/forms/{routing}", name="form_settings", requirements={"routing"=".+"}, defaults={"routing": null}, methods={"GET"}, options = { "expose" = true })
      * @param Portal $portal
      * @return \Symfony\Component\HttpFoundation\Response

@@ -219,6 +219,7 @@ class UserController extends ApiController
      */
     public function editUserAction(Portal $portal, User $user, Request $request) {
 
+        $originalPassword = $user->getPassword();
 
         $form = $this->createForm(EditUserType::class, $user);
 
@@ -263,12 +264,19 @@ class UserController extends ApiController
 
         if ($form->isSubmitted() && $form->isValid()) {
             /** @var $user User */
-            $user = $form->getData();
-            $user->setPortal($portal);
-            $user->setPassword($this->passwordEncoder->encodePassword(
-                $user,
-                $user->getPassword()
-            ));
+            $formUser = $form->getData();
+            $formUser->setPortal($portal);
+
+            // only override the password if one is passed up
+            if($formUser->getPassword()) {
+                $formUser->setPassword($this->passwordEncoder->encodePassword(
+                    $formUser,
+                    $formUser->getPassword()
+                ));
+            } else {
+                $formUser->setPassword($originalPassword);
+            }
+
             $this->entityManager->persist($user);
             $this->entityManager->flush();
         }

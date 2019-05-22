@@ -9,6 +9,7 @@ import FormSettings from "./Components/Page/FormSettings";
 import FormSelectObject from "./Components/FormSelectObject";
 import FormEditorEditForm from "./Components/FormEditorEditForm";
 import Form from "./Components/Form";
+import FormEditorEditOptions from "./Components/FormEditorEditOptions";
 
 require('backbone/backbone.js');
 
@@ -19,6 +20,7 @@ $(document).ready(function() {
             ":internalIdentifier/forms": "index",
             ":internalIdentifier/forms/object": "object",
             ":internalIdentifier/forms/editor/:uid/edit/form": "editorEditForm",
+            ":internalIdentifier/forms/editor/:uid/edit/options": "editorEditOptions",
             "forms/:uid": "form"
         },
 
@@ -28,6 +30,9 @@ $(document).ready(function() {
         },
         editorEditForm: function(internalIdentifier, uid) {
             new FormEditorEditForm($('#app'), window.globalEventDispatcher, internalIdentifier, uid);
+        },
+        editorEditOptions: function(internalIdentifier, uid) {
+            new FormEditorEditOptions($('#app'), window.globalEventDispatcher, internalIdentifier, uid);
         },
         object: function(internalIdentifier) {
             new FormSelectObject($('#app'), window.globalEventDispatcher, internalIdentifier);

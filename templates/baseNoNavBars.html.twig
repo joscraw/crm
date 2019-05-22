@@ -12,7 +12,7 @@
     </head>
     <body>
     <div id="modal-container"></div>
-    <div id="app" class="{% block containerComponent %}{% endblock %}" {% block containerComponentAttributes %}{% endblock %}></div>
+    <div id="app" class="{% block pageClass %}{% endblock %} {% block containerComponent %}{% endblock %}" {% block containerComponentAttributes %}{% endblock %}></div>
 
     {% block javascripts %}
             <script src="{{ asset('bundles/fosjsrouting/js/router.min.js') }}"></script>

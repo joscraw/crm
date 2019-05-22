@@ -35,8 +35,10 @@ import FormEditorPropertyList from "./FormEditorPropertyList";
 import StringHelper from "../StringHelper";
 import FormEditorFormPreview from "./FormEditorFormPreview";
 import FormEditorEditFieldForm from "./FormEditorEditFieldForm";
-import FormEditorEditFormTopBar from "./FormEditorEditFormTopBar";
+import FormEditorTopBar from "./FormEditorTopBar";
 import FormEditorShareYourFormModal from "./FormEditorShareYourFormModal";
+import FormEditorSubBar from "./FormEditorSubBar";
+import ContextHelper from "../ContextHelper";
 
 
 class FormEditorEditForm {
@@ -50,53 +52,62 @@ class FormEditorEditForm {
         this.form = null;
 
         this.unbindEvents();
-
         this.bindEvents();
+        this.globalEventDispatcher.removeRemovableTokens();
 
-        this.globalEventDispatcher.singleSubscribe(
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
             Settings.Events.FORM_EDITOR_BACK_TO_LIST_BUTTON_CLICKED,
             this.handleBackButtonClicked.bind(this)
-        );
+        ));
 
-        this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
             Settings.Events.FORM_EDITOR_PROPERTY_LIST_ITEM_CLICKED,
             this.handlePropertyListItemClicked.bind(this)
-        );
+        ));
 
-        this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
             Settings.Events.FORM_PREVIEW_DELETE_BUTTON_CLICKED,
             this.handleDeleteButtonClicked.bind(this)
-        );
+        ));
 
-        this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
             Settings.Events.FORM_PREVIEW_EDIT_BUTTON_CLICKED,
             this.handleEditButtonClicked.bind(this)
-        );
+        ));
 
-        this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
             Settings.Events.FORM_EDITOR_FIELD_ORDER_CHANGED,
             this.handleFieldOrderChanged.bind(this)
-        );
+        ));
 
-        this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
             Settings.Events.FORM_EDITOR_EDIT_FIELD_FORM_CHANGED,
             this.handleEditFieldFormChanged.bind(this)
-        );
+        ));
 
-        this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
             Settings.Events.FORM_EDITOR_FORM_NAME_CHANGED,
             this.handleFormNameChange.bind(this)
-        );
+        ));
 
-        this.globalEventDispatcher.subscribe(
-            Settings.Events.FORM_EDITOR_PUBLISH_FORM_BUTTON_CLICKED,
-            this.handlePublishFormButtonClicked.bind(this)
-        );
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
+                Settings.Events.FORM_EDITOR_PUBLISH_FORM_BUTTON_CLICKED,
+                this.handlePublishFormButtonClicked.bind(this)
+            ));
 
-        this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
             Settings.Events.FORM_EDITOR_REVERT_BUTTON_CLICKED,
             this.handleRevertButtonClicked.bind(this)
-        );
+        ));
 
         this.loadForm().then((data) => {
             this.form = data.data;
@@ -113,7 +124,8 @@ class FormEditorEditForm {
             propertyList: '.js-property-list',
             formContainer: '.js-form',
             editFieldForm: '.js-edit-field-form',
-            topBar: '.js-top-bar'
+            topBar: '.js-top-bar',
+            subBar: '.js-sub-bar'
 
         }
     }
@@ -267,7 +279,8 @@ class FormEditorEditForm {
 
     render() {
         this.$wrapper.html(FormEditorEditForm.markup(this));
-        new FormEditorEditFormTopBar(this.$wrapper.find(FormEditorEditForm._selectors.topBar), this.globalEventDispatcher, this.portalInternalIdentifier, this.form);
+        new FormEditorTopBar(this.$wrapper.find(FormEditorEditForm._selectors.topBar), this.globalEventDispatcher, this.portalInternalIdentifier, this.form);
+        new FormEditorSubBar(this.$wrapper.find(FormEditorEditForm._selectors.subBar), this.globalEventDispatcher, this.portalInternalIdentifier, this.form, Settings.PAGES.FORM_EDITOR_EDIT_FORM);
         new FormEditorPropertyList($(FormEditorEditForm._selectors.propertyList), this.globalEventDispatcher, this.portalInternalIdentifier, this.form);
         new FormEditorFormPreview(this.$wrapper.find(FormEditorEditForm._selectors.formContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.form);
     }
@@ -286,10 +299,10 @@ class FormEditorEditForm {
         });
     }
 
-    static markup() {
+    static markup({portalInternalIdentifier, uid}) {
         return `            
            <div class="js-top-bar"></div>
-             
+           <div class="js-sub-bar c-private-sub-bar"></div>
             <div class="t-private-template">                 
                 <div class="t-private-template__inner">
                     <div class="t-private-template__sidebar js-property-list"></div>

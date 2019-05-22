@@ -15,6 +15,8 @@ class Form
     use TimestampableEntity;
 
     const REGULAR_FORM = 'REGULAR_FORM';
+    const SUBMIT_ACTION_MESSAGE = 'MESSAGE';
+    const SUBMIT_ACTION_REDIRECT = 'REDIRECT';
 
     /**
      * @Groups({"FORMS"})
@@ -76,6 +78,24 @@ class Form
      * @ORM\Column(type="integer", nullable=true)
      */
     private $submissionCount = 0;
+
+    /**
+     * @Groups({"FORMS"})
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $submitAction = self::SUBMIT_ACTION_MESSAGE;
+
+    /**
+     * @Groups({"FORMS"})
+     * @ORM\Column(type="text", nullable=true)
+     */
+    private $submitMessage = 'Thanks for submitting the form.';
+
+    /**
+     * @Groups({"FORMS"})
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $redirectUrl;
 
     /**
      * @ORM\PrePersist
@@ -203,5 +223,41 @@ class Form
 
     public function incrementSubmissionCount() {
         $this->submissionCount++;
+    }
+
+    public function getSubmitAction(): ?string
+    {
+        return $this->submitAction;
+    }
+
+    public function setSubmitAction(?string $submitAction): self
+    {
+        $this->submitAction = $submitAction;
+
+        return $this;
+    }
+
+    public function getSubmitMessage(): ?string
+    {
+        return $this->submitMessage;
+    }
+
+    public function setSubmitMessage(?string $submitMessage): self
+    {
+        $this->submitMessage = $submitMessage;
+
+        return $this;
+    }
+
+    public function getRedirectUrl(): ?string
+    {
+        return $this->redirectUrl;
+    }
+
+    public function setRedirectUrl(?string $redirectUrl): self
+    {
+        $this->redirectUrl = $redirectUrl;
+
+        return $this;
     }
 }
