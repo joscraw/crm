@@ -37,21 +37,25 @@ class ListTable {
         this.render().then(() => {this.activatePlugins();});
 
         debugger;
+        this.globalEventDispatcher.removeRemovableTokens();
 
-        this.globalEventDispatcher.singleSubscribe(
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
             Settings.Events.LIST_DELETED,
-            ContextHelper.bind(this.reloadList, this)
-        );
+            this.reloadList.bind(this)
+        ));
 
-        this.globalEventDispatcher.singleSubscribe(
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
             Settings.Events.LIST_MOVED_TO_FOLDER,
             this.reloadList.bind(this)
-        );
+        ));
 
-        this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
             Settings.Events.LIST_SEARCH_KEY_UP,
             this.applySearch.bind(this)
-        );
+        ));
 
     }
 
