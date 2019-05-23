@@ -9,11 +9,13 @@ import SingleLineTextFieldFilterForm from "./SingleLineTextFieldFilterForm";
 import ColumnSearch from "./ColumnSearch";
 import swal from "sweetalert2";
 require('jquery-ui-dist/jquery-ui');
+import * as Cookies from "js-cookie";
 
 class Form {
 
     constructor($wrapper, globalEventDispatcher, uid) {
         debugger;
+
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
         this.uid = uid;
@@ -39,7 +41,9 @@ class Form {
     static get _selectors() {
         return {
             formContainer: '.js-form-container',
-            form: '.js-form'
+            cardContainer: '.js-card-container',
+            form: '.js-form',
+            messageContainer: '.js-message-container'
         }
     }
 
@@ -133,8 +137,15 @@ class Form {
      */
     handleFormSubmit(e) {
 
+        debugger;
         if(e.cancelable) {
             e.preventDefault();
+        }
+
+        if(this.isCookieTrackingEnabled() && this.cookieExistsForForm()) {
+            this.toggleMessageContainer();
+            this.$wrapper.find(Form._selectors.messageContainer).html(formAlreadySubmittedTemplate());
+            return;
         }
 
         const $form = $(e.currentTarget);
@@ -143,10 +154,15 @@ class Form {
         this._submit(formData)
             .then((data) => {
                 this.submitAction();
+                this.setCookie();
             }).catch((errorData) => {
             this.$wrapper.find(Form._selectors.formContainer).html(errorData.formMarkup);
             this.activatePlugins();
         });
+    }
+
+    isCookieTrackingEnabled() {
+        return this.form.cookieTracking;
     }
 
     submitAction() {
@@ -157,8 +173,33 @@ class Form {
                 window.location = this.form.redirectUrl;
                 break;
             case 'MESSAGE':
-                debugger;
+                this.toggleMessageContainer();
+                this.$wrapper.find(Form._selectors.messageContainer).html(submitMessageTemplate(this.form.submitMessage));
                 break;
+        }
+    }
+
+    setCookie() {
+        let forms = [];
+        if(Cookies.getJSON('forms')) {
+            forms = Cookies.getJSON('forms');
+        }
+        forms.push(this.form.uid);
+        Cookies.set('forms', forms);
+    }
+
+    cookieExistsForForm() {
+        let forms = Cookies.getJSON('forms');
+        return (forms && forms.includes(this.form.uid));
+    }
+
+    toggleMessageContainer() {
+        if(this.$wrapper.find(Form._selectors.messageContainer).hasClass('d-none')) {
+            this.$wrapper.find(Form._selectors.messageContainer).removeClass('d-none');
+        }
+
+        if(!this.$wrapper.find(Form._selectors.cardContainer).hasClass('d-none')) {
+            this.$wrapper.find(Form._selectors.cardContainer).addClass('d-none');
         }
     }
 
@@ -200,13 +241,28 @@ class Form {
         debugger;
 
         return `
-          <div class="card">
+          <div class="card js-card-container">
               <div class="card-body">
                 <div class="js-form-container"></div>
               </div>
           </div>
+          <div class="js-message-container d-none"></div>
     `;
     }
 }
+
+/**
+ * @return {string}
+ */
+const submitMessageTemplate = (submitMessage) => `
+    <h1 style="text-align: center; margin-top: 150px">${submitMessage}</h1>
+`;
+
+/**
+ * @return {string}
+ */
+const formAlreadySubmittedTemplate = () => `
+    <h1 style="text-align: center; margin-top: 150px">Woahhh!!! Slow down there. You already submitted this form!</h1>
+`;
 
 export default Form;

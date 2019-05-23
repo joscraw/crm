@@ -25,6 +25,8 @@ use Symfony\Component\Form\FormBuilderInterface;
 class FormEditorEditOptionsType extends AbstractType
 {
 
+    const COOKIE_TRACKING_MESSAGE = 'If cookie tracking is turned off, each form submission from the same browser will create a new record. You may want to turn cookie tracking off if people are going to fill out this form on the same device at an event, conference, or trade show.';
+
     /**
      * @param FormBuilderInterface $builder
      * @param array $options
@@ -38,6 +40,18 @@ class FormEditorEditOptionsType extends AbstractType
                 'Display a thank you message' => Form::SUBMIT_ACTION_MESSAGE,
                 'Redirect to another page' => Form::SUBMIT_ACTION_REDIRECT
             ],
+            'expanded' => true,
+            'multiple' => false,
+        ]);
+
+        $builder->add('cookieTracking', ChoiceType::class, [
+            'label' => 'Cookie tracking',
+            'choices'  => [
+                'No' => 0,
+                'Yes' => 1
+            ],
+            'help' => self::COOKIE_TRACKING_MESSAGE,
+            'required' => true,
             'expanded' => true,
             'multiple' => false,
         ]);

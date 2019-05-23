@@ -17,6 +17,8 @@
     {% endif %}
 </div>
 
+{{ form_row(form.cookieTracking, {'attr': {class: 'js-radio-field', novalidate: 'novalidate'}}) }}
+
 
 <br>
 {{ form_rest(form) }}

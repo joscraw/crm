@@ -297,29 +297,10 @@ class FormController extends ApiController
      * @param Request $request
      * @return JsonResponse
      */
-    public function createPropertyAction(Portal $portal, Form $formObj, Request $request) {
-
-    /*    $property = new Property();
-        $property->setCustomObject($customObject);
-
-        $skipValidation = $request->request->get('skip_validation', false);
-
-        $options = [
-            'portal' => $portal,
-            'customObject' => $customObject
-        ];
-
-        if(!$skipValidation) {
-            $options['validation_groups'] = ['CREATE'];
-        }*/
+    public function submitEditOptionsFormAction(Portal $portal, Form $formObj, Request $request) {
 
         $form = $this->createForm(FormEditorEditOptionsType::class, $formObj, []);
         $form->handleRequest($request);
-
-     /*   $fieldHelpMessage = FieldCatalog::getOptionsForFieldType(FieldCatalog::SINGLE_LINE_TEXT)['description'];
-        if($property->getFieldType()) {
-            $fieldHelpMessage = FieldCatalog::getOptionsForFieldType($property->getFieldType())['description'];
-        }*/
 
         $formMarkup = $this->renderView(
             'Api/form/form_editor_edit_options_form.html.twig',
@@ -575,7 +556,7 @@ class FormController extends ApiController
      * @param Request $request
      * @return JsonResponse
      */
-    public function deleteReportAction(Portal $portal, Form $form, Request $request)
+    public function deleteFormAction(Portal $portal, Form $form, Request $request)
     {
 
         $form = $this->createForm(DeleteFormType::class, $form);

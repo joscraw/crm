@@ -98,6 +98,12 @@ class Form
     private $redirectUrl;
 
     /**
+     * @Groups({"FORMS"})
+     * @ORM\Column(type="boolean")
+     */
+    private $cookieTracking = false;
+
+    /**
      * @ORM\PrePersist
      * @throws \Exception
      */
@@ -257,6 +263,18 @@ class Form
     public function setRedirectUrl(?string $redirectUrl): self
     {
         $this->redirectUrl = $redirectUrl;
+
+        return $this;
+    }
+
+    public function getCookieTracking(): ?bool
+    {
+        return $this->cookieTracking;
+    }
+
+    public function setCookieTracking(bool $cookieTracking): self
+    {
+        $this->cookieTracking = $cookieTracking;
 
         return $this;
     }

@@ -91,17 +91,20 @@ class FormEditorEditOptions {
             topBar: '.js-top-bar',
             subBar: '.js-sub-bar',
             submitAction: '.js-submit-action',
-            formField: '.js-form-field'
+            formField: '.js-form-field',
+            radioField: '.js-radio-field'
         }
     }
 
     bindEvents() {
         this.$wrapper.on('change', FormEditorEditOptions._selectors.submitAction, this.handleSubmitActionChange.bind(this));
+        this.$wrapper.on('change', FormEditorEditOptions._selectors.radioField, this.handleRadioFieldChange.bind(this));
         this.$wrapper.on('keyup', FormEditorEditOptions._selectors.formField, this.handleSubmitActionKeyup.bind(this));
     }
 
     unbindEvents() {
         this.$wrapper.off('change', FormEditorEditOptions._selectors.submitAction);
+        this.$wrapper.off('change', FormEditorEditOptions._selectors.radioField);
         this.$wrapper.off('keyup', FormEditorEditFieldForm._selectors.formField);
 
     }
@@ -197,7 +200,19 @@ class FormEditorEditOptions {
             this.$wrapper.find(FormEditorEditOptions._selectors.editOptionsFormContainer).html(errorData.formMarkup);
             this.bindCKEditorEvents();
         });
+    }
 
+    handleRadioFieldChange(e) {
+
+        debugger;
+        if(e.cancelable) {
+            e.preventDefault();
+        }
+
+        const $form = $(FormEditorEditOptions._selectors.editOptionsForm);
+        let formData = new FormData($form.get(0));
+
+        this._changeRadio(formData).then((data) => {}).catch((errorData) => {});
     }
 
     _changeSubmitAction(data) {
@@ -210,6 +225,27 @@ class FormEditorEditOptions {
                 url,
                 method: 'POST',
                 data: data
+            }).then((data, textStatus, jqXHR) => {
+                resolve(data);
+            }).catch((jqXHR) => {
+                const errorData = JSON.parse(jqXHR.responseText);
+                reject(errorData);
+            });
+        });
+    }
+
+    _changeRadio(data) {
+
+        debugger;
+        return new Promise((resolve, reject) => {
+            const url = Routing.generate('submit_edit_options_form', {internalIdentifier: this.portalInternalIdentifier, uid: this.form.uid});
+
+            $.ajax({
+                url,
+                method: 'POST',
+                data: data,
+                processData: false,
+                contentType: false
             }).then((data, textStatus, jqXHR) => {
                 resolve(data);
             }).catch((jqXHR) => {
