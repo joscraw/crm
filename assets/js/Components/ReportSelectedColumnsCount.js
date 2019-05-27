@@ -18,20 +18,23 @@ class ReportSelectedColumnsCount {
         this.data = data;
         this.columnOrder = columnOrder;
 
-        this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
             Settings.Events.REPORT_PROPERTY_LIST_ITEM_ADDED,
             this.handlePropertyListItemAdded.bind(this)
-        );
+        ));
 
-        this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
             Settings.Events.REPORT_PROPERTY_LIST_ITEM_REMOVED,
             this.handlePropertyListItemRemoved.bind(this)
-        );
+        ));
 
-        this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
             Settings.Events.REPORT_COLUMN_ORDER_UPDATED,
             this.handleReportColumnOrderUpdated.bind(this)
-        );
+        ));
 
         this.render()
     }

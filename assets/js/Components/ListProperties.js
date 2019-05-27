@@ -47,13 +47,14 @@ class ListProperties {
 
 
         this.unbindEvents();
-
         this.bindEvents();
+        this.globalEventDispatcher.removeRemovableTokens();
 
-        this.globalEventDispatcher.singleSubscribe(
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
             Settings.Events.LIST_BACK_BUTTON_CLICKED,
             this.handleBackButtonClicked.bind(this)
-        );
+        ));
 
         this.render();
     }

@@ -18,26 +18,18 @@ $(document).ready(function() {
         },
 
         index: function(internalIdentifier) {
-            debugger;
-
-            /*Pace.options = {
-                ajax: false
-            }
-
-            Pace.start();*/
 
             new ReportSettings($('#app'), window.globalEventDispatcher, internalIdentifier);
             new SideNavigationMenu($('#side-nav'), window.globalEventDispatcher, internalIdentifier);
         },
         create: function(internalIdentifier) {
-            debugger;
+
             $('#side-nav').html("");
             new ReportWidget($('#app'), window.globalEventDispatcher, internalIdentifier);
         },
         edit: function(internalIdentifier, reportId) {
-            debugger;
+
             $('#side-nav').html("");
-            debugger;
             new EditReportWidget($('#app'), window.globalEventDispatcher, internalIdentifier, reportId);
         }
     });

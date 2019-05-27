@@ -65,9 +65,18 @@ todo figure out which libraries to load for datatables
   'components/selectize',
   'components/tab-nav',
   'components/report-widget',
-  'components/toggle';
+  'components/toggle',
+  'components/private-list',
+  'components/private-card',
+  'components/private-sub-bar';
 
 // 6. Page-specific styles
 @import
   'pages/home',
-  'pages/login';
+  'pages/login',
+  'pages/form';
+
+
+// 5. Templates
+@import
+  'templates/private';

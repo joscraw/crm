@@ -14,19 +14,20 @@ class CustomObjectSettings {
     /**
      * @param $wrapper
      * @param globalEventDispatcher
+     * @param portalInternalIdentifier
      */
-    constructor($wrapper, globalEventDispatcher) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier) {
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
-        this.portal = $wrapper.data('portal');
+        this.portalInternalIdentifier = portalInternalIdentifier;
 
         this.render();
     }
 
     render() {
         this.$wrapper.html(CustomObjectSettings.markup());
-        new CustomObjectSettingsTopBar(this.$wrapper.find('.js-top-bar'), this.globalEventDispatcher, this.portal);
-        new CustomObjectList(this.$wrapper.find('.js-main-content'), this.globalEventDispatcher, this.portal);
+        new CustomObjectSettingsTopBar(this.$wrapper.find('.js-top-bar'), this.globalEventDispatcher, this.portalInternalIdentifier);
+        new CustomObjectList(this.$wrapper.find('.js-main-content'), this.globalEventDispatcher, this.portalInternalIdentifier);
     }
 
     static markup() {

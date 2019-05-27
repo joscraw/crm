@@ -25,9 +25,9 @@ class ListCount {
          */
         this.globalEventDispatcher = globalEventDispatcher;
 
-        this.globalEventDispatcher.singleSubscribe(
+        this.globalEventDispatcher.subscribe(
             Settings.Events.LIST_DELETED,
-            ContextHelper.bind(this.loadListCount, this)
+            this.loadListCount.bind(this)
         );
 
         this.loadListCount();

@@ -25,7 +25,7 @@ class CustomObject /*implements \JsonSerializable*/
     use TimestampableEntity;
 
     /**
-     * @Groups({"PROPERTY_FIELD_NORMALIZER", "PROPERTIES_FOR_FILTER", "CUSTOM_OBJECTS_FOR_FILTER", "REPORT", "LIST"})
+     * @Groups({"PROPERTY_FIELD_NORMALIZER", "PROPERTIES_FOR_FILTER", "CUSTOM_OBJECTS_FOR_FILTER", "REPORT", "LIST", "FORMS"})
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
@@ -33,7 +33,7 @@ class CustomObject /*implements \JsonSerializable*/
     private $id;
 
     /**
-     * @Groups({"PROPERTY_FIELD_NORMALIZER", "PROPERTIES_FOR_FILTER", "CUSTOM_OBJECTS_FOR_FILTER", "REPORT", "LIST"})
+     * @Groups({"PROPERTY_FIELD_NORMALIZER", "PROPERTIES_FOR_FILTER", "CUSTOM_OBJECTS_FOR_FILTER", "REPORT", "LIST", "FORMS"})
      * @Assert\NotBlank(message="Don't forget a label for your super cool sweeeeet Custom Object!", groups={"CREATE", "EDIT"})
      * @Assert\Regex("/^[a-zA-Z0-9_\s]*$/", message="Woah! Only use letters, numbers, underscores and spaces please!", groups={"CREATE", "EDIT"})
      *
@@ -44,7 +44,7 @@ class CustomObject /*implements \JsonSerializable*/
     private $label;
 
     /**
-     * @Groups({"PROPERTY_FIELD_NORMALIZER", "PROPERTIES_FOR_FILTER", "CUSTOM_OBJECTS_FOR_FILTER", "REPORT", "LIST"})
+     * @Groups({"PROPERTY_FIELD_NORMALIZER", "PROPERTIES_FOR_FILTER", "CUSTOM_OBJECTS_FOR_FILTER", "REPORT", "LIST", "FORMS"})
      *
      * internal name
      *
@@ -92,6 +92,11 @@ class CustomObject /*implements \JsonSerializable*/
      */
     private $systemDefined = false;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Form", mappedBy="customObject")
+     */
+    private $forms;
+
 
     public function __construct()
     {
@@ -100,6 +105,7 @@ class CustomObject /*implements \JsonSerializable*/
         $this->records = new ArrayCollection();
         $this->reports = new ArrayCollection();
         $this->marketingLists = new ArrayCollection();
+        $this->forms = new ArrayCollection();
     }
 
     /**
@@ -363,6 +369,37 @@ class CustomObject /*implements \JsonSerializable*/
     public function setSystemDefined(bool $systemDefined): self
     {
         $this->systemDefined = $systemDefined;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Form[]
+     */
+    public function getForms(): Collection
+    {
+        return $this->forms;
+    }
+
+    public function addForm(Form $form): self
+    {
+        if (!$this->forms->contains($form)) {
+            $this->forms[] = $form;
+            $form->setCustomObject($this);
+        }
+
+        return $this;
+    }
+
+    public function removeForm(Form $form): self
+    {
+        if ($this->forms->contains($form)) {
+            $this->forms->removeElement($form);
+            // set the owning side to null (unless already changed)
+            if ($form->getCustomObject() === $this) {
+                $form->setCustomObject(null);
+            }
+        }
 
         return $this;
     }

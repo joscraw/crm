@@ -16,15 +16,17 @@ class ReportPreviewResultsButton {
 
         debugger;
 
-        this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
             Settings.Events.REPORT_FILTER_ITEM_ADDED,
             this.reportFiltersUpdatedHandler.bind(this)
-        );
+        ));
 
-        this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
             Settings.Events.REPORT_FILTER_ITEM_REMOVED,
             this.reportFiltersUpdatedHandler.bind(this)
-        );
+        ));
 
         this.unbindEvents();
 

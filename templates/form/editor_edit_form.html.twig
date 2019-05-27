@@ -1,0 +1,13 @@
+{% extends 'baseNoNavBars.html.twig' %}
+
+{% block title %}Editor Edit Form{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link href="{{ asset('build/form_settings.css') }}" rel="stylesheet" />
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('build/form_settings.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,18 @@
+{% form_theme form 'bootstrap_4_layout.html.twig' %}
+
+{{ form_start(form, {'attr': {class: 'js-form', novalidate: 'novalidate'}}) }}
+
+{% for property in properties %}
+    {% if (attribute(form, property.internalName) is defined) %}
+            {{ form_row(attribute(form, property.internalName)) }}
+    {% endif %}
+{% endfor %}
+
+{% if form.recaptcha is defined %}
+    {{ form_row(form.recaptcha, {'attr': {novalidate: 'novalidate'}}) }}
+{% endif %}
+<br>
+{{ form_row(form.submit) }}
+<br>
+{{ form_rest(form) }}
+{{ form_end(form) }}

@@ -16,7 +16,7 @@ use App\Validator\Constraints as CustomAssert;
 class CustomObjectField extends AbstractField /*implements \JsonSerializable*/
 {
     /**
-     * @Groups({"PROPERTY_FIELD_NORMALIZER", "PROPERTIES_FOR_FILTER"})
+     * @Groups({"PROPERTY_FIELD_NORMALIZER", "SELECTABLE_PROPERTIES"})
      * @var string
      */
     protected static $name = FieldCatalog::CUSTOM_OBJECT;
@@ -28,7 +28,7 @@ class CustomObjectField extends AbstractField /*implements \JsonSerializable*/
     protected static $description = 'Custom object field';
 
     /**
-     * @Groups({"PROPERTY_FIELD_NORMALIZER", "PROPERTIES_FOR_FILTER"})
+     * @Groups({"PROPERTY_FIELD_NORMALIZER", "SELECTABLE_PROPERTIES"})
      *
      * @Assert\NotBlank(message="Don't forget to select a custom object!", groups={"CREATE", "EDIT"})
      * @var CustomObject

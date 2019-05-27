@@ -27,15 +27,17 @@ class ReportPropertyList {
 
         this.bindEvents();
 
-        this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
             Settings.Events.REPORT_PROPERTY_LIST_ITEM_ADDED,
             this.handlePropertyListItemAdded.bind(this)
-        );
+        ));
 
-        this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
             Settings.Events.REPORT_PROPERTY_LIST_ITEM_REMOVED,
             this.handlePropertyListItemRemoved.bind(this)
-        );
+        ));
 
 
         this.render();
@@ -144,6 +146,7 @@ class ReportPropertyList {
     loadProperties() {
 
         this.loadPropertiesForReport().then(data => {
+            debugger;
             this.propertyGroups = data.data.property_groups;
             this.renderProperties(this.propertyGroups).then(() => {
                 debugger;
@@ -276,7 +279,7 @@ class ReportPropertyList {
     loadPropertiesForReport() {
         return new Promise((resolve, reject) => {
             debugger;
-            const url = Routing.generate('properties_for_report', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
+            const url = Routing.generate('get_properties', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
 
             $.ajax({
                 url: url

@@ -44,18 +44,20 @@ class ReportProperties {
         this.reportPropertiesEventDispatcher = new EventDispatcher();
 
         this.unbindEvents();
-
         this.bindEvents();
+        this.globalEventDispatcher.removeRemovableTokens();
 
-        this.globalEventDispatcher.singleSubscribe(
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
             Settings.Events.REPORT_BACK_BUTTON_CLICKED,
             this.handleBackButtonClicked.bind(this)
-        );
+        ));
 
-        this.globalEventDispatcher.singleSubscribe(
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
             Settings.Events.REPORT_CUSTOM_OBJECT_JOIN_PATH_SET,
             this.handleCustomObjectJoinPathSet.bind(this)
-        );
+        ));
 
         this.render();
     }

@@ -22,7 +22,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 abstract class AbstractField implements JsonSerializable
 {
     /**
-     * @Groups({"PROPERTIES_FOR_FILTER"})
+     * @Groups({"SELECTABLE_PROPERTIES"})
      * @var string
      */
     protected static $name = 'abstract_field';

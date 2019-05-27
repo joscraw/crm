@@ -29,7 +29,7 @@ class SavedFiltersList {
         this.savedFilters = {};
         this.savedfilterToApply = null;
 
-        this.globalEventDispatcher.singleSubscribe(
+        this.globalEventDispatcher.subscribe(
             Settings.Events.SAVED_FILTER_SEARCH_KEY_UP,
             this.applySearch.bind(this)
         );

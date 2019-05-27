@@ -11,16 +11,18 @@ use Symfony\Component\Serializer\Annotation\Groups;
 class NumberField extends AbstractField
 {
 
+    const UNFORMATTED_NUMBER = 'UNFORMATTED_NUMBER';
+
+    const CURRENCY = 'CURRENCY';
+
     /**
      * Used in the form
      * @var array
      */
     public static $types = [
-        'Unformatted Number' => 'UNFORMATTED_NUMBER',
-        'Currency' => 'CURRENCY',
+        'Unformatted Number' => self::UNFORMATTED_NUMBER,
+        'Currency' => self::CURRENCY,
     ];
-
-
 
     /**
      * @Groups({"PROPERTY_FIELD_NORMALIZER"})

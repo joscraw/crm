@@ -41,40 +41,47 @@ class ListPreviewResultsTable {
         this.$tableHeader = null;
         this.records = [];
 
-        this.globalEventDispatcher.singleSubscribe(
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
             Settings.Events.LIST_PREVIEW_RESULTS_BUTTON_CLICKED,
             this.handleListPreviewResultsButtonClicked.bind(this)
-        );
+        ));
 
-        this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
             Settings.Events.LIST_FILTER_ITEM_ADDED,
             this.listFilterItemAddedHandler.bind(this)
-        );
+        ));
 
-        this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
             Settings.Events.LIST_FILTER_ITEM_REMOVED,
             this.listFilterItemRemovedHandler.bind(this)
-        );
+        ));
 
-        this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
             Settings.Events.LIST_PROPERTY_LIST_ITEM_REMOVED,
             this.listPropertyListItemRemovedHandler.bind(this)
-        );
+        ));
 
-        this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
             Settings.Events.LIST_PROPERTY_LIST_ITEM_ADDED,
             this.listPropertyListItemAddedHandler.bind(this)
-        );
+        ));
 
-        this.globalEventDispatcher.subscribe(
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
             Settings.Events.LIST_COLUMN_ORDER_UPDATED,
             this.listColumnOrderUpdatedHandler.bind(this)
-        );
+        ));
 
-        this.globalEventDispatcher.singleSubscribe(
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
             Settings.Events.BULK_EDIT_SUCCESSFUL,
             this.handleBulkEditSuccessful.bind(this)
-        );
+        ));
 
         this.unbindEvents();
 

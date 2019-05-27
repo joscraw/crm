@@ -49,46 +49,56 @@ class ReportFilters {
         this.data = data;
 
         this.unbindEvents();
+        this.globalEventDispatcher.removeRemovableTokens();
 
-        this.globalEventDispatcher.singleSubscribe(
+
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
             Settings.Events.REPORT_FILTER_ITEM_CLICKED,
             this.handleReportFilterItemClicked.bind(this)
-        );
+        ));
 
-        this.globalEventDispatcher.singleSubscribe(
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
             Settings.Events.FILTER_BACK_TO_LIST_BUTTON_CLICKED,
             this.handleFilterBackToListButtonClicked.bind(this)
-        );
+        ));
 
-        this.globalEventDispatcher.singleSubscribe(
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
             Settings.Events.REPORT_FILTER_CUSTOM_OBJECT_JOIN_PATH_SET,
             this.handleReportFilterCustomObjectJoinPathSet.bind(this)
-        );
+        ));
 
-        this.globalEventDispatcher.singleSubscribe(
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
             Settings.Events.REPORT_FILTER_ITEM_ADDED,
             this.reportFilterItemAddedHandler.bind(this)
-        );
+        ));
 
-        this.globalEventDispatcher.singleSubscribe(
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
             Settings.Events.REPORT_ADD_FILTER_BUTTON_PRESSED,
             this.reportAddFilterButtonPressedHandler.bind(this)
-        );
+        ));
 
-        this.globalEventDispatcher.singleSubscribe(
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
             Settings.Events.REPORT_ADD_OR_FILTER_BUTTON_PRESSED,
             this.reportAddOrFilterButtonPressedHandler.bind(this)
-        );
+        ));
 
-        this.globalEventDispatcher.singleSubscribe(
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
             Settings.Events.FILTER_BACK_TO_NAVIGATION_BUTTON_CLICKED,
             this.reportFilterBackToNavigationButtonClickedHandler.bind(this)
-        );
+        ));
 
-        this.globalEventDispatcher.singleSubscribe(
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
             Settings.Events.REPORT_EDIT_FILTER_BUTTON_CLICKED,
             this.handleReportEditFilterButtonClicked.bind(this)
-        );
+        ));
 
         this.$wrapper.on(
             'click',

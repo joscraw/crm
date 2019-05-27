@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\PortalRepository")
@@ -17,6 +18,7 @@ class Portal
     use RandomStringGenerator;
 
     /**
+     * @Groups({"FORMS"})
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
@@ -24,6 +26,7 @@ class Portal
     private $id;
 
     /**
+     * @Groups({"FORMS"})
      * @ORM\Column(type="string", length=255)
      */
     private $internalIdentifier;
@@ -78,6 +81,11 @@ class Portal
      */
     private $folders;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Form", mappedBy="portal")
+     */
+    private $forms;
+
 
     public function __construct()
     {
@@ -88,6 +96,7 @@ class Portal
         $this->filters = new ArrayCollection();
         $this->marketingLists = new ArrayCollection();
         $this->folders = new ArrayCollection();
+        $this->forms = new ArrayCollection();
     }
 
     /**
@@ -320,6 +329,37 @@ class Portal
             // set the owning side to null (unless already changed)
             if ($folder->getPortal() === $this) {
                 $folder->setPortal(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Form[]
+     */
+    public function getForms(): Collection
+    {
+        return $this->forms;
+    }
+
+    public function addForm(Form $form): self
+    {
+        if (!$this->forms->contains($form)) {
+            $this->forms[] = $form;
+            $form->setPortal($this);
+        }
+
+        return $this;
+    }
+
+    public function removeForm(Form $form): self
+    {
+        if ($this->forms->contains($form)) {
+            $this->forms->removeElement($form);
+            // set the owning side to null (unless already changed)
+            if ($form->getPortal() === $this) {
+                $form->setPortal(null);
             }
         }
 

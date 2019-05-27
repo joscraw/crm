@@ -1,0 +1,29 @@
+{% form_theme form 'bootstrap_4_layout.html.twig' %}
+
+{{ form_start(form, {'attr': {class: 'js-form-preview-form', novalidate: 'novalidate'}}) }}
+
+<div class="js-form-fields-container">
+{% for property in properties %}
+    <div class="js-form-field" id="{{ property.uid }}">
+        {% if (attribute(form, property.internalName) is defined) %}
+            <div class="form-type form-type-hoverable">
+                <div class="js-shared-button-markup d-none" style="float:right">
+                    <button data-property-uid="{{ property.uid }}" type="button" class="btn btn-link js-edit-button float-left"><i class="fa fa-pencil" aria-hidden="true"></i> Edit</button>
+                    <button data-property-uid="{{ property.uid }}" type="button" class="btn btn-link js-delete-button float-left"><i class="fa fa-trash-o" aria-hidden="true"></i> Delete</button>
+                </div>
+                {{ form_row(attribute(form, property.internalName)) }}
+            </div>
+        {% endif %}
+    </div>
+{% endfor %}
+</div>
+
+<br>
+<div style="padding-left:10px;">
+    {{ form_row(form.submit) }}
+</div>
+
+
+<br>
+{{ form_rest(form) }}
+{{ form_end(form) }}

@@ -35,36 +35,43 @@ class ListFolderTable {
 
         this.render().then(() => {this.activatePlugins();});
 
-        this.globalEventDispatcher.singleSubscribe(
+        this.globalEventDispatcher.removeRemovableTokens();
+
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
             Settings.Events.LIST_DELETED,
             this.reloadList.bind(this)
-        );
+        ));
 
-        this.globalEventDispatcher.singleSubscribe(
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
             Settings.Events.FOLDER_CREATED,
             this.reloadList.bind(this)
-        );
+        ));
 
-        this.globalEventDispatcher.singleSubscribe(
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
             Settings.Events.FOLDER_DELETED,
             this.reloadList.bind(this)
-        );
+        ));
 
-        this.globalEventDispatcher.singleSubscribe(
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
             Settings.Events.FOLDER_MODIFIED,
             this.reloadList.bind(this)
-        );
+        ));
 
-
-        this.globalEventDispatcher.singleSubscribe(
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
             Settings.Events.LIST_MOVED_TO_FOLDER,
             this.reloadList.bind(this)
-        );
+        ));
 
-        this.globalEventDispatcher.singleSubscribe(
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
             Settings.Events.LIST_SEARCH_KEY_UP,
             this.applySearch.bind(this)
-        );
+        ));
     }
 
     /**

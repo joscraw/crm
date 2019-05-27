@@ -1,5 +1,7 @@
 'use strict';
 
+import ContextHelper from "./ContextHelper";
+
 class EventDispatcher {
 
     constructor() {
@@ -18,6 +20,8 @@ class EventDispatcher {
          * @type {Number}
          */
         this.tokenID = 0;
+
+        this.removableTokens = [];
     }
 
     subscribe(channel, fn) {
@@ -61,11 +65,14 @@ class EventDispatcher {
 
         for(let i = 0; i < this.channels[channel].length; i++) {
 
+            debugger;
             let c = this.channels[channel][i];
 
             let s = c.callback.toString();
 
-            if(c.callback.toString === fn.toString) {
+            // This might break other things using the actual correct toString() such
+            // as the reports and lists when pressing the back button
+            if(c.callback.toString() === fn.toString()) {
 
                 this.channels[channel][i] = { ID: token, context: self, callback: fn };
 
@@ -140,6 +147,28 @@ class EventDispatcher {
         for(let token of tokens) {
             this.unSubscribe(token);
         }
+    }
+
+    addRemovableToken(token) {
+        this.removableTokens.push(token);
+    }
+
+    removeRemovableTokens() {
+        for(let token of this.removableTokens) {
+            this.unSubscribe(token);
+        }
+    }
+
+    /**
+     * Used to empty a given channel completely
+     * @param channel
+     */
+    emptyChannel(channel) {
+
+        if (this.channels[channel]) {
+            self.channels[channel] = [];
+        }
+
     }
 }
 
