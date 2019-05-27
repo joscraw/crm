@@ -243,7 +243,8 @@ class FormController extends ApiController
         }
 
         $form = $this->createForm(FormType::class, null, [
-            'properties' => $properties
+            'properties' => $properties,
+            'showCaptcha' => $form->getRecaptcha()
         ]);
 
         $formMarkup = $this->renderView(
@@ -354,7 +355,8 @@ class FormController extends ApiController
         }
 
         $form = $this->createForm(FormType::class, null, [
-            'properties' => $properties
+            'properties' => $properties,
+            'showCaptcha' => $formEntity->getRecaptcha()
         ]);
 
 

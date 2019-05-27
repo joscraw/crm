@@ -7,6 +7,10 @@
             {{ form_row(attribute(form, property.internalName)) }}
     {% endif %}
 {% endfor %}
+
+{% if form.recaptcha is defined %}
+    {{ form_row(form.recaptcha, {'attr': {novalidate: 'novalidate'}}) }}
+{% endif %}
 <br>
 {{ form_row(form.submit) }}
 <br>

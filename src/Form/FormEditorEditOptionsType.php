@@ -6,6 +6,7 @@ namespace App\Form;
 use App\Entity\CustomObject;
 use App\Entity\Form;
 use App\Model\ForgotPassword;
+use EWZ\Bundle\RecaptchaBundle\Form\Type\EWZRecaptchaType;
 use FOS\CKEditorBundle\Form\Type\CKEditorType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
@@ -56,6 +57,17 @@ class FormEditorEditOptionsType extends AbstractType
             'multiple' => false,
         ]);
 
+        $builder->add('recaptcha', ChoiceType::class, [
+            'label' => 'Captcha (Spam prevention)',
+            'choices'  => [
+                'No' => 0,
+                'Yes' => 1
+            ],
+            'required' => true,
+            'expanded' => true,
+            'multiple' => false,
+        ]);
+
         $builder->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event) {
             $form = $event->getData();
             $this->modifyForm($event->getForm(), $form->getSubmitAction());
@@ -65,7 +77,6 @@ class FormEditorEditOptionsType extends AbstractType
             $submitAction = $event->getForm()->getData();
             $this->modifyForm($event->getForm()->getParent(), $submitAction);
         });
-
 
     }
 

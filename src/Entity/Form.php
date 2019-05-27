@@ -104,6 +104,11 @@ class Form
     private $cookieTracking = false;
 
     /**
+     * @ORM\Column(type="boolean")
+     */
+    private $recaptcha = false;
+
+    /**
      * @ORM\PrePersist
      * @throws \Exception
      */
@@ -272,9 +277,21 @@ class Form
         return $this->cookieTracking;
     }
 
-    public function setCookieTracking(bool $cookieTracking): self
+    public function setCookieTracking(?bool $cookieTracking): self
     {
         $this->cookieTracking = $cookieTracking;
+
+        return $this;
+    }
+
+    public function getRecaptcha(): ?bool
+    {
+        return $this->recaptcha;
+    }
+
+    public function setRecaptcha(bool $recaptcha): self
+    {
+        $this->recaptcha = $recaptcha;
 
         return $this;
     }
