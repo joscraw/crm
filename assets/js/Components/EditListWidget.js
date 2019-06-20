@@ -238,7 +238,7 @@ class EditListWidget {
         this.$wrapper.find(EditListWidget._selectors.listFiltersContainer).addClass('d-none');
         this.$wrapper.find(EditListWidget._selectors.listPropertiesContainer).removeClass('d-none');
 
-        /*new ReportProperties($(ReportWidget._selectors.reportPropertiesContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject.internalName, this.data);*/
+        new ListProperties($(EditListWidget._selectors.listPropertiesContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject.internalName, this.data, this.columnOrder);
 
     }
 

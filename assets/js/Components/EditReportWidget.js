@@ -213,6 +213,8 @@ class EditReportWidget {
         this.$wrapper.find(EditReportWidget._selectors.reportFiltersContainer).addClass('d-none');
         this.$wrapper.find(EditReportWidget._selectors.reportPropertiesContainer).removeClass('d-none');
 
+        new ReportProperties($(EditReportWidget._selectors.reportPropertiesContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject.internalName, this.data, this.columnOrder);
+
     }
 
     handleReportAdvanceToFiltersViewButtonClicked(e) {

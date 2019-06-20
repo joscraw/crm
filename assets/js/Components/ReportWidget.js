@@ -178,7 +178,7 @@ class ReportWidget {
         this.$wrapper.find(ReportWidget._selectors.reportFiltersContainer).addClass('d-none');
         this.$wrapper.find(ReportWidget._selectors.reportPropertiesContainer).removeClass('d-none');
 
-        /*new ReportProperties($(ReportWidget._selectors.reportPropertiesContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject.internalName, this.data);*/
+        new ReportProperties($(ReportWidget._selectors.reportPropertiesContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject.internalName, this.data, this.columnOrder);
 
     }
 
