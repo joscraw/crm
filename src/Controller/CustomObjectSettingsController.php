@@ -17,14 +17,15 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Response;
-
-
 use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 use Symfony\Component\Serializer\Normalizer\GetSetMethodNormalizer;
 use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
+
+
+use Enqueue\Redis\RedisConnectionFactory;
 
 /**
  * Class CustomObjectSettingsController
@@ -73,6 +74,21 @@ class CustomObjectSettingsController extends AbstractController
      */
     public function indexAction(Portal $portal) {
 
+        $connectionFactory = new RedisConnectionFactory([
+            'host' => 'localhost',
+            'port' => 6379,
+            'scheme_extensions' => ['predis'],
+        ]);
+
+        $context = $connectionFactory->createContext();
+
+        $fooQueue = $context->createQueue('aQueue');
+        $message = $context->createMessage('Hello world!');
+
+        $context->createProducer()->send($fooQueue, $message);
+
+        $name = "Josh";
+
         return $this->render('objectSettings/index.html.twig', array(
             'portal' => $portal,
         ));
@@ -82,7 +98,7 @@ class CustomObjectSettingsController extends AbstractController
      * DataTables passes unique params in the Request and expects a specific response payload
      * @see https://datatables.net/manual/server-side Documentation for ServerSide Implimentation for DataTables
      *
-     * @Route("/datatable", name="custom_objects_for_datatable", methods={"GET"}, options = { "expose" = true })
+     * @Route("/datatable", name="custom_objects_for_datatable", methods={"POST"}, options = { "expose" = true })
      * @param Portal $portal
      * @param Request $request
      * @return Response
@@ -90,12 +106,12 @@ class CustomObjectSettingsController extends AbstractController
      */
     public function getCustomObjectsForDatatableAction(Portal $portal, Request $request) {
 
-        $draw = intval($request->query->get('draw'));
-        $start = $request->query->get('start');
-        $length = $request->query->get('length');
-        $search = $request->query->get('search');
-        $orders = $request->query->get('order');
-        $columns = $request->query->get('columns');
+        $draw = intval($request->request->get('draw'));
+        $start = $request->request->get('start');
+        $length = $request->request->get('length');
+        $search = $request->request->get('search');
+        $orders = $request->request->get('order');
+        $columns = $request->request->get('columns');
 
         $results = $this->customObjectRepository->getDataTableData($start, $length, $search, $orders, $columns);
 
