@@ -56,6 +56,7 @@ class CustomObjectList {
 
     activatePlugins() {
 
+        debugger;
         Pace.start({
             target: '.l-grid'
         });
@@ -135,6 +136,8 @@ class CustomObjectList {
 
 
     reloadList() {
+        debugger;
+        console.log("reload list");
         this.table.destroy();
         this.activatePlugins();
     }
