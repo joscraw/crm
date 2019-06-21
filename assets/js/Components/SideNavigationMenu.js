@@ -18,10 +18,10 @@ class SideNavigationMenu {
         this.globalEventDispatcher = globalEventDispatcher;
         this.internalIdentifier = internalIdentifier;
 
-        this.globalEventDispatcher.subscribe(
+        /*this.globalEventDispatcher.subscribe(
             Settings.Events.CUSTOM_OBJECT_CREATED,
             this.reloadSideNavigationMenu.bind(this)
-        );
+        );*/
 
         this.globalEventDispatcher.subscribe(
             Settings.Events.CUSTOM_OBJECT_EDITED,
