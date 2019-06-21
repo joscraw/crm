@@ -66,10 +66,12 @@ class CustomObjectForm {
 
         this._saveCustomObject(formData)
             .then((data) => {
+                debugger;
                 swal("Hooray!", "Well done, you created a custom object!", "success");
                 this.globalEventDispatcher.publish(Settings.Events.CUSTOM_OBJECT_CREATED);
             }).catch((errorData) => {
 
+                debugger;
             if(errorData.httpCode === 401) {
                 swal("Woah!", `You don't have proper permissions for this!`, "error");
                 return;
