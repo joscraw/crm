@@ -56,7 +56,6 @@ class CustomObjectList {
 
     activatePlugins() {
 
-        debugger;
         Pace.start({
             target: '.l-grid'
         });
@@ -96,7 +95,9 @@ class CustomObjectList {
             ],
             "ajax": {
                 url: Routing.generate('custom_objects_for_datatable', {internalIdentifier: this.portal}),
-                type: "POST"
+                type: "GET",
+                dataType: "json",
+                contentType: "application/json; charset=utf-8"
             },
             "drawCallback": (settings)  => {
                 this.addEditCustomObjectButton();

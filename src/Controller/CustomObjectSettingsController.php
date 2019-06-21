@@ -98,7 +98,7 @@ class CustomObjectSettingsController extends AbstractController
      * DataTables passes unique params in the Request and expects a specific response payload
      * @see https://datatables.net/manual/server-side Documentation for ServerSide Implimentation for DataTables
      *
-     * @Route("/datatable", name="custom_objects_for_datatable", methods={"POST"}, options = { "expose" = true })
+     * @Route("/datatable", name="custom_objects_for_datatable", methods={"GET"}, options = { "expose" = true })
      * @param Portal $portal
      * @param Request $request
      * @return Response
@@ -106,12 +106,12 @@ class CustomObjectSettingsController extends AbstractController
      */
     public function getCustomObjectsForDatatableAction(Portal $portal, Request $request) {
 
-        $draw = intval($request->request->get('draw'));
-        $start = $request->request->get('start');
-        $length = $request->request->get('length');
-        $search = $request->request->get('search');
-        $orders = $request->request->get('order');
-        $columns = $request->request->get('columns');
+        $draw = intval($request->query->get('draw'));
+        $start = $request->query->get('start');
+        $length = $request->query->get('length');
+        $search = $request->query->get('search');
+        $orders = $request->query->get('order');
+        $columns = $request->query->get('columns');
 
         $results = $this->customObjectRepository->getDataTableData($start, $length, $search, $orders, $columns);
 
