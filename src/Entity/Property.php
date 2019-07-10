@@ -28,7 +28,7 @@ class Property
     use FormFieldProperties;
 
     /**
-     * @Groups({"PROPERTY_FIELD_NORMALIZER", "SELECTABLE_PROPERTIES"})
+     * @Groups({"PROPERTY_FIELD_NORMALIZER", "SELECTABLE_PROPERTIES", "WORKFLOW_TRIGGER_DATA"})
      *
      * @ORM\Id()
      * @ORM\GeneratedValue()

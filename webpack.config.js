@@ -27,6 +27,7 @@ Encore
     .addEntry('user_settings', './assets/js/user_settings.js')
     .addEntry('security', './assets/js/security.js')
     .addEntry('form_settings', './assets/js/form_settings.js')
+    .addEntry('workflows', './assets/js/workflows.js')
 
     //.addEntry('page1', './assets/js/page1.js')
     //.addEntry('page2', './assets/js/page2.js')

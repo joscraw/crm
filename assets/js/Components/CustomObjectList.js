@@ -97,12 +97,7 @@ class CustomObjectList {
                 url: Routing.generate('custom_objects_for_datatable', {internalIdentifier: this.portal}),
                 type: "GET",
                 dataType: "json",
-                contentType: "application/json; charset=utf-8",
-                error: function (xhr, ajaxOptions, thrownError) {
-                    debugger;
-                    alert(xhr.status);
-                    alert(thrownError);
-                }
+                contentType: "application/json; charset=utf-8"
             },
             "drawCallback": (settings)  => {
                 this.addEditCustomObjectButton();

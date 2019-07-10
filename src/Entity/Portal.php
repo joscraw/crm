@@ -86,6 +86,11 @@ class Portal
      */
     private $forms;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Workflow", mappedBy="portal", orphanRemoval=true)
+     */
+    private $workflows;
+
 
     public function __construct()
     {
@@ -97,6 +102,7 @@ class Portal
         $this->marketingLists = new ArrayCollection();
         $this->folders = new ArrayCollection();
         $this->forms = new ArrayCollection();
+        $this->workflows = new ArrayCollection();
     }
 
     /**
@@ -360,6 +366,37 @@ class Portal
             // set the owning side to null (unless already changed)
             if ($form->getPortal() === $this) {
                 $form->setPortal(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Workflow[]
+     */
+    public function getWorkflows(): Collection
+    {
+        return $this->workflows;
+    }
+
+    public function addWorkflow(Workflow $workflow): self
+    {
+        if (!$this->workflows->contains($workflow)) {
+            $this->workflows[] = $workflow;
+            $workflow->setPortal($this);
+        }
+
+        return $this;
+    }
+
+    public function removeWorkflow(Workflow $workflow): self
+    {
+        if ($this->workflows->contains($workflow)) {
+            $this->workflows->removeElement($workflow);
+            // set the owning side to null (unless already changed)
+            if ($workflow->getPortal() === $this) {
+                $workflow->setPortal(null);
             }
         }
 

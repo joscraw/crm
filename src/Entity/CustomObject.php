@@ -25,7 +25,7 @@ class CustomObject /*implements \JsonSerializable*/
     use TimestampableEntity;
 
     /**
-     * @Groups({"PROPERTY_FIELD_NORMALIZER", "PROPERTIES_FOR_FILTER", "CUSTOM_OBJECTS_FOR_FILTER", "REPORT", "LIST", "FORMS"})
+     * @Groups({"PROPERTY_FIELD_NORMALIZER", "PROPERTIES_FOR_FILTER", "CUSTOM_OBJECTS_FOR_FILTER", "REPORT", "LIST", "FORMS", "WORKFLOW_TRIGGER_DATA"})
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")

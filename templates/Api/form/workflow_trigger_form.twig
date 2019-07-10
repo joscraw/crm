@@ -1,0 +1,18 @@
+{% form_theme form 'bootstrap_4_layout.html.twig' %}
+
+{{ form_start(form, {'attr': {class: 'js-workflow-trigger-form', novalidate: 'novalidate'}}) }}
+
+    {% set sharedButtonMarkup %}
+        <button type="button" class="btn btn-link js-addItem float-left"><i class="fa fa-plus" aria-hidden="true"></i> Add a trigger</button>
+    {% endset %}
+
+<h3>Triggers</h3>
+
+{{ form_widget(form.triggerType) }}
+
+
+{% if trigger.trigger.customObject is not defined %}
+    {{ sharedButtonMarkup }}
+{% endif %}
+{{ form_rest(form) }}
+{{ form_end(form) }}
