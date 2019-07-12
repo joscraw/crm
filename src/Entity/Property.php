@@ -37,7 +37,7 @@ class Property
     private $id;
 
     /**
-     * @Groups({"PROPERTY_FIELD_NORMALIZER", "SELECTABLE_PROPERTIES"})
+     * @Groups({"PROPERTY_FIELD_NORMALIZER", "SELECTABLE_PROPERTIES", "WORKFLOW_TRIGGER_DATA"})
      *
      * @Assert\NotBlank(message="Don't forget a label for your new Property!", groups={"CREATE", "EDIT"})
      * @Assert\Regex("/^[a-zA-Z0-9_\s]*$/", message="Woah! Only use letters, numbers, underscores and spaces please!", groups={"CREATE", "EDIT"})

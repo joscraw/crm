@@ -2,17 +2,30 @@
 
 {{ form_start(form, {'attr': {class: 'js-workflow-trigger-form', novalidate: 'novalidate'}}) }}
 
-    {% set sharedButtonMarkup %}
-        <button type="button" class="btn btn-link js-addItem float-left"><i class="fa fa-plus" aria-hidden="true"></i> Add a trigger</button>
-    {% endset %}
-
-<h3>Triggers</h3>
-
-{{ form_widget(form.triggerType) }}
+<h3>Add Workflow Trigger</h3>
 
 
-{% if trigger.trigger.customObject is not defined %}
-    {{ sharedButtonMarkup }}
-{% endif %}
+    {{ form_widget(form.triggerType) }}
+    <br>
+    {% if form.trigger.customObject is defined %}
+          {{ form_widget(form.trigger.customObject) }}
+        <br>
+    {% endif %}
+    {% if form.trigger.property is defined %}
+             {{ form_widget(form.trigger.property) }}
+        <br>
+    {% endif %}
+    {% if form.trigger.condition.operator is defined %}
+            {{ form_widget(form.trigger.condition.operator) }}
+        <br>
+    {% endif %}
+    {% if form.trigger.condition.value is defined %}
+            {{ form_widget(form.trigger.condition.value) }}
+        <br>
+    {% endif %}
+    {% if form.trigger.condition.value is defined %}
+            {{ form_widget(form.trigger.condition.submit, {attr: {class: 'w-100 btn-lg btn-primary'}}) }}
+    {% endif %}
+
 {{ form_rest(form) }}
 {{ form_end(form) }}

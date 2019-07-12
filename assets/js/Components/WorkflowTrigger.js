@@ -6,6 +6,7 @@ import RecordForm from './RecordForm';
 import Routing from "../Routing";
 import Settings from "../Settings";
 import List from "list.js";
+import WorkflowTriggerList from "./WorkflowTriggerList";
 
 class WorkflowTrigger {
 
@@ -93,6 +94,7 @@ class WorkflowTrigger {
             property: '.js-property',
             condition: '.js-condition',
             workflowTriggerForm: '.js-workflow-trigger-form',
+            workflowTriggerListContainer: '.js-workflow-trigger-list-container',
 
             formsStartButton: '.js-forms-start-button',
             customObjectField: '.js-custom-object:checked',
@@ -155,31 +157,40 @@ class WorkflowTrigger {
 
         this._saveTrigger(formData).then((data) => {
 
-            debugger;
+            this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_TRIGGER_SAVED);
 
-        }).catch((errorData) => {
+            this.loadForm();
 
-            debugger;
+   /*         toastr.options.showMethod = "slideDown";
+            toastr.options.hideMethod = "slideUp";
+            toastr.options.preventDuplicates = true;*/
 
-        });
 
-     /*   this._saveRecord(formData)
-            .then((data) => {
+            /*toastr.options = {
+                "closeButton": false,
+                "debug": false,
+                "newestOnTop": false,
+                "progressBar": false,
+                "positionClass": "js-top-bar",
+                "preventDuplicates": false,
+                "onclick": null,
+                "showDuration": "300",
+                "hideDuration": "1000",
+                "timeOut": "5000",
+                "extendedTimeOut": "1000",
+                "showEasing": "swing",
+                "hideEasing": "linear",
+                "showMethod": "fadeIn",
+                "hideMethod": "fadeOut",
+            };
 
-                swal("Hooray!", `Well done, you created a shiny brand new record!`, "success");
-                this.globalEventDispatcher.publish(Settings.Events.RECORD_CREATED);
+            toastr.success('Please select a question', 'Error!');*/
 
-            }).catch((errorData) => {
+            toastr.options.positionClass = 't-private-template';
 
-            if(errorData.httpCode === 401) {
-                swal("Woah!", `You don't have proper permissions for this!`, "error");
-                return;
-            }
+            toastr.success('success', {positionClass : "t-private-template"});
 
-            this.$wrapper.html(errorData.formMarkup);
-            this.activatePlugins();
-        });*/
-
+        }).catch((errorData) => {});
     }
 
     handlePropertyChange(e) {
@@ -393,19 +404,11 @@ class WorkflowTrigger {
     }
 
     render() {
-        debugger;
         this.$wrapper.html(WorkflowTrigger.markup(this));
 
-        /*this.loadCustomObjects().then(data => {
-            debugger;
-            this.renderCustomObjectForm(data);
-        })
-*/
-        this.loadForm().then(() => {
-           this.activatePlugins();
-        });
+        this.loadForm();
 
-
+        new WorkflowTriggerList(this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.uid);
 
     }
 
@@ -422,6 +425,7 @@ class WorkflowTrigger {
                 url: Routing.generate('get_workflow_trigger_form', {internalIdentifier: this.portalInternalIdentifier, uid: this.uid}),
             }).then(data => {
                 this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerFormContainer).html(data.formMarkup);
+                this.activatePlugins();
                 resolve();
             })
         });
@@ -477,7 +481,27 @@ class WorkflowTrigger {
         });
     }
 
+
+
     static markup({portalInternalIdentifier}) {
+        return `            
+           <div class="js-top-bar">
+               <nav class="navbar navbar-expand-sm l-top-bar justify-content-end">
+                    <a class="btn btn-link" style="color:#FFF" data-bypass="true" href="${Routing.generate('workflows', {internalIdentifier: portalInternalIdentifier})}" role="button"><i class="fa fa-angle-left" aria-hidden="true"></i> Back to workflows</a>
+                    <button class="btn btn-lg btn-secondary ml-auto js-forms-start-button">Start</button> 
+                 </nav> 
+            </div>
+            <div class="t-private-template">                 
+                <div class="t-private-template__inner">
+                    <div class="t-private-template__sidebar js-workflow-trigger-form-container"></div>
+                    <div class="t-private-template__sidebar js-edit-field-form d-none"></div>
+                    <div class="t-private-template__main js-workflow-trigger-list-container" style="background-color: rgb(245, 248, 250);"></div>
+                </div>
+            </div>  
+    `;
+    }
+
+/*    static markup({portalInternalIdentifier}) {
         return `
 
             <div class="c-report-select-custom-object">
@@ -512,7 +536,7 @@ class WorkflowTrigger {
             </div>
            
     `;
-    }
+    }*/
 }
 
 export default WorkflowTrigger;

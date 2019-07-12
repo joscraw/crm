@@ -49,7 +49,7 @@ class WorkflowTriggerType extends AbstractType
             ]
         ]);
 
-        $builder->get('triggerType')->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event) {
+/*        $builder->get('triggerType')->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event) {
 
             $portal = $event->getForm()->getParent()->getConfig()->getOption('portal');
             $data = $event->getData();
@@ -59,7 +59,7 @@ class WorkflowTriggerType extends AbstractType
             }
 
             $this->modifyForm($event->getForm()->getParent(), $data, $portal);
-        });
+        });*/
 
         $builder->get('triggerType')->addEventListener(FormEvents::POST_SUBMIT, function (FormEvent $event) {
 
@@ -86,6 +86,7 @@ class WorkflowTriggerType extends AbstractType
 
         switch($triggerType) {
             case WorkflowTrigger::PROPERTY_BASED_TRIGGER:
+                $builderData = new PropertyBasedTrigger();
                 $fieldClass = PropertyBasedTriggerType::class;
                 $options['portal'] = $portal;
                 break;

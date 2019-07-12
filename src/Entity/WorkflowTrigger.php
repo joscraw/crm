@@ -22,6 +22,7 @@ class WorkflowTrigger
     ];
 
     /**
+     * @Groups({"WORKFLOW_TRIGGERS"})
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
@@ -35,12 +36,14 @@ class WorkflowTrigger
     private $workflow;
 
     /**
+     * @Groups({"WORKFLOW_TRIGGERS"})
      * @ORM\Column(type="string", length=255)
      */
     private $triggerType;
 
     /**
      *
+     * @Groups({"WORKFLOW_TRIGGERS"})
      * @var AbstractWorkflowTrigger
      *
      * @ORM\Column(type="json", nullable=true, name="trigger_data")

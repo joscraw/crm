@@ -80,4 +80,11 @@ class SingleLineTextFieldCondition extends AbstractCondition
 
         return $this;
     }
+
+    /**
+     * @Groups({"WORKFLOW_TRIGGER_DATA"})
+     */
+    public function getDescription() {
+        return array_search($this->operator, SingleLineTextFieldCondition::$availableConditions);
+    }
 }

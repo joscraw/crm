@@ -38,6 +38,7 @@ use App\Repository\PropertyGroupRepository;
 use App\Repository\PropertyRepository;
 use App\Repository\RecordRepository;
 use App\Repository\ReportRepository;
+use App\Repository\WorkflowTriggerRepository;
 use App\Service\MessageGenerator;
 use App\Utils\ArrayHelper;
 use App\Utils\ListFolderBreadcrumbs;
@@ -136,7 +137,12 @@ class WorkflowController extends ApiController
     private $denormalizer;
 
     /**
-     * FormController constructor.
+     * @var WorkflowTriggerRepository $workflowTriggerRepository
+     */
+    private $workflowTriggerRepository;
+
+    /**
+     * WorkflowController constructor.
      * @param EntityManagerInterface $entityManager
      * @param CustomObjectRepository $customObjectRepository
      * @param PropertyRepository $propertyRepository
@@ -149,6 +155,7 @@ class WorkflowController extends ApiController
      * @param FolderRepository $folderRepository
      * @param ListFolderBreadcrumbs $folderBreadcrumbs
      * @param DenormalizerInterface $denormalizer
+     * @param WorkflowTriggerRepository $workflowTriggerRepository
      */
     public function __construct(
         EntityManagerInterface $entityManager,
@@ -162,7 +169,8 @@ class WorkflowController extends ApiController
         MarketingListRepository $marketingListRepository,
         FolderRepository $folderRepository,
         ListFolderBreadcrumbs $folderBreadcrumbs,
-        DenormalizerInterface $denormalizer
+        DenormalizerInterface $denormalizer,
+        WorkflowTriggerRepository $workflowTriggerRepository
     ) {
         $this->entityManager = $entityManager;
         $this->customObjectRepository = $customObjectRepository;
@@ -176,6 +184,7 @@ class WorkflowController extends ApiController
         $this->folderRepository = $folderRepository;
         $this->folderBreadcrumbs = $folderBreadcrumbs;
         $this->denormalizer = $denormalizer;
+        $this->workflowTriggerRepository = $workflowTriggerRepository;
     }
 
     /**
@@ -256,8 +265,9 @@ class WorkflowController extends ApiController
 
         if ($form->isSubmitted() && $form->isValid()) {
 
-            /** @var Workflow $workflow */
-            $workflow = $form->getData();
+            /** @var WorkflowTrigger $workflowTrigger */
+            $workflowTrigger = $form->getData();
+            $workflow->addWorkflowTrigger($workflowTrigger);
 
             $this->entityManager->persist($workflow);
             $this->entityManager->flush();
@@ -270,5 +280,29 @@ class WorkflowController extends ApiController
             ],
             Response::HTTP_OK
         );
+    }
+
+    /**
+     * @Route("/{internalIdentifier}/api/workflows/{uid}/triggers", name="get_workflow_triggers", methods={"GET"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param Workflow $workflow
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getWorkflowTriggersAction(Portal $portal, Workflow $workflow, Request $request) {
+
+        $triggers = $this->workflowTriggerRepository->findBy([
+            'workflow' => $workflow->getId()
+        ]);
+
+        $json = $this->serializer->serialize($triggers, 'json', ['groups' => ['WORKFLOW_TRIGGERS', 'WORKFLOW_TRIGGER_DATA']]);
+
+        $payload = json_decode($json, true);
+
+        return new JsonResponse([
+            'success' => true,
+            'data'  => $payload
+        ], Response::HTTP_OK);
+
     }
 }
