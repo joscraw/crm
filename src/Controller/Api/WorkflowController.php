@@ -30,6 +30,7 @@ use App\Form\WorkflowTriggerType;
 use App\Form\WorkflowType;
 use App\Model\AbstractField;
 use App\Model\FieldCatalog;
+use App\Model\WorkflowTriggerCatalog;
 use App\Repository\CustomObjectRepository;
 use App\Repository\FolderRepository;
 use App\Repository\FormRepository;
@@ -304,5 +305,27 @@ class WorkflowController extends ApiController
             'data'  => $payload
         ], Response::HTTP_OK);
 
+    }
+
+    /**
+     * @Route("/{internalIdentifier}/get-trigger-types", name="get_trigger_types", methods={"GET"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getTriggerTypes(Portal $portal, Request $request) {
+
+        $payload = [
+            [
+                'id' => 1,
+                'internalName' => WorkflowTriggerCatalog::PROPERTY_BASED_TRIGGER,
+                'label' => 'Property Based Trigger',
+            ]
+        ];
+
+        return new JsonResponse([
+            'success' => true,
+            'data'  => $payload
+        ], Response::HTTP_OK);
     }
 }

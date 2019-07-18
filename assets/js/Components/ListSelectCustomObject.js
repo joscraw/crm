@@ -132,14 +132,11 @@ class ListSelectCustomObject {
             debugger;
             $( `#listCustomObjects input[type="radio"]`).first().prop('checked', true);
         }
-
-
     }
 
     loadCustomObjects() {
         return new Promise((resolve, reject) => {
-            let url = Routing.generate('' +
-                'get_custom_objects', {internalIdentifier: this.portalInternalIdentifier});
+            let url = Routing.generate('get_custom_objects', {internalIdentifier: this.portalInternalIdentifier});
 
             $.ajax({
                 url: url,

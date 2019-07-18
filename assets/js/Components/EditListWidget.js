@@ -368,7 +368,7 @@ class EditListWidget {
     applyCustomFilterButtonPressedHandler(customFilter) {
 
         let filterPath = customFilter.joins.join('.') + `.filters`,
-            referencedFilterPath = "",
+            referencedFilterPath = customFilter.referencedFilterPath.join('.'),
             uID = StringHelper.makeCharId();
 
         if(_.keys(_.get(this.data, `${filterPath}.referencedFilterPath`, [])).length !== 0) {
