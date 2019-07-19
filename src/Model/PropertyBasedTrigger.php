@@ -3,7 +3,6 @@
 namespace App\Model;
 
 use App\Entity\CustomObject;
-use App\Entity\WorkflowTrigger;
 use Symfony\Component\Serializer\Annotation\Groups;
 use App\Entity\Property;
 
@@ -30,7 +29,7 @@ class PropertyBasedTrigger extends AbstractWorkflowTrigger
      *
      * @var string
      */
-    protected static $name = WorkflowTrigger::PROPERTY_BASED_TRIGGER;
+    protected static $name = 'property_based_trigger';
 
     /**
      * @Groups({"WORKFLOW_TRIGGER_DATA"})

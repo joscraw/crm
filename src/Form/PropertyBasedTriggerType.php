@@ -5,7 +5,6 @@ namespace App\Form;
 use App\Entity\CustomObject;
 use App\Entity\Portal;
 use App\Entity\Property;
-use App\Entity\WorkflowTrigger;
 use App\Form\Type\SelectizeSearchResultPropertiesType;
 use App\Model\CustomObjectField;
 use App\Model\DatePickerField;

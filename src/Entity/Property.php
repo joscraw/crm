@@ -28,47 +28,47 @@ class Property
     use FormFieldProperties;
 
     /**
-     * @Groups({"PROPERTY_FIELD_NORMALIZER", "SELECTABLE_PROPERTIES", "WORKFLOW_TRIGGER_DATA"})
+     * @Groups({"PROPERTY_FIELD_NORMALIZER", "SELECTABLE_PROPERTIES", "WORKFLOW_TRIGGER_DATA", "TRIGGER"})
      *
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
      */
-    private $id;
+    protected $id;
 
     /**
-     * @Groups({"PROPERTY_FIELD_NORMALIZER", "SELECTABLE_PROPERTIES", "WORKFLOW_TRIGGER_DATA"})
+     * @Groups({"PROPERTY_FIELD_NORMALIZER", "SELECTABLE_PROPERTIES", "WORKFLOW_TRIGGER_DATA", "TRIGGER"})
      *
      * @Assert\NotBlank(message="Don't forget a label for your new Property!", groups={"CREATE", "EDIT"})
      * @Assert\Regex("/^[a-zA-Z0-9_\s]*$/", message="Woah! Only use letters, numbers, underscores and spaces please!", groups={"CREATE", "EDIT"})
      *
      * @ORM\Column(type="string", length=255)
      */
-    private $label;
+    protected $label;
 
     /**
-     * @Groups({"PROPERTY_FIELD_NORMALIZER", "SELECTABLE_PROPERTIES"})
+     * @Groups({"PROPERTY_FIELD_NORMALIZER", "SELECTABLE_PROPERTIES", "TRIGGER"})
      *
      * @Assert\Regex("/^[a-zA-Z0-9_]*$/", message="Woah! Only use letters numbers and underscores please!", groups={"CREATE", "EDIT"})
      *
      * @ORM\Column(type="string", length=255)
      */
-    private $internalName;
+    protected $internalName;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $description;
+    protected $description;
 
     /**
-     * @Groups({"PROPERTY_FIELD_NORMALIZER", "SELECTABLE_PROPERTIES"})
+     * @Groups({"PROPERTY_FIELD_NORMALIZER", "SELECTABLE_PROPERTIES", "TRIGGER"})
      *
      * @Assert\NotBlank(message="Don't forget to select a field type for your new Property!", groups={"CREATE", "EDIT"})
      * @Assert\Choice(callback="getValidFieldTypes")
      *
      * @ORM\Column(type="string", length=255)
      */
-    private $fieldType;
+    protected $fieldType;
 
     /**
      * @Groups({"SELECTABLE_PROPERTIES"})
@@ -79,20 +79,20 @@ class Property
      *
      * @ORM\Column(type="json", nullable=true)
      */
-    private $field;
+    protected $field;
 
     /**
      * @Assert\NotBlank(message="Don't forget to select a property group!", groups={"CREATE", "EDIT"})
      * @ORM\ManyToOne(targetEntity="App\Entity\PropertyGroup", inversedBy="properties")
      * @ORM\JoinColumn(nullable=false)
      */
-    private $propertyGroup;
+    protected $propertyGroup;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\CustomObject", inversedBy="properties")
      * @ORM\JoinColumn(nullable=false)
      */
-    private $customObject;
+    protected $customObject;
 
     /**
      * @Groups({"PROPERTY_FIELD_NORMALIZER", "SELECTABLE_PROPERTIES"})
@@ -104,27 +104,27 @@ class Property
     /**
      * @ORM\Column(type="boolean")
      */
-    private $isColumn = false;
+    protected $isColumn = false;
 
     /**
      * @ORM\Column(type="integer", nullable=true)
      */
-    private $columnOrder;
+    protected $columnOrder;
 
     /**
      * @ORM\Column(type="boolean")
      */
-    private $isDefaultProperty = false;
+    protected $isDefaultProperty = false;
 
     /**
      * @ORM\Column(type="integer", nullable=true)
      */
-    private $defaultPropertyOrder;
+    protected $defaultPropertyOrder;
 
     /**
      * @ORM\Column(type="boolean")
      */
-    private $systemDefined = false;
+    protected $systemDefined = false;
 
 
     /**

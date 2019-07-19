@@ -2,17 +2,21 @@
 
 namespace App\Entity;
 
+use App\Model\AbstractTrigger;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
+ *
  * @ORM\EntityListeners({"App\EntityListener\WorkflowListener"})
  * @ORM\Entity(repositoryClass="App\Repository\WorkflowRepository")
  */
 class Workflow
 {
     /**
+     * @Groups({"WORKFLOW"})
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
@@ -20,11 +24,7 @@ class Workflow
     private $id;
 
     /**
-     * @ORM\Column(type="json", nullable=true)
-     */
-    private $data = [];
-
-    /**
+     * @Groups({"WORKFLOW"})
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $name;
@@ -36,35 +36,28 @@ class Workflow
     private $portal;
 
     /**
+     * @Groups({"WORKFLOW"})
      * @ORM\Column(type="string", length=255)
      */
     private $uid;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\WorkflowTrigger", mappedBy="workflow", orphanRemoval=true, cascade={"persist"})
+     * @Groups({"WORKFLOW"})
+     * @var AbstractTrigger|[]
+     *
+     * @ORM\Column(type="json_array", nullable=true)
      */
-    private $workflowTriggers;
+    private $triggers;
 
-    public function __construct()
-    {
-        $this->workflowTriggers = new ArrayCollection();
-    }
+    /**
+     * @Groups({"WORKFLOW"})
+     * @ORM\Column(type="json_array", nullable=true)
+     */
+    private $actions;
 
     public function getId(): ?int
     {
         return $this->id;
-    }
-
-    public function getData(): ?array
-    {
-        return $this->data;
-    }
-
-    public function setData(?array $data): self
-    {
-        $this->data = $data;
-
-        return $this;
     }
 
     public function getName(): ?string
@@ -103,38 +96,27 @@ class Workflow
         return $this;
     }
 
-    /**
-     * @return Collection|WorkflowTrigger[]
-     */
-    public function getWorkflowTriggers(): Collection
+    public function getTriggers()
     {
-        return $this->workflowTriggers;
+        return $this->triggers;
     }
 
-    public function addWorkflowTrigger(WorkflowTrigger $workflowTrigger): self
+    public function setTriggers($triggers): self
     {
-        if (!$this->workflowTriggers->contains($workflowTrigger)) {
-            $this->workflowTriggers[] = $workflowTrigger;
-            $workflowTrigger->setWorkflow($this);
-        }
+        $this->triggers = $triggers;
 
         return $this;
     }
 
-    public function removeWorkflowTrigger(WorkflowTrigger $workflowTrigger): self
+    public function getActions()
     {
-        if ($this->workflowTriggers->contains($workflowTrigger)) {
-            $this->workflowTriggers->removeElement($workflowTrigger);
-            // set the owning side to null (unless already changed)
-            if ($workflowTrigger->getWorkflow() === $this) {
-                $workflowTrigger->setWorkflow(null);
-            }
-        }
-
-        return $this;
+        return $this->actions;
     }
 
-    public function clearWorkflowTriggers() {
-        $this->workflowTriggers = new ArrayCollection();
+    public function setActions($actions): self
+    {
+        $this->actions = $actions;
+
+        return $this;
     }
 }

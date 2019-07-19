@@ -5,8 +5,8 @@ namespace App\EntityListener;
 use App\Entity\CustomObject;
 use App\Entity\Property;
 use App\Entity\Workflow;
-use App\Entity\WorkflowTrigger;
 use App\Model\AbstractField;
+use App\Model\AbstractTrigger;
 use App\Model\AbstractWorkflowTrigger;
 use App\Model\CustomObjectField;
 use App\Repository\PropertyRepository;
@@ -56,11 +56,9 @@ class WorkflowListener
      */
     private function serializePropertyField(Workflow $workflow)
     {
-        /*$name = "Josh";
-
-        $trigger = $workflowTrigger->getTrigger();
-        $data = $this->serializer->serialize($trigger, 'json', ['groups' => ['WORKFLOW_TRIGGER_DATA']]);
-        $workflowTrigger->setTrigger(json_decode($data, true));*/
+        $triggers = $workflow->getTriggers();
+        $data = $this->serializer->serialize($triggers, 'json', ['groups' => ['TRIGGER', 'SELECTABLE_PROPERTIES']]);
+        $workflow->setTriggers(json_decode($data, true));
     }
 
     /**
@@ -70,13 +68,11 @@ class WorkflowListener
      */
     private function deserializePropertyField(Workflow $workflow)
     {
-        $workflowTriggers = $workflow->getWorkflowTriggers();
-
-        foreach($workflowTriggers as $workflowTrigger) {
-            $trigger = json_encode($workflowTrigger->getTrigger());
-            $workflowTrigger->setTrigger($this->serializer->deserialize($trigger, AbstractWorkflowTrigger::class, 'json'));
+        $triggers = [];
+        foreach($workflow->getTriggers() as $key => $trigger) {
+            $triggers[$key] = $this->serializer->deserialize(json_encode($trigger, true), AbstractTrigger::class, 'json');
         }
-
+        $workflow->setTriggers($triggers);
     }
 
     /**

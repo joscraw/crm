@@ -112,8 +112,12 @@ class WorkflowTrigger {
                 this.reportAddFilterButtonPressedHandler.bind(this)
             ));
 
+        this.loadWorkflow().then((data) => {
+            debugger;
+            this.workflow = data.data;
+            this.render();
+        });
 
-        this.render();
     }
 
     unbindEvents() {
@@ -338,8 +342,11 @@ class WorkflowTrigger {
             uID = StringHelper.makeCharId();
 
         if(!_.has(this.trigger, 'filters')) {
-            _.set(this.trigger, 'filters', {});
+            _.set(this.trigger, 'filters', []);
         }
+
+
+
 
         if(_.keys(_.get(this.trigger, `${filterPath}.referencedFilterPath`, [])).length !== 0) {
 
@@ -369,21 +376,23 @@ class WorkflowTrigger {
 
         } else {
 
-            _.set(this.trigger, filterPath, {});
+            this.trigger.filters.push(customFilter);
 
-            _.set(this.trigger, `${filterPath}[${uID}]`, customFilter);
+           /* _.set(this.trigger, filterPath, {});*/
 
-            _.set(this.trigger, `${filterPath}[${uID}].orFilters`, {});
+           /* _.set(this.trigger, `${filterPath}[${uID}]`, customFilter);
 
-            if(referencedFilterPath !== "") {
+            _.set(this.trigger, `${filterPath}[${uID}].orFilters`, {});*/
+
+           /* if(referencedFilterPath !== "") {
 
                 let orFilterPath = customFilter.joins.concat(['filters', uID]);
 
                 _.set(this.trigger, `${referencedFilterPath}.orFilters.${uID}`, orFilterPath);
 
-            }
+            }*/
         }
-        this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_TRIGGER_FILTER_ITEM_ADDED, this.trigger);
+        /*this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_TRIGGER_FILTER_ITEM_ADDED, this.trigger);*/
 
         this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerFiltersContainer).removeClass('d-none');
         this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerFormContainer).addClass('d-none');
@@ -422,31 +431,53 @@ class WorkflowTrigger {
         debugger;
 
         if(!_.has(this.workflow, 'triggers')) {
-            _.set(this.workflow, 'triggers', {});
+            _.set(this.workflow, 'triggers', []);
         }
 
+        this.workflow.triggers.push(this.trigger);
 
-        let uID = StringHelper.makeCharId();
-        _.set(this.workflow.triggers, uID, this.trigger);
-
-        this.trigger = null;
+        this._saveWorkflow();
+        debugger;
 
         this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_TRIGGER_ADDED, this.workflow.triggers);
 
-        debugger;
+    }
+
+    _saveWorkflow() {
+
+        return new Promise((resolve, reject) => {
+            debugger;
+            const url = Routing.generate('workflow_add_trigger', {internalIdentifier: this.portalInternalIdentifier, uid: this.uid});
+
+            $.ajax({
+                url,
+                method: 'POST',
+                data: {'workflow': this.workflow}
+            }).then((data, textStatus, jqXHR) => {
+
+                debugger;
+                resolve(data);
+
+            }).catch((jqXHR) => {
+                debugger;
+                const errorData = JSON.parse(jqXHR.responseText);
+                errorData.httpCode = jqXHR.status;
+
+                reject(errorData);
+            });
+        });
+
     }
 
     render() {
         this.$wrapper.html(WorkflowTrigger.markup(this));
-
-        this.loadForm();
 
         /*new WorkflowTriggerList(this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.uid);*/
         new WorkflowTriggerType(this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerTypeContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.uid);
 
         new WorkflowTriggerFilters(this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerFiltersContainer), this.globalEventDispatcher, this.portalInternalIdentifier);
 
-        new WorkflowTriggerSelectedTriggers(this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.data);
+        new WorkflowTriggerSelectedTriggers(this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.workflow);
     }
 
     activatePlugins() {
@@ -456,14 +487,12 @@ class WorkflowTrigger {
         });
     }
 
-    loadForm() {
+    loadWorkflow() {
         return new Promise((resolve, reject) => {
             $.ajax({
-                url: Routing.generate('get_workflow_trigger_form', {internalIdentifier: this.portalInternalIdentifier, uid: this.uid}),
+                url: Routing.generate('get_workflow', {internalIdentifier: this.portalInternalIdentifier, uid: this.uid}),
             }).then(data => {
-                this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerFormContainer).html(data.formMarkup);
-                this.activatePlugins();
-                resolve();
+                resolve(data);
             })
         });
     }

@@ -29,6 +29,7 @@ use App\Form\RecordType;
 use App\Form\WorkflowTriggerType;
 use App\Form\WorkflowType;
 use App\Model\AbstractField;
+use App\Model\AbstractTrigger;
 use App\Model\FieldCatalog;
 use App\Model\WorkflowTriggerCatalog;
 use App\Repository\CustomObjectRepository;
@@ -138,11 +139,6 @@ class WorkflowController extends ApiController
     private $denormalizer;
 
     /**
-     * @var WorkflowTriggerRepository $workflowTriggerRepository
-     */
-    private $workflowTriggerRepository;
-
-    /**
      * WorkflowController constructor.
      * @param EntityManagerInterface $entityManager
      * @param CustomObjectRepository $customObjectRepository
@@ -156,7 +152,6 @@ class WorkflowController extends ApiController
      * @param FolderRepository $folderRepository
      * @param ListFolderBreadcrumbs $folderBreadcrumbs
      * @param DenormalizerInterface $denormalizer
-     * @param WorkflowTriggerRepository $workflowTriggerRepository
      */
     public function __construct(
         EntityManagerInterface $entityManager,
@@ -170,8 +165,7 @@ class WorkflowController extends ApiController
         MarketingListRepository $marketingListRepository,
         FolderRepository $folderRepository,
         ListFolderBreadcrumbs $folderBreadcrumbs,
-        DenormalizerInterface $denormalizer,
-        WorkflowTriggerRepository $workflowTriggerRepository
+        DenormalizerInterface $denormalizer
     ) {
         $this->entityManager = $entityManager;
         $this->customObjectRepository = $customObjectRepository;
@@ -185,7 +179,6 @@ class WorkflowController extends ApiController
         $this->folderRepository = $folderRepository;
         $this->folderBreadcrumbs = $folderBreadcrumbs;
         $this->denormalizer = $denormalizer;
-        $this->workflowTriggerRepository = $workflowTriggerRepository;
     }
 
     /**
@@ -223,7 +216,7 @@ class WorkflowController extends ApiController
     }
 
     /**
-     * @Route("{internalIdentifier}/api/workflows/{uid}/submit-trigger-form", name="submit_workflow_trigger_form", methods={"POST"}, options = { "expose" = true })
+     * @Route("{internalIdentifier}/api/workflows/{uid}/add-trigger", name="workflow_add_trigger", methods={"POST"}, options = { "expose" = true })
      * @param Portal $portal
      * @param Workflow $workflow
      * @param Request $request
@@ -231,73 +224,34 @@ class WorkflowController extends ApiController
      */
     public function createTriggerAction(Portal $portal, Workflow $workflow, Request $request) {
 
-        $options = [];
+        $triggers = $request->request->get('workflow')['triggers'];
 
-        $options = [
-            'portal' => $portal,
-        ];
-
-       /* $skipValidation = $request->request->get('skip_validation', false);
-
-        if(!$skipValidation) {
-            $options['validation_groups'] = ['CREATE'];
-        }*/
-
-        $workflowTrigger = new WorkflowTrigger();
-        $form = $this->createForm(WorkflowTriggerType::class, $workflowTrigger, $options);
-
-        $form->handleRequest($request);
-
-        $formMarkup = $this->renderView(
-            'Api/form/workflow_trigger_form.twig',
-            [
-                'form' => $form->createView(),
-            ]
-        );
-
-        if ($form->isSubmitted() && !$form->isValid()) {
-            return new JsonResponse(
-                [
-                    'success' => false,
-                    'formMarkup' => $formMarkup,
-                ], Response::HTTP_BAD_REQUEST
-            );
+        foreach($triggers as $key => $trigger) {
+            $triggers[$key] = $this->serializer->deserialize(json_encode($trigger, true), AbstractTrigger::class, 'json');
         }
+        $workflow->setTriggers($triggers);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-
-            /** @var WorkflowTrigger $workflowTrigger */
-            $workflowTrigger = $form->getData();
-            $workflow->addWorkflowTrigger($workflowTrigger);
-
-            $this->entityManager->persist($workflow);
-            $this->entityManager->flush();
-        }
+        $this->entityManager->persist($workflow);
+        $this->entityManager->flush();
 
         return new JsonResponse(
             [
                 'success' => true,
-                'formMarkup' => $formMarkup,
             ],
             Response::HTTP_OK
         );
     }
 
     /**
-     * @Route("/{internalIdentifier}/api/workflows/{uid}/triggers", name="get_workflow_triggers", methods={"GET"}, options = { "expose" = true })
+     * @Route("/{internalIdentifier}/api/workflows/{uid}/get", name="get_workflow", methods={"GET"}, options = { "expose" = true })
      * @param Portal $portal
      * @param Workflow $workflow
      * @param Request $request
      * @return JsonResponse
      */
-    public function getWorkflowTriggersAction(Portal $portal, Workflow $workflow, Request $request) {
+    public function getWorkflowAction(Portal $portal, Workflow $workflow, Request $request) {
 
-        $triggers = $this->workflowTriggerRepository->findBy([
-            'workflow' => $workflow->getId()
-        ]);
-
-        $json = $this->serializer->serialize($triggers, 'json', ['groups' => ['WORKFLOW_TRIGGERS', 'WORKFLOW_TRIGGER_DATA']]);
-
+        $json = $this->serializer->serialize($workflow, 'json', ['groups' => ['WORKFLOW', 'TRIGGER', 'SELECTABLE_PROPERTIES']]);
         $payload = json_decode($json, true);
 
         return new JsonResponse([
@@ -320,6 +274,7 @@ class WorkflowController extends ApiController
                 'id' => 1,
                 'internalName' => WorkflowTriggerCatalog::PROPERTY_BASED_TRIGGER,
                 'label' => 'Property Based Trigger',
+                'name'  => 'property_trigger'
             ]
         ];
 

@@ -11,12 +11,12 @@ require('jquery-ui-dist/jquery-ui');
 
 class WorkflowTriggerSelectedTriggers {
 
-    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, data/*, columnOrder*/) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, workflow) {
         debugger;
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
-        this.data = data;
+        this.workflow = workflow;
 /*
 
         this.columnOrder = columnOrder;
@@ -54,7 +54,7 @@ class WorkflowTriggerSelectedTriggers {
                 this.handleWorkflowTriggerAdded.bind(this)
             ));
 
-        this.setSelectedColumns(this.data);
+        this.setSelectedColumns(this.workflow);
 
         this.activatePlugins();
 
@@ -143,19 +143,17 @@ class WorkflowTriggerSelectedTriggers {
 
     }
 
-    setSelectedColumns(data) {
+    setSelectedColumns(workflow) {
 
         debugger;
         this.$wrapper.html("");
 
-        if(_.isEmpty(data, true)) {
+        if(_.isEmpty(workflow.triggers, true)) {
             this.$wrapper.html(emptyListTemplate());
             return;
         }
 
-        for(let key in data) {
-
-            let trigger = data[key];
+        for(let trigger of workflow.triggers) {
 
             /*let joins = column.joins.concat([column.uID]);*/
 
@@ -180,9 +178,9 @@ class WorkflowTriggerSelectedTriggers {
     }
 }
 
-const selectedColumnTemplate = ({label}) => `
+const selectedColumnTemplate = ({name, description}) => `
     <div class="card js-selected-column"}>
-        <div class="card-body c-report-widget__card-body">${label}<span><i class="fa fa-times js-remove-selected-column-icon c-report-widget__remove-column-icon" aria-hidden="true"></i></span></div>
+        <div class="card-body c-report-widget__card-body">${name} ${description}<span><i class="fa fa-times js-remove-selected-column-icon c-report-widget__remove-column-icon" aria-hidden="true"></i></span></div>
     </div>
 `;
 
