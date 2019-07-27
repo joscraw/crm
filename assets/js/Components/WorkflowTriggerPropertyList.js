@@ -27,16 +27,7 @@ class WorkflowTriggerPropertyList {
         this.referencedFilterPath = referencedFilterPath;
 
         this.unbindEvents();
-
         this.bindEvents();
-
-     /*
-
-        this.globalEventDispatcher.addRemovableToken(
-            this.globalEventDispatcher.subscribe(
-            Settings.Events.FORM_EDITOR_DATA_SAVED,
-            this.handleDataSaved.bind(this)
-        ));*/
 
         this.render();
         this.loadProperties()
@@ -59,12 +50,11 @@ class WorkflowTriggerPropertyList {
 
     bindEvents() {
 
-        /*this.$wrapper.on(
+        this.$wrapper.on(
             'keyup',
-            FormEditorPropertyList._selectors.search,
+            WorkflowTriggerPropertyList._selectors.search,
             this.handleKeyupEvent.bind(this)
         );
-*/
         this.$wrapper.on(
             'click',
             WorkflowTriggerPropertyList._selectors.propertyListItem,
@@ -77,20 +67,6 @@ class WorkflowTriggerPropertyList {
             this.handleBackButtonClicked.bind(this)
         );
 
-        this.globalEventDispatcher.addRemovableToken(
-            this.globalEventDispatcher.subscribe(
-                Settings.Events.LIST_FILTER_CUSTOM_OBJECT_JOIN_PATH_SET,
-                this.handleListFilterCustomObjectJoinPathSet.bind(this)
-            ));
-
-       /*
-
-        this.$wrapper.on(
-            'click',
-            ListPropertyList._selectors.backButton,
-            this.handleBackButtonClicked.bind(this)
-        );*/
-
     }
 
     /**
@@ -98,16 +74,8 @@ class WorkflowTriggerPropertyList {
      * you need to remove the handlers otherwise they will keep stacking up
      */
     unbindEvents() {
-
-
         this.$wrapper.off('click', WorkflowTriggerPropertyList._selectors.backButton);
-
-/*
-        this.$wrapper.off('keyup', FormEditorPropertyList._selectors.search);
-        this.$wrapper.off('click', FormEditorPropertyList._selectors.propertyListItem);*/
-        /*
-        this.$wrapper.off('click', ListPropertyList._selectors.backButton);*/
-
+        this.$wrapper.off('keyup', WorkflowTriggerPropertyList._selectors.search);
         this.$wrapper.off('click', WorkflowTriggerPropertyList._selectors.propertyListItem);
     }
 
@@ -135,82 +103,21 @@ class WorkflowTriggerPropertyList {
 
     }
 
-    handleListFilterCustomObjectJoinPathSet(property, joins, data) {
-
-        debugger;
-        /*new ListFilterList($(ListFilters._selectors.listFilterListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, property.field.customObject.internalName, property, joins, data, property.referencedFilterPath);*/
-
-    }
-
     /**
      *
      * @param searchValue
      */
     applySearch(searchValue) {
-
         for(let i = 0; i < this.lists.length; i++) {
             this.lists[i].search(searchValue);
         }
-
-        this.$wrapper.find(FormEditorPropertyList._selectors.list).each((index, element) => {
-
-            let propertyGroupId = $(element).attr('data-property-group');
-            let $parent = $(element).closest(`#list-property-${propertyGroupId}`);
-
-            if($(element).is(':empty') && searchValue !== '') {
-                $parent.addClass('d-none');
-
-            } else {
-                if($parent.hasClass('d-none')) {
-                    $parent.removeClass('d-none');
-                }
-            }
-
-        });
-    }
-
-    handleBackToCustomObjectListButtonClicked(e) {
-
-        e.stopPropagation();
-
-        this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_TRIGGER_BACK_TO_CUSTOM_OBJECT_LIST_BUTTON_CLICKED);
-
     }
 
     loadProperties() {
-
-        this.loadPropertiesForFormEditor().then(data => {
+        this.loadPropertiesForWorkflowTrigger().then(data => {
             this.propertyGroups = data.data.property_groups;
             this.renderProperties(this.propertyGroups).then(() => {
-                /*this.highlightProperties(this.form.draft);*/
             })
-        });
-    }
-
-    handleDataSaved(form) {
-
-        this.form = form;
-
-        this.highlightProperties(form.draft);
-    }
-
-    highlightProperties(data) {
-
-        $(FormEditorPropertyList._selectors.propertyListItem).each((index, element) => {
-
-            if($(element).hasClass('c-private-card__item--active')) {
-                $(element).removeClass('c-private-card__item--active');
-            }
-
-            let propertyId = $(element).attr('data-property-id');
-
-            let property = data.filter(property => {
-                return parseInt(property.id) === parseInt(propertyId);
-            });
-
-            if(property[0]) {
-                $(element).addClass('c-private-card__item--active');
-            }
         });
     }
 
@@ -262,7 +169,6 @@ class WorkflowTriggerPropertyList {
 
     renderProperties(propertyGroups) {
 
-        debugger;
         let $propertyList = this.$wrapper.find(WorkflowTriggerPropertyList._selectors.propertyList);
         $propertyList.html("");
 
@@ -271,8 +177,6 @@ class WorkflowTriggerPropertyList {
             for(let i = 0; i < propertyGroups.length; i++) {
                 let propertyGroup = propertyGroups[i];
                 let properties = propertyGroup.properties;
-
-                debugger;
                 this._addList(propertyGroup, properties);
 
             }
@@ -280,7 +184,7 @@ class WorkflowTriggerPropertyList {
         });
     }
 
-    loadPropertiesForFormEditor() {
+    loadPropertiesForWorkflowTrigger() {
         return new Promise((resolve, reject) => {
             debugger;
             const url = Routing.generate('get_properties', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObject.internalName});
@@ -332,14 +236,6 @@ class WorkflowTriggerPropertyList {
             } else {
                 $(element).attr('data-joins', JSON.stringify(['root']));
             }
-
-          /*  if(this.join) {
-                let joins = this.joins.concat(this.join.internalName);
-                $(element).attr('data-joins', JSON.stringify(joins));
-            } else {
-                $(element).attr('data-joins', JSON.stringify(['root']));
-            }*/
-
         });
 
     }

@@ -17,50 +17,8 @@ class WorkflowTriggerSelectedTriggers {
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
         this.workflow = workflow;
-/*
-
-        this.columnOrder = columnOrder;
-
-        this.globalEventDispatcher.addRemovableToken(
-            this.globalEventDispatcher.subscribe(
-            Settings.Events.LIST_PROPERTY_LIST_ITEM_ADDED,
-            this.handlePropertyListItemAdded.bind(this)
-        ));
-
-        this.globalEventDispatcher.addRemovableToken(
-            this.globalEventDispatcher.subscribe(
-            Settings.Events.LIST_COLUMN_ORDER_UPDATED,
-            this.handleListColumnOrderUpdated.bind(this)
-        ));
 
         this.unbindEvents();
-
-
-*/
-
-        this.globalEventDispatcher.addRemovableToken(
-            this.globalEventDispatcher.subscribe(
-                Settings.Events.WORKFLOW_TRIGGER_REMOVED,
-                this.handleTriggerRemoved.bind(this)
-            ));
-
-        this.globalEventDispatcher.addRemovableToken(
-            this.globalEventDispatcher.subscribe(
-                Settings.Events.WORKFLOW_TRIGGER_ADDED,
-                this.handleTriggerAdded.bind(this)
-            ));
-
-        this.globalEventDispatcher.addRemovableToken(
-            this.globalEventDispatcher.subscribe(
-                Settings.Events.WORKFLOW_TRIGGER_FILTER_ADDED,
-                this.handleTriggerAdded.bind(this)
-            ));
-
-        this.globalEventDispatcher.addRemovableToken(
-            this.globalEventDispatcher.subscribe(
-                Settings.Events.WORKFLOW_TRIGGER_FILTER_REMOVED,
-                this.handleTriggerAdded.bind(this)
-            ));
 
         this.$wrapper.on(
             'click',
@@ -76,14 +34,33 @@ class WorkflowTriggerSelectedTriggers {
 
         this.globalEventDispatcher.addRemovableToken(
             this.globalEventDispatcher.subscribe(
+                Settings.Events.WORKFLOW_TRIGGER_REMOVED,
+                this.handleTriggerRemoved.bind(this)
+            ));
+
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
+                Settings.Events.WORKFLOW_TRIGGER_FILTER_ADDED,
+                this.handleTriggerAdded.bind(this)
+            ));
+
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
+                Settings.Events.WORKFLOW_TRIGGER_FILTER_REMOVED,
+                this.handleTriggerAdded.bind(this)
+            ));
+
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
                 Settings.Events.WORKFLOW_TRIGGER_ADDED,
                 this.handleTriggerAdded.bind(this)
             ));
 
-        this.globalEventDispatcher.subscribe(
-            Settings.Events.WORKFLOW_SAVED,
-            this.handleWorkflowSave.bind(this)
-        );
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
+                Settings.Events.WORKFLOW_CUSTOM_OBJECT_SET,
+                this.handleTriggerAdded.bind(this)
+            ));
 
         this.renderTriggers(workflow.triggers);
     }
@@ -99,9 +76,8 @@ class WorkflowTriggerSelectedTriggers {
     }
 
     unbindEvents() {
-
-        this.$wrapper.off('click', ListSelectedColumns._selectors.removeSelectedColumnIcon);
-
+        this.$wrapper.off('click', WorkflowTriggerSelectedTriggers._selectors.removeSelectedColumnIcon);
+        this.$wrapper.off('click', WorkflowTriggerSelectedTriggers._selectors.selectedColumn);
     }
 
     handleTriggerUpdated(workflow) {
@@ -172,16 +148,18 @@ class WorkflowTriggerSelectedTriggers {
 
     _addItem(trigger) {
 
+        debugger;
+        let label = trigger.customObject !== null ? trigger.customObject.label : '';
         let numOfFilters = 'filters' in trigger ? trigger.filters.length : 0;
-        const html = itemTemplate(trigger, numOfFilters);
+        const html = itemTemplate(trigger, label, numOfFilters);
         const $selectedColumnTemplate = $($.parseHTML(html));
         this.$wrapper.append($selectedColumnTemplate);
     }
 }
 
-const itemTemplate = ({name, description, uid}, numOfFilters) => `
+const itemTemplate = ({name, description, uid}, label, numOfFilters) => `
     <div class="card js-selected-column" data-uid="${uid}">
-        <div class="card-body c-report-widget__card-body">Trigger: ${description} - Total filters: ${numOfFilters}<span><i data-uid="${uid}" class="fa fa-times js-remove-selected-column-icon c-report-widget__remove-column-icon" aria-hidden="true"></i></span></div>
+        <div class="card-body c-report-widget__card-body">Trigger: ${label} ${description} - Total filters: ${numOfFilters}<span><i data-uid="${uid}" class="fa fa-times js-remove-selected-column-icon c-report-widget__remove-column-icon" aria-hidden="true"></i></span></div>
     </div>
 `;
 

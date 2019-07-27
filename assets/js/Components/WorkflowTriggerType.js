@@ -18,17 +18,10 @@ class WorkflowTriggerType {
         this.portalInternalIdentifier = portalInternalIdentifier;
         this.uid = uid;
         this.triggerTypes = [];
-        this.lists = [];
+        this.list = null;
 
         this.unbindEvents();
-
         this.bindEvents();
-
-       /* this.globalEventDispatcher.addRemovableToken(
-            this.globalEventDispatcher.subscribe(
-            Settings.Events.FORM_EDITOR_DATA_SAVED,
-            this.handleDataSaved.bind(this)
-        ));*/
 
         this.render();
         this.loadTriggerTypes();
@@ -61,15 +54,6 @@ class WorkflowTriggerType {
             WorkflowTriggerType._selectors.triggerListItem,
             this.handleTriggerListItemClicked.bind(this)
         );
-
-       /*
-
-        this.$wrapper.on(
-            'click',
-            ListPropertyList._selectors.backButton,
-            this.handleBackButtonClicked.bind(this)
-        );*/
-
     }
 
     /**
@@ -77,26 +61,16 @@ class WorkflowTriggerType {
      * you need to remove the handlers otherwise they will keep stacking up
      */
     unbindEvents() {
-
         this.$wrapper.off('keyup', WorkflowTriggerType._selectors.search);
-        this.$wrapper.off('click', WorkflowTriggerType._selectors.propertyListItem);
-
         this.$wrapper.off('click', WorkflowTriggerType._selectors.triggerListItem);
-        /*
-        this.$wrapper.off('click', ListPropertyList._selectors.backButton);*/
     }
 
     handleKeyupEvent(e) {
-
-        debugger;
         if(e.cancelable) {
             e.preventDefault();
         }
-
         const searchValue = $(e.target).val();
-
         this.applySearch(searchValue);
-
     }
 
     /**
@@ -104,73 +78,14 @@ class WorkflowTriggerType {
      * @param searchValue
      */
     applySearch(searchValue) {
-
-        for(let i = 0; i < this.lists.length; i++) {
-            this.lists[i].search(searchValue);
-        }
-
-        this.$wrapper.find(WorkflowTriggerType._selectors.list).each((index, element) => {
-
-            let propertyGroupId = $(element).attr('data-property-group');
-            let $parent = $(element).closest(`#list-property-${propertyGroupId}`);
-
-            if($(element).is(':empty') && searchValue !== '') {
-                $parent.addClass('d-none');
-
-            } else {
-                if($parent.hasClass('d-none')) {
-                    $parent.removeClass('d-none');
-                }
-            }
-
-        });
-    }
-
-    handleBackButtonClicked(e) {
-
-        debugger;
-        e.stopPropagation();
-
-        this.globalEventDispatcher.publish(Settings.Events.LIST_BACK_BUTTON_CLICKED);
-
+        this.list.search(searchValue);
     }
 
     loadTriggerTypes() {
-
         this.makeRequestForTriggerTypes().then(data => {
-            debugger;
             this.triggerTypes = data.data;
             this.renderTriggerTypes(this.triggerTypes).then(() => {
-                /*this.highlightProperties(this.form.draft);*/
             })
-        });
-
-    }
-
-    handleDataSaved(form) {
-
-        this.form = form;
-
-        this.highlightProperties(form.draft);
-    }
-
-    highlightProperties(data) {
-
-        $(FormEditorPropertyList._selectors.propertyListItem).each((index, element) => {
-
-            if($(element).hasClass('c-private-card__item--active')) {
-                $(element).removeClass('c-private-card__item--active');
-            }
-
-            let propertyId = $(element).attr('data-property-id');
-
-            let property = data.filter(property => {
-                return parseInt(property.id) === parseInt(propertyId);
-            });
-
-            if(property[0]) {
-                $(element).addClass('c-private-card__item--active');
-            }
         });
     }
 
@@ -204,21 +119,24 @@ class WorkflowTriggerType {
 
     renderTriggerTypes(triggerTypes) {
 
-        debugger;
         let $propertyList = this.$wrapper.find(WorkflowTriggerType._selectors.triggerList);
         $propertyList.html("");
 
+        let $triggerList = this.$wrapper.find(WorkflowTriggerType._selectors.triggerList);
+        const html = listTemplate();
+        const $list = $($.parseHTML(html));
+        $triggerList.append($list);
 
-        return new Promise((resolve, reject) => {
+        var options = {
+            valueNames: [ 'description' ],
+            // Since there are no elements in the list, this will be used as template.
+            item: `<div class="js-trigger-list-item c-private-card__item"><span class="description"></span></div>`
+        };
 
-            this._addList(triggerTypes);
+        this.list = new List(`list-triggers`, options, triggerTypes);
 
-            /*for(let i = 0; i < triggerTypes.length; i++) {
-                let triggerType = triggerTypes[i];
-                this._addList(triggerType);
-
-            }*/
-            resolve();
+        $( `#list-triggers .js-trigger-list-item` ).each((index, element) => {
+            $(element).attr('data-trigger-name', triggerTypes[index].name);
         });
     }
 
@@ -235,32 +153,6 @@ class WorkflowTriggerType {
                 const errorData = JSON.parse(jqXHR.responseText);
                 reject(errorData);
             });
-        });
-    }
-
-
-    /**
-     * @private
-     * @param triggerTypes
-     */
-    _addList(triggerTypes) {
-
-        debugger;
-        let $triggerList = this.$wrapper.find(WorkflowTriggerType._selectors.triggerList);
-        const html = listTemplate();
-        const $list = $($.parseHTML(html));
-        $triggerList.append($list);
-
-        var options = {
-            valueNames: [ 'description' ],
-            // Since there are no elements in the list, this will be used as template.
-            item: `<div class="js-trigger-list-item c-private-card__item"><span class="description"></span></div>`
-        };
-
-        this.lists.push(new List(`list-triggers`, options, triggerTypes));
-
-        $( `#list-triggers .js-trigger-list-item` ).each((index, element) => {
-            $(element).attr('data-trigger-name', triggerTypes[index].name);
         });
     }
 

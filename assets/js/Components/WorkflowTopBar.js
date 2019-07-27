@@ -71,7 +71,7 @@ class WorkflowTopBar {
     static get _selectors() {
         return {
             formName: '.js-form-name',
-            publishFormButton: '.js-publish-form-button',
+            publishButton: '.js-publish-button',
             autosaveMessage: '.js-autosave-message',
             revertButton: '.js-revert-button'
 
@@ -79,14 +79,17 @@ class WorkflowTopBar {
     }
 
     bindEvents() {
-       /* this.$wrapper.on('keyup', FormEditorTopBar._selectors.formName, this.handleFormNameChange.bind(this));
-        this.$wrapper.on('click', FormEditorTopBar._selectors.publishFormButton, this.handlePublishFormButtonClicked.bind(this));
+
+        this.$wrapper.on('click', WorkflowTopBar._selectors.publishButton, this.handlePublishButtonClicked.bind(this));
+
+        /*this.$wrapper.on('keyup', FormEditorTopBar._selectors.formName, this.handleFormNameChange.bind(this));
         this.$wrapper.on('click', FormEditorTopBar._selectors.revertButton, this.handleRevertButtonClicked.bind(this));*/
     }
 
     unbindEvents() {
+        this.$wrapper.off('click', WorkflowTopBar._selectors.publishButton);
+
        /* this.$wrapper.off('keyup', FormEditorTopBar._selectors.formName);
-        this.$wrapper.off('click', FormEditorTopBar._selectors.publishFormButton);
         this.$wrapper.off('click', FormEditorTopBar._selectors.revertButton);*/
     }
 
@@ -119,11 +122,11 @@ class WorkflowTopBar {
         this.$wrapper.find(FormEditorTopBar._selectors.autosaveMessage).html(autosaveMessage);
     }
 
-    handlePublishFormButtonClicked(e) {
+    handlePublishButtonClicked(e) {
         if(e.cancelable) {
             e.preventDefault();
         }
-        this.globalEventDispatcher.publish(Settings.Events.FORM_EDITOR_PUBLISH_FORM_BUTTON_CLICKED);
+        this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_PUBLISH_BUTTON_CLICKED);
     }
 
     handleRevertButtonClicked(e) {
@@ -152,7 +155,7 @@ class WorkflowTopBar {
                         <div class="navbar-collapse collapse dual-nav w-50 order-3">
                             <ul class="nav navbar-nav ml-auto">
                                 <li class="nav-item">
-                                <span style="color: #FFF; margin-right: 20px;" class="js-autosave-message"></span> <button class="btn btn-lg btn-secondary ml-auto js-publish-form-button">Publish</button>
+                                <span style="color: #FFF; margin-right: 20px;" class="js-autosave-message"></span> <button class="btn btn-lg btn-secondary ml-auto js-publish-button">Publish</button>
                                 </li>
                             </ul>
                         </div>

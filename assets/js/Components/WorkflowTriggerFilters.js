@@ -36,73 +36,6 @@ class WorkflowTriggerFilters {
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
         this.trigger = trigger;
-       /* this.customObjectInternalName = customObjectInternalName;
-
-        /!**
-         * This data object is responsible for storing all the properties and filters that will get sent to the server
-         * @type {{}}
-         *!/
-        this.data = data;
-
-        this.unbindEvents();
-
-        this.globalEventDispatcher.addRemovableToken(
-            this.globalEventDispatcher.subscribe(
-                Settings.Events.REPORT_FILTER_ITEM_ADDED,
-                this.reportFilterItemAddedHandler.bind(this)
-            ));
-
-        this.globalEventDispatcher.addRemovableToken(
-            this.globalEventDispatcher.subscribe(
-                Settings.Events.REPORT_FILTER_ITEM_REMOVED,
-                this.reportFilterItemRemovedHandler.bind(this)
-            ));
-
-        this.$wrapper.on(
-            'click',
-            ReportFilterNavigation._selectors.removeFilterIcon,
-            this.handleRemoveFilterIconPressed.bind(this)
-        );
-
-        this.$wrapper.on(
-            'click',
-            ReportFilterNavigation._selectors.filter,
-            this.handleFilterPressed.bind(this)
-        );
-*/
-
-       /*this.globalEventDispatcher.removeRemovableTokens();*/
-
-
-      /*  this.globalEventDispatcher.subscribe(
-            Settings.Events.WORKFLOW_TRIGGER_ADDED,
-            this.reportFilterItemAddedHandler.bind(this)
-        );*/
-
-     /*   this.globalEventDispatcher.subscribe(
-            Settings.Events.WORKFLOW_TRIGGER_FILTER_UPDATED,
-            this.reportFilterItemRemovedHandler.bind(this)
-        );*/
-
-      /*  this.globalEventDispatcher.addRemovableToken(
-            this.globalEventDispatcher.subscribe(
-                Settings.Events.WORKFLOW_TRIGGER_ADDED,
-                this.reportFilterItemAddedHandler.bind(this)
-            ));
-
-        this.globalEventDispatcher.addRemovableToken(
-            this.globalEventDispatcher.subscribe(
-                Settings.Events.WORKFLOW_TRIGGER_FILTER_UPDATED,
-                this.reportFilterItemRemovedHandler.bind(this)
-            ));*/
-
-
-        this.globalEventDispatcher.addRemovableToken(
-            this.globalEventDispatcher.subscribe(
-                Settings.Events.WORKFLOW_TRIGGER_FILTER_REMOVED,
-                this.reportFilterItemRemovedHandler.bind(this)
-            ));
-
 
         this.unbindEvents();
 
@@ -124,6 +57,24 @@ class WorkflowTriggerFilters {
             this.handleAddFilterButtonPressed.bind(this)
         );
 
+        this.$wrapper.on(
+            'click',
+            WorkflowTriggerFilters._selectors.filter,
+            this.handleFilterPressed.bind(this)
+        );
+
+        this.$wrapper.on(
+            'click',
+            WorkflowTriggerFilters._selectors.newTrigger,
+            this.handleNewTriggerButtonPressed.bind(this)
+        );
+
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.WORKFLOW_TRIGGER_FILTER_REMOVED,
+            this.reportFilterItemRemovedHandler.bind(this)
+        );
+
+
         this.render(this.trigger);
     }
 
@@ -132,31 +83,28 @@ class WorkflowTriggerFilters {
 
             addFilterButton: '.js-add-filter-button',
             addOrFilterButton: '.js-add-or-filter-button',
-            reportSelectedCustomFilters: '.js-report-selected-custom-filters',
+            selectedCustomFilters: '.js-selected-custom-filters',
             filterContainer: '.js-filter-container',
             removeFilterIcon: '.js-remove-filter-icon',
             filter: '.js-filter',
-            addAndFilterButton: '.js-add-and-filter-button'
+            addAndFilterButton: '.js-add-and-filter-button',
+            newTrigger: '.js-new-trigger-button'
         }
     }
 
     unbindEvents() {
-
         this.$wrapper.off('click', WorkflowTriggerFilters._selectors.removeFilterIcon);
-
         this.$wrapper.off('click', WorkflowTriggerFilters._selectors.addAndFilterButton);
-
         this.$wrapper.off('click', WorkflowTriggerFilters._selectors.addFilterButton);
+        this.$wrapper.off('click', WorkflowTriggerFilters._selectors.filter);
+        this.$wrapper.off('click', WorkflowTriggerFilters._selectors.newTrigger);
     }
 
     handleFilterPressed(e) {
 
         const $filter = $(e.currentTarget);
-
-        let joinPath = JSON.parse($filter.attr('data-join-path'));
-
-        this.globalEventDispatcher.publish(Settings.Events.REPORT_EDIT_FILTER_BUTTON_CLICKED, joinPath);
-
+        let uid = $filter.attr('data-uid');
+        this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_EDIT_FILTER_CLICKED, uid);
     }
 
     handleRemoveFilterIconPressed(e) {
@@ -175,6 +123,10 @@ class WorkflowTriggerFilters {
         this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_TRIGGER_ADD_FILTER_BUTTON_PRESSED);
     }
 
+    handleNewTriggerButtonPressed() {
+        this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_NEW_TRIGGER_BUTTON_PRESSED);
+    }
+
     handleAddAndFilterButtonPressed(e) {
 
         const $card = $(e.currentTarget);
@@ -184,7 +136,6 @@ class WorkflowTriggerFilters {
     }
 
     reportFilterItemAddedHandler(workflow, trigger) {
-
          this.renderCustomFilters(trigger);
     }
 
@@ -210,7 +161,7 @@ class WorkflowTriggerFilters {
         debugger;
         let filters = trigger.filters;
 
-        this.$wrapper.find(WorkflowTriggerFilters._selectors.reportSelectedCustomFilters).html("");
+        this.$wrapper.find(WorkflowTriggerFilters._selectors.selectedCustomFilters).html("");
 
         let i = 1;
         for(let filter of filters) {
@@ -224,7 +175,7 @@ class WorkflowTriggerFilters {
                 if(i !== 1) {
                     let conditionalHtml = conditionalTemplate("Or");
                     let $conditionalTemplate = $($.parseHTML(conditionalHtml));
-                    this.$wrapper.find(WorkflowTriggerFilters._selectors.reportSelectedCustomFilters).append($conditionalTemplate);
+                    this.$wrapper.find(WorkflowTriggerFilters._selectors.selectedCustomFilters).append($conditionalTemplate);
                 }
 
                 debugger;
@@ -257,7 +208,7 @@ class WorkflowTriggerFilters {
                         $filters.append($filterTemplate);
                     }
                 }
-                this.$wrapper.find(WorkflowTriggerFilters._selectors.reportSelectedCustomFilters).append($filterContainerTemplate);
+                this.$wrapper.find(WorkflowTriggerFilters._selectors.selectedCustomFilters).append($filterContainerTemplate);
             }
 
             i++;
@@ -300,19 +251,8 @@ class WorkflowTriggerFilters {
     }
 
     render(trigger) {
-
-        debugger;
-        /*   let customFilters = this.getCustomFilters(data);
-           let filterText = 'Add Filter';
-           if(Object.entries(customFilters).length !== 0 && customFilters.constructor === Object) {
-               filterText = 'Add "OR" Filter';
-           }
-   */
         this.$wrapper.html(WorkflowTriggerFilters.markup());
-
-
         this.renderCustomFilters(trigger);
-
     }
 
     static markup() {
@@ -323,10 +263,11 @@ class WorkflowTriggerFilters {
                 <a class="nav-link active js-all-records-button" href="javascript:void()">All Filters</a>
               </li>
               <li class="nav-item">
-                <div class="js-report-selected-custom-filters c-report-widget__selected-filters"></div>
+                <div class="js-selected-custom-filters c-report-widget__selected-filters"></div>
               </li>
               <li class="nav-item">
                 <button type="button" class="btn btn-link js-add-filter-button"><i class="fa fa-plus"></i> Add Filter</button>
+                <button type="button" class="btn btn-link js-new-trigger-button float-right"><i class="fa fa-plus"></i> New Trigger</button>
               </li>
              </ul>
     `;
@@ -345,7 +286,7 @@ const filterContainerTemplate = (uid) => `
 `;
 
 const filterTemplate = (text, uid) => `
-    <div class="card js-filter">
+    <div class="card js-filter" data-uid="${uid}">
         <div class="card-body">
         <h5 class="card-title">${text}</h5>     
         <span><i class="fa fa-times js-remove-filter-icon c-report-widget__filter-remove-icon" aria-hidden="true" data-uid="${uid}"></i></span>
