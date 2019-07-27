@@ -83,9 +83,10 @@ class WorkflowTriggerType {
 
     loadTriggerTypes() {
         this.makeRequestForTriggerTypes().then(data => {
+            debugger;
             this.triggerTypes = data.data;
-            this.renderTriggerTypes(this.triggerTypes).then(() => {
-            })
+            debugger;
+            this.renderTriggerTypes(this.triggerTypes);
         });
     }
 

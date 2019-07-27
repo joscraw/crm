@@ -226,12 +226,15 @@ class WorkflowController extends ApiController
     public function saveWorkflowAction(Portal $portal, Workflow $workflow, Request $request) {
 
         $triggers = !empty($request->request->get('workflow')['triggers']) ? $request->request->get('workflow')['triggers'] : [];
+        $workflowName = $request->request->get('workflow')['name'] ? $request->request->get('workflow')['name'] : '';
 
-        foreach($triggers as $key => $trigger) {
+       /* foreach($triggers as $key => $trigger) {
             $triggers[$key] = $this->serializer->deserialize(json_encode($trigger, true), AbstractTrigger::class, 'json');
-        }
+        }*/
+
         $workflow->setTriggers($triggers);
 
+        $workflow->setName($workflowName);
         $this->entityManager->persist($workflow);
         $this->entityManager->flush();
 

@@ -132,6 +132,12 @@ class WorkflowTrigger {
                 this.workflowPublishButtonClickedHandler.bind(this)
             ));
 
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
+                Settings.Events.WORKFLOW_NAME_CHANGED,
+                this.workflowNameChangedHandler.bind(this)
+            ));
+
         this.loadWorkflow().then((data) => {
             debugger;
             this.workflow = data.data;
@@ -398,6 +404,10 @@ class WorkflowTrigger {
                 resolve(data);
             })
         });
+    }
+
+    workflowNameChangedHandler(workflowName) {
+        this.workflow.name = workflowName;
     }
 
     static markup({portalInternalIdentifier}) {

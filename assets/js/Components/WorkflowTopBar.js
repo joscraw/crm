@@ -39,28 +39,16 @@ import ContextHelper from "../ContextHelper";
 
 class WorkflowTopBar {
 
-    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, form) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, workflow) {
 
         debugger;
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
-        this.form = form;
+        this.workflow = workflow;
 
         this.unbindEvents();
         this.bindEvents();
-
-       /* this.globalEventDispatcher.addRemovableToken(
-            this.globalEventDispatcher.subscribe(
-            Settings.Events.FORM_EDITOR_DATA_SAVED,
-            this.handleDataSaved.bind(this)
-        ));
-
-        this.globalEventDispatcher.addRemovableToken(
-            this.globalEventDispatcher.subscribe(
-            Settings.Events.FORM_PUBLISHED,
-            this.handleDataSaved.bind(this)
-        ));*/
 
         this.render();
     }
@@ -70,7 +58,7 @@ class WorkflowTopBar {
      */
     static get _selectors() {
         return {
-            formName: '.js-form-name',
+            workflowName: '.js-workflow-name',
             publishButton: '.js-publish-button',
             autosaveMessage: '.js-autosave-message',
             revertButton: '.js-revert-button'
@@ -79,23 +67,17 @@ class WorkflowTopBar {
     }
 
     bindEvents() {
-
         this.$wrapper.on('click', WorkflowTopBar._selectors.publishButton, this.handlePublishButtonClicked.bind(this));
-
-        /*this.$wrapper.on('keyup', FormEditorTopBar._selectors.formName, this.handleFormNameChange.bind(this));
-        this.$wrapper.on('click', FormEditorTopBar._selectors.revertButton, this.handleRevertButtonClicked.bind(this));*/
+        this.$wrapper.on('keyup', WorkflowTopBar._selectors.workflowName, this.handleFormNameChange.bind(this));
     }
 
     unbindEvents() {
         this.$wrapper.off('click', WorkflowTopBar._selectors.publishButton);
-
-       /* this.$wrapper.off('keyup', FormEditorTopBar._selectors.formName);
-        this.$wrapper.off('click', FormEditorTopBar._selectors.revertButton);*/
+        this.$wrapper.off('keyup', WorkflowTopBar._selectors.workflowName);
     }
 
     render() {
         this.$wrapper.html(WorkflowTopBar.markup(this));
-        /*this.setAutoSaveMessage();*/
     }
 
     handleDataSaved(form) {
@@ -106,20 +88,12 @@ class WorkflowTopBar {
     }
 
     handleFormNameChange(e) {
+        debugger;
         if(e.cancelable) {
             e.preventDefault();
         }
-        let formName = $(e.target).val();
-        this.globalEventDispatcher.publish(Settings.Events.FORM_EDITOR_FORM_NAME_CHANGED, formName);
-    }
-
-    setAutoSaveMessage() {
-        let autosaveMessage = '';
-        if(!_.isEqual(this.form.data, this.form.draft)) {
-            autosaveMessage = 'Autosaved with unpublished changes <button type="button" class="btn btn-link js-revert-button">revert</button>';
-        }
-
-        this.$wrapper.find(FormEditorTopBar._selectors.autosaveMessage).html(autosaveMessage);
+        let workflowName = $(e.target).val();
+        this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_NAME_CHANGED, workflowName);
     }
 
     handlePublishButtonClicked(e) {
@@ -129,14 +103,7 @@ class WorkflowTopBar {
         this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_PUBLISH_BUTTON_CLICKED);
     }
 
-    handleRevertButtonClicked(e) {
-        if(e.cancelable) {
-            e.preventDefault();
-        }
-        this.globalEventDispatcher.publish(Settings.Events.FORM_EDITOR_REVERT_BUTTON_CLICKED);
-    }
-
-    static markup({portalInternalIdentifier, form}) {
+    static markup({portalInternalIdentifier, workflow}) {
 
         return `            
           
@@ -150,7 +117,7 @@ class WorkflowTopBar {
                             </ul>
                         </div>
         
-                        <input style="width: 200px; text-align: left !important;" class="form-control navbar-brand mx-auto d-block text-center order-1 w-25 js-form-name" type="search" placeholder="Form name" aria-label="Search" value="">
+                        <input style="width: 200px; text-align: left !important;" class="form-control navbar-brand mx-auto d-block text-center order-1 w-25 js-workflow-name" type="search" placeholder="Form name" aria-label="Search" value="${workflow.name}">
         
                         <div class="navbar-collapse collapse dual-nav w-50 order-3">
                             <ul class="nav navbar-nav ml-auto">
