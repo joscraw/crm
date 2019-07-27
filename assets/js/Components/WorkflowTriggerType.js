@@ -80,6 +80,8 @@ class WorkflowTriggerType {
 
         this.$wrapper.off('keyup', WorkflowTriggerType._selectors.search);
         this.$wrapper.off('click', WorkflowTriggerType._selectors.propertyListItem);
+
+        this.$wrapper.off('click', WorkflowTriggerType._selectors.triggerListItem);
         /*
         this.$wrapper.off('click', ListPropertyList._selectors.backButton);*/
     }
@@ -189,11 +191,11 @@ class WorkflowTriggerType {
             return;
         }
 
-        let triggerId = $listItem.attr('data-trigger-id');
+        let triggerName = $listItem.attr('data-trigger-name');
 
 
         let trigger = this.triggerTypes.filter(trigger => {
-            return parseInt(trigger.id) === parseInt(triggerId);
+            return trigger.name === triggerName;
         });
 
         debugger;
@@ -203,7 +205,7 @@ class WorkflowTriggerType {
     renderTriggerTypes(triggerTypes) {
 
         debugger;
-        let $propertyList = this.$wrapper.find(WorkflowTriggerType._selectors.propertyList);
+        let $propertyList = this.$wrapper.find(WorkflowTriggerType._selectors.triggerList);
         $propertyList.html("");
 
 
@@ -250,15 +252,15 @@ class WorkflowTriggerType {
         $triggerList.append($list);
 
         var options = {
-            valueNames: [ 'label' ],
+            valueNames: [ 'description' ],
             // Since there are no elements in the list, this will be used as template.
-            item: `<div class="js-trigger-list-item c-private-card__item"><span class="label"></span></div>`
+            item: `<div class="js-trigger-list-item c-private-card__item"><span class="description"></span></div>`
         };
 
         this.lists.push(new List(`list-triggers`, options, triggerTypes));
 
         $( `#list-triggers .js-trigger-list-item` ).each((index, element) => {
-            $(element).attr('data-trigger-id', triggerTypes[index].id);
+            $(element).attr('data-trigger-name', triggerTypes[index].name);
         });
     }
 

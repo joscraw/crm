@@ -117,6 +117,9 @@ class WorkflowDenormalizer implements DenormalizerInterface, DenormalizerAwareIn
         switch($data['name']) {
             case 'property_trigger':
                 /** @var PropertyTrigger $trigger */
+
+                $data['customObject']['id'] = (int) $data['customObject']['id'];
+
                 $trigger = $this->denormalizer->denormalize(
                     $data,
                     PropertyTrigger::class,

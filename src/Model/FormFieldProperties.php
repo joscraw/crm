@@ -2,6 +2,8 @@
 
 namespace App\Model;
 
+use Symfony\Component\Serializer\Annotation\Groups;
+
 /**
  * Trait FormFieldProperties
  * @package App\Model
@@ -19,6 +21,7 @@ trait FormFieldProperties
     protected $placeholderText;
 
     /**
+     * @Groups({"TRIGGER"})
      * @var string
      */
     protected $uid;

@@ -13,4 +13,25 @@ use Symfony\Component\Serializer\Annotation\Groups;
  */
 abstract class AbstractTrigger
 {
+    /**
+     * @Groups({"TRIGGER"})
+     * @var string
+     */
+    protected $uid;
+
+    /**
+     * @return mixed
+     */
+    public function getUid()
+    {
+        return $this->uid;
+    }
+
+    /**
+     * @param mixed $uid
+     */
+    public function setUid($uid)
+    {
+        $this->uid = $uid;
+    }
 }

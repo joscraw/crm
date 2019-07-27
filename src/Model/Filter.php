@@ -31,16 +31,15 @@ class Filter extends Property
 
     /**
      * @Groups({"TRIGGER"})
-     * @var array
+     * @var string
      */
-    protected $referencedFilterPaths = [];
+    protected $referencedFilterPath;
 
     /**
      * @Groups({"TRIGGER"})
      * @var array
      */
-    protected $orFilters = [];
-
+    protected $andFilters = [];
 
     /**
      * @return mixed
@@ -91,34 +90,34 @@ class Filter extends Property
     }
 
     /**
+     * @return string
+     */
+    public function getReferencedFilterPath()
+    {
+        return $this->referencedFilterPath;
+    }
+
+    /**
+     * @param string $referencedFilterPath
+     */
+    public function setReferencedFilterPath(string $referencedFilterPath)
+    {
+        $this->referencedFilterPath = $referencedFilterPath;
+    }
+
+    /**
      * @return array
      */
-    public function getReferencedFilterPaths()
+    public function getAndFilters()
     {
-        return $this->referencedFilterPaths;
+        return $this->andFilters;
     }
 
     /**
-     * @param $referencedFilterPaths
+     * @param $andFilters
      */
-    public function setReferencedFilterPaths($referencedFilterPaths)
+    public function setAndFilters($andFilters)
     {
-        $this->referencedFilterPaths = $referencedFilterPaths;
-    }
-
-    /**
-     * @return array
-     */
-    public function getOrFilters()
-    {
-        return $this->orFilters;
-    }
-
-    /**
-     * @param $orFilters
-     */
-    public function setOrFilters($orFilters)
-    {
-        $this->orFilters = $orFilters;
+        $this->andFilters = $andFilters;
     }
 }

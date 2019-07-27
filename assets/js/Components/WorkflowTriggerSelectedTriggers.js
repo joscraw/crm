@@ -29,35 +29,63 @@ class WorkflowTriggerSelectedTriggers {
 
         this.globalEventDispatcher.addRemovableToken(
             this.globalEventDispatcher.subscribe(
-            Settings.Events.LIST_PROPERTY_LIST_ITEM_REMOVED,
-            this.handlePropertyListItemRemoved.bind(this)
-        ));
-
-        this.globalEventDispatcher.addRemovableToken(
-            this.globalEventDispatcher.subscribe(
             Settings.Events.LIST_COLUMN_ORDER_UPDATED,
             this.handleListColumnOrderUpdated.bind(this)
         ));
 
         this.unbindEvents();
 
-        this.$wrapper.on(
-            'click',
-            ListSelectedColumns._selectors.removeSelectedColumnIcon,
-            this.handleRemoveSelectedColumnIconClicked.bind(this)
-        );
+
 */
 
         this.globalEventDispatcher.addRemovableToken(
             this.globalEventDispatcher.subscribe(
-                Settings.Events.WORKFLOW_TRIGGER_ADDED,
-                this.handleWorkflowTriggerAdded.bind(this)
+                Settings.Events.WORKFLOW_TRIGGER_REMOVED,
+                this.handleTriggerRemoved.bind(this)
             ));
 
-        this.setSelectedColumns(this.workflow);
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
+                Settings.Events.WORKFLOW_TRIGGER_ADDED,
+                this.handleTriggerAdded.bind(this)
+            ));
 
-        this.activatePlugins();
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
+                Settings.Events.WORKFLOW_TRIGGER_FILTER_ADDED,
+                this.handleTriggerAdded.bind(this)
+            ));
 
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
+                Settings.Events.WORKFLOW_TRIGGER_FILTER_REMOVED,
+                this.handleTriggerAdded.bind(this)
+            ));
+
+        this.$wrapper.on(
+            'click',
+            WorkflowTriggerSelectedTriggers._selectors.removeSelectedColumnIcon,
+            this.handleRemoveSelectedColumnIconClicked.bind(this)
+        );
+
+        this.$wrapper.on(
+            'click',
+            WorkflowTriggerSelectedTriggers._selectors.selectedColumn,
+            this.handleSelectedColumnClicked.bind(this)
+        );
+
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
+                Settings.Events.WORKFLOW_TRIGGER_ADDED,
+                this.handleTriggerAdded.bind(this)
+            ));
+
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.WORKFLOW_SAVED,
+            this.handleWorkflowSave.bind(this)
+        );
+
+        this.renderTriggers(workflow.triggers);
     }
 
     /**
@@ -65,23 +93,9 @@ class WorkflowTriggerSelectedTriggers {
      */
     static get _selectors() {
         return {
-            removeSelectedColumnIcon: '.js-remove-selected-column-icon'
+            removeSelectedColumnIcon: '.js-remove-selected-column-icon',
+            selectedColumn: '.js-selected-column'
         }
-    }
-
-    activatePlugins() {
-
-        this.$wrapper.sortable({
-            placeholder: "ui-state-highlight",
-            cursor: 'crosshair',
-            update: (event, ui) => {
-                let columnOrder = $(event.target).sortable('toArray');
-
-                this.globalEventDispatcher.publish(Settings.Events.LIST_COLUMN_ORDER_CHANGED, columnOrder);
-
-            }
-        });
-
     }
 
     unbindEvents() {
@@ -90,97 +104,84 @@ class WorkflowTriggerSelectedTriggers {
 
     }
 
+    handleTriggerUpdated(workflow) {
+        debugger;
+        this.workflow = workflow;
+        this.renderTriggers(workflow.triggers);
+    }
+
+
+    handleTriggerRemoved(workflow) {
+        this.workflow = workflow;
+        this.renderTriggers(workflow.triggers);
+    }
+
+    handleTriggerAdded(workflow) {
+        debugger;
+        this.workflow = workflow;
+        this.renderTriggers(workflow.triggers);
+    }
+
     handleRemoveSelectedColumnIconClicked(e) {
 
+        debugger;
         if(e.cancelable) {
             e.preventDefault();
         }
 
         e.stopPropagation();
 
-        let propertyId = $(e.target).attr('data-property-id');
-        let joinString = $(e.target).attr('data-joins');
-        let joins = JSON.parse(joinString);
-        let propertyPath = joins.join('.');
+        let uid = $(e.target).attr('data-uid');
+
+        this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_REMOVE_TRIGGER_BUTTON_PRESSED, uid);
+
+    }
+
+    handleSelectedColumnClicked(e) {
 
         debugger;
-        if(_.has(this.data, propertyPath)) {
-
-            debugger;
-            let property = _.get(this.data, propertyPath);
-
-            this.globalEventDispatcher.publish(Settings.Events.LIST_REMOVE_SELECTED_COLUMN_ICON_CLICKED, property);
+        if(e.cancelable) {
+            e.preventDefault();
         }
+
+        let uid = $(e.currentTarget).attr('data-uid');
+
+        this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_EDIT_TRIGGER_CLICKED, uid);
     }
 
-    handlePropertyListItemAdded(data, columnOrder) {
-
-        this.data = data;
-
-        this.columnOrder = columnOrder;
-
-        this.setSelectedColumns(data, columnOrder);
+    handleWorkflowSave(workflow) {
+        this.workflow = workflow;
+        this.renderTriggers(workflow.triggers);
     }
 
-    handlePropertyListItemRemoved(data, columnOrder) {
+    renderTriggers(triggers) {
 
-        this.data = data;
-
-        this.columnOrder = columnOrder;
-
-        this.setSelectedColumns(data, columnOrder);
-
-    }
-
-    handleWorkflowTriggerAdded(triggers) {
-
-        debugger;
-       /* this.data = data;
-
-        this.columnOrder = columnOrder;*/
-
-        this.setSelectedColumns(triggers);
-
-    }
-
-    setSelectedColumns(workflow) {
-
-        debugger;
         this.$wrapper.html("");
 
-        if(_.isEmpty(workflow.triggers, true)) {
+        if(_.isEmpty(triggers, true)) {
             this.$wrapper.html(emptyListTemplate());
             return;
         }
 
-        for(let trigger of workflow.triggers) {
+        for(let trigger of triggers) {
 
-            /*let joins = column.joins.concat([column.uID]);*/
-
-            /*this._addSelectedColumn(column.label, column.id, JSON.stringify(joins));*/
-
-            this._addSelectedColumn(trigger);
+            this._addItem(trigger);
 
         }
-
     }
 
+    _addItem(trigger) {
 
-    _addSelectedColumn(trigger) {
-
-        debugger;
-        const html = selectedColumnTemplate(trigger);
+        let numOfFilters = 'filters' in trigger ? trigger.filters.length : 0;
+        const html = itemTemplate(trigger, numOfFilters);
         const $selectedColumnTemplate = $($.parseHTML(html));
         this.$wrapper.append($selectedColumnTemplate);
-
-        this.activatePlugins();
-
     }
 }
 
-const selectedColumnTemplate = ({name, description}) => `
-    <div class="card js-selected-column"}>
-        <div class="card-body c-report-widget__card-body">${name} ${description}<span><i class="fa fa-times js-remove-selected-column-icon c-report-widget__remove-column-icon" aria-hidden="true"></i></span></div>
+const itemTemplate = ({name, description, uid}, numOfFilters) => `
+    <div class="card js-selected-column" data-uid="${uid}">
+        <div class="card-body c-report-widget__card-body">Trigger: ${description} - Total filters: ${numOfFilters}<span><i data-uid="${uid}" class="fa fa-times js-remove-selected-column-icon c-report-widget__remove-column-icon" aria-hidden="true"></i></span></div>
     </div>
 `;
 

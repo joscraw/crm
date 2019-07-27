@@ -51,7 +51,7 @@ class WorkflowTriggerPropertyList {
             propertyListItem: '.js-property-list-item',
             list: '.js-list',
             propertyList: '.js-property-list',
-            backButton: '.js-back-button',
+            backButton: '.js-backButton',
             backToCustomObjectListButton: '.js-back-to-custom-object-list-button'
 
         }
@@ -73,8 +73,8 @@ class WorkflowTriggerPropertyList {
 
         this.$wrapper.on(
             'click',
-            WorkflowTriggerPropertyList._selectors.backToCustomObjectListButton,
-            this.handleBackToCustomObjectListButtonClicked.bind(this)
+            WorkflowTriggerPropertyList._selectors.backButton,
+            this.handleBackButtonClicked.bind(this)
         );
 
         this.globalEventDispatcher.addRemovableToken(
@@ -98,6 +98,10 @@ class WorkflowTriggerPropertyList {
      * you need to remove the handlers otherwise they will keep stacking up
      */
     unbindEvents() {
+
+
+        this.$wrapper.off('click', WorkflowTriggerPropertyList._selectors.backButton);
+
 /*
         this.$wrapper.off('keyup', FormEditorPropertyList._selectors.search);
         this.$wrapper.off('click', FormEditorPropertyList._selectors.propertyListItem);*/
@@ -105,6 +109,17 @@ class WorkflowTriggerPropertyList {
         this.$wrapper.off('click', ListPropertyList._selectors.backButton);*/
 
         this.$wrapper.off('click', WorkflowTriggerPropertyList._selectors.propertyListItem);
+    }
+
+    handleBackButtonClicked(e) {
+
+        debugger;
+        e.stopPropagation();
+
+        this.globalEventDispatcher.publish(
+            Settings.Events.WORKFLOW_TRIGGER_BACK_BUTTON_CLICKED,
+            Settings.VIEWS.WORKFLOW_TRIGGER_SELECT_CUSTOM_OBJECT
+        );
     }
 
     handleKeyupEvent(e) {
@@ -159,15 +174,6 @@ class WorkflowTriggerPropertyList {
         e.stopPropagation();
 
         this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_TRIGGER_BACK_TO_CUSTOM_OBJECT_LIST_BUTTON_CLICKED);
-
-    }
-
-    handleBackButtonClicked(e) {
-
-        debugger;
-        e.stopPropagation();
-
-        this.globalEventDispatcher.publish(Settings.Events.LIST_BACK_BUTTON_CLICKED);
 
     }
 
@@ -228,7 +234,7 @@ class WorkflowTriggerPropertyList {
         let propertyGroupId = $listItem.closest(WorkflowTriggerPropertyList._selectors.list).attr('data-property-group');
         let propertyId = $listItem.attr('data-property-id');
         let joins = JSON.parse($listItem.attr('data-joins'));
-        let referencedFilterPath = JSON.parse($listItem.attr('data-referenced-filter-path'));
+        let referencedFilterPath = $listItem.attr('data-referenced-filter-path');
 
         let propertyGroup = this.propertyGroups.filter(propertyGroup => {
             return parseInt(propertyGroup.id) === parseInt(propertyGroupId);
@@ -317,7 +323,7 @@ class WorkflowTriggerPropertyList {
             debugger;
             if(this.referencedFilterPath) {
                 debugger;
-                $(element).attr('data-referenced-filter-path', JSON.stringify(this.referencedFilterPath));
+                $(element).attr('data-referenced-filter-path', this.referencedFilterPath);
             }
 
             if(this.join) {
@@ -345,7 +351,7 @@ class WorkflowTriggerPropertyList {
             <br>
             <h2>Add workflow trigger</h2>
             <div>
-                <button type="button" class="btn btn-link js-back-to-custom-object-list-button float-left"><i class="fa fa-chevron-left"></i> Back</button>
+                <button type="button" class="btn btn-link js-backButton float-left"><i class="fa fa-chevron-left"></i> Back</button>
             </div>
            
             <div class="input-group c-search-control">

@@ -31,6 +31,7 @@ use App\Form\WorkflowType;
 use App\Model\AbstractField;
 use App\Model\AbstractTrigger;
 use App\Model\FieldCatalog;
+use App\Model\PropertyTrigger;
 use App\Model\WorkflowTriggerCatalog;
 use App\Repository\CustomObjectRepository;
 use App\Repository\FolderRepository;
@@ -216,6 +217,33 @@ class WorkflowController extends ApiController
     }
 
     /**
+     * @Route("{internalIdentifier}/api/workflows/{uid}/save", name="save_workflow", methods={"POST"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param Workflow $workflow
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function saveWorkflowAction(Portal $portal, Workflow $workflow, Request $request) {
+
+        $triggers = !empty($request->request->get('workflow')['triggers']) ? $request->request->get('workflow')['triggers'] : [];
+
+        foreach($triggers as $key => $trigger) {
+            $triggers[$key] = $this->serializer->deserialize(json_encode($trigger, true), AbstractTrigger::class, 'json');
+        }
+        $workflow->setTriggers($triggers);
+
+        $this->entityManager->persist($workflow);
+        $this->entityManager->flush();
+
+        return new JsonResponse(
+            [
+                'success' => true,
+            ],
+            Response::HTTP_OK
+        );
+    }
+
+    /**
      * @Route("{internalIdentifier}/api/workflows/{uid}/add-trigger", name="workflow_add_trigger", methods={"POST"}, options = { "expose" = true })
      * @param Portal $portal
      * @param Workflow $workflow
@@ -270,12 +298,7 @@ class WorkflowController extends ApiController
     public function getTriggerTypes(Portal $portal, Request $request) {
 
         $payload = [
-            [
-                'id' => 1,
-                'internalName' => WorkflowTriggerCatalog::PROPERTY_BASED_TRIGGER,
-                'label' => 'Property Based Trigger',
-                'name'  => 'property_trigger'
-            ]
+            json_decode($this->serializer->serialize(new PropertyTrigger(), 'json', ['groups' => ['TRIGGER']]), true)
         ];
 
         return new JsonResponse([

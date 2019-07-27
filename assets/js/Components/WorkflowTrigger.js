@@ -20,6 +20,8 @@ import MultilpleCheckboxFieldFilterForm from "./MultilpleCheckboxFieldFilterForm
 import WorkflowTriggerFilters from "./WorkflowTriggerFilters";
 import ReportFilterList from "./ReportFilterList";
 import WorkflowTriggerSelectedTriggers from "./WorkflowTriggerSelectedTriggers";
+import FormEditorTopBar from "./FormEditorTopBar";
+import WorkflowTopBar from "./WorkflowTopBar";
 
 class WorkflowTrigger {
 
@@ -54,12 +56,6 @@ class WorkflowTrigger {
             this.handleAddTriggerButtonClicked.bind(this)
         );
 
-        this.$wrapper.on(
-            'submit',
-            WorkflowTrigger._selectors.workflowTriggerForm,
-            this.handleFormSubmit.bind(this)
-        );
-
         this.globalEventDispatcher.subscribe(
             Settings.Events.WORKFLOW_TRIGGER_LIST_ITEM_CLICKED,
             this.handleTriggerListItemClicked.bind(this)
@@ -76,13 +72,8 @@ class WorkflowTrigger {
         );
 
         this.globalEventDispatcher.subscribe(
-            Settings.Events.WORKFLOW_TRIGGER_BACK_TO_CUSTOM_OBJECT_LIST_BUTTON_CLICKED,
-            this.handleBackToCustomObjectListButtonClicked.bind(this)
-        );
-
-        this.globalEventDispatcher.subscribe(
-            Settings.Events.WORKFLOW_TRIGGER_BACK_TO_WORKFLOW_TRIGGER_TYPE_BUTTON_CLICKED,
-            this.handleBackToWorkflowTriggerButtonClicked.bind(this)
+            Settings.Events.WORKFLOW_TRIGGER_BACK_BUTTON_CLICKED,
+            this.handleBackButtonClicked.bind(this)
         );
 
         this.globalEventDispatcher.subscribe(
@@ -94,6 +85,12 @@ class WorkflowTrigger {
             Settings.Events.WORKFLOW_TRIGGER_CUSTOM_OBJECT_FILTER_LIST_ITEM_CLICKED,
             this.handleListCustomObjectFilterListItemClicked.bind(this)
         );
+
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.WORKFLOW_EDIT_TRIGGER_CLICKED,
+            this.handleWorkflowEditTriggerClicked.bind(this)
+        );
+
 
         this.globalEventDispatcher.subscribe(
             Settings.Events.APPLY_CUSTOM_FILTER_BUTTON_PRESSED,
@@ -112,9 +109,24 @@ class WorkflowTrigger {
                 this.reportAddFilterButtonPressedHandler.bind(this)
             ));
 
+
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
+                Settings.Events.WORKFLOW_REMOVE_FILTER_BUTTON_PRESSED,
+                this.workflowRemoveFilterButtonPressedHandler.bind(this)
+            ));
+
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
+                Settings.Events.WORKFLOW_REMOVE_TRIGGER_BUTTON_PRESSED,
+                this.workflowRemoveTriggerButtonPressedHandler.bind(this)
+            ));
+
+
         this.loadWorkflow().then((data) => {
             debugger;
             this.workflow = data.data;
+
             this.render();
         });
 
@@ -136,12 +148,16 @@ class WorkflowTrigger {
      */
     static get _selectors() {
         return {
+
+            workflowTriggerContainer: '.js-workflow-trigger-container',
+
             workflowTriggerTypeContainer: '.js-workflow-trigger-type-container',
             workflowTriggerCustomObjectContainer: '.js-workflow-trigger-custom-object-container',
             workflowTriggerPropertyListContainer: '.js-workflow-trigger-property-list-container',
             workflowTriggerFiltersContainer: '.js-workflow-trigger-filters-container',
             addTriggerButton: '.js-add-trigger-button',
             workflowTriggerListContainer: '.js-workflow-trigger-list-container',
+            topBar: '.js-top-bar',
 
             workflowTriggerFormContainer: '.js-workflow-trigger-form-container',
             addItem: '.js-addItem',
@@ -161,157 +177,140 @@ class WorkflowTrigger {
 
     handleTriggerListItemClicked(trigger) {
         debugger;
-
-        _.unset(this.trigger, 'root');
-
         this.trigger = trigger;
+        this.trigger.uid = this.trigger.uid === null ? StringHelper.makeCharId() : this.trigger.uid;
+        this.workflow.triggers.push(this.trigger);
 
-        this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerTypeContainer).addClass('d-none');
-        this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerCustomObjectContainer).removeClass('d-none');
+        switch (trigger.name) {
+            case 'property_trigger':
+                new WorkflowTriggerCustomObject(this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.uid, this.trigger);
+                break;
+        }
 
-        new WorkflowTriggerCustomObject(this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerCustomObjectContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.uid, this.trigger);
+        this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_TRIGGER_ADDED, this.workflow);
     }
 
     reportAddOrFilterButtonPressedHandler(referencedFilterPath) {
-        debugger;
+        new WorkflowTriggerPropertyList(this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.uid, this.trigger.customObject, null, [], {}, referencedFilterPath);
+    }
 
-        this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerFiltersContainer).addClass('d-none');
-        this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerPropertyListContainer).removeClass('d-none');
-
-        new WorkflowTriggerPropertyList(this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerPropertyListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.uid, this.trigger.customObject, null, [], {}, referencedFilterPath);
+    handleWorkflowEditTriggerClicked(uid) {
+        let index = this.workflow.triggers.findIndex(trigger => trigger.uid === uid);
+        this.trigger = this.workflow.triggers[index];
+        new WorkflowTriggerFilters(this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.trigger);
     }
 
     reportAddFilterButtonPressedHandler() {
         debugger;
-
-        this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerFiltersContainer).addClass('d-none');
-        this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerPropertyListContainer).removeClass('d-none');
-
-        new WorkflowTriggerPropertyList(this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerPropertyListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.uid, this.trigger.customObject);
+        new WorkflowTriggerPropertyList(this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.uid, this.trigger.customObject);
     }
 
-    handleBackToCustomObjectListButtonClicked() {
-        this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerCustomObjectContainer).removeClass('d-none');
-        this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerPropertyListContainer).addClass('d-none');
-        /*new WorkflowTriggerCustomObject(this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerCustomObjectContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.uid, this.trigger);*/
-    }
-
-    handleBackToWorkflowTriggerButtonClicked() {
-        this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerCustomObjectContainer).addClass('d-none');
-        this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerTypeContainer).removeClass('d-none');
+    handleBackButtonClicked(view) {
+        debugger;
+        switch (view) {
+            case Settings.VIEWS.WORKFLOW_TRIGGER_SELECT_TRIGGER_TYPE:
+                new WorkflowTriggerType(this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.uid);
+                break;
+            case Settings.VIEWS.WORKFLOW_TRIGGER_SELECT_CUSTOM_OBJECT:
+                new WorkflowTriggerCustomObject(this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.uid, this.trigger);
+                break;
+        }
     }
 
     handleFilterBackToListButtonClicked() {
-        this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerPropertyListContainer).removeClass('d-none');
-        this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerFormContainer).addClass('d-none');
+        new WorkflowTriggerPropertyList(this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.uid, this.trigger.customObject);
     }
 
     handleWorkflowTriggerCustomObjectListItemClicked(customObject) {
-        debugger;
-
-        _.unset(this.trigger, 'root');
-
         this.trigger.customObject = customObject;
-
-        this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerCustomObjectContainer).addClass('d-none');
-        this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerPropertyListContainer).removeClass('d-none');
-
-        new WorkflowTriggerPropertyList(this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerPropertyListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.uid, customObject);
+        new WorkflowTriggerPropertyList(this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.uid, this.trigger.customObject);
     }
 
     handleListCustomObjectFilterListItemClicked(property, joins) {
-
-        debugger;
         let propertyPath = property.joins.join('.');
 
         if(!_.has(this.data, propertyPath)) {
             _.set(this.data, propertyPath, {});
         }
 
-        new WorkflowTriggerPropertyList(this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerPropertyListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.uid, property.field.customObject, property, joins, this.data, property.referencedFilterPath);
+        new WorkflowTriggerPropertyList(this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.uid, property.field.customObject, property, joins, this.data, property.referencedFilterPath);
+    }
 
-        /*this.globalEventDispatcher.publish(Settings.Events.LIST_FILTER_CUSTOM_OBJECT_JOIN_PATH_SET, property, joins, this.data);*/
+    workflowRemoveFilterButtonPressedHandler(uid) {
+        debugger;
 
+        let triggerIndex = this.workflow.triggers.findIndex(trigger => trigger.uid === this.trigger.uid);
+
+        this.workflow.triggers[triggerIndex].filters = jQuery.grep(this.workflow.triggers[triggerIndex].filters, function( n, i ) {
+            return ( n.uid !== uid );
+        });
+
+        debugger;
+
+        for (let filter of this.workflow.triggers[triggerIndex].filters) {
+            debugger;
+            // remove any filters that have the uid in their andFilters array
+            _.remove(filter.andFilters, function (el) {
+                return el === uid;
+            });
+
+            debugger;
+            let index = this.trigger.filters.findIndex(filter => filter.referencedFilterPath === uid);
+            if(index !== -1) {
+                filter.referencedFilterPath = "";
+            }
+        }
+
+        this._saveWorkflow();
+
+        this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_TRIGGER_FILTER_REMOVED, this.workflow, this.trigger);
+
+        debugger;
+    }
+
+    workflowRemoveTriggerButtonPressedHandler(uid) {
+
+        debugger;
+
+        this.workflow.triggers = jQuery.grep(this.workflow.triggers, function( n, i ) {
+            return ( n.uid !== uid );
+        });
+
+        debugger;
+
+        this._saveWorkflow();
+
+        this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_TRIGGER_REMOVED, this.workflow);
+
+        if(this.trigger && this.trigger.uid === uid) {
+            new WorkflowTriggerType(this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.uid);
+        }
     }
 
     handleWorkflowTriggerPropertyListItemClicked(property) {
 
-        this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerPropertyListContainer).addClass('d-none');
-        this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerFormContainer).removeClass('d-none');
-
-        debugger;
         switch (property.fieldType) {
             case 'single_line_text_field':
             case 'multi_line_text_field':
-                new SingleLineTextFieldFilterForm($(WorkflowTrigger._selectors.workflowTriggerFormContainer), this.globalEventDispatcher, this.portalInternalIdentifier, property);
+                new SingleLineTextFieldFilterForm($(WorkflowTrigger._selectors.workflowTriggerContainer), this.globalEventDispatcher, this.portalInternalIdentifier, property);
                 break;
             case 'number_field':
-                new NumberFieldFilterForm($(WorkflowTrigger._selectors.workflowTriggerFormContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.trigger.customObject.internalName, property);
+                new NumberFieldFilterForm($(WorkflowTrigger._selectors.workflowTriggerContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.trigger.customObject.internalName, property);
                 break;
             case 'date_picker_field':
-                new DatePickerFieldFilterForm($(WorkflowTrigger._selectors.workflowTriggerFormContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.trigger.customObject.internalName, property);
+                new DatePickerFieldFilterForm($(WorkflowTrigger._selectors.workflowTriggerContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.trigger.customObject.internalName, property);
                 break;
             case 'single_checkbox_field':
-                new SingleCheckboxFieldFilterForm($(WorkflowTrigger._selectors.workflowTriggerFormContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.trigger.customObject.internalName, property);
+                new SingleCheckboxFieldFilterForm($(WorkflowTrigger._selectors.workflowTriggerContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.trigger.customObject.internalName, property);
                 break;
             case 'dropdown_select_field':
             case 'radio_select_field':
-                new DropdownSelectFieldFilterForm($(WorkflowTrigger._selectors.workflowTriggerFormContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.trigger.customObject.internalName, property);
+                new DropdownSelectFieldFilterForm($(WorkflowTrigger._selectors.workflowTriggerContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.trigger.customObject.internalName, property);
                 break;
             case 'multiple_checkbox_field':
-                new MultilpleCheckboxFieldFilterForm($(WorkflowTrigger._selectors.workflowTriggerFormContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.trigger.customObject.internalName, property);
+                new MultilpleCheckboxFieldFilterForm($(WorkflowTrigger._selectors.workflowTriggerContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.trigger.customObject.internalName, property);
                 break;
         }
-
-    }
-
-    handleFormSubmit(e) {
-
-        debugger;
-
-        if(e.cancelable) {
-            e.preventDefault();
-        }
-
-        const $form = $(e.currentTarget);
-        let formData = new FormData($form.get(0));
-
-        this._saveTrigger(formData).then((data) => {
-
-            this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_TRIGGER_SAVED);
-
-            this.loadForm();
-
-   /*         toastr.options.showMethod = "slideDown";
-            toastr.options.hideMethod = "slideUp";
-            toastr.options.preventDuplicates = true;*/
-
-
-            /*toastr.options = {
-                "closeButton": false,
-                "debug": false,
-                "newestOnTop": false,
-                "progressBar": false,
-                "positionClass": "js-top-bar",
-                "preventDuplicates": false,
-                "onclick": null,
-                "showDuration": "300",
-                "hideDuration": "1000",
-                "timeOut": "5000",
-                "extendedTimeOut": "1000",
-                "showEasing": "swing",
-                "hideEasing": "linear",
-                "showMethod": "fadeIn",
-                "hideMethod": "fadeOut",
-            };
-
-            toastr.success('Please select a question', 'Error!');*/
-
-            toastr.options.positionClass = 't-private-template';
-
-            toastr.success('success', {positionClass : "t-private-template"});
-
-        }).catch((errorData) => {});
     }
 
     handleStartButtonClicked(e) {
@@ -337,65 +336,29 @@ class WorkflowTrigger {
 
         debugger;
 
-        let filterPath = `filters.` + customFilter.joins.join('.') + `.filters`,
-            referencedFilterPath = customFilter.referencedFilterPath.join('.'),
-            uID = StringHelper.makeCharId();
-
-        if(!_.has(this.trigger, 'filters')) {
-            _.set(this.trigger, 'filters', []);
-        }
 
 
 
+        /*let filterPath = `filters.` + customFilter.joins.join('.') + `.filters`;*/
+            /*referencedFilterPath = customFilter.referencedFilterPath.join('.');*/
 
-        if(_.keys(_.get(this.trigger, `${filterPath}.referencedFilterPath`, [])).length !== 0) {
+        customFilter.uid = StringHelper.makeCharId();
 
-            referencedFilterPath = customFilter.referencedFilterPath.join('.');
-        }
-
-        // if it has a joinPath we are editing the filter and th4e uID already exists
-        if(_.has(customFilter, 'joinPath')) {
-
-            filterPath = customFilter.joinPath.join('.');
-
-            _.set(this.trigger, filterPath, customFilter);
-
-        } else if(_.has(this.trigger, filterPath)) {
-
-            _.set(this.trigger, `${filterPath}[${uID}]`, customFilter);
-
-            _.set(this.trigger, `${filterPath}[${uID}].orFilters`, {});
-
-            if(referencedFilterPath !== "") {
-
-                let orFilterPath = customFilter.joins.concat(['filters', uID]);
-
-                _.set(this.trigger, `${referencedFilterPath}.orFilters.${uID}`, orFilterPath);
-
+        if(customFilter.referencedFilterPath) {
+            let index = this.trigger.filters.findIndex(filter => filter.uid === customFilter.referencedFilterPath);
+            if(!_.has(this.trigger.filters[index], 'andFilters')) {
+                this.trigger.filters[index].andFilters = [];
             }
-
-        } else {
-
-            this.trigger.filters.push(customFilter);
-
-           /* _.set(this.trigger, filterPath, {});*/
-
-           /* _.set(this.trigger, `${filterPath}[${uID}]`, customFilter);
-
-            _.set(this.trigger, `${filterPath}[${uID}].orFilters`, {});*/
-
-           /* if(referencedFilterPath !== "") {
-
-                let orFilterPath = customFilter.joins.concat(['filters', uID]);
-
-                _.set(this.trigger, `${referencedFilterPath}.orFilters.${uID}`, orFilterPath);
-
-            }*/
+            this.trigger.filters[index].andFilters.push(customFilter.uid);
         }
-        /*this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_TRIGGER_FILTER_ITEM_ADDED, this.trigger);*/
 
-        this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerFiltersContainer).removeClass('d-none');
-        this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerFormContainer).addClass('d-none');
+        this.trigger.filters.push(customFilter);
+
+        debugger;
+
+        this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_TRIGGER_FILTER_ADDED, this.workflow);
+
+        new WorkflowTriggerFilters(this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.trigger);
 
     }
 
@@ -436,46 +399,37 @@ class WorkflowTrigger {
 
         this.workflow.triggers.push(this.trigger);
 
-        this._saveWorkflow();
-        debugger;
-
-        this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_TRIGGER_ADDED, this.workflow.triggers);
-
+        this._saveWorkflow().then((data) => {
+            debugger;
+            this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_TRIGGER_ADDED, this.workflow.triggers);
+        });
     }
 
     _saveWorkflow() {
-
         return new Promise((resolve, reject) => {
-            debugger;
-            const url = Routing.generate('workflow_add_trigger', {internalIdentifier: this.portalInternalIdentifier, uid: this.uid});
-
+            const url = Routing.generate('save_workflow', {internalIdentifier: this.portalInternalIdentifier, uid: this.uid});
             $.ajax({
                 url,
                 method: 'POST',
                 data: {'workflow': this.workflow}
             }).then((data, textStatus, jqXHR) => {
-
                 debugger;
                 resolve(data);
-
             }).catch((jqXHR) => {
                 debugger;
                 const errorData = JSON.parse(jqXHR.responseText);
                 errorData.httpCode = jqXHR.status;
-
                 reject(errorData);
             });
         });
-
     }
 
     render() {
         this.$wrapper.html(WorkflowTrigger.markup(this));
 
+        new WorkflowTopBar(this.$wrapper.find(WorkflowTrigger._selectors.topBar), this.globalEventDispatcher, this.portalInternalIdentifier, this.workflow);
         /*new WorkflowTriggerList(this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.uid);*/
-        new WorkflowTriggerType(this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerTypeContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.uid);
-
-        new WorkflowTriggerFilters(this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerFiltersContainer), this.globalEventDispatcher, this.portalInternalIdentifier);
+        new WorkflowTriggerType(this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.uid);
 
         new WorkflowTriggerSelectedTriggers(this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.workflow);
     }
@@ -551,20 +505,15 @@ class WorkflowTrigger {
 
     static markup({portalInternalIdentifier}) {
         return `            
-           <div class="js-top-bar">
-               <nav class="navbar navbar-expand-sm l-top-bar justify-content-end">
-                    <a class="btn btn-link" style="color:#FFF" data-bypass="true" href="${Routing.generate('workflows', {internalIdentifier: portalInternalIdentifier})}" role="button"><i class="fa fa-angle-left" aria-hidden="true"></i> Back to workflows</a>
-                    <button class="btn btn-lg btn-secondary ml-auto js-add-trigger-button">Add Trigger</button> 
-                 </nav> 
-            </div>
+           <div class="js-top-bar"></div>
             <div class="t-private-template">                 
                 <div class="t-private-template__inner">
-                    <div class="t-private-template__sidebar js-workflow-trigger-type-container"></div>
-                    <div class="t-private-template__sidebar js-workflow-trigger-custom-object-container d-none"></div>
+                    <div class="t-private-template__sidebar js-workflow-trigger-container"></div>
+                    <!--<div class="t-private-template__sidebar js-workflow-trigger-custom-object-container d-none"></div>
                     <div class="t-private-template__sidebar js-workflow-trigger-property-list-container d-none"></div>
                     <div class="t-private-template__sidebar js-workflow-trigger-form-container d-none"></div>
                     <div class="t-private-template__sidebar js-workflow-trigger-filters-container d-none"></div>
-                    <div class="t-private-template__sidebar js-edit-field-form d-none"></div>
+                    <div class="t-private-template__sidebar js-edit-field-form d-none"></div>-->
                     <div class="t-private-template__main js-workflow-trigger-list-container" style="background-color: rgb(245, 248, 250);">
                     </div>
                 </div>

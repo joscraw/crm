@@ -2,6 +2,7 @@
 
 namespace App\Model;
 
+use App\Entity\CustomObject;
 use Symfony\Component\Serializer\Annotation\Groups;
 use App\Entity\Property;
 
@@ -21,19 +22,19 @@ class PropertyTrigger extends AbstractTrigger
      * @Groups({"TRIGGER"})
      * @var string
      */
-    protected static $test = 'property_test';
-
-    /**
-     * @Groups({"TRIGGER"})
-     * @var string
-     */
     protected static $description = 'Property based trigger';
 
     /**
      * @Groups({"TRIGGER"})
      * @var Filter|[]
      */
-    private $filters;
+    protected $filters = [];
+
+    /**
+     * @Groups({"TRIGGER"})
+     * @var CustomObject
+     */
+    protected $customObject;
 
     /**
      * @return Filter|[]
@@ -73,22 +74,6 @@ class PropertyTrigger extends AbstractTrigger
     /**
      * @return string
      */
-    public static function getTest(): string
-    {
-        return self::$test;
-    }
-
-    /**
-     * @param string $test
-     */
-    public static function setTest(string $test): void
-    {
-        self::$test = $test;
-    }
-
-    /**
-     * @return string
-     */
     public static function getDescription(): string
     {
         return self::$description;
@@ -100,5 +85,24 @@ class PropertyTrigger extends AbstractTrigger
     public static function setDescription(string $description): void
     {
         self::$description = $description;
+    }
+
+    /**
+     * @return CustomObject
+     */
+    public function getCustomObject()
+    {
+        return $this->customObject;
+    }
+
+    /**
+     * @param CustomObject $customObject
+     * @return $this
+     */
+    public function setCustomObject(CustomObject $customObject = null)
+    {
+        $this->customObject = $customObject;
+
+        return $this;
     }
 }

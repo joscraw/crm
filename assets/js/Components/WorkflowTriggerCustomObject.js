@@ -43,7 +43,8 @@ class WorkflowTriggerCustomObject {
             customObjectListItem: '.js-custom-object-list-item',
             list: '.js-list',
             triggerList: '.js-trigger-list',
-            backToWorkflowTriggerTypeButton: '.js-back-to-workflow-trigger-type-button'
+            backToWorkflowTriggerTypeButton: '.js-back-to-workflow-trigger-type-button',
+            backButton: '.js-backButton'
 
         }
     }
@@ -64,7 +65,7 @@ class WorkflowTriggerCustomObject {
 
         this.$wrapper.on(
             'click',
-            WorkflowTriggerCustomObject._selectors.backToWorkflowTriggerTypeButton,
+            WorkflowTriggerCustomObject._selectors.backButton,
             this.handleBackButtonClicked.bind(this)
         );
 
@@ -75,6 +76,8 @@ class WorkflowTriggerCustomObject {
      * you need to remove the handlers otherwise they will keep stacking up
      */
     unbindEvents() {
+
+        this.$wrapper.off('click', WorkflowTriggerCustomObject._selectors.backButton,);
 
         this.$wrapper.off('click', WorkflowTriggerCustomObject._selectors.customObjectListItem);
 
@@ -129,9 +132,13 @@ class WorkflowTriggerCustomObject {
 
     handleBackButtonClicked(e) {
 
+        debugger;
         e.stopPropagation();
 
-        this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_TRIGGER_BACK_TO_WORKFLOW_TRIGGER_TYPE_BUTTON_CLICKED);
+        this.globalEventDispatcher.publish(
+            Settings.Events.WORKFLOW_TRIGGER_BACK_BUTTON_CLICKED,
+            Settings.VIEWS.WORKFLOW_TRIGGER_SELECT_TRIGGER_TYPE
+        );
     }
 
     loadTriggerTypes() {
@@ -349,7 +356,7 @@ class WorkflowTriggerCustomObject {
             <br>
             <h2>Add workflow trigger</h2>
             <div>
-                <button type="button" class="btn btn-link js-back-to-workflow-trigger-type-button float-left"><i class="fa fa-chevron-left"></i> Back</button>
+                <button type="button" class="btn btn-link js-backButton float-left"><i class="fa fa-chevron-left"></i> Back</button>
             </div>
             <div class="input-group c-search-control">
               <input class="form-control c-search-control__input js-search" type="search" placeholder="Search...">

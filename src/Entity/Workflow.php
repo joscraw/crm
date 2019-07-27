@@ -55,6 +55,17 @@ class Workflow
      */
     private $actions;
 
+    /**
+     * @Groups({"WORKFLOW"})
+     * @ORM\Column(type="json", nullable=true)
+     */
+    private $draft;
+
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $published = false;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -116,6 +127,30 @@ class Workflow
     public function setActions($actions): self
     {
         $this->actions = $actions;
+
+        return $this;
+    }
+
+    public function getDraft(): ?array
+    {
+        return $this->draft;
+    }
+
+    public function setDraft(?array $draft): self
+    {
+        $this->draft = $draft;
+
+        return $this;
+    }
+
+    public function getPublished(): ?bool
+    {
+        return $this->published;
+    }
+
+    public function setPublished(bool $published): self
+    {
+        $this->published = $published;
 
         return $this;
     }
