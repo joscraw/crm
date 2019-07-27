@@ -109,12 +109,12 @@ class WorkflowController extends AbstractController
     }
 
     /**
-     * @Route("/{internalIdentifier}/workflows/{uid}/settings", name="workflow_trigger", requirements={"routing"=".+"}, defaults={"routing": null}, methods={"GET"}, options = { "expose" = true })
+     * @Route("/{internalIdentifier}/workflows/{uid}/triggers", name="workflow_trigger", requirements={"routing"=".+"}, defaults={"routing": null}, methods={"GET"}, options = { "expose" = true })
      * @param Portal $portal
      * @param Workflow $workflow
      * @return \Symfony\Component\HttpFoundation\Response
      */
-    public function settingsAction(Portal $portal, Workflow $workflow) {
+    public function triggersAction(Portal $portal, Workflow $workflow) {
 
         return $this->render('workflow/trigger.html.twig', array(
             'portal' => $portal

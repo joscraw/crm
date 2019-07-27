@@ -117,7 +117,7 @@ class WorkflowTopBar {
                             </ul>
                         </div>
         
-                        <input style="width: 200px; text-align: left !important;" class="form-control navbar-brand mx-auto d-block text-center order-1 w-25 js-workflow-name" type="search" placeholder="Form name" aria-label="Search" value="${workflow.name}">
+                        <input style="width: 200px; text-align: left !important;" class="form-control navbar-brand mx-auto d-block text-center order-1 w-25 js-workflow-name" type="search" placeholder="Workflow name" aria-label="Search" value="${workflow.name}">
         
                         <div class="navbar-collapse collapse dual-nav w-50 order-3">
                             <ul class="nav navbar-nav ml-auto">

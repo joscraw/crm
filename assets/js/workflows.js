@@ -21,7 +21,7 @@ $(document).ready(function() {
     var Router = Backbone.Router.extend({
         routes: {
             ":internalIdentifier/workflows": "index",
-            ":internalIdentifier/workflows/:uid/settings": "workflow_settings"
+            ":internalIdentifier/workflows/:uid/triggers": "workflow_triggers"
 
             /*,
             ":internalIdentifier/forms/editor/:uid/edit/form": "editorEditForm",
@@ -35,7 +35,7 @@ $(document).ready(function() {
             new WorkflowSettings($('#app'), window.globalEventDispatcher, internalIdentifier);
             new SideNavigationMenu($('#side-nav'), window.globalEventDispatcher, internalIdentifier);
         },
-        workflow_settings: function(internalIdentifier, uid) {
+        workflow_triggers: function(internalIdentifier, uid) {
             debugger;
             new WorkflowTrigger($('#app'), window.globalEventDispatcher, internalIdentifier, uid);
         }

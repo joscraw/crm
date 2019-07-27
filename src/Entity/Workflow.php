@@ -27,7 +27,7 @@ class Workflow
      * @Groups({"WORKFLOW"})
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $name;
+    private $name = '';
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Portal", inversedBy="workflows")

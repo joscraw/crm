@@ -353,7 +353,7 @@ class WorkflowTrigger {
     workflowPublishButtonClickedHandler() {
 
         if(_.isEmpty(this.workflow.triggers)) {
-            swal("Hooray!", `You need to setup some triggers before you can publish your workflow`, "success");
+            swal("Woahhhh!", `You need to setup some triggers before you can publish your workflow`, "error");
             return;
         }
 
