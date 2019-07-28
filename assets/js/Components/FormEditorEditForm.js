@@ -302,7 +302,7 @@ class FormEditorEditForm {
     static markup({portalInternalIdentifier, uid}) {
         return `            
            <div class="js-top-bar"></div>
-           <div class="js-sub-bar c-private-sub-bar"></div>
+           <div class="js-sub-bar"></div>
             <div class="t-private-template">                 
                 <div class="t-private-template__inner">
                     <div class="t-private-template__sidebar js-property-list"></div>

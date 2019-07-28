@@ -12,6 +12,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
  *
  * @ORM\EntityListeners({"App\EntityListener\WorkflowListener"})
  * @ORM\Entity(repositoryClass="App\Repository\WorkflowRepository")
+ * @ORM\HasLifecycleCallbacks()
  */
 class Workflow
 {
@@ -60,6 +61,17 @@ class Workflow
      * @ORM\Column(type="json", nullable=true)
      */
     private $draft;
+
+    /**
+     * @ORM\PrePersist
+     * @throws \Exception
+     */
+    public function setWorkflowName()
+    {
+        if(empty($this->name)) {
+            $this->name = sprintf('New workflow (%s)', date("M j, Y g:i:s A"));
+        }
+    }
 
     /**
      * @ORM\Column(type="boolean")

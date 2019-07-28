@@ -122,6 +122,19 @@ class WorkflowController extends AbstractController
     }
 
     /**
+     * @Route("/{internalIdentifier}/workflows/{uid}/actions", name="workflow_action", requirements={"routing"=".+"}, defaults={"routing": null}, methods={"GET"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param Workflow $workflow
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function actions(Portal $portal, Workflow $workflow) {
+
+        return $this->render('workflow/action.html.twig', array(
+            'portal' => $portal
+        ));
+    }
+
+    /**
      * @Route("/{internalIdentifier}/workflows/{routing}", name="workflows", requirements={"routing"=".+"}, defaults={"routing": null}, methods={"GET"}, options = { "expose" = true })
      * @param Portal $portal
      * @return \Symfony\Component\HttpFoundation\Response

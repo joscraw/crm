@@ -149,7 +149,7 @@ class WorkflowTriggerSelectedTriggers {
     _addItem(trigger) {
 
         debugger;
-        let label = trigger.customObject !== null ? trigger.customObject.label : '';
+        let label = _.has(trigger, 'customObject.label') && trigger.customObject.label !== null ? trigger.customObject.label : '';
         let numOfFilters = 'filters' in trigger ? trigger.filters.length : 0;
         const html = itemTemplate(trigger, label, numOfFilters);
         const $selectedColumnTemplate = $($.parseHTML(html));

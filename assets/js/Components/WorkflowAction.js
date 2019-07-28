@@ -30,7 +30,7 @@ import EditMultipleCheckboxFieldFilterForm from "./EditMultipleCheckboxFieldFilt
 import FormEditorSubBar from "./FormEditorSubBar";
 import WorkflowSubBar from "./WorkflowSubBar";
 
-class WorkflowTrigger {
+class WorkflowAction {
 
     /**
      * @author Josh Crawmer
@@ -45,100 +45,10 @@ class WorkflowTrigger {
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
         this.uid = uid;
-        this.data = {};
-        this.trigger = null;
         this.workflow = {};
 
+
         this.unbindEvents();
-
-        this.globalEventDispatcher.subscribe(
-            Settings.Events.WORKFLOW_TRIGGER_LIST_ITEM_CLICKED,
-            this.handleTriggerListItemClicked.bind(this)
-        );
-
-        this.globalEventDispatcher.subscribe(
-            Settings.Events.WORKFLOW_TRIGGER_CUSTOM_OBJECT_LIST_ITEM_CLICKED,
-            this.handleWorkflowTriggerCustomObjectListItemClicked.bind(this)
-        );
-
-        this.globalEventDispatcher.subscribe(
-            Settings.Events.WORKFLOW_TRIGGER_PROPERTY_LIST_ITEM_CLICKED,
-            this.handleWorkflowTriggerPropertyListItemClicked.bind(this)
-        );
-
-        this.globalEventDispatcher.subscribe(
-            Settings.Events.WORKFLOW_EDIT_FILTER_CLICKED,
-            this.handleWorkflowEditFilterClicked.bind(this)
-        );
-
-        this.globalEventDispatcher.subscribe(
-            Settings.Events.WORKFLOW_TRIGGER_BACK_BUTTON_CLICKED,
-            this.handleBackButtonClicked.bind(this)
-        );
-
-        this.globalEventDispatcher.subscribe(
-            Settings.Events.FILTER_BACK_TO_LIST_BUTTON_CLICKED,
-            this.handleFilterBackToListButtonClicked.bind(this)
-        );
-
-        this.globalEventDispatcher.subscribe(
-            Settings.Events.WORKFLOW_TRIGGER_CUSTOM_OBJECT_FILTER_LIST_ITEM_CLICKED,
-            this.handleListCustomObjectFilterListItemClicked.bind(this)
-        );
-
-        this.globalEventDispatcher.subscribe(
-            Settings.Events.WORKFLOW_EDIT_TRIGGER_CLICKED,
-            this.handleWorkflowEditTriggerClicked.bind(this)
-        );
-
-
-        this.globalEventDispatcher.subscribe(
-            Settings.Events.APPLY_CUSTOM_FILTER_BUTTON_PRESSED,
-            this.applyCustomFilterButtonPressedHandler.bind(this)
-        );
-
-        this.globalEventDispatcher.addRemovableToken(
-            this.globalEventDispatcher.subscribe(
-                Settings.Events.WORKFLOW_TRIGGER_ADD_OR_FILTER_BUTTON_PRESSED,
-                this.addOrFilterButtonPressedHandler.bind(this)
-            ));
-
-        this.globalEventDispatcher.addRemovableToken(
-            this.globalEventDispatcher.subscribe(
-                Settings.Events.WORKFLOW_TRIGGER_ADD_FILTER_BUTTON_PRESSED,
-                this.addFilterButtonPressedHandler.bind(this)
-            ));
-
-
-        this.globalEventDispatcher.addRemovableToken(
-            this.globalEventDispatcher.subscribe(
-                Settings.Events.WORKFLOW_REMOVE_FILTER_BUTTON_PRESSED,
-                this.workflowRemoveFilterButtonPressedHandler.bind(this)
-            ));
-
-        this.globalEventDispatcher.addRemovableToken(
-            this.globalEventDispatcher.subscribe(
-                Settings.Events.WORKFLOW_REMOVE_TRIGGER_BUTTON_PRESSED,
-                this.workflowRemoveTriggerButtonPressedHandler.bind(this)
-            ));
-
-        this.globalEventDispatcher.addRemovableToken(
-            this.globalEventDispatcher.subscribe(
-                Settings.Events.WORKFLOW_NEW_TRIGGER_BUTTON_PRESSED,
-                this.workflowNewTriggerButtonPressedHandler.bind(this)
-            ));
-
-        this.globalEventDispatcher.addRemovableToken(
-            this.globalEventDispatcher.subscribe(
-                Settings.Events.WORKFLOW_PUBLISH_BUTTON_CLICKED,
-                this.workflowPublishButtonClickedHandler.bind(this)
-            ));
-
-        this.globalEventDispatcher.addRemovableToken(
-            this.globalEventDispatcher.subscribe(
-                Settings.Events.WORKFLOW_NAME_CHANGED,
-                this.workflowNameChangedHandler.bind(this)
-            ));
 
         this.loadWorkflow().then((data) => {
             debugger;
@@ -184,13 +94,6 @@ class WorkflowTrigger {
     handleWorkflowEditTriggerClicked(uid) {
         let index = this.workflow.triggers.findIndex(trigger => trigger.uid === uid);
         this.trigger = this.workflow.triggers[index];
-
-        // a custom object hasn't been selected for this trigger yet so just redirect to the select custom object view
-        if(this.trigger.customObject.id === null) {
-            new WorkflowTriggerCustomObject(this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.uid, this.trigger);
-            return;
-        }
-
         new WorkflowTriggerFilters(this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.trigger);
     }
 
@@ -397,12 +300,12 @@ class WorkflowTrigger {
     }
 
     render() {
-        this.$wrapper.html(WorkflowTrigger.markup(this));
+        this.$wrapper.html(WorkflowAction.markup(this));
 
-        new WorkflowTopBar(this.$wrapper.find(WorkflowTrigger._selectors.topBar), this.globalEventDispatcher, this.portalInternalIdentifier, this.workflow);
-        new WorkflowSubBar(this.$wrapper.find(WorkflowTrigger._selectors.subBar), this.globalEventDispatcher, this.portalInternalIdentifier, this.workflow, Settings.PAGES.WORKFLOW_TRIGGERS);
-        new WorkflowTriggerType(this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.uid);
-        new WorkflowTriggerSelectedTriggers(this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.workflow);
+        new WorkflowTopBar(this.$wrapper.find(WorkflowAction._selectors.topBar), this.globalEventDispatcher, this.portalInternalIdentifier, this.workflow);
+        new WorkflowSubBar(this.$wrapper.find(WorkflowAction._selectors.subBar), this.globalEventDispatcher, this.portalInternalIdentifier, this.workflow, Settings.PAGES.WORKFLOW_ACTIONS);
+/*        new WorkflowTriggerType(this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.uid);
+        new WorkflowTriggerSelectedTriggers(this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.workflow);*/
     }
 
     activatePlugins() {
@@ -441,4 +344,4 @@ class WorkflowTrigger {
     }
 }
 
-export default WorkflowTrigger;
+export default WorkflowAction;

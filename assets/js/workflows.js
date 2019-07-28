@@ -12,6 +12,7 @@ import Form from "./Components/Form";
 import FormEditorEditOptions from "./Components/FormEditorEditOptions";
 import WorkflowSettings from "./Components/Page/WorkflowSettings";
 import WorkflowTrigger from "./Components/WorkflowTrigger";
+import WorkflowAction from "./Components/WorkflowAction";
 
 
 require('backbone/backbone.js');
@@ -21,39 +22,20 @@ $(document).ready(function() {
     var Router = Backbone.Router.extend({
         routes: {
             ":internalIdentifier/workflows": "index",
-            ":internalIdentifier/workflows/:uid/triggers": "workflow_triggers"
-
-            /*,
-            ":internalIdentifier/forms/editor/:uid/edit/form": "editorEditForm",
-            ":internalIdentifier/forms/editor/:uid/edit/options": "editorEditOptions",
-            "forms/:uid": "form"*/
+            ":internalIdentifier/workflows/:uid/triggers": "workflow_triggers",
+            ":internalIdentifier/workflows/:uid/actions": "workflow_actions",
         },
 
         index: function(internalIdentifier) {
-            debugger;
-            console.log("test");
             new WorkflowSettings($('#app'), window.globalEventDispatcher, internalIdentifier);
             new SideNavigationMenu($('#side-nav'), window.globalEventDispatcher, internalIdentifier);
         },
         workflow_triggers: function(internalIdentifier, uid) {
-            debugger;
             new WorkflowTrigger($('#app'), window.globalEventDispatcher, internalIdentifier, uid);
+        },
+        workflow_actions: function(internalIdentifier, uid) {
+            new WorkflowAction($('#app'), window.globalEventDispatcher, internalIdentifier, uid);
         }
-
-
-
-        /*
-        editorEditForm: function(internalIdentifier, uid) {
-            new FormEditorEditForm($('#app'), window.globalEventDispatcher, internalIdentifier, uid);
-        },
-        editorEditOptions: function(internalIdentifier, uid) {
-            new FormEditorEditOptions($('#app'), window.globalEventDispatcher, internalIdentifier, uid);
-        },
-        form: function(uid) {
-            debugger;
-            new Form($('#app'), window.globalEventDispatcher, uid);
-        },*/
-        /**/
     });
 
     var app_router = new Router;
