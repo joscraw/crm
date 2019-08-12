@@ -59,6 +59,10 @@ class WorkflowListener
         $triggers = $workflow->getTriggers();
         $data = $this->serializer->serialize($triggers, 'json', ['groups' => ['TRIGGER', 'SELECTABLE_PROPERTIES']]);
         $workflow->setTriggers(json_decode($data, true));
+
+        $actions = $workflow->getActions();
+        $data = $this->serializer->serialize($actions, 'json', ['groups' => ['WORKFLOW_ACTION', 'SELECTABLE_PROPERTIES']]);
+        $workflow->setActions(json_decode($data, true));
     }
 
     /**

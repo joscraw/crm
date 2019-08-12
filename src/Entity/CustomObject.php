@@ -25,7 +25,7 @@ class CustomObject /*implements \JsonSerializable*/
     use TimestampableEntity;
 
     /**
-     * @Groups({"PROPERTY_FIELD_NORMALIZER", "PROPERTIES_FOR_FILTER", "CUSTOM_OBJECTS_FOR_FILTER", "REPORT", "LIST", "FORMS", "WORKFLOW_TRIGGER_DATA", "TRIGGER"})
+     * @Groups({"PROPERTY_FIELD_NORMALIZER", "PROPERTIES_FOR_FILTER", "CUSTOM_OBJECTS_FOR_FILTER", "REPORT", "LIST", "FORMS", "WORKFLOW_TRIGGER_DATA", "TRIGGER", "WORKFLOW"})
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
@@ -33,7 +33,7 @@ class CustomObject /*implements \JsonSerializable*/
     private $id;
 
     /**
-     * @Groups({"PROPERTY_FIELD_NORMALIZER", "PROPERTIES_FOR_FILTER", "CUSTOM_OBJECTS_FOR_FILTER", "REPORT", "LIST", "FORMS", "TRIGGER"})
+     * @Groups({"PROPERTY_FIELD_NORMALIZER", "PROPERTIES_FOR_FILTER", "CUSTOM_OBJECTS_FOR_FILTER", "REPORT", "LIST", "FORMS", "TRIGGER", "WORKFLOW"})
      * @Assert\NotBlank(message="Don't forget a label for your super cool sweeeeet Custom Object!", groups={"CREATE", "EDIT"})
      * @Assert\Regex("/^[a-zA-Z0-9_\s]*$/", message="Woah! Only use letters, numbers, underscores and spaces please!", groups={"CREATE", "EDIT"})
      *
@@ -44,7 +44,7 @@ class CustomObject /*implements \JsonSerializable*/
     private $label;
 
     /**
-     * @Groups({"PROPERTY_FIELD_NORMALIZER", "PROPERTIES_FOR_FILTER", "CUSTOM_OBJECTS_FOR_FILTER", "REPORT", "LIST", "FORMS", "TRIGGER"})
+     * @Groups({"PROPERTY_FIELD_NORMALIZER", "PROPERTIES_FOR_FILTER", "CUSTOM_OBJECTS_FOR_FILTER", "REPORT", "LIST", "FORMS", "TRIGGER", "WORKFLOW"})
      *
      * internal name
      *
@@ -97,6 +97,11 @@ class CustomObject /*implements \JsonSerializable*/
      */
     private $forms;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\ObjectWorkflow", mappedBy="customObject")
+     */
+    private $objectWorkflows;
+
 
     public function __construct()
     {
@@ -106,6 +111,7 @@ class CustomObject /*implements \JsonSerializable*/
         $this->reports = new ArrayCollection();
         $this->marketingLists = new ArrayCollection();
         $this->forms = new ArrayCollection();
+        $this->objectWorkflows = new ArrayCollection();
     }
 
     /**
@@ -398,6 +404,37 @@ class CustomObject /*implements \JsonSerializable*/
             // set the owning side to null (unless already changed)
             if ($form->getCustomObject() === $this) {
                 $form->setCustomObject(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|ObjectWorkflow[]
+     */
+    public function getObjectWorkflows(): Collection
+    {
+        return $this->objectWorkflows;
+    }
+
+    public function addObjectWorkflow(ObjectWorkflow $objectWorkflow): self
+    {
+        if (!$this->objectWorkflows->contains($objectWorkflow)) {
+            $this->objectWorkflows[] = $objectWorkflow;
+            $objectWorkflow->setCustomObject($this);
+        }
+
+        return $this;
+    }
+
+    public function removeObjectWorkflow(ObjectWorkflow $objectWorkflow): self
+    {
+        if ($this->objectWorkflows->contains($objectWorkflow)) {
+            $this->objectWorkflows->removeElement($objectWorkflow);
+            // set the owning side to null (unless already changed)
+            if ($objectWorkflow->getCustomObject() === $this) {
+                $objectWorkflow->setCustomObject(null);
             }
         }
 

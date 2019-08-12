@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Model\AbstractTrigger;
+use App\Model\AbstractAction;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -13,9 +14,22 @@ use Symfony\Component\Serializer\Annotation\Groups;
  * @ORM\EntityListeners({"App\EntityListener\WorkflowListener"})
  * @ORM\Entity(repositoryClass="App\Repository\WorkflowRepository")
  * @ORM\HasLifecycleCallbacks()
+ *
+ * @ORM\InheritanceType("JOINED")
+ * @ORM\DiscriminatorColumn(name="discr", type="string")
+ * @ORM\DiscriminatorMap({"objectWorkflow" = "ObjectWorkflow"})
  */
-class Workflow
+abstract class Workflow
 {
+    const OBJECT_WORKFLOW = 'OBJECT_WORKFLOW';
+
+    public static $types = [
+        [
+            'name' => self::OBJECT_WORKFLOW,
+            'label' => 'Object Workflow'
+        ]
+    ];
+
     /**
      * @Groups({"WORKFLOW"})
      * @ORM\Id()
@@ -48,13 +62,14 @@ class Workflow
      *
      * @ORM\Column(type="json_array", nullable=true)
      */
-    private $triggers;
+    private $triggers = [];
 
     /**
      * @Groups({"WORKFLOW"})
+     * @var AbstractAction|[]
      * @ORM\Column(type="json_array", nullable=true)
      */
-    private $actions;
+    private $actions = [];
 
     /**
      * @Groups({"WORKFLOW"})

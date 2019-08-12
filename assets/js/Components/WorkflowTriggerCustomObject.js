@@ -96,7 +96,7 @@ class WorkflowTriggerCustomObject {
         e.stopPropagation();
 
         this.globalEventDispatcher.publish(
-            Settings.Events.WORKFLOW_TRIGGER_BACK_BUTTON_CLICKED,
+            Settings.Events.WORKFLOW_BACK_BUTTON_CLICKED,
             Settings.VIEWS.WORKFLOW_TRIGGER_SELECT_TRIGGER_TYPE
         );
     }

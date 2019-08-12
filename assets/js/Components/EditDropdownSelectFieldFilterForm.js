@@ -144,7 +144,7 @@ class EditDropdownSelectFieldFilterForm {
     static markup({customFilter}) {
 
         return `
-        <button type="button" class="btn btn-link js-back-to-list-button"><i class="fa fa-chevron-left"></i> Back</button>
+        <button type="button" class="btn btn-link js-back-to-list-button text-left"><i class="fa fa-chevron-left"></i> Back</button>
         <p><small>${customFilter.label}*</small></p>
         <form name="filter" id="js-apply-filter-form" novalidate="novalidate">
             <div style="height: 200px; overflow-y: auto">

@@ -38,10 +38,10 @@ use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\SerializerInterface;
 
 /**
- * Class WorkflowDenormalizer
+ * Class WorkflowTriggerDenormalizer
  * @package App\Serializer\
  */
-class WorkflowDenormalizer implements DenormalizerInterface, DenormalizerAwareInterface
+class WorkflowTriggerDenormalizer implements DenormalizerInterface, DenormalizerAwareInterface
 {
 
     use PropertyHelper;
@@ -115,11 +115,7 @@ class WorkflowDenormalizer implements DenormalizerInterface, DenormalizerAwareIn
     {
         $trigger= null;
         switch($data['name']) {
-            case 'property_trigger':
-
-                if(!empty($data['customObject'])) {
-                    $data['customObject']['id'] = (int) $data['customObject']['id'];
-                }
+            case AbstractTrigger::PROPERTY_BASED_TRIGGER:
 
                 /** @var PropertyTrigger $trigger */
                 $trigger = $this->denormalizer->denormalize(

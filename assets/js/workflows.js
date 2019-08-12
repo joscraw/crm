@@ -13,6 +13,8 @@ import FormEditorEditOptions from "./Components/FormEditorEditOptions";
 import WorkflowSettings from "./Components/Page/WorkflowSettings";
 import WorkflowTrigger from "./Components/WorkflowTrigger";
 import WorkflowAction from "./Components/WorkflowAction";
+import WorkflowSelectType from "./Components/WorkflowSelectType";
+import WorkflowSelectObject from "./Components/WorkflowSelectObject";
 
 
 require('backbone/backbone.js');
@@ -24,6 +26,8 @@ $(document).ready(function() {
             ":internalIdentifier/workflows": "index",
             ":internalIdentifier/workflows/:uid/triggers": "workflow_triggers",
             ":internalIdentifier/workflows/:uid/actions": "workflow_actions",
+            ":internalIdentifier/workflows/type": "workflow_type",
+            ":internalIdentifier/workflows/:uid/object": "workflow_object"
         },
 
         index: function(internalIdentifier) {
@@ -35,6 +39,12 @@ $(document).ready(function() {
         },
         workflow_actions: function(internalIdentifier, uid) {
             new WorkflowAction($('#app'), window.globalEventDispatcher, internalIdentifier, uid);
+        },
+        workflow_type: function(internalIdentifier) {
+            new WorkflowSelectType($('#app'), window.globalEventDispatcher, internalIdentifier);
+        },
+        workflow_object: function(internalIdentifier, uid) {
+            new WorkflowSelectObject($('#app'), window.globalEventDispatcher, internalIdentifier, uid);
         }
     });
 

@@ -63,12 +63,6 @@ class WorkflowTriggerFilters {
             this.handleFilterPressed.bind(this)
         );
 
-        this.$wrapper.on(
-            'click',
-            WorkflowTriggerFilters._selectors.newTrigger,
-            this.handleNewTriggerButtonPressed.bind(this)
-        );
-
         this.globalEventDispatcher.subscribe(
             Settings.Events.WORKFLOW_TRIGGER_FILTER_REMOVED,
             this.reportFilterItemRemovedHandler.bind(this)
@@ -87,8 +81,7 @@ class WorkflowTriggerFilters {
             filterContainer: '.js-filter-container',
             removeFilterIcon: '.js-remove-filter-icon',
             filter: '.js-filter',
-            addAndFilterButton: '.js-add-and-filter-button',
-            newTrigger: '.js-new-trigger-button'
+            addAndFilterButton: '.js-add-and-filter-button'
         }
     }
 
@@ -97,7 +90,6 @@ class WorkflowTriggerFilters {
         this.$wrapper.off('click', WorkflowTriggerFilters._selectors.addAndFilterButton);
         this.$wrapper.off('click', WorkflowTriggerFilters._selectors.addFilterButton);
         this.$wrapper.off('click', WorkflowTriggerFilters._selectors.filter);
-        this.$wrapper.off('click', WorkflowTriggerFilters._selectors.newTrigger);
     }
 
     handleFilterPressed(e) {
@@ -122,11 +114,7 @@ class WorkflowTriggerFilters {
     handleAddFilterButtonPressed() {
         this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_TRIGGER_ADD_FILTER_BUTTON_PRESSED);
     }
-
-    handleNewTriggerButtonPressed() {
-        this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_NEW_TRIGGER_BUTTON_PRESSED);
-    }
-
+    
     handleAddAndFilterButtonPressed(e) {
 
         const $card = $(e.currentTarget);
@@ -260,14 +248,13 @@ class WorkflowTriggerFilters {
         return `
             <ul class="nav nav-pills flex-column">
               <li class="nav-item">
-                <a class="nav-link active js-all-records-button" href="javascript:void()">All Filters</a>
+                <a class="nav-link active js-all-records-button" href="javascript:void()">Trigger Criteria</a>
               </li>
               <li class="nav-item">
                 <div class="js-selected-custom-filters c-report-widget__selected-filters"></div>
               </li>
               <li class="nav-item">
-                <button type="button" class="btn btn-link js-add-filter-button"><i class="fa fa-plus"></i> Add Filter</button>
-                <button type="button" class="btn btn-link js-new-trigger-button float-right"><i class="fa fa-plus"></i> New Trigger</button>
+                <button type="button" class="btn btn-link js-add-filter-button"><i class="fa fa-plus"></i> Add OR" Criteria</button>
               </li>
              </ul>
     `;
@@ -280,7 +267,7 @@ const filterContainerTemplate = (uid) => `
         
         <div class="js-filters"></div>
         
-        <button type="button" class="btn btn-link js-add-and-filter-button" data-and-uid="${uid}"><i class="fa fa-plus"></i> Add Filter</button>
+        <button type="button" class="btn btn-link js-add-and-filter-button" data-and-uid="${uid}"><i class="fa fa-plus"></i> Add "AND" Criteria</button>
         </div>
     </div>
 `;

@@ -2,10 +2,16 @@
 // This file contains styles that are specific to the form page
 // -----------------------------------------------------------------------------
 
-.p-workflow-trigger {
+.p-workflow {
 
   .card {
     margin-bottom: 20px;
+  }
+}
+
+.workflow-trigger-list-container {
+  .card {
+    font-size: 14px;
   }
 
 }

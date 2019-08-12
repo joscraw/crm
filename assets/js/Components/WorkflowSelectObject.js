@@ -7,32 +7,36 @@ import Routing from "../Routing";
 import Settings from "../Settings";
 import List from "list.js";
 
-class FormSelectObject {
+class WorkflowSelectObject {
 
     /**
      * @param $wrapper
      * @param globalEventDispatcher
      * @param portalInternalIdentifier
+     * @param uid
      */
-    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, uid) {
         debugger;
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
+        this.uid = uid;
+        this.workflow = {};
 
         this.unbindEvents();
 
         this.$wrapper.on(
             'click',
-            FormSelectObject._selectors.formsStartButton,
-            this.handleStartButtonClicked.bind(this)
+            WorkflowSelectObject._selectors.nextButton,
+            this.handleNextButtonClicked.bind(this)
         );
+
         this.render();
     }
 
     unbindEvents() {
 
-        this.$wrapper.off('click', FormSelectObject._selectors.formsStartButton);
+        this.$wrapper.off('click', WorkflowSelectObject._selectors.nextButton);
     }
 
     /**
@@ -40,36 +44,37 @@ class FormSelectObject {
      */
     static get _selectors() {
         return {
-            formsStartButton: '.js-forms-start-button',
+            nextButton: '.js-next-button',
             customObjectField: '.js-custom-object:checked',
             customObjectForm: '.custom-object-form'
         }
     }
 
-    handleStartButtonClicked(e) {
+    handleNextButtonClicked(e) {
 
         debugger;
-        let customObjectId = $(FormSelectObject._selectors.customObjectField).val();
+        let customObjectId = $(WorkflowSelectObject._selectors.customObjectField).val();
 
         let data = {};
 
         data.customObjectId = customObjectId;
 
-        this.initializeForm(data).then((data) => {
+        this.addCustomObjectToWorkflow(data).then((data) => {
 
-            let form = data.data;
+            debugger;
+            let workflow = data.data;
 
-            window.location = Routing.generate('editor_edit_form', {internalIdentifier: this.portalInternalIdentifier, uid: form.uid});
+            window.location = Routing.generate('workflow_trigger', {internalIdentifier: this.portalInternalIdentifier, uid: workflow.uid});
 
         });
 
     }
 
-    initializeForm(data) {
+    addCustomObjectToWorkflow(data) {
 
         return new Promise( (resolve, reject) => {
 
-            const url = Routing.generate('initialize_form', {internalIdentifier: this.portalInternalIdentifier});
+            const url = Routing.generate('workflow_add_custom_object', {internalIdentifier: this.portalInternalIdentifier, uid: this.uid});
 
             $.ajax({
                 url,
@@ -94,12 +99,26 @@ class FormSelectObject {
 
     render() {
         debugger;
-        this.$wrapper.html(FormSelectObject.markup(this));
+        this.$wrapper.html(WorkflowSelectObject.markup(this));
+
+        this.loadWorkflow().then(data => {
+            this.workflow = data.data;
+        });
 
         this.loadCustomObjects().then(data => {
             debugger;
             this.renderCustomObjectForm(data);
         })
+    }
+
+    loadWorkflow() {
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                url: Routing.generate('get_workflow', {internalIdentifier: this.portalInternalIdentifier, uid: this.uid}),
+            }).then(data => {
+                resolve(data);
+            })
+        });
     }
 
     renderCustomObjectForm(data) {
@@ -126,16 +145,14 @@ class FormSelectObject {
 
         debugger;
 
-        if(this.customObject) {
+        if(this.workflow.customObject) {
             debugger;
-            let index = _.findIndex(customObjects, (customObject) => { return customObject.id === this.customObject.id });
+            let index = _.findIndex(customObjects, (customObject) => { return customObject.id === this.workflow.customObject.id });
             $( `#listCustomObjects input[type="radio"]`).eq(index).prop('checked', true);
         } else {
             debugger;
             $( `#listCustomObjects input[type="radio"]`).first().prop('checked', true);
         }
-
-
     }
 
     loadCustomObjects() {
@@ -160,7 +177,7 @@ class FormSelectObject {
             <div class="c-report-select-custom-object">
                  <nav class="navbar navbar-expand-sm l-top-bar justify-content-end c-report-widget__nav">
                     <a class="btn btn-link" style="color:#FFF" data-bypass="true" href="${Routing.generate('form_settings', {internalIdentifier: portalInternalIdentifier})}" role="button"><i class="fa fa-angle-left" aria-hidden="true"></i> Back to forms</a>
-                    <button class="btn btn-lg btn-secondary ml-auto js-forms-start-button">Start</button> 
+                    <button class="btn btn-lg btn-secondary ml-auto js-next-button">Next</button> 
                  </nav> 
                  
                  <div class="container">
@@ -188,4 +205,4 @@ class FormSelectObject {
     }
 }
 
-export default FormSelectObject;
+export default WorkflowSelectObject;

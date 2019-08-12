@@ -16,7 +16,7 @@ class PropertyTrigger extends AbstractTrigger
      * @Groups({"TRIGGER"})
      * @var string
      */
-    protected static $name = 'property_trigger';
+    protected static $name = self::PROPERTY_BASED_TRIGGER;
 
     /**
      * @Groups({"TRIGGER"})
@@ -29,12 +29,6 @@ class PropertyTrigger extends AbstractTrigger
      * @var Filter|[]
      */
     protected $filters = [];
-
-    /**
-     * @Groups({"TRIGGER"})
-     * @var CustomObject
-     */
-    protected $customObject;
 
     /**
      * @return Filter|[]
@@ -51,57 +45,6 @@ class PropertyTrigger extends AbstractTrigger
     public function setFilters($filters)
     {
         $this->filters = $filters;
-
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public static function getName(): string
-    {
-        return self::$name;
-    }
-
-    /**
-     * @param string $name
-     */
-    public static function setName(string $name): void
-    {
-        self::$name = $name;
-    }
-
-    /**
-     * @return string
-     */
-    public static function getDescription(): string
-    {
-        return self::$description;
-    }
-
-    /**
-     * @param string $description
-     */
-    public static function setDescription(string $description): void
-    {
-        self::$description = $description;
-    }
-
-    /**
-     * @return CustomObject
-     */
-    public function getCustomObject()
-    {
-        return $this->customObject;
-    }
-
-    /**
-     * @param CustomObject $customObject
-     * @return $this
-     */
-    public function setCustomObject(CustomObject $customObject = null)
-    {
-        $this->customObject = $customObject;
 
         return $this;
     }

@@ -10,7 +10,7 @@ import ColumnSearch from "./ColumnSearch";
 import ContextHelper from "../ContextHelper";
 import ListFilterList from "./ListFilterList";
 
-class WorkflowTriggerPropertyList {
+class WorkflowActionPropertyList {
 
     constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, uid, customObject, join = null, joins = [], data = {}, referencedFilterPath = []) {
         debugger;
@@ -52,18 +52,18 @@ class WorkflowTriggerPropertyList {
 
         this.$wrapper.on(
             'keyup',
-            WorkflowTriggerPropertyList._selectors.search,
+            WorkflowActionPropertyList._selectors.search,
             this.handleKeyupEvent.bind(this)
         );
         this.$wrapper.on(
             'click',
-            WorkflowTriggerPropertyList._selectors.propertyListItem,
+            WorkflowActionPropertyList._selectors.propertyListItem,
             this.handlePropertyListItemClicked.bind(this)
         );
 
         this.$wrapper.on(
             'click',
-            WorkflowTriggerPropertyList._selectors.backButton,
+            WorkflowActionPropertyList._selectors.backButton,
             this.handleBackButtonClicked.bind(this)
         );
 
@@ -74,9 +74,9 @@ class WorkflowTriggerPropertyList {
      * you need to remove the handlers otherwise they will keep stacking up
      */
     unbindEvents() {
-        this.$wrapper.off('click', WorkflowTriggerPropertyList._selectors.backButton);
-        this.$wrapper.off('keyup', WorkflowTriggerPropertyList._selectors.search);
-        this.$wrapper.off('click', WorkflowTriggerPropertyList._selectors.propertyListItem);
+        this.$wrapper.off('click', WorkflowActionPropertyList._selectors.backButton);
+        this.$wrapper.off('keyup', WorkflowActionPropertyList._selectors.search);
+        this.$wrapper.off('click', WorkflowActionPropertyList._selectors.propertyListItem);
     }
 
     handleBackButtonClicked(e) {
@@ -86,7 +86,7 @@ class WorkflowTriggerPropertyList {
 
         this.globalEventDispatcher.publish(
             Settings.Events.WORKFLOW_BACK_BUTTON_CLICKED,
-            Settings.VIEWS.WORKFLOW_TRIGGER_SELECT_CUSTOM_OBJECT
+            Settings.VIEWS.WORKFLOW_ACTION_SELECT_TYPE
         );
     }
 
@@ -114,7 +114,7 @@ class WorkflowTriggerPropertyList {
     }
 
     loadProperties() {
-        this.loadPropertiesForWorkflowTrigger().then(data => {
+        this.loadPropertiesForWorkflowAction().then(data => {
             this.propertyGroups = data.data.property_groups;
             this.renderProperties(this.propertyGroups).then(() => {
             })
@@ -122,7 +122,7 @@ class WorkflowTriggerPropertyList {
     }
 
     render() {
-        this.$wrapper.html(WorkflowTriggerPropertyList.markup(this));
+        this.$wrapper.html(WorkflowActionPropertyList.markup(this));
     }
 
     handlePropertyListItemClicked(e) {
@@ -138,7 +138,7 @@ class WorkflowTriggerPropertyList {
             return;
         }
 
-        let propertyGroupId = $listItem.closest(WorkflowTriggerPropertyList._selectors.list).attr('data-property-group');
+        let propertyGroupId = $listItem.closest(WorkflowActionPropertyList._selectors.list).attr('data-property-group');
         let propertyId = $listItem.attr('data-property-id');
         let joins = JSON.parse($listItem.attr('data-joins'));
         let referencedFilterPath = $listItem.attr('data-referenced-filter-path');
@@ -159,17 +159,17 @@ class WorkflowTriggerPropertyList {
 
         if(property[0].fieldType === 'custom_object_field') {
 
-            this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_TRIGGER_CUSTOM_OBJECT_FILTER_LIST_ITEM_CLICKED, property[0], joins);
+            this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_ACTION_CUSTOM_OBJECT_LIST_ITEM_CLICKED, property[0], joins);
         } else {
 
-            this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_TRIGGER_PROPERTY_LIST_ITEM_CLICKED, property[0]);
+            this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_ACTION_PROPERTY_LIST_ITEM_CLICKED, property[0]);
         }
 
     }
 
     renderProperties(propertyGroups) {
 
-        let $propertyList = this.$wrapper.find(WorkflowTriggerPropertyList._selectors.propertyList);
+        let $propertyList = this.$wrapper.find(WorkflowActionPropertyList._selectors.propertyList);
         $propertyList.html("");
 
         return new Promise((resolve, reject) => {
@@ -184,7 +184,7 @@ class WorkflowTriggerPropertyList {
         });
     }
 
-    loadPropertiesForWorkflowTrigger() {
+    loadPropertiesForWorkflowAction() {
         return new Promise((resolve, reject) => {
             debugger;
             const url = Routing.generate('get_properties', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObject.internalName});
@@ -208,7 +208,7 @@ class WorkflowTriggerPropertyList {
     _addList(propertyGroup, properties) {
 
         debugger;
-        let $propertyList = this.$wrapper.find(WorkflowTriggerPropertyList._selectors.propertyList);
+        let $propertyList = this.$wrapper.find(WorkflowActionPropertyList._selectors.propertyList);
         const html = listTemplate(propertyGroup);
         const $list = $($.parseHTML(html));
         $propertyList.append($list);
@@ -245,7 +245,7 @@ class WorkflowTriggerPropertyList {
         debugger;
         return `
             <br>
-            <h2>Add workflow trigger</h2>
+            <h2>Add workflow action</h2>
             <div>
                 <button type="button" class="btn btn-link js-backButton float-left"><i class="fa fa-chevron-left"></i> Back</button>
             </div>
@@ -270,4 +270,4 @@ const listTemplate = ({id, name}) => `
     
 `;
 
-export default WorkflowTriggerPropertyList;
+export default WorkflowActionPropertyList;

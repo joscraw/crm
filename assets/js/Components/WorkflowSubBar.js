@@ -73,8 +73,7 @@ class WorkflowSubBar {
 
         return `            
         <div class="c-private-sub-bar">
-           <a class="c-private-sub-bar__link" href="${Routing.generate('workflow_trigger', {internalIdentifier: portalInternalIdentifier, uid: workflow.uid})}">Triggers <span class="c-private-sub-bar__underline js-workflow-triggers-underline"></span></a>
-           <a class="c-private-sub-bar__link" href="${Routing.generate('workflow_action', {internalIdentifier: portalInternalIdentifier, uid: workflow.uid})}">Actions <span class="c-private-sub-bar__underline js-workflow-actions-underline"></span></a>
+           <a class="c-private-sub-bar__link" href="${Routing.generate('workflow_trigger', {internalIdentifier: portalInternalIdentifier, uid: workflow.uid})}">Triggers/Actions<span class="c-private-sub-bar__underline js-workflow-triggers-underline"></span></a>
         </div>
     `;
     }

@@ -112,7 +112,7 @@ class WorkflowTopBar {
                         <div class="navbar-collapse collapse dual-nav w-50 order-0">
                             <ul class="navbar-nav">
                                 <li class="nav-item">
-                                    <a class="btn btn-link" style="color:#FFF" data-bypass="true" href="${Routing.generate('workflows', {internalIdentifier: portalInternalIdentifier})}" role="button"><i class="fa fa-angle-left" aria-hidden="true"></i> Back to workflows</a>
+                                    <a class="btn btn-link" style="color:#FFF" data-bypass="true" href="${Routing.generate('workflow_settings', {internalIdentifier: portalInternalIdentifier})}" role="button"><i class="fa fa-angle-left" aria-hidden="true"></i> Back to workflows</a>
                                 </li>
                             </ul>
                         </div>

@@ -7,6 +7,7 @@ use App\Entity\CustomObject;
 use App\Entity\Folder;
 use App\Entity\Form;
 use App\Entity\MarketingList;
+use App\Entity\ObjectWorkflow;
 use App\Entity\Portal;
 use App\Entity\Property;
 use App\Entity\PropertyGroup;
@@ -32,6 +33,7 @@ use App\Model\AbstractField;
 use App\Model\AbstractTrigger;
 use App\Model\FieldCatalog;
 use App\Model\PropertyTrigger;
+use App\Model\SetPropertyValueAction;
 use App\Model\WorkflowTriggerCatalog;
 use App\Repository\CustomObjectRepository;
 use App\Repository\FolderRepository;
@@ -53,6 +55,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -183,37 +186,72 @@ class WorkflowController extends ApiController
     }
 
     /**
-     * @Route("{internalIdentifier}/api/workflows/{uid}/get-trigger-form", name="get_workflow_trigger_form", methods={"GET"}, options = { "expose" = true })
+     * @Route("{internalIdentifier}/api/workflows/initialize", name="initialize_workflow", methods={"POST"}, options = { "expose" = true })
      * @param Portal $portal
-     * @param Workflow $workflow
      * @param Request $request
      * @return JsonResponse
      */
-    public function getWorkflowTriggerFormAction(Portal $portal, Workflow $workflow, Request $request) {
+    public function initializeWorkflowAction(Portal $portal, Request $request) {
 
-        // dummy code - this is here just so that the Task has some tags
-        // otherwise, this isn't an interesting example
-        /*$trigger = new WorkflowTrigger();
-        $trigger->setTriggerType('test trigger type');
-        $workflow->getWorkflowTriggers()->add($trigger);*/
+        $workflowType = $request->request->get('workflowType', null);
 
-        $workflowTrigger = new WorkflowTrigger();
-        $form = $this->createForm(WorkflowTriggerType::class, $workflowTrigger, ['portal' => $portal]);
+        switch ($workflowType) {
+            case Workflow::OBJECT_WORKFLOW:
+                $workflow = new ObjectWorkflow();
+                $workflow->setPortal($portal);
+                $workflow->setUid($this->generateRandomString(40));
+                break;
+            default:
+                throw new NotFoundHttpException("Workflow type not found");
+                break;
+        }
 
-        $formMarkup = $this->renderView(
-            'Api/form/workflow_trigger_form.twig',
-            [
-                'form' => $form->createView(),
-            ]
-        );
+        $this->entityManager->persist($workflow);
+        $this->entityManager->flush();
+
+        $json = $this->serializer->serialize($workflow, 'json', ['groups' => ['WORKFLOW']]);
+
+        $payload = json_decode($json, true);
 
         return new JsonResponse(
             [
                 'success' => true,
-                'formMarkup' => $formMarkup
+                'data' => $payload,
             ],
             Response::HTTP_OK
         );
+
+    }
+
+    /**
+     * @Route("{internalIdentifier}/api/workflows/{uid}/add-custom-object", name="workflow_add_custom_object", methods={"POST"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param ObjectWorkflow $workflow
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function workflowAddCustomObjectAction(Portal $portal, ObjectWorkflow $workflow, Request $request) {
+
+        $customObjectId = $request->request->get('customObjectId', null);
+
+        $customObject = $this->customObjectRepository->find($customObjectId);
+
+        $workflow->setCustomObject($customObject);
+        $this->entityManager->persist($workflow);
+        $this->entityManager->flush();
+
+        $json = $this->serializer->serialize($workflow, 'json', ['groups' => ['WORKFLOW']]);
+
+        $payload = json_decode($json, true);
+
+        return new JsonResponse(
+            [
+                'success' => true,
+                'data' => $payload,
+            ],
+            Response::HTTP_OK
+        );
+
     }
 
     /**
@@ -226,6 +264,7 @@ class WorkflowController extends ApiController
     public function saveWorkflowAction(Portal $portal, Workflow $workflow, Request $request) {
 
         $triggers = !empty($request->request->get('workflow')['triggers']) ? $request->request->get('workflow')['triggers'] : [];
+        $actions = !empty($request->request->get('workflow')['actions']) ? $request->request->get('workflow')['actions'] : [];
         $workflowName = $request->request->get('workflow')['name'] ? $request->request->get('workflow')['name'] : '';
 
        /* foreach($triggers as $key => $trigger) {
@@ -233,7 +272,7 @@ class WorkflowController extends ApiController
         }*/
 
         $workflow->setTriggers($triggers);
-
+        $workflow->setActions($actions);
         $workflow->setName($workflowName);
         $this->entityManager->persist($workflow);
         $this->entityManager->flush();
@@ -307,6 +346,38 @@ class WorkflowController extends ApiController
         return new JsonResponse([
             'success' => true,
             'data'  => $payload
+        ], Response::HTTP_OK);
+    }
+
+    /**
+     * @Route("/{internalIdentifier}/action-types", name="get_action_types", methods={"GET"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getActionTypes(Portal $portal, Request $request) {
+
+        $payload = [
+            json_decode($this->serializer->serialize(new SetPropertyValueAction(), 'json', ['groups' => ['WORKFLOW_ACTION', 'TRIGGER']]), true)
+        ];
+
+        return new JsonResponse([
+            'success' => true,
+            'data'  => $payload
+        ], Response::HTTP_OK);
+    }
+
+    /**
+     * @Route("/{internalIdentifier}/workflow-types", name="workflow_types", methods={"GET"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function workflowTypes(Portal $portal, Request $request) {
+
+        return new JsonResponse([
+            'success' => true,
+            'data'  => Workflow::$types
         ], Response::HTTP_OK);
     }
 }
