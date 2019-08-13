@@ -107,7 +107,7 @@ class EditWorkflowActionSetPropertyValueForm {
 
     static markup({action: {property: {label}}}) {
         return `
-        <button type="button" class="btn btn-link js-back-button text-left"><i class="fa fa-chevron-left"></i> Back</button>
+        <button type="button" class="btn btn-link js-back-button text-left" style="padding:0"><i class="fa fa-chevron-left"></i> Back</button>
         <p><small>${label}*</small></p>
         <form name="filter" id="js-apply-action-form" novalidate="novalidate">
           <div class="js-form-fields"></div>
