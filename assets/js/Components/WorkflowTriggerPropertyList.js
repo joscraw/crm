@@ -85,7 +85,7 @@ class WorkflowTriggerPropertyList {
 
         this.globalEventDispatcher.publish(
             Settings.Events.WORKFLOW_BACK_BUTTON_CLICKED,
-            Settings.VIEWS.WORKFLOW_TRIGGER_SELECT_CUSTOM_OBJECT
+            Settings.VIEWS.WORKFLOW_TRIGGER_SELECT_TRIGGER_TYPE
         );
     }
 
@@ -242,18 +242,14 @@ class WorkflowTriggerPropertyList {
 
         debugger;
         return `
-            <br>
-            <h2>Add workflow trigger</h2>
-            <div>
-                <button type="button" class="btn btn-link js-backButton float-left"><i class="fa fa-chevron-left"></i> Back</button>
-            </div>
-           
+        <div>
+            <button type="button" class="btn btn-link js-backButton float-left" style="padding:0"><i class="fa fa-chevron-left"></i> Back</button>
+        </div>
+            <h4>${label.toUpperCase()} PROPERTIES</h4>
             <div class="input-group c-search-control">
               <input class="form-control c-search-control__input js-search" type="search" placeholder="Search...">
               <span class="c-search-control__foreground"><i class="fa fa-search"></i></span>
             </div>
-            <br>
-            <h4>${label.toUpperCase()} PROPERTIES</h3>
             <div class="js-property-list c-report-widget__property-list"></div>
         `;
     }

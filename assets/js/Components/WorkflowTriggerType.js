@@ -161,14 +161,6 @@ class WorkflowTriggerType {
 
         debugger;
         return `
-            <br>
-            <h2>Add workflow trigger</h2>
-            <br>
-            <div class="input-group c-search-control">
-              <input class="form-control c-search-control__input js-search" type="search" placeholder="Search...">
-              <span class="c-search-control__foreground"><i class="fa fa-search"></i></span>
-            </div>
-            <br>
             <div class="js-trigger-list c-report-widget__property-list"></div>
         `;
     }

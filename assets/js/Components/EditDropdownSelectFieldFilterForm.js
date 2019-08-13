@@ -147,7 +147,7 @@ class EditDropdownSelectFieldFilterForm {
         <button type="button" class="btn btn-link js-back-to-list-button text-left"><i class="fa fa-chevron-left"></i> Back</button>
         <p><small>${customFilter.label}*</small></p>
         <form name="filter" id="js-apply-filter-form" novalidate="novalidate">
-            <div style="height: 200px; overflow-y: auto">
+            <div>
                 <div class="form-check">
                     <input class="form-check-input js-radio-button" type="radio" name="operator" id="editOperator1" value="IN" checked data-has-text-input="true">
                     <label class="form-check-label" for="editOperator1">
