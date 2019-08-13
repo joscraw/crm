@@ -12,7 +12,7 @@ import ListFilterList from "./ListFilterList";
 
 class WorkflowActionPropertyList {
 
-    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, uid, customObject, join = null, joins = [], data = {}, referencedFilterPath = []) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, uid, customObject, join = null, joins = [], referencedFilterPath = []) {
         debugger;
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
@@ -23,7 +23,6 @@ class WorkflowActionPropertyList {
         this.join = join;
         this.joins = joins;
         this.lists = [];
-        this.data = data;
         this.referencedFilterPath = referencedFilterPath;
 
         this.unbindEvents();
@@ -162,7 +161,7 @@ class WorkflowActionPropertyList {
             this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_ACTION_CUSTOM_OBJECT_LIST_ITEM_CLICKED, property[0], joins);
         } else {
 
-            this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_ACTION_PROPERTY_LIST_ITEM_CLICKED, property[0]);
+            this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_ACTION_PROPERTY_LIST_ITEM_CLICKED, property[0], joins);
         }
 
     }

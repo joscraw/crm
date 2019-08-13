@@ -12,7 +12,7 @@ import ListFilterList from "./ListFilterList";
 
 class WorkflowTriggerPropertyList {
 
-    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, uid, customObject, join = null, joins = [], data = {}, referencedFilterPath = []) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, uid, customObject, join = null, joins = [], referencedFilterPath = []) {
         debugger;
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
@@ -23,7 +23,6 @@ class WorkflowTriggerPropertyList {
         this.join = join;
         this.joins = joins;
         this.lists = [];
-        this.data = data;
         this.referencedFilterPath = referencedFilterPath;
 
         this.unbindEvents();
@@ -164,7 +163,6 @@ class WorkflowTriggerPropertyList {
 
             this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_TRIGGER_PROPERTY_LIST_ITEM_CLICKED, property[0]);
         }
-
     }
 
     renderProperties(propertyGroups) {

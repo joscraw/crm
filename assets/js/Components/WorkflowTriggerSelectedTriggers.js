@@ -8,6 +8,7 @@ import List from "list.js";
 import SingleLineTextFieldFilterForm from "./SingleLineTextFieldFilterForm";
 import ColumnSearch from "./ColumnSearch";
 require('jquery-ui-dist/jquery-ui');
+import FilterHelper from "../FilterHelper";
 
 class WorkflowTriggerSelectedTriggers {
 
@@ -83,12 +84,6 @@ class WorkflowTriggerSelectedTriggers {
         this.globalEventDispatcher.addRemovableToken(
             this.globalEventDispatcher.subscribe(
                 Settings.Events.WORKFLOW_TRIGGER_FILTER_REMOVED,
-                this.updateView.bind(this)
-            ));
-
-        this.globalEventDispatcher.addRemovableToken(
-            this.globalEventDispatcher.subscribe(
-                Settings.Events.WORKFLOW_TRIGGER_ADDED,
                 this.updateView.bind(this)
             ));
 
@@ -277,8 +272,10 @@ class WorkflowTriggerSelectedTriggers {
     }
 
     _addAction(action) {
+
         debugger;
-        const html = actionTemplate(action);
+        let label = FilterHelper.getActionTextFromAction(action);
+        const html = actionTemplate(action, label);
         const $selectedColumnTemplate = $($.parseHTML(html));
         this.$wrapper.append($selectedColumnTemplate);
     }
@@ -305,13 +302,13 @@ const itemTemplate = ({description, uid}, numOfFilters) => `
     </div>
 `;
 
-const actionTemplate = ({description, property: {label}, value, uid}) => `
+const actionTemplate = ({description, uid}, label) => `
         <div class="card mx-auto js-edit-action" style="width:400px; margin-bottom: 0" data-uid="${uid}">
             <div class="card-header text-center">
                 ${description}
             </div>
             <div class="card-body">
-            ${label} to ${value}
+            ${label}
             <span class="float-right"><i data-uid="${uid}" class="fa fa-times js-remove-action-button" aria-hidden="true"></i></span>
             </div>
         </div>

@@ -49,7 +49,6 @@ class WorkflowTrigger {
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
         this.uid = uid;
-        this.data = {};
         this.trigger = null;
         this.action = null;
         this.workflow = {};
@@ -214,8 +213,6 @@ class WorkflowTrigger {
                 new WorkflowTriggerPropertyList(this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.uid, this.workflow.customObject);
                 break;
         }
-
-        this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_TRIGGER_ADDED, this.workflow);
     }
 
     handleActionListItemClicked(action) {
@@ -225,7 +222,7 @@ class WorkflowTrigger {
         this.workflow.actions.push(this.action);
 
         switch (action.name) {
-            case 'set_property_value_action':
+            case 'PROPERTY_VALUE_ACTION':
                 new WorkflowActionPropertyList(this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.uid, this.workflow.customObject);
                 break;
         }
@@ -290,23 +287,14 @@ class WorkflowTrigger {
     }
 
     handleListCustomObjectFilterListItemClicked(property, joins) {
-        let propertyPath = property.joins.join('.');
-
-        if(!_.has(this.data, propertyPath)) {
-            _.set(this.data, propertyPath, {});
-        }
-
-        new WorkflowTriggerPropertyList(this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.uid, property.field.customObject, property, joins, this.data, property.referencedFilterPath);
+        debugger;
+        new WorkflowTriggerPropertyList(this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.uid, property.field.customObject, property, joins, property.referencedFilterPath);
     }
 
     handleWorkflowActionCustomObjectListItemClicked(property, joins) {
-        let propertyPath = property.joins.join('.');
-
-        if(!_.has(this.data, propertyPath)) {
-            _.set(this.data, propertyPath, {});
-        }
-
-        new WorkflowActionPropertyList(this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.uid, property.field.customObject, property, joins, this.data, property.referencedFilterPath);
+        debugger;
+        this.action.joins = joins;
+        new WorkflowActionPropertyList(this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.uid, property.field.customObject, property, joins, property.referencedFilterPath);
     }
 
     workflowRemoveFilterButtonPressedHandler(uid) {
@@ -348,8 +336,6 @@ class WorkflowTrigger {
 
     workflowRemoveActionButtonPressedHandler(uid) {
 
-        debugger;
-
         this.workflow.actions = jQuery.grep(this.workflow.actions, function( n, i ) {
             return ( n.uid !== uid );
         });
@@ -383,7 +369,9 @@ class WorkflowTrigger {
         }
     }
 
-    handleWorkflowActionPropertyListItemClicked(property) {
+    handleWorkflowActionPropertyListItemClicked(property, joins) {
+        debugger;
+        this.action.joins = joins;
         new WorkflowActionSetPropertyValueForm($(WorkflowTrigger._selectors.workflowTriggerContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.workflow.customObject.internalName, property);
     }
 
@@ -447,18 +435,11 @@ class WorkflowTrigger {
     }
 
     applyWorkflowActionButtonPressedHandler(property, formData) {
-
         debugger;
-        switch (property.fieldType) {
-            case 'single_line_text_field':
-            case 'multi_line_text_field':
-                this.action.property = property;
-                this.action.value = formData.value;
-                break;
-        }
-
+        this.action.operator = formData.operator;
+        this.action.property = property;
+        this.action.value = formData.value;
         this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_ACTION_ADDED, this.workflow);
-
         new WorkflowActionType(this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.uid);
     }
 

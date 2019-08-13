@@ -267,40 +267,9 @@ class WorkflowController extends ApiController
         $actions = !empty($request->request->get('workflow')['actions']) ? $request->request->get('workflow')['actions'] : [];
         $workflowName = $request->request->get('workflow')['name'] ? $request->request->get('workflow')['name'] : '';
 
-       /* foreach($triggers as $key => $trigger) {
-            $triggers[$key] = $this->serializer->deserialize(json_encode($trigger, true), AbstractTrigger::class, 'json');
-        }*/
-
         $workflow->setTriggers($triggers);
         $workflow->setActions($actions);
         $workflow->setName($workflowName);
-        $this->entityManager->persist($workflow);
-        $this->entityManager->flush();
-
-        return new JsonResponse(
-            [
-                'success' => true,
-            ],
-            Response::HTTP_OK
-        );
-    }
-
-    /**
-     * @Route("{internalIdentifier}/api/workflows/{uid}/add-trigger", name="workflow_add_trigger", methods={"POST"}, options = { "expose" = true })
-     * @param Portal $portal
-     * @param Workflow $workflow
-     * @param Request $request
-     * @return JsonResponse
-     */
-    public function createTriggerAction(Portal $portal, Workflow $workflow, Request $request) {
-
-        $triggers = $request->request->get('workflow')['triggers'];
-
-        foreach($triggers as $key => $trigger) {
-            $triggers[$key] = $this->serializer->deserialize(json_encode($trigger, true), AbstractTrigger::class, 'json');
-        }
-        $workflow->setTriggers($triggers);
-
         $this->entityManager->persist($workflow);
         $this->entityManager->flush();
 
@@ -321,7 +290,7 @@ class WorkflowController extends ApiController
      */
     public function getWorkflowAction(Portal $portal, Workflow $workflow, Request $request) {
 
-        $json = $this->serializer->serialize($workflow, 'json', ['groups' => ['WORKFLOW', 'TRIGGER', 'SELECTABLE_PROPERTIES']]);
+        $json = $this->serializer->serialize($workflow, 'json', ['groups' => ['WORKFLOW', 'TRIGGER', 'SELECTABLE_PROPERTIES', 'WORKFLOW_ACTION']]);
         $payload = json_decode($json, true);
 
         return new JsonResponse([

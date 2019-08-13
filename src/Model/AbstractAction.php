@@ -9,11 +9,14 @@ use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * @DiscriminatorMap(typeProperty="name", mapping={
- *    "set_property_value_action"="App\Model\SetPropertyValueAction"
+ *    "PROPERTY_VALUE_ACTION"="App\Model\SetPropertyValueAction"
  * })
  */
 abstract class AbstractAction
 {
+
+    const PROPERTY_VALUE_ACTION = 'PROPERTY_VALUE_ACTION';
+
     /**
      * @Groups({"WORKFLOW_ACTION"})
      * @var string

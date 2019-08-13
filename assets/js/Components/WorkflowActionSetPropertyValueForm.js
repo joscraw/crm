@@ -4,6 +4,11 @@ import Settings from '../Settings';
 import RecordFormModal from './RecordFormModal';
 import $ from "jquery";
 
+require('jquery-ui-dist/jquery-ui');
+require('jquery-ui-dist/jquery-ui.css');
+require('bootstrap-datepicker');
+require('bootstrap-datepicker/dist/css/bootstrap-datepicker.css');
+
 class WorkflowActionSetPropertyValueForm {
 
     constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, property) {
@@ -15,6 +20,12 @@ class WorkflowActionSetPropertyValueForm {
         this.property = property;
 
         this.unbindEvents();
+
+        this.$wrapper.on(
+            'click',
+            WorkflowActionSetPropertyValueForm._selectors.radioButton,
+            this.handleOperatorRadioButtonClicked.bind(this)
+        );
 
         this.$wrapper.on(
             'submit',
@@ -38,6 +49,7 @@ class WorkflowActionSetPropertyValueForm {
         return {
             backToListButton: '.js-back-to-list-button',
             applyFilterForm: '#js-apply-action-form',
+            radioButton: '.js-radio-button',
         }
     }
 
@@ -66,25 +78,80 @@ class WorkflowActionSetPropertyValueForm {
                 this.$wrapper.find('.js-form-fields').html(singleLineTextFieldTemplate());
                 break;
             case 'multi_line_text_field':
-
+                this.$wrapper.find('.js-form-fields').html(multiLineTextFieldTemplate());
                 break;
-            /*   case 'number_field':
-                   new EditNumberFieldFilterForm($(WorkflowTrigger._selectors.workflowTriggerContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.workflow.customObject.internalName, customFilter);
-                   break;
-               case 'date_picker_field':
-                   new EditDatePickerFieldFilterForm($(WorkflowTrigger._selectors.workflowTriggerContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.workflow.customObject.internalName, customFilter);
-                   break;
-               case 'single_checkbox_field':
-                   new EditSingleCheckboxFieldFilterForm($(WorkflowTrigger._selectors.workflowTriggerContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.workflow.customObject.internalName, customFilter);
-                   break;
-               case 'dropdown_select_field':
-               case 'radio_select_field':
-                   new EditDropdownSelectFieldFilterForm($(WorkflowTrigger._selectors.workflowTriggerContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.workflow.customObject.internalName, customFilter);
-                   break;
-               case 'multiple_checkbox_field':
-                   new EditMultipleCheckboxFieldFilterForm($(WorkflowTrigger._selectors.workflowTriggerContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.workflow.customObject.internalName, customFilter);
-                   break;*/
+            case 'dropdown_select_field':
+            case 'multiple_checkbox_field':
+                this.$wrapper.find('.js-form-fields').html(selectTemplate());
+                this.activatePlugins();
+                break;
+            case 'number_field':
+                this.$wrapper.find('.js-form-fields').html(numberTemplate());
+                this.$wrapper.find('.js-radio-button').first().click();
+                break;
+            case 'date_picker_field':
+                this.$wrapper.find('.js-form-fields').html(dateTemplate());
+                this.activatePlugins();
+                break;
+            case 'single_checkbox_field':
+            case 'radio_select_field':
+                this.$wrapper.find('.js-form-fields').html(singleSelectTemplate());
+                this.activatePlugins();
+                break;
         }
+
+    }
+
+    activatePlugins() {
+
+        let options = [];
+        switch (this.property.fieldType) {
+            case 'dropdown_select_field':
+            case 'multiple_checkbox_field':
+                for(let i = 0; i < this.property.field.options.length; i++) {
+                    let option = this.property.field.options[i];
+                    options.push({value: option.label, name: option.label});
+                }
+                this.s = $('.js-selectize-multiple-select').selectize({
+                    plugins: ['remove_button'],
+                    valueField: 'value',
+                    labelField: 'name',
+                    searchField: ['name'],
+                    options: options
+                });
+                break;
+            case 'radio_select_field':
+                for(let i = 0; i < this.property.field.options.length; i++) {
+                    let option = this.property.field.options[i];
+                    options.push({value: option.label, name: option.label});
+                }
+                this.s = $('.js-selectize-single-select').selectize({
+                    maxItems: 1,
+                    valueField: 'value',
+                    labelField: 'name',
+                    searchField: ['name'],
+                    options: options
+                });
+                break;
+            case 'date_picker_field':
+                $('.js-datepicker').datepicker({
+                    format: 'mm-dd-yyyy'
+                });
+                break;
+            case 'single_checkbox_field':
+                $('.js-selectize-single-select').selectize({
+                    maxItems: 1,
+                    valueField: 'value',
+                    labelField: 'name',
+                    searchField: ['name'],
+                    options: [
+                        {value: 0, name: 'No'},
+                        {value: 1, name: 'Yes'}
+                    ],
+                });
+                break;
+        }
+
 
     }
 
@@ -105,6 +172,17 @@ class WorkflowActionSetPropertyValueForm {
         this.globalEventDispatcher.publish(Settings.Events.APPLY_WORKFLOW_ACTION_BUTTON_PRESSED, this.property, formData);
     }
 
+    handleOperatorRadioButtonClicked(e) {
+        debugger;
+        this.$wrapper.find('.js-operator-value').remove();
+        let $radioButton = $(e.currentTarget);
+        if($radioButton.attr('data-has-text-input')) {
+            const html = textFieldTemplate();
+            const $textField = $($.parseHTML(html));
+            $radioButton.closest('div').after($textField);
+        }
+    }
+
     static markup({property: {label}}) {
         return `
         <button type="button" class="btn btn-link js-back-to-list-button text-left"><i class="fa fa-chevron-left"></i> Back</button>
@@ -119,7 +197,64 @@ class WorkflowActionSetPropertyValueForm {
 
 const singleLineTextFieldTemplate = () => `
     <div class="form-group">
+       <input type="hidden" name="operator" value="SET_VALUE">
        <input type="text" name="value" class="form-control" autocomplete="off">
+    </div>
+`;
+
+const textFieldTemplate = () => `
+  <div class="form-group js-operator-value">
+    <input type="text" name="value" class="form-control" autocomplete="off">
+  </div>
+`;
+
+const multiLineTextFieldTemplate = () => `
+    <div class="form-group">
+        <input type="hidden" name="operator" value="SET_VALUE">
+        <textarea class="form-control" name="value" rows="3"></textarea>
+    </div>
+`;
+
+const selectTemplate = () => `
+  <div class="form-group js-operator-value">
+    <input type="hidden" name="operator" value="SET_VALUE">
+    <input type="text" name="value" class="form-control js-selectize-multiple-select">
+  </div>
+`;
+
+const singleSelectTemplate = () => `
+  <div class="form-group js-operator-value">
+    <input type="hidden" name="operator" value="SET_VALUE">
+    <input type="text" name="value" class="form-control js-selectize-single-select">
+  </div>
+`;
+
+const dateTemplate = () => `
+  <div class="form-group js-operator-value">
+    <input type="hidden" name="operator" value="SET_VALUE">
+    <input type="text" name="value" class="form-control js-datepicker" autocomplete="off">
+  </div>
+    
+`;
+
+const numberTemplate = () => `
+    <div class="form-check">
+        <input class="form-check-input js-radio-button" type="radio" name="operator" id="editOperator1" value="SET_VALUE" data-has-text-input="true">
+        <label class="form-check-label" for="editOperator1">
+         <p>Set value</p>
+        </label>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input js-radio-button" type="radio" name="operator" id="editOperator2" value="INCREMENT_BY" data-has-text-input="true">
+        <label class="form-check-label" for="editOperator2">
+        <p>Increment by</p>
+        </label>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input js-radio-button" type="radio" name="operator" id="editOperator3" value="DECREMENT_BY" data-has-text-input="true">
+        <label class="form-check-label" for="editOperator3">
+         <p>Decrement by</p>
+        </label>
     </div>
 `;
 

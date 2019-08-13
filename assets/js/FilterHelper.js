@@ -217,6 +217,48 @@ class FilterHelper {
     }
 
     /**
+     *
+     * @param action
+     * @return {string}
+     */
+    static getActionTextFromAction(action) {
+
+        debugger;
+        let text = '',
+            value = '',
+            values = '',
+            label;
+
+        let actionCopy = _.cloneDeep(action);
+        actionCopy.joins.shift();
+        actionCopy.joins.push(action.property.label);
+        label = actionCopy.joins.join(" - ");
+
+        switch(action.operator) {
+            case 'SET_VALUE':
+                let typesWithMultiple = ['dropdown_select_field', 'multiple_checkbox_field', 'radio_select_field'];
+                if(typesWithMultiple.includes(action.property.fieldType)) {
+                    values = action.value.split(",");
+                    value = `"${values.join(" and ")}"`;
+                } else {
+                    value = action.value.trim() === '' ? '""' : `"${action.value.trim()}"`;
+                }
+                text = `Set ${label} to <strong>${value}</strong>`;
+                break;
+            case 'INCREMENT_BY':
+                value = action.value.trim() === '' ? '""' : `"${action.value.trim()}"`;
+                text = `Increment ${label} by <strong>${value}</strong>`;
+                break;
+            case 'DECREMENT_BY':
+                value = action.value.trim() === '' ? '""' : `"${action.value.trim()}"`;
+                text = `Decrement ${label} by <strong>${value}</strong>`;
+                break;
+        }
+
+        return text;
+    }
+
+    /**
      * Report filters are slightly different and have "OR Reference filters" and
      * therefore require a slightly different extraction method
      *

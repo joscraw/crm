@@ -17,7 +17,7 @@ class SetPropertyValueAction extends AbstractAction
      *
      * @var string
      */
-    protected static $name = 'set_property_value_action';
+    protected static $name = AbstractAction::PROPERTY_VALUE_ACTION;
 
     /**
      * @Groups({"WORKFLOW_ACTION"})
@@ -37,6 +37,18 @@ class SetPropertyValueAction extends AbstractAction
      * @var string
      */
     protected $value;
+
+    /**
+     * @Groups({"WORKFLOW_ACTION"})
+     * @var array
+     */
+    protected $joins = [];
+
+    /**
+     * @Groups({"WORKFLOW_ACTION"})
+     * @var string
+     */
+    protected $operator;
 
     /**
      * @return Property
@@ -71,5 +83,37 @@ class SetPropertyValueAction extends AbstractAction
     public function setValue($value)
     {
         $this->value = $value;
+    }
+
+    /**
+     * @return array
+     */
+    public function getJoins()
+    {
+        return $this->joins;
+    }
+
+    /**
+     * @param array $joins
+     */
+    public function setJoins($joins)
+    {
+        $this->joins = $joins;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getOperator()
+    {
+        return $this->operator;
+    }
+
+    /**
+     * @param mixed $operator
+     */
+    public function setOperator($operator)
+    {
+        $this->operator = $operator;
     }
 }

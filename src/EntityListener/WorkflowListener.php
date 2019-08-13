@@ -5,6 +5,7 @@ namespace App\EntityListener;
 use App\Entity\CustomObject;
 use App\Entity\Property;
 use App\Entity\Workflow;
+use App\Model\AbstractAction;
 use App\Model\AbstractField;
 use App\Model\AbstractTrigger;
 use App\Model\AbstractWorkflowTrigger;
@@ -77,6 +78,12 @@ class WorkflowListener
             $triggers[$key] = $this->serializer->deserialize(json_encode($trigger, true), AbstractTrigger::class, 'json');
         }
         $workflow->setTriggers($triggers);
+
+        $actions = [];
+        foreach($workflow->getActions() as $key => $action) {
+            $actions[$key] = $this->serializer->deserialize(json_encode($action, true), AbstractAction::class, 'json');
+        }
+        $workflow->setActions($actions);
     }
 
     /**
