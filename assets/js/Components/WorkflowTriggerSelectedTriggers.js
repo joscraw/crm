@@ -53,12 +53,6 @@ class WorkflowTriggerSelectedTriggers {
 
         this.$wrapper.on(
             'click',
-            WorkflowTriggerSelectedTriggers._selectors.removeActionButton,
-            this.handleRemoveActionButtonClicked.bind(this)
-        );
-
-        this.$wrapper.on(
-            'click',
             WorkflowTriggerSelectedTriggers._selectors.newTriggerButton,
             this.handleNewTriggerButtonClicked.bind(this)
         );
@@ -120,6 +114,7 @@ class WorkflowTriggerSelectedTriggers {
     unbindEvents() {
         this.$wrapper.off('click', WorkflowTriggerSelectedTriggers._selectors.removeSelectedColumnIcon);
         this.$wrapper.off('click', WorkflowTriggerSelectedTriggers._selectors.selectedColumn);
+        this.$wrapper.off('click', WorkflowTriggerSelectedTriggers._selectors.editAction);
         this.$wrapper.off('click', WorkflowTriggerSelectedTriggers._selectors.newActionButton);
         this.$wrapper.off('click', WorkflowTriggerSelectedTriggers._selectors.removeActionButton);
         this.$wrapper.off('click', WorkflowTriggerSelectedTriggers._selectors.newTriggerButton);

@@ -73,6 +73,7 @@ abstract class Workflow
 
     /**
      * @Groups({"WORKFLOW"})
+     * @var Workflow
      * @ORM\Column(type="json", nullable=true)
      */
     private $draft;

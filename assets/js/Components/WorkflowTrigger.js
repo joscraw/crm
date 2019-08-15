@@ -183,6 +183,10 @@ class WorkflowTrigger {
         this.loadWorkflow().then((data) => {
             debugger;
             this.workflow = data.data;
+            // if the workflow doesn't have a draft let's set an initial draft
+            if(!this.workflow.draft) {
+                this.workflow.draft = data.data;
+            }
 
             this.render();
         });
@@ -243,6 +247,7 @@ class WorkflowTrigger {
     }
 
     handleWorkflowEditActionClicked(uid) {
+        debugger;
         let actionIndex = this.workflow.actions.findIndex(action => action.uid === uid);
         let action = this.action = this.workflow.actions[actionIndex];
         new EditWorkflowActionSetPropertyValueForm($(WorkflowTrigger._selectors.workflowTriggerContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.workflow.customObject.internalName, action);

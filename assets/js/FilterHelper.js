@@ -240,6 +240,8 @@ class FilterHelper {
                 if(typesWithMultiple.includes(action.property.fieldType)) {
                     values = action.value.split(",");
                     value = `"${values.join(" and ")}"`;
+                } else if (action.property.fieldType === 'single_checkbox_field') {
+                    value = action.value.trim() === '1' ? 'Yes' : `No`;
                 } else {
                     value = action.value.trim() === '' ? '""' : `"${action.value.trim()}"`;
                 }
