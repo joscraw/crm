@@ -50,6 +50,18 @@ class WorkflowTopBar {
         this.unbindEvents();
         this.bindEvents();
 
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
+                Settings.Events.WORKFLOW_TRIGGER_FILTER_ADDED,
+                this.handleDataSaved.bind(this)
+            ));
+
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
+                Settings.Events.WORKFLOW_DATA_UPDATED,
+                this.handleDataUpdated.bind(this)
+            ));
+
         this.render();
     }
 
@@ -69,22 +81,54 @@ class WorkflowTopBar {
     bindEvents() {
         this.$wrapper.on('click', WorkflowTopBar._selectors.publishButton, this.handlePublishButtonClicked.bind(this));
         this.$wrapper.on('keyup', WorkflowTopBar._selectors.workflowName, this.handleFormNameChange.bind(this));
+        this.$wrapper.on('click', WorkflowTopBar._selectors.revertButton, this.handleRevertButtonClicked.bind(this));
     }
 
     unbindEvents() {
         this.$wrapper.off('click', WorkflowTopBar._selectors.publishButton);
         this.$wrapper.off('keyup', WorkflowTopBar._selectors.workflowName);
+        this.$wrapper.off('click', WorkflowTopBar._selectors.revertButton);
     }
 
     render() {
         this.$wrapper.html(WorkflowTopBar.markup(this));
+        this.setAutoSaveMessage();
     }
 
-    handleDataSaved(form) {
+    handleRevertButtonClicked(e) {
         debugger;
-        this.form = form;
+        if(e.cancelable) {
+            e.preventDefault();
+        }
+        this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_REVERT_BUTTON_CLICKED);
+    }
+
+    handleDataSaved(workflow) {
+        debugger;
+        this.workflow = workflow;
 
         this.setAutoSaveMessage();
+    }
+
+    handleDataUpdated(workflow) {
+        debugger;
+        this.workflow = workflow;
+
+        this.setAutoSaveMessage();
+    }
+
+    setAutoSaveMessage() {
+        debugger;
+        let autosaveMessage = '';
+        if(!_.isEqual(this.workflow.actions, this.workflow.draft.actions) ||
+            !_.isEqual(this.workflow.triggers, this.workflow.draft.triggers) ||
+            !_.isEqual(this.workflow.name, this.workflow.draft.name)) {
+
+            autosaveMessage = 'Autosaved with unpublished changes <button type="button" class="btn btn-link js-revert-button">revert</button>';
+
+        }
+
+        this.$wrapper.find(WorkflowTopBar._selectors.autosaveMessage).html(autosaveMessage);
     }
 
     handleFormNameChange(e) {

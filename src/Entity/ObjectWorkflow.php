@@ -10,6 +10,11 @@ use Symfony\Component\Serializer\Annotation\Groups;
  */
 class ObjectWorkflow extends Workflow
 {
+    /**
+     * @Groups({"WORKFLOW"})
+     * @var string
+     */
+    public static $nameDisc = 'objectWorkflow';
 
     /**
      * @Groups({"WORKFLOW"})
@@ -27,5 +32,13 @@ class ObjectWorkflow extends Workflow
         $this->customObject = $customObject;
 
         return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public static function getNameDisc()
+    {
+        return self::$nameDisc;
     }
 }

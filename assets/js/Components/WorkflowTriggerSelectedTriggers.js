@@ -57,15 +57,9 @@ class WorkflowTriggerSelectedTriggers {
             this.handleNewTriggerButtonClicked.bind(this)
         );
 
-        this.globalEventDispatcher.addRemovableToken(
+  /*      this.globalEventDispatcher.addRemovableToken(
             this.globalEventDispatcher.subscribe(
                 Settings.Events.WORKFLOW_TRIGGER_REMOVED,
-                this.updateView.bind(this)
-            ));
-
-        this.globalEventDispatcher.addRemovableToken(
-            this.globalEventDispatcher.subscribe(
-                Settings.Events.WORKFLOW_ACTION_REMOVED,
                 this.updateView.bind(this)
             ));
 
@@ -79,7 +73,7 @@ class WorkflowTriggerSelectedTriggers {
             this.globalEventDispatcher.subscribe(
                 Settings.Events.WORKFLOW_TRIGGER_FILTER_REMOVED,
                 this.updateView.bind(this)
-            ));
+            ));*/
 
         this.globalEventDispatcher.addRemovableToken(
             this.globalEventDispatcher.subscribe(
@@ -89,7 +83,7 @@ class WorkflowTriggerSelectedTriggers {
 
         this.globalEventDispatcher.addRemovableToken(
             this.globalEventDispatcher.subscribe(
-                Settings.Events.WORKFLOW_ACTION_ADDED,
+                Settings.Events.WORKFLOW_DATA_UPDATED,
                 this.updateView.bind(this)
             ));
 
@@ -124,8 +118,8 @@ class WorkflowTriggerSelectedTriggers {
         debugger;
         this.$wrapper.html(WorkflowTriggerSelectedTriggers.markup(this));
 
-        this.renderTriggers(this.workflow.triggers);
-        this.renderActions(this.workflow.actions);
+        this.renderTriggers(this.workflow.draft.triggers);
+        this.renderActions(this.workflow.draft.actions);
         this.renderAddActionButton();
     }
 
@@ -136,6 +130,7 @@ class WorkflowTriggerSelectedTriggers {
     }
 
     updateView(workflow) {
+        debugger;
         this.workflow = workflow;
         this.render();
     }
@@ -248,6 +243,7 @@ class WorkflowTriggerSelectedTriggers {
     }
 
     renderActions(actions) {
+        debugger;
         for(let action of actions) {
             this._addAction(action);
         }

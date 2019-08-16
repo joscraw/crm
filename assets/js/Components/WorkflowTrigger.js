@@ -52,6 +52,7 @@ class WorkflowTrigger {
         this.trigger = null;
         this.action = null;
         this.workflow = {};
+        this.originalWorkflow = {};
 
         this.unbindEvents();
 
@@ -180,13 +181,16 @@ class WorkflowTrigger {
                 this.workflowNameChangedHandler.bind(this)
             ));
 
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
+                Settings.Events.WORKFLOW_REVERT_BUTTON_CLICKED,
+                this.handleRevertButtonClicked.bind(this)
+            ));
+
         this.loadWorkflow().then((data) => {
             debugger;
             this.workflow = data.data;
-            // if the workflow doesn't have a draft let's set an initial draft
-            if(!this.workflow.draft) {
-                this.workflow.draft = data.data;
-            }
+            this.workflow.draft = !_.isEmpty(this.workflow.draft) ? this.workflow.draft : _.cloneDeep(data.data);
 
             this.render();
         });
@@ -210,7 +214,7 @@ class WorkflowTrigger {
         debugger;
         this.trigger = trigger;
         this.trigger.uid = !this.trigger.uid ? StringHelper.makeCharId() : this.trigger.uid;
-        this.workflow.triggers.push(this.trigger);
+        this.workflow.draft.triggers.push(this.trigger);
 
         switch (trigger.name) {
             case 'PROPERTY_BASED_TRIGGER':
@@ -223,7 +227,7 @@ class WorkflowTrigger {
         debugger;
         this.action = action;
         this.action.uid = !this.action.uid ? StringHelper.makeCharId() : this.action.uid;
-        this.workflow.actions.push(this.action);
+        this.workflow.draft.actions.push(this.action);
 
         switch (action.name) {
             case 'PROPERTY_VALUE_ACTION':
@@ -304,13 +308,13 @@ class WorkflowTrigger {
 
     workflowRemoveFilterButtonPressedHandler(uid) {
 
-        let triggerIndex = this.workflow.triggers.findIndex(trigger => trigger.uid === this.trigger.uid);
+        let triggerIndex = this.workflow.draft.triggers.findIndex(trigger => trigger.uid === this.trigger.uid);
 
-        this.workflow.triggers[triggerIndex].filters = jQuery.grep(this.workflow.triggers[triggerIndex].filters, function( n, i ) {
+        this.workflow.draft.triggers[triggerIndex].filters = jQuery.grep(this.workflow.draft.triggers[triggerIndex].filters, function( n, i ) {
             return ( n.uid !== uid );
         });
 
-        for (let filter of this.workflow.triggers[triggerIndex].filters) {
+        for (let filter of this.workflow.draft.triggers[triggerIndex].filters) {
             // remove any filters that have the uid in their andFilters array
             _.remove(filter.andFilters, function (el) {
                 return el === uid;
@@ -328,11 +332,15 @@ class WorkflowTrigger {
 
     workflowRemoveTriggerButtonPressedHandler(uid) {
 
-        this.workflow.triggers = jQuery.grep(this.workflow.triggers, function( n, i ) {
+        this.workflow.draft.triggers = jQuery.grep(this.workflow.draft.triggers, function( n, i ) {
             return ( n.uid !== uid );
         });
 
-        this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_TRIGGER_REMOVED, this.workflow);
+        /*this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_TRIGGER_REMOVED, this.workflow.draft);*/
+
+        this._saveWorkflow().then((data) => {
+            this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_DATA_UPDATED, this.workflow);
+        });
 
         if(this.trigger && this.trigger.uid === uid) {
             new WorkflowTriggerType(this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.uid);
@@ -340,12 +348,13 @@ class WorkflowTrigger {
     }
 
     workflowRemoveActionButtonPressedHandler(uid) {
-
-        this.workflow.actions = jQuery.grep(this.workflow.actions, function( n, i ) {
+        this.workflow.draft.actions = jQuery.grep(this.workflow.draft.actions, function( n, i ) {
             return ( n.uid !== uid );
         });
 
-        this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_ACTION_REMOVED, this.workflow);
+        this._saveWorkflow().then((data) => {
+            this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_DATA_UPDATED, this.workflow);
+        });
     }
 
     handleWorkflowTriggerPropertyListItemClicked(property) {
@@ -433,10 +442,10 @@ class WorkflowTrigger {
         }
 
         debugger;
-
-        this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_TRIGGER_FILTER_ADDED, this.workflow);
-
-        new WorkflowTriggerFilters(this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.trigger);
+        this._saveWorkflow().then((data) => {
+            this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_DATA_UPDATED, this.workflow);
+            new WorkflowTriggerFilters(this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.trigger);
+        });
     }
 
     applyWorkflowActionButtonPressedHandler(property, formData) {
@@ -444,30 +453,71 @@ class WorkflowTrigger {
         this.action.operator = formData.operator;
         this.action.property = property;
         this.action.value = formData.value;
-        this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_ACTION_ADDED, this.workflow);
-        new WorkflowActionType(this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.uid);
+
+        this._saveWorkflow().then((data) => {
+            this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_DATA_UPDATED, this.workflow);
+            new WorkflowActionType(this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.uid);
+        });
     }
 
     workflowPublishButtonClickedHandler() {
 
-        if(_.isEmpty(this.workflow.triggers)) {
+        debugger;
+        /*this.workflow = _.cloneDeep(this.workflow.draft);*/
+
+        debugger;
+        if(_.isEmpty(this.workflow.draft.triggers)) {
             swal("Woahhhh!", `You need to setup some triggers before you can publish your workflow`, "error");
             return;
         }
 
-        if(this.workflow.name === '') {
+        if(this.workflow.draft.name === '') {
             swal("Woahhhh!", `Don't forget a name for your workflow!`, "error");
             return;
         }
 
-        this._saveWorkflow().then((data) => {
+        this._publishWorkflow().then((data) => {
+            this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_DATA_UPDATED, this.workflow);
             swal("Hooray!", `Well done, you have successfully published your workflow!`, "success");
         });
     }
 
+    handleRevertButtonClicked() {
+
+        debugger;
+        this.workflow.draft = _.cloneDeep(this.workflow);
+
+        debugger;
+        this._saveWorkflow().then((data) => {
+            debugger;
+            this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_DATA_UPDATED, this.workflow);
+        });
+    }
+
     _saveWorkflow() {
+        debugger;
         return new Promise((resolve, reject) => {
             const url = Routing.generate('save_workflow', {internalIdentifier: this.portalInternalIdentifier, uid: this.uid});
+            $.ajax({
+                url,
+                method: 'POST',
+                data: {'workflow': this.workflow}
+            }).then((data, textStatus, jqXHR) => {
+                debugger;
+                resolve(data);
+            }).catch((jqXHR) => {
+                debugger;
+                const errorData = JSON.parse(jqXHR.responseText);
+                errorData.httpCode = jqXHR.status;
+                reject(errorData);
+            });
+        });
+    }
+
+    _publishWorkflow() {
+        debugger;
+        return new Promise((resolve, reject) => {
+            const url = Routing.generate('publish_workflow', {internalIdentifier: this.portalInternalIdentifier, uid: this.uid});
             $.ajax({
                 url,
                 method: 'POST',
@@ -511,7 +561,7 @@ class WorkflowTrigger {
     }
 
     workflowNameChangedHandler(workflowName) {
-        this.workflow.name = workflowName;
+        this.workflow.draft.name = workflowName;
     }
 
     static markup({portalInternalIdentifier}) {

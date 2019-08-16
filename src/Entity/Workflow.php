@@ -72,13 +72,6 @@ abstract class Workflow
     private $actions = [];
 
     /**
-     * @Groups({"WORKFLOW"})
-     * @var Workflow
-     * @ORM\Column(type="json", nullable=true)
-     */
-    private $draft;
-
-    /**
      * @ORM\PrePersist
      * @throws \Exception
      */
@@ -93,6 +86,12 @@ abstract class Workflow
      * @ORM\Column(type="boolean")
      */
     private $published = false;
+
+    /**
+     * @Groups({"WORKFLOW"})
+     * @ORM\Column(type="json", nullable=true)
+     */
+    private $draft = [];
 
     public function getId(): ?int
     {
@@ -158,6 +157,18 @@ abstract class Workflow
 
         return $this;
     }
+    
+    public function getPublished(): ?bool
+    {
+        return $this->published;
+    }
+
+    public function setPublished(bool $published): self
+    {
+        $this->published = $published;
+
+        return $this;
+    }
 
     public function getDraft(): ?array
     {
@@ -167,18 +178,6 @@ abstract class Workflow
     public function setDraft(?array $draft): self
     {
         $this->draft = $draft;
-
-        return $this;
-    }
-
-    public function getPublished(): ?bool
-    {
-        return $this->published;
-    }
-
-    public function setPublished(bool $published): self
-    {
-        $this->published = $published;
 
         return $this;
     }
