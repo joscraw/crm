@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 
@@ -22,6 +24,17 @@ class ObjectWorkflow extends Workflow
      */
     private $customObject;
 
+    /**
+     * @Groups({"WORKFLOW"})
+     * @ORM\OneToMany(targetEntity="App\Entity\PropertyTrigger", mappedBy="objectWorkflow")
+     */
+    private $triggers;
+
+    public function __construct()
+    {
+        $this->triggers = new ArrayCollection();
+    }
+
     public function getCustomObject(): ?CustomObject
     {
         return $this->customObject;
@@ -40,5 +53,36 @@ class ObjectWorkflow extends Workflow
     public static function getNameDisc()
     {
         return self::$nameDisc;
+    }
+
+    /**
+     * @return Collection|PropertyTrigger[]
+     */
+    public function getTriggers(): Collection
+    {
+        return $this->triggers;
+    }
+
+    public function addTrigger(PropertyTrigger $trigger): self
+    {
+        if (!$this->triggers->contains($trigger)) {
+            $this->triggers[] = $trigger;
+            $trigger->setObjectWorkflow($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTrigger(PropertyTrigger $trigger): self
+    {
+        if ($this->triggers->contains($trigger)) {
+            $this->triggers->removeElement($trigger);
+            // set the owning side to null (unless already changed)
+            if ($trigger->getObjectWorkflow() === $this) {
+                $trigger->setObjectWorkflow(null);
+            }
+        }
+
+        return $this;
     }
 }

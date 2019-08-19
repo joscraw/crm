@@ -217,7 +217,7 @@ class WorkflowTrigger {
         this.workflow.draft.triggers.push(this.trigger);
 
         switch (trigger.name) {
-            case 'PROPERTY_BASED_TRIGGER':
+            case 'property_based_trigger':
                 new WorkflowTriggerPropertyList(this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.uid, this.workflow.customObject);
                 break;
         }

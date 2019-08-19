@@ -14,8 +14,9 @@ use App\Entity\PropertyGroup;
 use App\Entity\Record;
 use App\Entity\Report;
 use App\Entity\Role;
+use App\Entity\Trigger;
+use App\Entity\TriggerFilter;
 use App\Entity\Workflow;
-use App\Entity\WorkflowTrigger;
 use App\Form\CustomObjectType;
 use App\Form\DeleteFormType;
 use App\Form\DeleteListType;
@@ -27,12 +28,12 @@ use App\Form\MoveListToFolderType;
 use App\Form\PropertyGroupType;
 use App\Form\PropertyType;
 use App\Form\RecordType;
-use App\Form\WorkflowTriggerType;
+use Symfony\Component\Serializer\Annotation\DiscriminatorMap;
 use App\Form\WorkflowType;
 use App\Model\AbstractField;
 use App\Model\AbstractTrigger;
 use App\Model\FieldCatalog;
-use App\Model\PropertyTrigger;
+use App\Entity\PropertyTrigger;
 use App\Model\SetPropertyValueAction;
 use App\Model\WorkflowTriggerCatalog;
 use App\Repository\CustomObjectRepository;
@@ -43,7 +44,6 @@ use App\Repository\PropertyGroupRepository;
 use App\Repository\PropertyRepository;
 use App\Repository\RecordRepository;
 use App\Repository\ReportRepository;
-use App\Repository\WorkflowTriggerRepository;
 use App\Service\MessageGenerator;
 use App\Utils\ArrayHelper;
 use App\Utils\ListFolderBreadcrumbs;
@@ -58,8 +58,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Response;
-
-
 use Symfony\Component\Serializer\Encoder\CsvEncoder;
 use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
@@ -264,14 +262,28 @@ class WorkflowController extends ApiController
     public function saveWorkflowAction(Portal $portal, Workflow $workflow, Request $request) {
 
         $draft = $request->request->get('workflow')['draft'];
+        $triggers = $draft['triggers'];
+        foreach($triggers as $trigger) {
+            unset($trigger['id']);
+           /* $filters = [];
+            foreach($trigger['filters'] as $filter) {
+               $filterObj = new TriggerFilter();
+            }*/
+            /*$trigger['filters'] = $filters;*/
+            /*unset($trigger['filters']);*/
+            $trigger = $this->serializer->deserialize(json_encode($trigger, true), Trigger::class, 'json');
 
-        if(!isset($draft['actions'])) {
+
+            $this->entityManager->persist($trigger);
+        }
+
+   /*     if(!isset($draft['actions'])) {
             $draft['actions'] = [];
         }
 
         if(!isset($draft['triggers'])) {
             $draft['triggers'] = [];
-        }
+        }*/
 
         $workflow->setDraft($draft);
         $this->entityManager->persist($workflow);
@@ -321,7 +333,7 @@ class WorkflowController extends ApiController
      */
     public function getWorkflowAction(Portal $portal, Workflow $workflow, Request $request) {
 
-        $json = $this->serializer->serialize($workflow, 'json', ['groups' => ['WORKFLOW', 'TRIGGER', 'SELECTABLE_PROPERTIES', 'WORKFLOW_ACTION']]);
+        $json = $this->serializer->serialize($workflow, 'json', ['groups' => ['WORKFLOW']]);
         $payload = json_decode($json, true);
 
         return new JsonResponse([

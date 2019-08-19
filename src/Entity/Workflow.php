@@ -9,9 +9,9 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 
+// @ORM\EntityListeners({"App\EntityListener\WorkflowListener"})
+
 /**
- *
- * @ORM\EntityListeners({"App\EntityListener\WorkflowListener"})
  * @ORM\Entity(repositoryClass="App\Repository\WorkflowRepository")
  * @ORM\HasLifecycleCallbacks()
  *
@@ -56,20 +56,6 @@ abstract class Workflow
      */
     private $uid;
 
-    /**
-     * @Groups({"WORKFLOW"})
-     * @var AbstractTrigger|[]
-     *
-     * @ORM\Column(type="json_array", nullable=true)
-     */
-    private $triggers = [];
-
-    /**
-     * @Groups({"WORKFLOW"})
-     * @var AbstractAction|[]
-     * @ORM\Column(type="json_array", nullable=true)
-     */
-    private $actions = [];
 
     /**
      * @ORM\PrePersist
@@ -92,6 +78,12 @@ abstract class Workflow
      * @ORM\Column(type="json", nullable=true)
      */
     private $draft = [];
+
+    /**
+     * @Groups({"WORKFLOW"})
+     * @var array
+     */
+    private $actions = [];
 
     public function getId(): ?int
     {
@@ -134,30 +126,6 @@ abstract class Workflow
         return $this;
     }
 
-    public function getTriggers()
-    {
-        return $this->triggers;
-    }
-
-    public function setTriggers($triggers): self
-    {
-        $this->triggers = $triggers;
-
-        return $this;
-    }
-
-    public function getActions()
-    {
-        return $this->actions;
-    }
-
-    public function setActions($actions): self
-    {
-        $this->actions = $actions;
-
-        return $this;
-    }
-    
     public function getPublished(): ?bool
     {
         return $this->published;
@@ -180,5 +148,21 @@ abstract class Workflow
         $this->draft = $draft;
 
         return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getActions(): array
+    {
+        return $this->actions;
+    }
+
+    /**
+     * @param array $actions
+     */
+    public function setActions(array $actions): void
+    {
+        $this->actions = $actions;
     }
 }

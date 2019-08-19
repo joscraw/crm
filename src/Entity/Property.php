@@ -6,6 +6,8 @@ use App\Model\AbstractField;
 use App\Model\DropdownSelectField;
 use App\Model\FieldCatalog;
 use App\Model\FormFieldProperties;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -125,6 +127,16 @@ class Property
      * @ORM\Column(type="boolean")
      */
     protected $systemDefined = false;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\TriggerFilter", mappedBy="property")
+     */
+    private $triggerFilters;
+
+    public function __construct()
+    {
+        $this->triggerFilters = new ArrayCollection();
+    }
 
 
     /**
@@ -350,6 +362,37 @@ class Property
     public function setSystemDefined(bool $systemDefined): self
     {
         $this->systemDefined = $systemDefined;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|TriggerFilter[]
+     */
+    public function getTriggerFilters(): Collection
+    {
+        return $this->triggerFilters;
+    }
+
+    public function addTriggerFilter(TriggerFilter $triggerFilter): self
+    {
+        if (!$this->triggerFilters->contains($triggerFilter)) {
+            $this->triggerFilters[] = $triggerFilter;
+            $triggerFilter->setProperty($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTriggerFilter(TriggerFilter $triggerFilter): self
+    {
+        if ($this->triggerFilters->contains($triggerFilter)) {
+            $this->triggerFilters->removeElement($triggerFilter);
+            // set the owning side to null (unless already changed)
+            if ($triggerFilter->getProperty() === $this) {
+                $triggerFilter->setProperty(null);
+            }
+        }
 
         return $this;
     }
