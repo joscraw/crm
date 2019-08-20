@@ -27,7 +27,7 @@ class PropertyTrigger extends Trigger
     /**
      * @var TriggerFilter|[]
      * @Groups({"TRIGGER"})
-     * @ORM\OneToMany(targetEntity="App\Entity\TriggerFilter", mappedBy="propertyTrigger", cascade={"persist"})
+     * @ORM\OneToMany(targetEntity="App\Entity\TriggerFilter", mappedBy="propertyTrigger", cascade={"persist", "remove"})
      */
     protected $filters = [];
 
@@ -73,6 +73,12 @@ class PropertyTrigger extends Trigger
                 $filter->setPropertyTrigger(null);
             }
         }
+
+        return $this;
+    }
+
+    public function setFilters($filters) {
+        $this->filters = $filters;
 
         return $this;
     }

@@ -4,6 +4,7 @@ namespace App\Controller\Api;
 
 use App\AuthorizationHandler\PermissionAuthorizationHandler;
 use App\Entity\CustomObject;
+use App\Entity\Filter;
 use App\Entity\Folder;
 use App\Entity\Form;
 use App\Entity\MarketingList;
@@ -28,6 +29,9 @@ use App\Form\MoveListToFolderType;
 use App\Form\PropertyGroupType;
 use App\Form\PropertyType;
 use App\Form\RecordType;
+use App\Repository\ObjectWorkflowRepository;
+use App\Repository\TriggerFilterRepository;
+use App\Repository\WorkflowRepository;
 use Symfony\Component\Serializer\Annotation\DiscriminatorMap;
 use App\Form\WorkflowType;
 use App\Model\AbstractField;
@@ -141,6 +145,21 @@ class WorkflowController extends ApiController
     private $denormalizer;
 
     /**
+     * @var TriggerFilterRepository
+     */
+    private $triggerFilterRepository;
+
+    /**
+     * @var WorkflowRepository
+     */
+    private $workflowRepository;
+
+    /**
+     * @var ObjectWorkflowRepository
+     */
+    private $objectWorkflowRepository;
+
+    /**
      * WorkflowController constructor.
      * @param EntityManagerInterface $entityManager
      * @param CustomObjectRepository $customObjectRepository
@@ -154,6 +173,9 @@ class WorkflowController extends ApiController
      * @param FolderRepository $folderRepository
      * @param ListFolderBreadcrumbs $folderBreadcrumbs
      * @param DenormalizerInterface $denormalizer
+     * @param TriggerFilterRepository $triggerFilterRepository
+     * @param WorkflowRepository $workflowRepository
+     * @param ObjectWorkflowRepository $objectWorkflowRepository
      */
     public function __construct(
         EntityManagerInterface $entityManager,
@@ -167,7 +189,10 @@ class WorkflowController extends ApiController
         MarketingListRepository $marketingListRepository,
         FolderRepository $folderRepository,
         ListFolderBreadcrumbs $folderBreadcrumbs,
-        DenormalizerInterface $denormalizer
+        DenormalizerInterface $denormalizer,
+        TriggerFilterRepository $triggerFilterRepository,
+        WorkflowRepository $workflowRepository,
+        ObjectWorkflowRepository $objectWorkflowRepository
     ) {
         $this->entityManager = $entityManager;
         $this->customObjectRepository = $customObjectRepository;
@@ -181,6 +206,9 @@ class WorkflowController extends ApiController
         $this->folderRepository = $folderRepository;
         $this->folderBreadcrumbs = $folderBreadcrumbs;
         $this->denormalizer = $denormalizer;
+        $this->triggerFilterRepository = $triggerFilterRepository;
+        $this->workflowRepository = $workflowRepository;
+        $this->objectWorkflowRepository = $objectWorkflowRepository;
     }
 
     /**
@@ -260,34 +288,45 @@ class WorkflowController extends ApiController
      * @return JsonResponse
      */
     public function saveWorkflowAction(Portal $portal, Workflow $workflow, Request $request) {
+        // clear the current triggers
+        foreach($workflow->getTriggers() as $trigger) {
+            $this->entityManager->remove($trigger);
+            $this->entityManager->flush();
+        }
 
-        $draft = $request->request->get('workflow')['draft'];
-        $triggers = $draft['triggers'];
+        $workflowArray = $request->request->get('workflow');
+        $triggers = $workflowArray['triggers'];
         foreach($triggers as $trigger) {
-            unset($trigger['id']);
-           /* $filters = [];
-            foreach($trigger['filters'] as $filter) {
-               $filterObj = new TriggerFilter();
-            }*/
-            /*$trigger['filters'] = $filters;*/
-            /*unset($trigger['filters']);*/
+
+            $trigger['filters'] = $this->setValidPropertyTypes($trigger['filters']);
+
+            /** @var Trigger $trigger */
             $trigger = $this->serializer->deserialize(json_encode($trigger, true), Trigger::class, 'json');
 
-
+            switch ($trigger->getName()) {
+                case Trigger::PROPERTY_BASED_TRIGGER:
+                    /** @var PropertyTrigger $trigger */
+                    $trigger->setObjectWorkflow($workflow);
+                    foreach($trigger->getFilters() as $filter) {
+                        if($filter->getProperty()) {
+                            $property = $this->propertyRepository->find($filter->getProperty()->getId());
+                            $filter->setProperty($property);
+                        }
+                    }
+                    break;
+            }
             $this->entityManager->persist($trigger);
         }
 
-   /*     if(!isset($draft['actions'])) {
-            $draft['actions'] = [];
-        }
-
-        if(!isset($draft['triggers'])) {
-            $draft['triggers'] = [];
-        }*/
-
-        $workflow->setDraft($draft);
         $this->entityManager->persist($workflow);
         $this->entityManager->flush();
+
+        // let's pull a fresh copy from the database
+        $this->entityManager->refresh($workflow);
+        $json = $this->serializer->serialize($workflow, 'json', ['groups' => ['WORKFLOW', 'TRIGGER']]);
+        $payload = json_decode($json, true);
+
+        $workflow->setDraft($payload);
 
         return new JsonResponse(
             [
@@ -306,12 +345,6 @@ class WorkflowController extends ApiController
      */
     public function publishWorkflowAction(Portal $portal, Workflow $workflow, Request $request) {
         $workflow->setPublished(true);
-        $triggers = $workflow->getDraft()['triggers'];
-        $actions = $workflow->getDraft()['actions'];
-        $name = $workflow->getDraft()['name'];
-        $workflow->setTriggers($triggers);
-        $workflow->setActions($actions);
-        $workflow->setName($name);
 
         $this->entityManager->persist($workflow);
         $this->entityManager->flush();
@@ -333,12 +366,12 @@ class WorkflowController extends ApiController
      */
     public function getWorkflowAction(Portal $portal, Workflow $workflow, Request $request) {
 
-        $json = $this->serializer->serialize($workflow, 'json', ['groups' => ['WORKFLOW']]);
+        $json = $this->serializer->serialize($workflow, 'json', ['groups' => ['WORKFLOW', 'TRIGGER']]);
         $payload = json_decode($json, true);
 
         return new JsonResponse([
             'success' => true,
-            'data'  => $payload
+            'data'  => $payload,
         ], Response::HTTP_OK);
 
     }
@@ -352,12 +385,12 @@ class WorkflowController extends ApiController
     public function getTriggerTypes(Portal $portal, Request $request) {
 
         $payload = [
-            json_decode($this->serializer->serialize(new PropertyTrigger(), 'json', ['groups' => ['TRIGGER']]), true)
+            json_decode($this->serializer->serialize(new PropertyTrigger(), 'json', ['groups' => ['TRIGGER']]), true),
         ];
 
         return new JsonResponse([
             'success' => true,
-            'data'  => $payload
+            'data'  => $payload,
         ], Response::HTTP_OK);
     }
 
@@ -370,12 +403,12 @@ class WorkflowController extends ApiController
     public function getActionTypes(Portal $portal, Request $request) {
 
         $payload = [
-            json_decode($this->serializer->serialize(new SetPropertyValueAction(), 'json', ['groups' => ['WORKFLOW_ACTION', 'TRIGGER']]), true)
+            json_decode($this->serializer->serialize(new SetPropertyValueAction(), 'json', ['groups' => ['WORKFLOW_ACTION', 'TRIGGER']]), true),
         ];
 
         return new JsonResponse([
             'success' => true,
-            'data'  => $payload
+            'data'  => $payload,
         ], Response::HTTP_OK);
     }
 
@@ -389,7 +422,7 @@ class WorkflowController extends ApiController
 
         return new JsonResponse([
             'success' => true,
-            'data'  => Workflow::$types
+            'data'  => Workflow::$types,
         ], Response::HTTP_OK);
     }
 }

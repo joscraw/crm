@@ -118,8 +118,8 @@ class WorkflowTriggerSelectedTriggers {
         debugger;
         this.$wrapper.html(WorkflowTriggerSelectedTriggers.markup(this));
 
-        this.renderTriggers(this.workflow.draft.triggers);
-        this.renderActions(this.workflow.draft.actions);
+        this.renderTriggers(this.workflow.triggers);
+        this.renderActions(this.workflow.actions);
         this.renderAddActionButton();
     }
 

@@ -22,13 +22,13 @@ class ObjectWorkflow extends Workflow
      * @Groups({"WORKFLOW"})
      * @ORM\ManyToOne(targetEntity="App\Entity\CustomObject", inversedBy="objectWorkflows")
      */
-    private $customObject;
+    protected $customObject;
 
     /**
      * @Groups({"WORKFLOW"})
      * @ORM\OneToMany(targetEntity="App\Entity\PropertyTrigger", mappedBy="objectWorkflow")
      */
-    private $triggers;
+    protected $triggers;
 
     public function __construct()
     {

@@ -36,25 +36,19 @@ abstract class Workflow
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
      */
-    private $id;
-
-    /**
-     * @Groups({"WORKFLOW"})
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
-    private $name = '';
+    protected $id;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Portal", inversedBy="workflows")
      * @ORM\JoinColumn(nullable=false)
      */
-    private $portal;
+    protected $portal;
 
     /**
      * @Groups({"WORKFLOW"})
      * @ORM\Column(type="string", length=255)
      */
-    private $uid;
+    protected $uid;
 
 
     /**
@@ -71,35 +65,23 @@ abstract class Workflow
     /**
      * @ORM\Column(type="boolean")
      */
-    private $published = false;
+    protected $published = false;
 
     /**
      * @Groups({"WORKFLOW"})
      * @ORM\Column(type="json", nullable=true)
      */
-    private $draft = [];
+    protected $draft = [];
 
     /**
      * @Groups({"WORKFLOW"})
      * @var array
      */
-    private $actions = [];
+    protected $actions = [];
 
     public function getId(): ?int
     {
         return $this->id;
-    }
-
-    public function getName(): ?string
-    {
-        return $this->name;
-    }
-
-    public function setName(?string $name): self
-    {
-        $this->name = $name;
-
-        return $this;
     }
 
     public function getPortal(): ?Portal
@@ -164,5 +146,10 @@ abstract class Workflow
     public function setActions(array $actions): void
     {
         $this->actions = $actions;
+    }
+
+    public function getClassName()
+    {
+        return (new \ReflectionClass($this))->getShortName();
     }
 }

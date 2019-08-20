@@ -94,6 +94,8 @@ class SingleLineTextFieldFilterForm {
 
         const customFilter = {...this.property, ...formData};
 
+        customFilter.property = this.property;
+
         this.globalEventDispatcher.publish(Settings.Events.APPLY_CUSTOM_FILTER_BUTTON_PRESSED, customFilter);
         console.log(`Event Dispatched: ${Settings.Events.APPLY_CUSTOM_FILTER_BUTTON_PRESSED}`);
 

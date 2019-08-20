@@ -47,4 +47,19 @@ class ObjectWorkflowRepository extends ServiceEntityRepository
         ;
     }
     */
+
+    /**
+     * @param $id
+     * @return mixed
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     */
+    public function getWorkflowById($id)
+    {
+        return $this->createQueryBuilder('objectWorkflow')
+            ->innerJoin('objectWorkflow.triggers', 'triggers')
+            ->where('workflow.id = :id')
+            ->setParameter('id', $id)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 }

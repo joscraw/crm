@@ -28,6 +28,11 @@ trait PropertyHelper
             $property['id'] = (int) $property['id'];
             $property['required'] = $property['required'] === 'true'? true: false;
 
+            if(isset($property['property'])) {
+                $property['property']['id'] = (int) $property['property']['id'];
+                $property['property']['required'] = $property['property']['required'] === 'true'? true: false;
+            }
+
             if($property['fieldType'] === FieldCatalog::CUSTOM_OBJECT) {
 
                 $property['field']['customObject']['id'] = (int) $property['field']['customObject']['id'];

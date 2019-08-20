@@ -190,7 +190,7 @@ class WorkflowTrigger {
         this.loadWorkflow().then((data) => {
             debugger;
             this.workflow = data.data;
-            this.workflow.draft = !_.isEmpty(this.workflow.draft) ? this.workflow.draft : _.cloneDeep(data.data);
+            /*this.workflow = !_.isEmpty(this.workflow.draft) ? this.workflow.draft : _.cloneDeep(data.data);*/
 
             this.render();
         });
@@ -214,7 +214,7 @@ class WorkflowTrigger {
         debugger;
         this.trigger = trigger;
         this.trigger.uid = !this.trigger.uid ? StringHelper.makeCharId() : this.trigger.uid;
-        this.workflow.draft.triggers.push(this.trigger);
+        this.workflow.triggers.push(this.trigger);
 
         switch (trigger.name) {
             case 'property_based_trigger':
@@ -227,7 +227,7 @@ class WorkflowTrigger {
         debugger;
         this.action = action;
         this.action.uid = !this.action.uid ? StringHelper.makeCharId() : this.action.uid;
-        this.workflow.draft.actions.push(this.action);
+        this.workflow.actions.push(this.action);
 
         switch (action.name) {
             case 'PROPERTY_VALUE_ACTION':
@@ -308,13 +308,13 @@ class WorkflowTrigger {
 
     workflowRemoveFilterButtonPressedHandler(uid) {
 
-        let triggerIndex = this.workflow.draft.triggers.findIndex(trigger => trigger.uid === this.trigger.uid);
+        let triggerIndex = this.workflow.triggers.findIndex(trigger => trigger.uid === this.trigger.uid);
 
-        this.workflow.draft.triggers[triggerIndex].filters = jQuery.grep(this.workflow.draft.triggers[triggerIndex].filters, function( n, i ) {
+        this.workflow.triggers[triggerIndex].filters = jQuery.grep(this.workflow.triggers[triggerIndex].filters, function( n, i ) {
             return ( n.uid !== uid );
         });
 
-        for (let filter of this.workflow.draft.triggers[triggerIndex].filters) {
+        for (let filter of this.workflow.triggers[triggerIndex].filters) {
             // remove any filters that have the uid in their andFilters array
             _.remove(filter.andFilters, function (el) {
                 return el === uid;
@@ -332,11 +332,9 @@ class WorkflowTrigger {
 
     workflowRemoveTriggerButtonPressedHandler(uid) {
 
-        this.workflow.draft.triggers = jQuery.grep(this.workflow.draft.triggers, function( n, i ) {
+        this.workflow.triggers = jQuery.grep(this.workflow.triggers, function( n, i ) {
             return ( n.uid !== uid );
         });
-
-        /*this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_TRIGGER_REMOVED, this.workflow.draft);*/
 
         this._saveWorkflow().then((data) => {
             this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_DATA_UPDATED, this.workflow);
@@ -348,7 +346,7 @@ class WorkflowTrigger {
     }
 
     workflowRemoveActionButtonPressedHandler(uid) {
-        this.workflow.draft.actions = jQuery.grep(this.workflow.draft.actions, function( n, i ) {
+        this.workflow.actions = jQuery.grep(this.workflow.actions, function( n, i ) {
             return ( n.uid !== uid );
         });
 
@@ -462,16 +460,12 @@ class WorkflowTrigger {
 
     workflowPublishButtonClickedHandler() {
 
-        debugger;
-        /*this.workflow = _.cloneDeep(this.workflow.draft);*/
-
-        debugger;
-        if(_.isEmpty(this.workflow.draft.triggers)) {
+        if(_.isEmpty(this.workflow.triggers)) {
             swal("Woahhhh!", `You need to setup some triggers before you can publish your workflow`, "error");
             return;
         }
 
-        if(this.workflow.draft.name === '') {
+        if(this.workflow.name === '') {
             swal("Woahhhh!", `Don't forget a name for your workflow!`, "error");
             return;
         }
@@ -485,7 +479,7 @@ class WorkflowTrigger {
     handleRevertButtonClicked() {
 
         debugger;
-        this.workflow.draft = _.cloneDeep(this.workflow);
+        /*this.workflow = _.cloneDeep(this.workflow);*/
 
         debugger;
         this._saveWorkflow().then((data) => {
@@ -561,7 +555,7 @@ class WorkflowTrigger {
     }
 
     workflowNameChangedHandler(workflowName) {
-        this.workflow.draft.name = workflowName;
+        this.workflow.name = workflowName;
     }
 
     static markup({portalInternalIdentifier}) {

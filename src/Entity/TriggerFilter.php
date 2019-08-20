@@ -11,6 +11,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 class TriggerFilter
 {
     /**
+     * @Groups({"TRIGGER"})
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
@@ -48,6 +49,8 @@ class TriggerFilter
     private $andFilters = [];
 
     /**
+     * @var Property $property
+     * @Groups({"TRIGGER"})
      * @ORM\ManyToOne(targetEntity="App\Entity\Property", inversedBy="triggerFilters")
      */
     private $property;
