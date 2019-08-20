@@ -133,9 +133,15 @@ class Property
      */
     private $triggerFilters;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\SetPropertyValueAction", mappedBy="property")
+     */
+    private $setPropertyValueActions;
+
     public function __construct()
     {
         $this->triggerFilters = new ArrayCollection();
+        $this->setPropertyValueActions = new ArrayCollection();
     }
 
 
@@ -391,6 +397,37 @@ class Property
             // set the owning side to null (unless already changed)
             if ($triggerFilter->getProperty() === $this) {
                 $triggerFilter->setProperty(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|SetPropertyValueAction[]
+     */
+    public function getSetPropertyValueActions(): Collection
+    {
+        return $this->setPropertyValueActions;
+    }
+
+    public function addSetPropertyValueAction(SetPropertyValueAction $setPropertyValueAction): self
+    {
+        if (!$this->setPropertyValueActions->contains($setPropertyValueAction)) {
+            $this->setPropertyValueActions[] = $setPropertyValueAction;
+            $setPropertyValueAction->setProperty($this);
+        }
+
+        return $this;
+    }
+
+    public function removeSetPropertyValueAction(SetPropertyValueAction $setPropertyValueAction): self
+    {
+        if ($this->setPropertyValueActions->contains($setPropertyValueAction)) {
+            $this->setPropertyValueActions->removeElement($setPropertyValueAction);
+            // set the owning side to null (unless already changed)
+            if ($setPropertyValueAction->getProperty() === $this) {
+                $setPropertyValueAction->setProperty(null);
             }
         }
 
