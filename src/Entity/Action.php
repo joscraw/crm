@@ -24,7 +24,7 @@ abstract class Action
     const SET_PROPERTY_VALUE_ACTION = 'set_property_value_action';
 
     /**
-     * @Groups({"WORKFLOW"})
+     * @Groups({"WORKFLOW_ACTION"})
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
@@ -37,22 +37,27 @@ abstract class Action
     }
 
     /**
-     * @Groups({"WORKFLOW"})
+     * @Groups({"WORKFLOW_ACTION"})
      * @ORM\Column(type="string", length=255)
      */
     protected $uid;
 
     /**
-     * @Groups({"WORKFLOW"})
+     * @Groups({"WORKFLOW_ACTION"})
      * @ORM\Column(type="string", length=255)
      */
     protected $name;
 
     /**
-     * @Groups({"TRIGGER"})
+     * @Groups({"WORKFLOW_ACTION"})
      * @ORM\Column(type="string", length=255)
      */
     protected $description;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Workflow", inversedBy="actions")
+     */
+    private $workflow;
 
     public function getUid(): ?string
     {
@@ -96,5 +101,17 @@ abstract class Action
     public function setDescription($description): void
     {
         $this->description = $description;
+    }
+
+    public function getWorkflow(): ?Workflow
+    {
+        return $this->workflow;
+    }
+
+    public function setWorkflow(?Workflow $workflow): self
+    {
+        $this->workflow = $workflow;
+
+        return $this;
     }
 }

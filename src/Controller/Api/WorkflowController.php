@@ -36,7 +36,6 @@ use App\Repository\WorkflowRepository;
 use Symfony\Component\Serializer\Annotation\DiscriminatorMap;
 use App\Form\WorkflowType;
 use App\Model\AbstractField;
-use App\Model\AbstractTrigger;
 use App\Model\FieldCatalog;
 use App\Entity\PropertyTrigger;
 use App\Entity\SetPropertyValueAction;
@@ -308,7 +307,7 @@ class WorkflowController extends ApiController
             switch ($trigger->getName()) {
                 case Trigger::PROPERTY_BASED_TRIGGER:
                     /** @var PropertyTrigger $trigger */
-                    $trigger->setObjectWorkflow($workflow);
+                    $trigger->setWorkflow($workflow);
                     foreach($trigger->getFilters() as $filter) {
                         if($filter->getProperty()) {
                             $property = $this->propertyRepository->find($filter->getProperty()->getId());
@@ -330,10 +329,9 @@ class WorkflowController extends ApiController
         $actions = !empty($workflowArray['actions']) ? $workflowArray['actions'] : [];
         foreach($actions as $action) {
 
-            /*$trigger['filters'] = $this->setValidPropertyTypes($trigger['filters']);*/
-
             /** @var Action $action */
             $action = $this->serializer->deserialize(json_encode($action, true), Action::class, 'json');
+            $action->setWorkflow($workflow);
 
             if($action->getProperty()) {
                 $property = $this->propertyRepository->find($action->getProperty()->getId());
@@ -348,7 +346,7 @@ class WorkflowController extends ApiController
 
         // let's pull a fresh copy from the database
         $this->entityManager->refresh($workflow);
-        $json = $this->serializer->serialize($workflow, 'json', ['groups' => ['WORKFLOW', 'TRIGGER']]);
+        $json = $this->serializer->serialize($workflow, 'json', ['groups' => ['WORKFLOW', 'TRIGGER', 'WORKFLOW_ACTION']]);
         $payload = json_decode($json, true);
 
         $workflow->setDraft($payload);
@@ -391,7 +389,7 @@ class WorkflowController extends ApiController
      */
     public function getWorkflowAction(Portal $portal, Workflow $workflow, Request $request) {
 
-        $json = $this->serializer->serialize($workflow, 'json', ['groups' => ['WORKFLOW', 'TRIGGER']]);
+        $json = $this->serializer->serialize($workflow, 'json', ['groups' => ['WORKFLOW', 'TRIGGER', 'WORKFLOW_ACTION']]);
         $payload = json_decode($json, true);
 
         return new JsonResponse([

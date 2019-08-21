@@ -2,8 +2,6 @@
 
 namespace App\Entity;
 
-use App\Model\AbstractTrigger;
-use App\Model\AbstractAction;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -75,9 +73,21 @@ abstract class Workflow
 
     /**
      * @Groups({"WORKFLOW"})
-     * @var array
+     * @ORM\OneToMany(targetEntity="App\Entity\Trigger", mappedBy="workflow")
      */
-    protected $actions = [];
+    private $triggers;
+
+    /**
+     * @Groups({"WORKFLOW"})
+     * @ORM\OneToMany(targetEntity="App\Entity\Action", mappedBy="workflow")
+     */
+    private $actions;
+
+    public function __construct()
+    {
+        $this->triggers = new ArrayCollection();
+        $this->actions = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -131,25 +141,71 @@ abstract class Workflow
 
         return $this;
     }
+    
+    public function getClassName()
+    {
+        return (new \ReflectionClass($this))->getShortName();
+    }
 
     /**
-     * @return array
+     * @return Collection|Trigger[]
      */
-    public function getActions(): array
+    public function getTriggers(): Collection
+    {
+        return $this->triggers;
+    }
+
+    public function addTrigger(Trigger $trigger): self
+    {
+        if (!$this->triggers->contains($trigger)) {
+            $this->triggers[] = $trigger;
+            $trigger->setWorkflow($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTrigger(Trigger $trigger): self
+    {
+        if ($this->triggers->contains($trigger)) {
+            $this->triggers->removeElement($trigger);
+            // set the owning side to null (unless already changed)
+            if ($trigger->getWorkflow() === $this) {
+                $trigger->setWorkflow(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Action[]
+     */
+    public function getActions(): Collection
     {
         return $this->actions;
     }
 
-    /**
-     * @param array $actions
-     */
-    public function setActions(array $actions): void
+    public function addAction(Action $action): self
     {
-        $this->actions = $actions;
+        if (!$this->actions->contains($action)) {
+            $this->actions[] = $action;
+            $action->setWorkflow($this);
+        }
+
+        return $this;
     }
 
-    public function getClassName()
+    public function removeAction(Action $action): self
     {
-        return (new \ReflectionClass($this))->getShortName();
+        if ($this->actions->contains($action)) {
+            $this->actions->removeElement($action);
+            // set the owning side to null (unless already changed)
+            if ($action->getWorkflow() === $this) {
+                $action->setWorkflow(null);
+            }
+        }
+
+        return $this;
     }
 }

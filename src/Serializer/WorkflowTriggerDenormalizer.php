@@ -7,7 +7,6 @@ use App\Entity\Trigger;
 use App\Entity\TriggerFilter;
 use App\Entity\Workflow;
 use App\Model\AbstractField;
-use App\Model\AbstractTrigger;
 use App\Model\CustomObjectField;
 use App\Model\DatePickerField;
 use App\Model\DropdownSelectField;

@@ -31,10 +31,6 @@ class PropertyTrigger extends Trigger
      */
     protected $filters = [];
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\ObjectWorkflow", inversedBy="triggers")
-     */
-    private $objectWorkflow;
 
     public function __construct()
     {
@@ -82,18 +78,4 @@ class PropertyTrigger extends Trigger
 
         return $this;
     }
-
-    public function getObjectWorkflow(): ?ObjectWorkflow
-    {
-        return $this->objectWorkflow;
-    }
-
-    public function setObjectWorkflow(?ObjectWorkflow $objectWorkflow): self
-    {
-        $this->objectWorkflow = $objectWorkflow;
-
-        return $this;
-    }
-
-
 }

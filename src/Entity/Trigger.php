@@ -50,6 +50,11 @@ abstract class Trigger
      */
     protected $description;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Workflow", inversedBy="triggers")
+     */
+    private $workflow;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -97,5 +102,17 @@ abstract class Trigger
     public function setDescription($description): void
     {
         $this->description = $description;
+    }
+
+    public function getWorkflow(): ?Workflow
+    {
+        return $this->workflow;
+    }
+
+    public function setWorkflow(?Workflow $workflow): self
+    {
+        $this->workflow = $workflow;
+
+        return $this;
     }
 }
