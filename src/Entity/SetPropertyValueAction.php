@@ -12,12 +12,18 @@ class SetPropertyValueAction extends Action
 {
     /**
      * @Groups({"WORKFLOW_ACTION"})
-     *
      * @var string
      */
     protected $name = Action::SET_PROPERTY_VALUE_ACTION;
 
     /**
+     * @Groups({"WORKFLOW_ACTION"})
+     * @var string
+     */
+    protected $description = 'Set property value';
+
+    /**
+     * @Groups({"WORKFLOW_ACTION"})
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
@@ -25,21 +31,26 @@ class SetPropertyValueAction extends Action
     protected $id;
 
     /**
+     * @Groups({"WORKFLOW_ACTION"})
+     * @var Property
      * @ORM\ManyToOne(targetEntity="App\Entity\Property", inversedBy="setPropertyValueActions")
      */
     protected $property;
 
     /**
+     * @Groups({"WORKFLOW_ACTION"})
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     protected $value;
 
     /**
+     * @Groups({"WORKFLOW_ACTION"})
      * @ORM\Column(type="array")
      */
     protected $joins = [];
 
     /**
+     * @Groups({"WORKFLOW_ACTION"})
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     protected $operator;

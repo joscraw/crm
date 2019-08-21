@@ -2,12 +2,12 @@
 
 namespace App\Serializer;
 
+use App\Entity\Action;
 use App\Entity\Property;
 use App\Entity\Workflow;
 use App\Model\AbstractAction;
 use App\Model\AbstractField;
 use App\Model\AbstractTrigger;
-use App\Model\AbstractWorkflowTrigger;
 use App\Model\CustomObjectField;
 use App\Model\DatePickerField;
 use App\Model\DropdownSelectField;
@@ -16,10 +16,9 @@ use App\Model\Filter;
 use App\Model\MultiLineTextField;
 use App\Model\MultipleCheckboxField;
 use App\Model\NumberField;
-use App\Model\PropertyBasedTrigger;
 use App\Model\PropertyTrigger;
 use App\Model\RadioSelectField;
-use App\Model\SetPropertyValueAction;
+use App\Entity\SetPropertyValueAction;
 use App\Model\SingleCheckboxField;
 use App\Model\SingleLineTextField;
 use App\Repository\CustomObjectRepository;
@@ -117,9 +116,15 @@ class WorkflowActionDenormalizer implements DenormalizerInterface, DenormalizerA
     {
         $action = null;
         switch($data['name']) {
-            case AbstractAction::PROPERTY_VALUE_ACTION :
+            case Action::SET_PROPERTY_VALUE_ACTION:
 
                 $data['property'] = $this->setValidPropertyTypes([$data['property']])[0];
+
+                if(!empty($data['id'])) {
+                    $data['id'] = (int) $data['id'];
+                } else {
+                    unset($data['id']);
+                }
 
                 /** @var SetPropertyValueAction $action */
                 $action = $this->denormalizer->denormalize(
@@ -144,7 +149,7 @@ class WorkflowActionDenormalizer implements DenormalizerInterface, DenormalizerA
      */
     public function supportsDenormalization($data, $type, $format = null)
     {
-        if($type == AbstractAction::class) {
+        if($type == Action::class) {
             return true;
         } else {
             return false;

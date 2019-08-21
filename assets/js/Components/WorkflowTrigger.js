@@ -230,7 +230,7 @@ class WorkflowTrigger {
         this.workflow.actions.push(this.action);
 
         switch (action.name) {
-            case 'PROPERTY_VALUE_ACTION':
+            case 'set_property_value_action':
                 new WorkflowActionPropertyList(this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.uid, this.workflow.customObject);
                 break;
         }

@@ -3,6 +3,7 @@
 namespace App\Controller\Api;
 
 use App\AuthorizationHandler\PermissionAuthorizationHandler;
+use App\Entity\Action;
 use App\Entity\CustomObject;
 use App\Entity\Filter;
 use App\Entity\Folder;
@@ -38,7 +39,7 @@ use App\Model\AbstractField;
 use App\Model\AbstractTrigger;
 use App\Model\FieldCatalog;
 use App\Entity\PropertyTrigger;
-use App\Model\SetPropertyValueAction;
+use App\Entity\SetPropertyValueAction;
 use App\Model\WorkflowTriggerCatalog;
 use App\Repository\CustomObjectRepository;
 use App\Repository\FolderRepository;
@@ -288,17 +289,18 @@ class WorkflowController extends ApiController
      * @return JsonResponse
      */
     public function saveWorkflowAction(Portal $portal, Workflow $workflow, Request $request) {
-        // clear the current triggers
+
+        /* SETUP THE TRIGGERS */
         foreach($workflow->getTriggers() as $trigger) {
             $this->entityManager->remove($trigger);
             $this->entityManager->flush();
         }
 
         $workflowArray = $request->request->get('workflow');
-        $triggers = $workflowArray['triggers'];
+        $triggers = !empty($workflowArray['triggers']) ? $workflowArray['triggers'] : [];
         foreach($triggers as $trigger) {
 
-            $trigger['filters'] = $this->setValidPropertyTypes($trigger['filters']);
+            $trigger['filters'] = $this->setValidPropertyTypes(!empty($trigger['filters']) ? $trigger['filters'] : []);
 
             /** @var Trigger $trigger */
             $trigger = $this->serializer->deserialize(json_encode($trigger, true), Trigger::class, 'json');
@@ -316,6 +318,29 @@ class WorkflowController extends ApiController
                     break;
             }
             $this->entityManager->persist($trigger);
+        }
+
+        /* SETUP THE ACTIONS */
+        foreach($workflow->getActions() as $action) {
+            $this->entityManager->remove($action);
+            $this->entityManager->flush();
+        }
+
+        $workflowArray = $request->request->get('workflow');
+        $actions = !empty($workflowArray['actions']) ? $workflowArray['actions'] : [];
+        foreach($actions as $action) {
+
+            /*$trigger['filters'] = $this->setValidPropertyTypes($trigger['filters']);*/
+
+            /** @var Action $action */
+            $action = $this->serializer->deserialize(json_encode($action, true), Action::class, 'json');
+
+            if($action->getProperty()) {
+                $property = $this->propertyRepository->find($action->getProperty()->getId());
+                $action->setProperty($property);
+            }
+
+            $this->entityManager->persist($action);
         }
 
         $this->entityManager->persist($workflow);
