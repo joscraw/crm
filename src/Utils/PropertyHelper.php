@@ -25,22 +25,40 @@ trait PropertyHelper
 
         foreach ($properties as &$property) {
 
-            $property['id'] = (int) $property['id'];
-            $property['required'] = $property['required'] === 'true'? true: false;
-
-            if(isset($property['property'])) {
-                $property['property']['id'] = (int) $property['property']['id'];
-                $property['property']['required'] = $property['property']['required'] === 'true'? true: false;
+            if(!empty($property['id'])) {
+                $property['id'] = (int) $property['id'];
             }
 
-            if($property['fieldType'] === FieldCatalog::CUSTOM_OBJECT) {
+            if(!empty($property['required'] )) {
+                $property['required'] = $property['required'] === 'true'? true: false;
+            }
 
-                $property['field']['customObject']['id'] = (int) $property['field']['customObject']['id'];
-                $property['field']['multiple'] = $property['field']['multiple'] === 'true'? true: false;
+            if(isset($property['property'])) {
+                if(!empty($property['property']['id'])) {
+                    $property['property']['id'] = (int) $property['property']['id'];
+                }
+                if(!empty($property['property']['required'])) {
+                    $property['property']['required'] = $property['property']['required'] === 'true'? true: false;
+                }
+            }
+
+            if(!empty($property['fieldType']) && $property['fieldType'] === FieldCatalog::CUSTOM_OBJECT) {
+
+                if(!empty($property['field']['customObject']['id'])) {
+                    $property['field']['customObject']['id'] = (int) $property['field']['customObject']['id'];
+                }
+
+                if(!empty($property['field']['multiple'])) {
+                    $property['field']['multiple'] = $property['field']['multiple'] === 'true'? true: false;
+                }
 
                 foreach ($property['field']['selectizeSearchResultProperties'] as &$selectizeSearchResultProperty) {
-                    $selectizeSearchResultProperty['id'] = (int) $selectizeSearchResultProperty['id'];
-                    $selectizeSearchResultProperty['required'] = $selectizeSearchResultProperty['required'] === 'true'? true: false;
+                    if(!empty($selectizeSearchResultProperty['id'] )) {
+                        $selectizeSearchResultProperty['id'] = (int) $selectizeSearchResultProperty['id'];
+                    }
+                    if(!empty($selectizeSearchResultProperty['required'])) {
+                        $selectizeSearchResultProperty['required'] = $selectizeSearchResultProperty['required'] === 'true'? true: false;
+                    }
                 }
             }
 
