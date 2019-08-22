@@ -39,13 +39,14 @@ import ContextHelper from "../ContextHelper";
 
 class WorkflowTopBar {
 
-    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, workflow) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, workflow, publishedWorkflow) {
 
         debugger;
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
         this.workflow = workflow;
+        this.publishedWorkflow = publishedWorkflow;
 
         this.unbindEvents();
         this.bindEvents();
@@ -110,9 +111,10 @@ class WorkflowTopBar {
         this.setAutoSaveMessage();
     }
 
-    handleDataUpdated(workflow) {
+    handleDataUpdated(workflow, publishedWorkflow) {
         debugger;
         this.workflow = workflow;
+        this.publishedWorkflow = publishedWorkflow;
 
         this.setAutoSaveMessage();
     }
@@ -120,10 +122,7 @@ class WorkflowTopBar {
     setAutoSaveMessage() {
         debugger;
         let autosaveMessage = '';
-        if(!_.isEqual(this.workflow.actions, this.workflow.draft.actions) ||
-            !_.isEqual(this.workflow.triggers, this.workflow.draft.triggers) ||
-            !_.isEqual(this.workflow.name, this.workflow.draft.name)) {
-
+        if(this.workflow.hash !== this.publishedWorkflow.hash) {
             autosaveMessage = 'Autosaved with unpublished changes <button type="button" class="btn btn-link js-revert-button">revert</button>';
 
         }

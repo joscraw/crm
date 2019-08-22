@@ -43,4 +43,5 @@ class ObjectWorkflow extends Workflow
     {
         return self::$nameDisc;
     }
+
 }

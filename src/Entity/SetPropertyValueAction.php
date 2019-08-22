@@ -11,13 +11,13 @@ use Symfony\Component\Serializer\Annotation\Groups;
 class SetPropertyValueAction extends Action
 {
     /**
-     * @Groups({"WORKFLOW_ACTION"})
+     * @Groups({"WORKFLOW_ACTION", "MD5_HASH_WORKFLOW"})
      * @var string
      */
     protected $name = Action::SET_PROPERTY_VALUE_ACTION;
 
     /**
-     * @Groups({"WORKFLOW_ACTION"})
+     * @Groups({"WORKFLOW_ACTION", "MD5_HASH_WORKFLOW"})
      * @var string
      */
     protected $description = 'Set property value';
@@ -38,19 +38,19 @@ class SetPropertyValueAction extends Action
     protected $property;
 
     /**
-     * @Groups({"WORKFLOW_ACTION"})
+     * @Groups({"WORKFLOW_ACTION", "MD5_HASH_WORKFLOW"})
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     protected $value;
 
     /**
-     * @Groups({"WORKFLOW_ACTION"})
+     * @Groups({"WORKFLOW_ACTION", "MD5_HASH_WORKFLOW"})
      * @ORM\Column(type="array")
      */
     protected $joins = [];
 
     /**
-     * @Groups({"WORKFLOW_ACTION"})
+     * @Groups({"WORKFLOW_ACTION", "MD5_HASH_WORKFLOW"})
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     protected $operator;
@@ -107,4 +107,5 @@ class SetPropertyValueAction extends Action
 
         return $this;
     }
+
 }

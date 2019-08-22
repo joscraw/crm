@@ -61,4 +61,20 @@ class WorkflowRepository extends ServiceEntityRepository
             ->getQuery()
             ->getOneOrNullResult();
     }
+
+
+    /**
+     * @param $id
+     * @return mixed
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     */
+    public function getWorkflowById($id)
+    {
+        return $this->createQueryBuilder('workflow')
+            ->innerJoin('workflow.triggers', 'triggers')
+            ->where('workflow.id = :id')
+            ->setParameter('id', $id)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 }

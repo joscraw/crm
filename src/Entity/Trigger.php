@@ -25,7 +25,7 @@ abstract class Trigger
     const PROPERTY_BASED_TRIGGER = 'property_based_trigger';
 
     /**
-     * @Groups({"WORKFLOW"})
+     * @Groups({"WORKFLOW", "TEST"})
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
@@ -51,7 +51,7 @@ abstract class Trigger
     protected $description;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Workflow", inversedBy="triggers")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Workflow", inversedBy="triggers", fetch="EAGER")
      */
     private $workflow;
 

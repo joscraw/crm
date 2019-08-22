@@ -43,13 +43,13 @@ abstract class Action
     protected $uid;
 
     /**
-     * @Groups({"WORKFLOW_ACTION"})
+     * @Groups({"WORKFLOW_ACTION", "MD5_HASH_WORKFLOW"})
      * @ORM\Column(type="string", length=255)
      */
     protected $name;
 
     /**
-     * @Groups({"WORKFLOW_ACTION"})
+     * @Groups({"WORKFLOW_ACTION", "MD5_HASH_WORKFLOW"})
      * @ORM\Column(type="string", length=255)
      */
     protected $description;

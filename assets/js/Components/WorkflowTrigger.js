@@ -53,6 +53,7 @@ class WorkflowTrigger {
         this.action = null;
         this.workflow = {};
         this.originalWorkflow = {};
+        this.publishedWorkflow = {};
 
         this.unbindEvents();
 
@@ -189,9 +190,7 @@ class WorkflowTrigger {
 
         this.loadWorkflow().then((data) => {
             debugger;
-            this.workflow = data.data;
-            /*this.workflow = !_.isEmpty(this.workflow.draft) ? this.workflow.draft : _.cloneDeep(data.data);*/
-
+            this._setDataFromResponse(data);
             this.render();
         });
     }
@@ -208,6 +207,13 @@ class WorkflowTrigger {
             topBar: '.js-top-bar',
             subBar: '.js-sub-bar'
         }
+    }
+
+    _setDataFromResponse(data) {
+        this.workflow = data.data.workflow;
+        this.workflow.hash = data.data.workflowHash;
+        this.publishedWorkflow = data.data.publishedWorkflow;
+        this.publishedWorkflow.hash = data.data.publishedWorkflowHash;
     }
 
     handleTriggerListItemClicked(trigger) {
@@ -327,8 +333,9 @@ class WorkflowTrigger {
         }
 
         this._saveWorkflow().then((data) => {
+            this._setDataFromResponse(data);
             this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_TRIGGER_FILTER_REMOVED, this.workflow, this.trigger);
-            this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_DATA_UPDATED, this.workflow);
+            this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_DATA_UPDATED, this.workflow, this.publishedWorkflow);
         });
     }
 
@@ -339,7 +346,8 @@ class WorkflowTrigger {
         });
 
         this._saveWorkflow().then((data) => {
-            this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_DATA_UPDATED, this.workflow);
+            this._setDataFromResponse(data);
+            this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_DATA_UPDATED, this.workflow, this.publishedWorkflow);
         });
 
         if(this.trigger && this.trigger.uid === uid) {
@@ -353,7 +361,8 @@ class WorkflowTrigger {
         });
 
         this._saveWorkflow().then((data) => {
-            this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_DATA_UPDATED, this.workflow);
+            this._setDataFromResponse(data);
+            this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_DATA_UPDATED, this.workflow, this.publishedWorkflow);
         });
     }
 
@@ -444,7 +453,8 @@ class WorkflowTrigger {
 
         debugger;
         this._saveWorkflow().then((data) => {
-            this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_DATA_UPDATED, this.workflow);
+            this._setDataFromResponse(data);
+            this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_DATA_UPDATED, this.workflow, this.publishedWorkflow);
             new WorkflowTriggerFilters(this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.trigger);
         });
     }
@@ -456,7 +466,8 @@ class WorkflowTrigger {
         this.action.value = formData.value;
 
         this._saveWorkflow().then((data) => {
-            this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_DATA_UPDATED, this.workflow);
+            this._setDataFromResponse(data);
+            this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_DATA_UPDATED, this.workflow, this.publishedWorkflow);
             new WorkflowActionType(this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.uid);
         });
     }
@@ -474,7 +485,8 @@ class WorkflowTrigger {
         }
 
         this._publishWorkflow().then((data) => {
-            this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_DATA_UPDATED, this.workflow);
+            this._setDataFromResponse(data);
+            this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_DATA_UPDATED, this.workflow, this.publishedWorkflow);
             swal("Hooray!", `Well done, you have successfully published your workflow!`, "success");
         });
     }
@@ -487,7 +499,8 @@ class WorkflowTrigger {
         debugger;
         this._saveWorkflow().then((data) => {
             debugger;
-            this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_DATA_UPDATED, this.workflow);
+            this._setDataFromResponse(data);
+            this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_DATA_UPDATED, this.workflow, this.publishedWorkflow);
         });
     }
 
@@ -534,7 +547,7 @@ class WorkflowTrigger {
     render() {
         this.$wrapper.html(WorkflowTrigger.markup(this));
 
-        new WorkflowTopBar(this.$wrapper.find(WorkflowTrigger._selectors.topBar), this.globalEventDispatcher, this.portalInternalIdentifier, this.workflow);
+        new WorkflowTopBar(this.$wrapper.find(WorkflowTrigger._selectors.topBar), this.globalEventDispatcher, this.portalInternalIdentifier, this.workflow, this.publishedWorkflow);
         new WorkflowSubBar(this.$wrapper.find(WorkflowTrigger._selectors.subBar), this.globalEventDispatcher, this.portalInternalIdentifier, this.workflow, Settings.PAGES.WORKFLOW_TRIGGERS);
         new WorkflowTriggerType(this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.uid);
         new WorkflowTriggerSelectedTriggers(this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.workflow);

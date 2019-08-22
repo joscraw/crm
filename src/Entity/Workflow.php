@@ -6,6 +6,10 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Serializer\Encoder\JsonEncoder;
+use Symfony\Component\Serializer\Encoder\XmlEncoder;
+use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
+use Symfony\Component\Serializer\Serializer;
 
 // @ORM\EntityListeners({"App\EntityListener\WorkflowListener"})
 
@@ -66,22 +70,32 @@ abstract class Workflow
     protected $published = false;
 
     /**
-     * @Groups({"WORKFLOW"})
-     * @ORM\Column(type="json", nullable=true)
-     */
-    protected $draft = [];
-
-    /**
-     * @Groups({"WORKFLOW"})
-     * @ORM\OneToMany(targetEntity="App\Entity\Trigger", mappedBy="workflow")
+     * @Groups({"WORKFLOW", "MD5_HASH_WORKFLOW"})
+     * @ORM\OneToMany(targetEntity="App\Entity\Trigger", mappedBy="workflow", cascade={"persist", "remove"})
      */
     private $triggers;
 
     /**
-     * @Groups({"WORKFLOW"})
-     * @ORM\OneToMany(targetEntity="App\Entity\Action", mappedBy="workflow")
+     * @Groups({"WORKFLOW", "MD5_HASH_WORKFLOW"})
+     * @ORM\OneToMany(targetEntity="App\Entity\Action", mappedBy="workflow", cascade={"persist", "remove"})
      */
     private $actions;
+
+    /**
+     * @ORM\OneToOne(targetEntity="App\Entity\Workflow", cascade={"persist", "remove"})
+     */
+    protected $publishedWorkflow;
+
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $draft = true;
+
+    /**
+     * @Groups({"WORKFLOW", "MD5_HASH_WORKFLOW"})
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $name;
 
     public function __construct()
     {
@@ -126,18 +140,6 @@ abstract class Workflow
     public function setPublished(bool $published): self
     {
         $this->published = $published;
-
-        return $this;
-    }
-
-    public function getDraft(): ?array
-    {
-        return $this->draft;
-    }
-
-    public function setDraft(?array $draft): self
-    {
-        $this->draft = $draft;
 
         return $this;
     }
@@ -205,6 +207,50 @@ abstract class Workflow
                 $action->setWorkflow(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getPublishedWorkflow(): ?self
+    {
+        return $this->publishedWorkflow;
+    }
+
+    public function setPublishedWorkflow(?self $publishedWorkflow): self
+    {
+        $this->publishedWorkflow = $publishedWorkflow;
+
+        return $this;
+    }
+
+    public function getDraft(): ?bool
+    {
+        return $this->draft;
+    }
+
+    public function setDraft(bool $draft): self
+    {
+        $this->draft = $draft;
+
+        return $this;
+    }
+
+    public function clearTriggers() {
+        $this->triggers = new ArrayCollection();
+    }
+
+    public function clearActions() {
+        $this->actions = new ArrayCollection();
+    }
+
+    public function getName(): ?string
+    {
+        return $this->name;
+    }
+
+    public function setName(?string $name): self
+    {
+        $this->name = $name;
 
         return $this;
     }

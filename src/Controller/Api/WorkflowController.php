@@ -234,6 +234,17 @@ class WorkflowController extends ApiController
 
         $this->entityManager->persist($workflow);
         $this->entityManager->flush();
+        $this->entityManager->refresh($workflow);
+
+        $publishedWorkflow = clone $workflow;
+        $publishedWorkflow->setUid($this->generateRandomString(40));
+        $publishedWorkflow->setDraft(false);
+        $this->entityManager->persist($publishedWorkflow);
+        $this->entityManager->flush();
+
+        $workflow->setPublishedWorkflow($publishedWorkflow);
+        $this->entityManager->persist($workflow);
+        $this->entityManager->flush();
 
         $json = $this->serializer->serialize($workflow, 'json', ['groups' => ['WORKFLOW']]);
 
@@ -242,7 +253,7 @@ class WorkflowController extends ApiController
         return new JsonResponse(
             [
                 'success' => true,
-                'data' => $payload,
+                'data'  => $payload
             ],
             Response::HTTP_OK
         );
@@ -346,14 +357,11 @@ class WorkflowController extends ApiController
 
         // let's pull a fresh copy from the database
         $this->entityManager->refresh($workflow);
-        $json = $this->serializer->serialize($workflow, 'json', ['groups' => ['WORKFLOW', 'TRIGGER', 'WORKFLOW_ACTION']]);
-        $payload = json_decode($json, true);
-
-        $workflow->setDraft($payload);
 
         return new JsonResponse(
             [
                 'success' => true,
+                'data'  => $this->getWorkflowDataResponse($workflow)
             ],
             Response::HTTP_OK
         );
@@ -367,14 +375,88 @@ class WorkflowController extends ApiController
      * @return JsonResponse
      */
     public function publishWorkflowAction(Portal $portal, Workflow $workflow, Request $request) {
-        $workflow->setPublished(true);
 
-        $this->entityManager->persist($workflow);
+        $workflow->setPublished(true);
+        $publishedWorkflow  = $workflow->getPublishedWorkflow();
+
+        $this->entityManager->persist($publishedWorkflow);
         $this->entityManager->flush();
+        $this->entityManager->refresh($publishedWorkflow);
+
+
+        /* Action Logic */
+        foreach($publishedWorkflow->getActions() as $action) {
+            $this->entityManager->remove($action);
+            $this->entityManager->flush();
+        }
+
+        $actions = $workflow->getActions();
+        foreach($actions as $action) {
+            /* @var Action $action */
+            switch ($action->getName()) {
+                case Action::SET_PROPERTY_VALUE_ACTION:
+                    /* @var SetPropertyValueAction $action */
+                    $clonedAction = new SetPropertyValueAction();
+                    $clonedAction->setProperty($action->getProperty());
+                    $clonedAction->setName($action->getName());
+                    $clonedAction->setDescription($action->getDescription());
+                    $clonedAction->setUid($action->getUid());
+                    $clonedAction->setValue($action->getValue());
+                    $clonedAction->setDescription($action->getDescription());
+                    $clonedAction->setJoins($action->getJoins());
+                    $clonedAction->setOperator($action->getOperator());
+                    $clonedAction->setWorkflow($publishedWorkflow);
+                    $this->entityManager->persist($clonedAction);
+                    break;
+            }
+
+            $this->entityManager->flush();
+        }
+
+        /* Trigger Logic */
+        foreach($publishedWorkflow->getTriggers() as $trigger) {
+            $this->entityManager->remove($trigger);
+            $this->entityManager->flush();
+        }
+
+        foreach($workflow->getTriggers() as $trigger) {
+            switch ($trigger->getName()) {
+                case Trigger::PROPERTY_BASED_TRIGGER:
+                    /** @var PropertyTrigger $clonedTrigger*/
+                    $clonedTrigger = new PropertyTrigger();
+                    $clonedTrigger->setName($trigger->getName());
+                    $clonedTrigger->setDescription($trigger->getDescription());
+                    $clonedTrigger->setUid($trigger->getUid());
+                    $clonedTrigger->setWorkflow($publishedWorkflow);
+                    $this->entityManager->persist($clonedTrigger);
+
+                    /** @var TriggerFilter $filter */
+                    foreach($trigger->getFilters() as $filter) {
+                        /** @var TriggerFilter $clonedFilter */
+                        $clonedFilter = new TriggerFilter();
+                        $clonedFilter->setUid($filter->getUid());
+                        $clonedFilter->setOperator($filter->getOperator());
+                        $clonedFilter->setJoins($filter->getJoins());
+                        $clonedFilter->setValue($filter->getValue());
+                        $clonedFilter->setProperty($filter->getProperty());
+                        $clonedFilter->setAndFilters($filter->getAndFilters());
+                        $clonedFilter->setReferencedFilterPath($filter->getReferencedFilterPath());
+                        $clonedFilter->setPropertyTrigger($clonedTrigger);
+                        $this->entityManager->persist($clonedFilter);
+                    }
+                    break;
+            }
+        }
+
+        $this->entityManager->persist($publishedWorkflow);
+        $this->entityManager->flush();
+        $this->entityManager->refresh($workflow);
+        $this->entityManager->refresh($publishedWorkflow);
 
         return new JsonResponse(
             [
                 'success' => true,
+                'data'  => $this->getWorkflowDataResponse($workflow)
             ],
             Response::HTTP_OK
         );
@@ -389,12 +471,9 @@ class WorkflowController extends ApiController
      */
     public function getWorkflowAction(Portal $portal, Workflow $workflow, Request $request) {
 
-        $json = $this->serializer->serialize($workflow, 'json', ['groups' => ['WORKFLOW', 'TRIGGER', 'WORKFLOW_ACTION']]);
-        $payload = json_decode($json, true);
-
         return new JsonResponse([
             'success' => true,
-            'data'  => $payload,
+            'data'  => $this->getWorkflowDataResponse($workflow)
         ], Response::HTTP_OK);
 
     }
@@ -448,4 +527,44 @@ class WorkflowController extends ApiController
             'data'  => Workflow::$types,
         ], Response::HTTP_OK);
     }
+
+    /**
+     * @param Workflow $workflow
+     * @return array
+     */
+    private function getWorkflowDataResponse(Workflow $workflow) {
+
+        $this->entityManager->refresh($workflow);
+        $this->entityManager->refresh($workflow->getPublishedWorkflow());
+
+        foreach($workflow->getPublishedWorkflow()->getTriggers() as $trigger) {
+            $this->entityManager->refresh($trigger);
+        }
+
+        $data = [];
+        $json = $this->serializer->serialize($workflow, 'json', ['groups' => ['WORKFLOW', 'TRIGGER', 'WORKFLOW_ACTION']]);
+        $data['workflow'] = json_decode($json, true);
+
+        $json = $this->serializer->serialize($workflow, 'json', ['groups' => ['MD5_HASH_WORKFLOW']]);
+        //$i = json_decode($json, true);
+        $data['workflowHash'] = md5($json);
+
+        $json = $this->serializer->serialize($workflow->getPublishedWorkflow(), 'json', ['groups' => ['MD5_HASH_WORKFLOW']]);
+        //$y = json_decode($json, true);
+        $data['publishedWorkflowHash'] = md5($json);
+
+        if($workflow->getPublishedWorkflow()) {
+            $json = $this->serializer->serialize($workflow->getPublishedWorkflow(), 'json', ['groups' => ['WORKFLOW', 'TRIGGER', 'WORKFLOW_ACTION']]);
+            $data['publishedWorkflow'] = json_decode($json, true);
+        } else {
+            $data['publishedWorkflow'] = [
+                'name' => '',
+                'triggers' => [],
+                'actions' => [],
+            ];
+        }
+
+        return $data;
+    }
+
 }

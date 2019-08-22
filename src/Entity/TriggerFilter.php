@@ -19,31 +19,31 @@ class TriggerFilter
     private $id;
 
     /**
-     * @Groups({"TRIGGER"})
+     * @Groups({"TRIGGER", "MD5_HASH_WORKFLOW"})
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $operator;
 
     /**
-     * @Groups({"TRIGGER"})
+     * @Groups({"TRIGGER", "MD5_HASH_WORKFLOW"})
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $value;
 
     /**
-     * @Groups({"TRIGGER"})
+     * @Groups({"TRIGGER", "MD5_HASH_WORKFLOW"})
      * @ORM\Column(type="array")
      */
     private $joins = [];
 
     /**
-     * @Groups({"TRIGGER"})
+     * @Groups({"TRIGGER", "MD5_HASH_WORKFLOW"})
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $referencedFilterPath;
 
     /**
-     * @Groups({"TRIGGER"})
+     * @Groups({"TRIGGER", "MD5_HASH_WORKFLOW"})
      * @ORM\Column(type="array")
      */
     private $andFilters = [];
@@ -56,12 +56,12 @@ class TriggerFilter
     private $property;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\PropertyTrigger", inversedBy="triggerFilters")
+     * @ORM\ManyToOne(targetEntity="App\Entity\PropertyTrigger", inversedBy="triggerFilters", fetch="EAGER")
      */
     private $propertyTrigger;
 
     /**
-     * @Groups({"TRIGGER"})
+     * @Groups({"TRIGGER", "MD5_HASH_WORKFLOW"})
      * @ORM\Column(type="string", length=255)
      */
     protected $uid;
@@ -166,4 +166,5 @@ class TriggerFilter
 
         return $this;
     }
+
 }
