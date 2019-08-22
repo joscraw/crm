@@ -166,7 +166,10 @@ class WorkflowTriggerFilters {
                     this.$wrapper.find(WorkflowTriggerFilters._selectors.selectedCustomFilters).append($conditionalTemplate);
                 }
 
-                debugger;
+                filter.label = filter.property.label;
+                filter.internalName = filter.property.internalName;
+                filter.fieldType = filter.property.fieldType;
+
                 text = FilterHelper.getFilterTextFromCustomFilter(filter);
                 const html = filterContainerTemplate(filter.uid);
                 const $filterContainerTemplate = $($.parseHTML(html));

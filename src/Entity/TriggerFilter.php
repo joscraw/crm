@@ -60,6 +60,12 @@ class TriggerFilter
      */
     private $propertyTrigger;
 
+    /**
+     * @Groups({"TRIGGER"})
+     * @ORM\Column(type="string", length=255)
+     */
+    protected $uid;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -145,6 +151,18 @@ class TriggerFilter
     public function setPropertyTrigger(?PropertyTrigger $propertyTrigger): self
     {
         $this->propertyTrigger = $propertyTrigger;
+
+        return $this;
+    }
+
+    public function getUid(): ?string
+    {
+        return $this->uid;
+    }
+
+    public function setUid(string $uid): self
+    {
+        $this->uid = $uid;
 
         return $this;
     }

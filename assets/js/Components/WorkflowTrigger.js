@@ -326,8 +326,10 @@ class WorkflowTrigger {
             }
         }
 
-        this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_TRIGGER_FILTER_REMOVED, this.workflow, this.trigger);
-
+        this._saveWorkflow().then((data) => {
+            this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_TRIGGER_FILTER_REMOVED, this.workflow, this.trigger);
+            this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_DATA_UPDATED, this.workflow);
+        });
     }
 
     workflowRemoveTriggerButtonPressedHandler(uid) {
@@ -389,6 +391,7 @@ class WorkflowTrigger {
 
     handleWorkflowEditFilterClicked(uid) {
 
+        debugger;
         let filterIndex = this.trigger.filters.findIndex(filter => filter.uid === uid);
         let customFilter = this.trigger.filters[filterIndex];
 
