@@ -73,13 +73,13 @@ abstract class Workflow
      * @Groups({"WORKFLOW", "MD5_HASH_WORKFLOW"})
      * @ORM\OneToMany(targetEntity="App\Entity\Trigger", mappedBy="workflow", cascade={"persist", "remove"})
      */
-    private $triggers;
+    protected $triggers;
 
     /**
      * @Groups({"WORKFLOW", "MD5_HASH_WORKFLOW"})
      * @ORM\OneToMany(targetEntity="App\Entity\Action", mappedBy="workflow", cascade={"persist", "remove"})
      */
-    private $actions;
+    protected $actions;
 
     /**
      * @ORM\OneToOne(targetEntity="App\Entity\Workflow", cascade={"persist", "remove"})
@@ -89,13 +89,19 @@ abstract class Workflow
     /**
      * @ORM\Column(type="boolean")
      */
-    private $draft = true;
+    protected $draft = true;
 
     /**
      * @Groups({"WORKFLOW", "MD5_HASH_WORKFLOW"})
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $name;
+    protected $name;
+
+    /**
+     * @Groups({"WORKFLOW"})
+     * @ORM\Column(type="boolean")
+     */
+    protected $paused = true;
 
     public function __construct()
     {
@@ -251,6 +257,18 @@ abstract class Workflow
     public function setName(?string $name): self
     {
         $this->name = $name;
+
+        return $this;
+    }
+
+    public function getPaused(): ?bool
+    {
+        return $this->paused;
+    }
+
+    public function setPaused(bool $paused): self
+    {
+        $this->paused = $paused;
 
         return $this;
     }

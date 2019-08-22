@@ -368,6 +368,33 @@ class WorkflowController extends ApiController
     }
 
     /**
+     * @Route("{internalIdentifier}/api/workflows/{uid}/start-pause", name="start_pause_workflow", methods={"POST"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param Workflow $workflow
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function startPause(Portal $portal, Workflow $workflow, Request $request) {
+
+        $startPause = $request->request->get('workflow')['paused'] === 'true'? true: false;
+        $workflow->setPaused($startPause);
+
+        $this->entityManager->persist($workflow);
+        $this->entityManager->flush();
+
+        // let's pull a fresh copy from the database
+        $this->entityManager->refresh($workflow);
+
+        return new JsonResponse(
+            [
+                'success' => true,
+                'data'  => $this->getWorkflowDataResponse($workflow)
+            ],
+            Response::HTTP_OK
+        );
+    }
+
+    /**
      * @Route("{internalIdentifier}/api/workflows/{uid}/publish", name="publish_workflow", methods={"POST"}, options = { "expose" = true })
      * @param Portal $portal
      * @param Workflow $workflow

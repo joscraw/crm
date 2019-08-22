@@ -74,7 +74,8 @@ class WorkflowTopBar {
             workflowName: '.js-workflow-name',
             publishButton: '.js-publish-button',
             autosaveMessage: '.js-autosave-message',
-            revertButton: '.js-revert-button'
+            revertButton: '.js-revert-button',
+            startPauseButton: '.js-start-pause-button'
 
         }
     }
@@ -83,12 +84,14 @@ class WorkflowTopBar {
         this.$wrapper.on('click', WorkflowTopBar._selectors.publishButton, this.handlePublishButtonClicked.bind(this));
         this.$wrapper.on('keyup', WorkflowTopBar._selectors.workflowName, this.handleFormNameChange.bind(this));
         this.$wrapper.on('click', WorkflowTopBar._selectors.revertButton, this.handleRevertButtonClicked.bind(this));
+        this.$wrapper.on('click', WorkflowTopBar._selectors.startPauseButton, this.handleStartPauseButtonClicked.bind(this));
     }
 
     unbindEvents() {
         this.$wrapper.off('click', WorkflowTopBar._selectors.publishButton);
         this.$wrapper.off('keyup', WorkflowTopBar._selectors.workflowName);
         this.$wrapper.off('click', WorkflowTopBar._selectors.revertButton);
+        this.$wrapper.off('click', WorkflowTopBar._selectors.startPauseButton);
     }
 
     render() {
@@ -104,11 +107,19 @@ class WorkflowTopBar {
         this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_REVERT_BUTTON_CLICKED);
     }
 
+    handleStartPauseButtonClicked(e) {
+        if(e.cancelable) {
+            e.preventDefault();
+        }
+        this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_START_PAUSE_BUTTON_CLICKED);
+    }
+
     handleDataSaved(workflow) {
         debugger;
         this.workflow = workflow;
 
         this.setAutoSaveMessage();
+        this.setPauseSaveButton();
     }
 
     handleDataUpdated(workflow, publishedWorkflow) {
@@ -117,6 +128,7 @@ class WorkflowTopBar {
         this.publishedWorkflow = publishedWorkflow;
 
         this.setAutoSaveMessage();
+        this.setPauseSaveButton();
     }
 
     setAutoSaveMessage() {
@@ -126,8 +138,18 @@ class WorkflowTopBar {
             autosaveMessage = 'Autosaved with unpublished changes <button type="button" class="btn btn-link js-revert-button">revert</button>';
 
         }
-
         this.$wrapper.find(WorkflowTopBar._selectors.autosaveMessage).html(autosaveMessage);
+    }
+
+    setPauseSaveButton() {
+        debugger;
+
+        let buttonText = 'Start Workflow';
+        if(!this.workflow.paused) {
+            buttonText = 'Pause Workflow';
+        }
+
+        this.$wrapper.find(WorkflowTopBar._selectors.startPauseButton).html(buttonText);
     }
 
     handleFormNameChange(e) {
@@ -165,7 +187,10 @@ class WorkflowTopBar {
                         <div class="navbar-collapse collapse dual-nav w-50 order-3">
                             <ul class="nav navbar-nav ml-auto">
                                 <li class="nav-item">
-                                <span style="color: #FFF; margin-right: 20px;" class="js-autosave-message"></span> <button class="btn btn-lg btn-secondary ml-auto js-publish-button">Publish</button>
+                                    <span style="color: #FFF; margin-right: 20px;" class="js-autosave-message"></span><button class="btn btn-lg btn-light ml-auto js-start-pause-button" style="margin-right:10px">Start Workflow</button>
+                                </li>
+                                <li class="nav-item">
+                                    <button class="btn btn-lg btn-secondary ml-auto js-publish-button">Publish</button>
                                 </li>
                             </ul>
                         </div>

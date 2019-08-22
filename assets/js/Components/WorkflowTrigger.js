@@ -188,6 +188,12 @@ class WorkflowTrigger {
                 this.handleRevertButtonClicked.bind(this)
             ));
 
+        this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
+                Settings.Events.WORKFLOW_START_PAUSE_BUTTON_CLICKED,
+                this.handleStartPauseButtonClicked.bind(this)
+            ));
+
         this.loadWorkflow().then((data) => {
             debugger;
             this._setDataFromResponse(data);
@@ -493,12 +499,18 @@ class WorkflowTrigger {
 
     handleRevertButtonClicked() {
 
-        debugger;
-        /*this.workflow = _.cloneDeep(this.workflow);*/
+        this.workflow = _.cloneDeep(this.publishedWorkflow);
 
-        debugger;
         this._saveWorkflow().then((data) => {
             debugger;
+            this._setDataFromResponse(data);
+            this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_DATA_UPDATED, this.workflow, this.publishedWorkflow);
+        });
+    }
+
+    handleStartPauseButtonClicked() {
+        this.workflow.paused = this.workflow.paused !== true;
+        this._startPauseWorkflow().then((data) => {
             this._setDataFromResponse(data);
             this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_DATA_UPDATED, this.workflow, this.publishedWorkflow);
         });
@@ -508,6 +520,26 @@ class WorkflowTrigger {
         debugger;
         return new Promise((resolve, reject) => {
             const url = Routing.generate('save_workflow', {internalIdentifier: this.portalInternalIdentifier, uid: this.uid});
+            $.ajax({
+                url,
+                method: 'POST',
+                data: {'workflow': this.workflow}
+            }).then((data, textStatus, jqXHR) => {
+                debugger;
+                resolve(data);
+            }).catch((jqXHR) => {
+                debugger;
+                const errorData = JSON.parse(jqXHR.responseText);
+                errorData.httpCode = jqXHR.status;
+                reject(errorData);
+            });
+        });
+    }
+
+    _startPauseWorkflow() {
+        debugger;
+        return new Promise((resolve, reject) => {
+            const url = Routing.generate('start_pause_workflow', {internalIdentifier: this.portalInternalIdentifier, uid: this.uid});
             $.ajax({
                 url,
                 method: 'POST',
