@@ -96,7 +96,9 @@ class WorkflowTopBar {
 
     render() {
         this.$wrapper.html(WorkflowTopBar.markup(this));
-        this.setAutoSaveMessage();
+
+        this.setAutoSaveMessage()
+            .setPauseSaveButton();
     }
 
     handleRevertButtonClicked(e) {
@@ -139,6 +141,8 @@ class WorkflowTopBar {
 
         }
         this.$wrapper.find(WorkflowTopBar._selectors.autosaveMessage).html(autosaveMessage);
+
+        return this;
     }
 
     setPauseSaveButton() {
@@ -150,6 +154,8 @@ class WorkflowTopBar {
         }
 
         this.$wrapper.find(WorkflowTopBar._selectors.startPauseButton).html(buttonText);
+
+        return this;
     }
 
     handleFormNameChange(e) {
