@@ -3,18 +3,22 @@
 namespace App\Controller\Api;
 
 use App\AuthorizationHandler\PermissionAuthorizationHandler;
+use App\Entity\Action;
 use App\Entity\CustomObject;
+use App\Entity\Filter;
 use App\Entity\Folder;
 use App\Entity\Form;
 use App\Entity\MarketingList;
+use App\Entity\ObjectWorkflow;
 use App\Entity\Portal;
 use App\Entity\Property;
 use App\Entity\PropertyGroup;
 use App\Entity\Record;
 use App\Entity\Report;
 use App\Entity\Role;
+use App\Entity\Trigger;
+use App\Entity\TriggerFilter;
 use App\Entity\Workflow;
-use App\Entity\WorkflowTrigger;
 use App\Form\CustomObjectType;
 use App\Form\DeleteFormType;
 use App\Form\DeleteListType;
@@ -26,10 +30,15 @@ use App\Form\MoveListToFolderType;
 use App\Form\PropertyGroupType;
 use App\Form\PropertyType;
 use App\Form\RecordType;
-use App\Form\WorkflowTriggerType;
+use App\Repository\ObjectWorkflowRepository;
+use App\Repository\TriggerFilterRepository;
+use App\Repository\WorkflowRepository;
+use Symfony\Component\Serializer\Annotation\DiscriminatorMap;
 use App\Form\WorkflowType;
 use App\Model\AbstractField;
 use App\Model\FieldCatalog;
+use App\Entity\PropertyTrigger;
+use App\Entity\SetPropertyValueAction;
 use App\Model\WorkflowTriggerCatalog;
 use App\Repository\CustomObjectRepository;
 use App\Repository\FolderRepository;
@@ -39,7 +48,6 @@ use App\Repository\PropertyGroupRepository;
 use App\Repository\PropertyRepository;
 use App\Repository\RecordRepository;
 use App\Repository\ReportRepository;
-use App\Repository\WorkflowTriggerRepository;
 use App\Service\MessageGenerator;
 use App\Utils\ArrayHelper;
 use App\Utils\ListFolderBreadcrumbs;
@@ -51,10 +59,9 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Response;
-
-
 use Symfony\Component\Serializer\Encoder\CsvEncoder;
 use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
@@ -138,9 +145,19 @@ class WorkflowController extends ApiController
     private $denormalizer;
 
     /**
-     * @var WorkflowTriggerRepository $workflowTriggerRepository
+     * @var TriggerFilterRepository
      */
-    private $workflowTriggerRepository;
+    private $triggerFilterRepository;
+
+    /**
+     * @var WorkflowRepository
+     */
+    private $workflowRepository;
+
+    /**
+     * @var ObjectWorkflowRepository
+     */
+    private $objectWorkflowRepository;
 
     /**
      * WorkflowController constructor.
@@ -156,7 +173,9 @@ class WorkflowController extends ApiController
      * @param FolderRepository $folderRepository
      * @param ListFolderBreadcrumbs $folderBreadcrumbs
      * @param DenormalizerInterface $denormalizer
-     * @param WorkflowTriggerRepository $workflowTriggerRepository
+     * @param TriggerFilterRepository $triggerFilterRepository
+     * @param WorkflowRepository $workflowRepository
+     * @param ObjectWorkflowRepository $objectWorkflowRepository
      */
     public function __construct(
         EntityManagerInterface $entityManager,
@@ -171,7 +190,9 @@ class WorkflowController extends ApiController
         FolderRepository $folderRepository,
         ListFolderBreadcrumbs $folderBreadcrumbs,
         DenormalizerInterface $denormalizer,
-        WorkflowTriggerRepository $workflowTriggerRepository
+        TriggerFilterRepository $triggerFilterRepository,
+        WorkflowRepository $workflowRepository,
+        ObjectWorkflowRepository $objectWorkflowRepository
     ) {
         $this->entityManager = $entityManager;
         $this->customObjectRepository = $customObjectRepository;
@@ -185,124 +206,301 @@ class WorkflowController extends ApiController
         $this->folderRepository = $folderRepository;
         $this->folderBreadcrumbs = $folderBreadcrumbs;
         $this->denormalizer = $denormalizer;
-        $this->workflowTriggerRepository = $workflowTriggerRepository;
+        $this->triggerFilterRepository = $triggerFilterRepository;
+        $this->workflowRepository = $workflowRepository;
+        $this->objectWorkflowRepository = $objectWorkflowRepository;
     }
 
     /**
-     * @Route("{internalIdentifier}/api/workflows/{uid}/get-trigger-form", name="get_workflow_trigger_form", methods={"GET"}, options = { "expose" = true })
+     * @Route("{internalIdentifier}/api/workflows/initialize", name="initialize_workflow", methods={"POST"}, options = { "expose" = true })
      * @param Portal $portal
-     * @param Workflow $workflow
      * @param Request $request
      * @return JsonResponse
      */
-    public function getWorkflowTriggerFormAction(Portal $portal, Workflow $workflow, Request $request) {
+    public function initializeWorkflowAction(Portal $portal, Request $request) {
 
-        // dummy code - this is here just so that the Task has some tags
-        // otherwise, this isn't an interesting example
-        /*$trigger = new WorkflowTrigger();
-        $trigger->setTriggerType('test trigger type');
-        $workflow->getWorkflowTriggers()->add($trigger);*/
+        $workflowType = $request->request->get('workflowType', null);
 
-        $workflowTrigger = new WorkflowTrigger();
-        $form = $this->createForm(WorkflowTriggerType::class, $workflowTrigger, ['portal' => $portal]);
-
-        $formMarkup = $this->renderView(
-            'Api/form/workflow_trigger_form.twig',
-            [
-                'form' => $form->createView(),
-            ]
-        );
-
-        return new JsonResponse(
-            [
-                'success' => true,
-                'formMarkup' => $formMarkup
-            ],
-            Response::HTTP_OK
-        );
-    }
-
-    /**
-     * @Route("{internalIdentifier}/api/workflows/{uid}/submit-trigger-form", name="submit_workflow_trigger_form", methods={"POST"}, options = { "expose" = true })
-     * @param Portal $portal
-     * @param Workflow $workflow
-     * @param Request $request
-     * @return JsonResponse
-     */
-    public function createTriggerAction(Portal $portal, Workflow $workflow, Request $request) {
-
-        $options = [];
-
-        $options = [
-            'portal' => $portal,
-        ];
-
-       /* $skipValidation = $request->request->get('skip_validation', false);
-
-        if(!$skipValidation) {
-            $options['validation_groups'] = ['CREATE'];
-        }*/
-
-        $workflowTrigger = new WorkflowTrigger();
-        $form = $this->createForm(WorkflowTriggerType::class, $workflowTrigger, $options);
-
-        $form->handleRequest($request);
-
-        $formMarkup = $this->renderView(
-            'Api/form/workflow_trigger_form.twig',
-            [
-                'form' => $form->createView(),
-            ]
-        );
-
-        if ($form->isSubmitted() && !$form->isValid()) {
-            return new JsonResponse(
-                [
-                    'success' => false,
-                    'formMarkup' => $formMarkup,
-                ], Response::HTTP_BAD_REQUEST
-            );
+        switch ($workflowType) {
+            case Workflow::OBJECT_WORKFLOW:
+                $workflow = new ObjectWorkflow();
+                $workflow->setPortal($portal);
+                $workflow->setUid($this->generateRandomString(40));
+                break;
+            default:
+                throw new NotFoundHttpException("Workflow type not found");
+                break;
         }
 
-        if ($form->isSubmitted() && $form->isValid()) {
+        $this->entityManager->persist($workflow);
+        $this->entityManager->flush();
+        $this->entityManager->refresh($workflow);
 
-            /** @var WorkflowTrigger $workflowTrigger */
-            $workflowTrigger = $form->getData();
-            $workflow->addWorkflowTrigger($workflowTrigger);
+        $publishedWorkflow = clone $workflow;
+        $publishedWorkflow->setUid($this->generateRandomString(40));
+        $publishedWorkflow->setDraft(false);
+        $this->entityManager->persist($publishedWorkflow);
+        $this->entityManager->flush();
 
-            $this->entityManager->persist($workflow);
-            $this->entityManager->flush();
-        }
+        $workflow->setPublishedWorkflow($publishedWorkflow);
+        $this->entityManager->persist($workflow);
+        $this->entityManager->flush();
 
-        return new JsonResponse(
-            [
-                'success' => true,
-                'formMarkup' => $formMarkup,
-            ],
-            Response::HTTP_OK
-        );
-    }
-
-    /**
-     * @Route("/{internalIdentifier}/api/workflows/{uid}/triggers", name="get_workflow_triggers", methods={"GET"}, options = { "expose" = true })
-     * @param Portal $portal
-     * @param Workflow $workflow
-     * @param Request $request
-     * @return JsonResponse
-     */
-    public function getWorkflowTriggersAction(Portal $portal, Workflow $workflow, Request $request) {
-
-        $triggers = $this->workflowTriggerRepository->findBy([
-            'workflow' => $workflow->getId()
-        ]);
-
-        $json = $this->serializer->serialize($triggers, 'json', ['groups' => ['WORKFLOW_TRIGGERS', 'WORKFLOW_TRIGGER_DATA']]);
+        $json = $this->serializer->serialize($workflow, 'json', ['groups' => ['WORKFLOW']]);
 
         $payload = json_decode($json, true);
 
+        return new JsonResponse(
+            [
+                'success' => true,
+                'data'  => $payload
+            ],
+            Response::HTTP_OK
+        );
+
+    }
+
+    /**
+     * @Route("{internalIdentifier}/api/workflows/{uid}/add-custom-object", name="workflow_add_custom_object", methods={"POST"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param ObjectWorkflow $workflow
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function workflowAddCustomObjectAction(Portal $portal, ObjectWorkflow $workflow, Request $request) {
+
+        $customObjectId = $request->request->get('customObjectId', null);
+
+        $customObject = $this->customObjectRepository->find($customObjectId);
+
+        $workflow->setCustomObject($customObject);
+        $this->entityManager->persist($workflow);
+        $this->entityManager->flush();
+
+        $json = $this->serializer->serialize($workflow, 'json', ['groups' => ['WORKFLOW']]);
+
+        $payload = json_decode($json, true);
+
+        return new JsonResponse(
+            [
+                'success' => true,
+                'data' => $payload,
+            ],
+            Response::HTTP_OK
+        );
+
+    }
+
+    /**
+     * @Route("{internalIdentifier}/api/workflows/{uid}/save", name="save_workflow", methods={"POST"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param Workflow $workflow
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function saveWorkflowAction(Portal $portal, Workflow $workflow, Request $request) {
+
+        /* SETUP THE TRIGGERS */
+        foreach($workflow->getTriggers() as $trigger) {
+            $this->entityManager->remove($trigger);
+            $this->entityManager->flush();
+        }
+
+        $workflowArray = $request->request->get('workflow');
+        $triggers = !empty($workflowArray['triggers']) ? $workflowArray['triggers'] : [];
+        foreach($triggers as $trigger) {
+
+            $trigger['filters'] = $this->setValidPropertyTypes(!empty($trigger['filters']) ? $trigger['filters'] : []);
+
+            /** @var Trigger $trigger */
+            $trigger = $this->serializer->deserialize(json_encode($trigger, true), Trigger::class, 'json');
+
+            switch ($trigger->getName()) {
+                case Trigger::PROPERTY_BASED_TRIGGER:
+                    /** @var PropertyTrigger $trigger */
+                    $trigger->setWorkflow($workflow);
+                    foreach($trigger->getFilters() as $filter) {
+                        if($filter->getProperty()) {
+                            $property = $this->propertyRepository->find($filter->getProperty()->getId());
+                            $filter->setProperty($property);
+                        }
+                    }
+                    break;
+            }
+            $this->entityManager->persist($trigger);
+        }
+
+        /* SETUP THE ACTIONS */
+        foreach($workflow->getActions() as $action) {
+            $this->entityManager->remove($action);
+            $this->entityManager->flush();
+        }
+
+        $workflowArray = $request->request->get('workflow');
+        $actions = !empty($workflowArray['actions']) ? $workflowArray['actions'] : [];
+        foreach($actions as $action) {
+
+            /** @var Action $action */
+            $action = $this->serializer->deserialize(json_encode($action, true), Action::class, 'json');
+            $action->setWorkflow($workflow);
+
+            if($action->getProperty()) {
+                $property = $this->propertyRepository->find($action->getProperty()->getId());
+                $action->setProperty($property);
+            }
+
+            $this->entityManager->persist($action);
+        }
+
+        $this->entityManager->persist($workflow);
+        $this->entityManager->flush();
+
+        // let's pull a fresh copy from the database
+        $this->entityManager->refresh($workflow);
+
+        return new JsonResponse(
+            [
+                'success' => true,
+                'data'  => $this->getWorkflowDataResponse($workflow)
+            ],
+            Response::HTTP_OK
+        );
+    }
+
+    /**
+     * @Route("{internalIdentifier}/api/workflows/{uid}/start-pause", name="start_pause_workflow", methods={"POST"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param Workflow $workflow
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function startPause(Portal $portal, Workflow $workflow, Request $request) {
+
+        $startPause = $request->request->get('workflow')['paused'] === 'true'? true: false;
+        $workflow->setPaused($startPause);
+
+        $this->entityManager->persist($workflow);
+        $this->entityManager->flush();
+
+        // let's pull a fresh copy from the database
+        $this->entityManager->refresh($workflow);
+
+        return new JsonResponse(
+            [
+                'success' => true,
+                'data'  => $this->getWorkflowDataResponse($workflow)
+            ],
+            Response::HTTP_OK
+        );
+    }
+
+    /**
+     * @Route("{internalIdentifier}/api/workflows/{uid}/publish", name="publish_workflow", methods={"POST"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param Workflow $workflow
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function publishWorkflowAction(Portal $portal, Workflow $workflow, Request $request) {
+
+        $workflow->setPublished(true);
+        $publishedWorkflow  = $workflow->getPublishedWorkflow();
+
+        $this->entityManager->persist($publishedWorkflow);
+        $this->entityManager->flush();
+        $this->entityManager->refresh($publishedWorkflow);
+
+
+        /* Action Logic */
+        foreach($publishedWorkflow->getActions() as $action) {
+            $this->entityManager->remove($action);
+            $this->entityManager->flush();
+        }
+
+        $actions = $workflow->getActions();
+        foreach($actions as $action) {
+            /* @var Action $action */
+            switch ($action->getName()) {
+                case Action::SET_PROPERTY_VALUE_ACTION:
+                    /* @var SetPropertyValueAction $action */
+                    $clonedAction = new SetPropertyValueAction();
+                    $clonedAction->setProperty($action->getProperty());
+                    $clonedAction->setName($action->getName());
+                    $clonedAction->setDescription($action->getDescription());
+                    $clonedAction->setUid($action->getUid());
+                    $clonedAction->setValue($action->getValue());
+                    $clonedAction->setDescription($action->getDescription());
+                    $clonedAction->setJoins($action->getJoins());
+                    $clonedAction->setOperator($action->getOperator());
+                    $clonedAction->setWorkflow($publishedWorkflow);
+                    $this->entityManager->persist($clonedAction);
+                    break;
+            }
+
+            $this->entityManager->flush();
+        }
+
+        /* Trigger Logic */
+        foreach($publishedWorkflow->getTriggers() as $trigger) {
+            $this->entityManager->remove($trigger);
+            $this->entityManager->flush();
+        }
+
+        foreach($workflow->getTriggers() as $trigger) {
+            switch ($trigger->getName()) {
+                case Trigger::PROPERTY_BASED_TRIGGER:
+                    /** @var PropertyTrigger $clonedTrigger*/
+                    $clonedTrigger = new PropertyTrigger();
+                    $clonedTrigger->setName($trigger->getName());
+                    $clonedTrigger->setDescription($trigger->getDescription());
+                    $clonedTrigger->setUid($trigger->getUid());
+                    $clonedTrigger->setWorkflow($publishedWorkflow);
+                    $this->entityManager->persist($clonedTrigger);
+
+                    /** @var TriggerFilter $filter */
+                    foreach($trigger->getFilters() as $filter) {
+                        /** @var TriggerFilter $clonedFilter */
+                        $clonedFilter = new TriggerFilter();
+                        $clonedFilter->setUid($filter->getUid());
+                        $clonedFilter->setOperator($filter->getOperator());
+                        $clonedFilter->setJoins($filter->getJoins());
+                        $clonedFilter->setValue($filter->getValue());
+                        $clonedFilter->setProperty($filter->getProperty());
+                        $clonedFilter->setAndFilters($filter->getAndFilters());
+                        $clonedFilter->setReferencedFilterPath($filter->getReferencedFilterPath());
+                        $clonedFilter->setPropertyTrigger($clonedTrigger);
+                        $this->entityManager->persist($clonedFilter);
+                    }
+                    break;
+            }
+        }
+
+        $this->entityManager->persist($publishedWorkflow);
+        $this->entityManager->flush();
+        $this->entityManager->refresh($workflow);
+        $this->entityManager->refresh($publishedWorkflow);
+
+        return new JsonResponse(
+            [
+                'success' => true,
+                'data'  => $this->getWorkflowDataResponse($workflow)
+            ],
+            Response::HTTP_OK
+        );
+    }
+
+    /**
+     * @Route("/{internalIdentifier}/api/workflows/{uid}/get", name="get_workflow", methods={"GET"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param Workflow $workflow
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getWorkflowAction(Portal $portal, Workflow $workflow, Request $request) {
+
         return new JsonResponse([
             'success' => true,
-            'data'  => $payload
+            'data'  => $this->getWorkflowDataResponse($workflow)
         ], Response::HTTP_OK);
 
     }
@@ -316,16 +514,84 @@ class WorkflowController extends ApiController
     public function getTriggerTypes(Portal $portal, Request $request) {
 
         $payload = [
-            [
-                'id' => 1,
-                'internalName' => WorkflowTriggerCatalog::PROPERTY_BASED_TRIGGER,
-                'label' => 'Property Based Trigger',
-            ]
+            json_decode($this->serializer->serialize(new PropertyTrigger(), 'json', ['groups' => ['TRIGGER']]), true),
         ];
 
         return new JsonResponse([
             'success' => true,
-            'data'  => $payload
+            'data'  => $payload,
         ], Response::HTTP_OK);
     }
+
+    /**
+     * @Route("/{internalIdentifier}/action-types", name="get_action_types", methods={"GET"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getActionTypes(Portal $portal, Request $request) {
+
+        $payload = [
+            json_decode($this->serializer->serialize(new SetPropertyValueAction(), 'json', ['groups' => ['WORKFLOW_ACTION', 'TRIGGER']]), true),
+        ];
+
+        return new JsonResponse([
+            'success' => true,
+            'data'  => $payload,
+        ], Response::HTTP_OK);
+    }
+
+    /**
+     * @Route("/{internalIdentifier}/workflow-types", name="workflow_types", methods={"GET"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function workflowTypes(Portal $portal, Request $request) {
+
+        return new JsonResponse([
+            'success' => true,
+            'data'  => Workflow::$types,
+        ], Response::HTTP_OK);
+    }
+
+    /**
+     * @param Workflow $workflow
+     * @return array
+     */
+    private function getWorkflowDataResponse(Workflow $workflow) {
+
+        $this->entityManager->refresh($workflow);
+        $this->entityManager->refresh($workflow->getPublishedWorkflow());
+
+        foreach($workflow->getPublishedWorkflow()->getTriggers() as $trigger) {
+            $this->entityManager->refresh($trigger);
+        }
+
+        $data = [];
+        $json = $this->serializer->serialize($workflow, 'json', ['groups' => ['WORKFLOW', 'TRIGGER', 'WORKFLOW_ACTION']]);
+        $data['workflow'] = json_decode($json, true);
+
+        $json = $this->serializer->serialize($workflow, 'json', ['groups' => ['MD5_HASH_WORKFLOW']]);
+        //$i = json_decode($json, true);
+        $data['workflowHash'] = md5($json);
+
+        $json = $this->serializer->serialize($workflow->getPublishedWorkflow(), 'json', ['groups' => ['MD5_HASH_WORKFLOW']]);
+        //$y = json_decode($json, true);
+        $data['publishedWorkflowHash'] = md5($json);
+
+        if($workflow->getPublishedWorkflow()) {
+            $json = $this->serializer->serialize($workflow->getPublishedWorkflow(), 'json', ['groups' => ['WORKFLOW', 'TRIGGER', 'WORKFLOW_ACTION']]);
+            $data['publishedWorkflow'] = json_decode($json, true);
+        } else {
+            $data['publishedWorkflow'] = [
+                'name' => '',
+                'triggers' => [],
+                'actions' => [],
+            ];
+        }
+
+        return $data;
+    }
+
 }

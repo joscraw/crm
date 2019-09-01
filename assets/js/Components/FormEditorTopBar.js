@@ -136,7 +136,7 @@ class FormEditorTopBar {
     static markup({portalInternalIdentifier, form}) {
 
         return `            
-            <nav class="navbar fixed-top navbar-expand-sm l-top-bar justify-content-end">
+            <nav class="navbar navbar-expand-sm l-top-bar justify-content-end">
                  <div class="container-fluid">
                     <div class="navbar-collapse collapse dual-nav w-50 order-0">
                         <ul class="navbar-nav">

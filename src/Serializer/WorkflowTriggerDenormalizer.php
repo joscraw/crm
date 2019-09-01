@@ -3,23 +3,25 @@
 namespace App\Serializer;
 
 use App\Entity\Property;
+use App\Entity\Trigger;
+use App\Entity\TriggerFilter;
 use App\Entity\Workflow;
-use App\Entity\WorkflowTrigger;
 use App\Model\AbstractField;
-use App\Model\AbstractWorkflowTrigger;
 use App\Model\CustomObjectField;
 use App\Model\DatePickerField;
 use App\Model\DropdownSelectField;
 use App\Model\FieldCatalog;
+use App\Model\Filter;
 use App\Model\MultiLineTextField;
 use App\Model\MultipleCheckboxField;
 use App\Model\NumberField;
-use App\Model\PropertyBasedTrigger;
+use App\Entity\PropertyTrigger;
 use App\Model\RadioSelectField;
 use App\Model\SingleCheckboxField;
 use App\Model\SingleLineTextField;
 use App\Repository\CustomObjectRepository;
 use App\Repository\PropertyRepository;
+use App\Utils\PropertyHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Serializer\Exception\BadMethodCallException;
@@ -40,6 +42,9 @@ use Symfony\Component\Serializer\SerializerInterface;
  */
 class WorkflowTriggerDenormalizer implements DenormalizerInterface, DenormalizerAwareInterface
 {
+
+    use PropertyHelper;
+
     /**
      * @var EntityManagerInterface
      */
@@ -109,13 +114,30 @@ class WorkflowTriggerDenormalizer implements DenormalizerInterface, Denormalizer
     {
         $trigger= null;
         switch($data['name']) {
-            case WorkflowTrigger::PROPERTY_BASED_TRIGGER:
+            case Trigger::PROPERTY_BASED_TRIGGER:
+
+                if(!empty($data['id'])) {
+                    $data['id'] = (int) $data['id'];
+                } else {
+                    unset($data['id']);
+                }
+
+                foreach($data['filters'] as &$filter) {
+                    if(!empty($filter['id'])) {
+                        $filter['id'] = (int) $filter['id'];
+                    } else {
+                        unset($filter['id']);
+                    }
+                }
+
+                /** @var PropertyTrigger $trigger */
                 $trigger = $this->denormalizer->denormalize(
                     $data,
-                    PropertyBasedTrigger::class,
+                    PropertyTrigger::class,
                     $format,
                     $context
                 );
+
                 return $trigger;
                 break;
         }
@@ -133,7 +155,7 @@ class WorkflowTriggerDenormalizer implements DenormalizerInterface, Denormalizer
      */
     public function supportsDenormalization($data, $type, $format = null)
     {
-        if($type == AbstractWorkflowTrigger::class) {
+        if($type == Trigger::class) {
             return true;
         } else {
             return false;

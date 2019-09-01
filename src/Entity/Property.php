@@ -6,6 +6,8 @@ use App\Model\AbstractField;
 use App\Model\DropdownSelectField;
 use App\Model\FieldCatalog;
 use App\Model\FormFieldProperties;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -28,47 +30,47 @@ class Property
     use FormFieldProperties;
 
     /**
-     * @Groups({"PROPERTY_FIELD_NORMALIZER", "SELECTABLE_PROPERTIES", "WORKFLOW_TRIGGER_DATA"})
+     * @Groups({"PROPERTY_FIELD_NORMALIZER", "SELECTABLE_PROPERTIES", "WORKFLOW_TRIGGER_DATA", "TRIGGER"})
      *
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
      */
-    private $id;
+    protected $id;
 
     /**
-     * @Groups({"PROPERTY_FIELD_NORMALIZER", "SELECTABLE_PROPERTIES", "WORKFLOW_TRIGGER_DATA"})
+     * @Groups({"PROPERTY_FIELD_NORMALIZER", "SELECTABLE_PROPERTIES", "WORKFLOW_TRIGGER_DATA", "TRIGGER"})
      *
      * @Assert\NotBlank(message="Don't forget a label for your new Property!", groups={"CREATE", "EDIT"})
      * @Assert\Regex("/^[a-zA-Z0-9_\s]*$/", message="Woah! Only use letters, numbers, underscores and spaces please!", groups={"CREATE", "EDIT"})
      *
      * @ORM\Column(type="string", length=255)
      */
-    private $label;
+    protected $label;
 
     /**
-     * @Groups({"PROPERTY_FIELD_NORMALIZER", "SELECTABLE_PROPERTIES"})
+     * @Groups({"PROPERTY_FIELD_NORMALIZER", "SELECTABLE_PROPERTIES", "TRIGGER"})
      *
      * @Assert\Regex("/^[a-zA-Z0-9_]*$/", message="Woah! Only use letters numbers and underscores please!", groups={"CREATE", "EDIT"})
      *
      * @ORM\Column(type="string", length=255)
      */
-    private $internalName;
+    protected $internalName;
 
     /**
      * @ORM\Column(type="text", nullable=true)
      */
-    private $description;
+    protected $description;
 
     /**
-     * @Groups({"PROPERTY_FIELD_NORMALIZER", "SELECTABLE_PROPERTIES"})
+     * @Groups({"PROPERTY_FIELD_NORMALIZER", "SELECTABLE_PROPERTIES", "TRIGGER"})
      *
      * @Assert\NotBlank(message="Don't forget to select a field type for your new Property!", groups={"CREATE", "EDIT"})
      * @Assert\Choice(callback="getValidFieldTypes")
      *
      * @ORM\Column(type="string", length=255)
      */
-    private $fieldType;
+    protected $fieldType;
 
     /**
      * @Groups({"SELECTABLE_PROPERTIES"})
@@ -79,20 +81,20 @@ class Property
      *
      * @ORM\Column(type="json", nullable=true)
      */
-    private $field;
+    protected $field;
 
     /**
      * @Assert\NotBlank(message="Don't forget to select a property group!", groups={"CREATE", "EDIT"})
      * @ORM\ManyToOne(targetEntity="App\Entity\PropertyGroup", inversedBy="properties")
      * @ORM\JoinColumn(nullable=false)
      */
-    private $propertyGroup;
+    protected $propertyGroup;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\CustomObject", inversedBy="properties")
      * @ORM\JoinColumn(nullable=false)
      */
-    private $customObject;
+    protected $customObject;
 
     /**
      * @Groups({"PROPERTY_FIELD_NORMALIZER", "SELECTABLE_PROPERTIES"})
@@ -104,27 +106,43 @@ class Property
     /**
      * @ORM\Column(type="boolean")
      */
-    private $isColumn = false;
+    protected $isColumn = false;
 
     /**
      * @ORM\Column(type="integer", nullable=true)
      */
-    private $columnOrder;
+    protected $columnOrder;
 
     /**
      * @ORM\Column(type="boolean")
      */
-    private $isDefaultProperty = false;
+    protected $isDefaultProperty = false;
 
     /**
      * @ORM\Column(type="integer", nullable=true)
      */
-    private $defaultPropertyOrder;
+    protected $defaultPropertyOrder;
 
     /**
      * @ORM\Column(type="boolean")
      */
-    private $systemDefined = false;
+    protected $systemDefined = false;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\TriggerFilter", mappedBy="property")
+     */
+    private $triggerFilters;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\SetPropertyValueAction", mappedBy="property")
+     */
+    private $setPropertyValueActions;
+
+    public function __construct()
+    {
+        $this->triggerFilters = new ArrayCollection();
+        $this->setPropertyValueActions = new ArrayCollection();
+    }
 
 
     /**
@@ -350,6 +368,68 @@ class Property
     public function setSystemDefined(bool $systemDefined): self
     {
         $this->systemDefined = $systemDefined;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|TriggerFilter[]
+     */
+    public function getTriggerFilters(): Collection
+    {
+        return $this->triggerFilters;
+    }
+
+    public function addTriggerFilter(TriggerFilter $triggerFilter): self
+    {
+        if (!$this->triggerFilters->contains($triggerFilter)) {
+            $this->triggerFilters[] = $triggerFilter;
+            $triggerFilter->setProperty($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTriggerFilter(TriggerFilter $triggerFilter): self
+    {
+        if ($this->triggerFilters->contains($triggerFilter)) {
+            $this->triggerFilters->removeElement($triggerFilter);
+            // set the owning side to null (unless already changed)
+            if ($triggerFilter->getProperty() === $this) {
+                $triggerFilter->setProperty(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|SetPropertyValueAction[]
+     */
+    public function getSetPropertyValueActions(): Collection
+    {
+        return $this->setPropertyValueActions;
+    }
+
+    public function addSetPropertyValueAction(SetPropertyValueAction $setPropertyValueAction): self
+    {
+        if (!$this->setPropertyValueActions->contains($setPropertyValueAction)) {
+            $this->setPropertyValueActions[] = $setPropertyValueAction;
+            $setPropertyValueAction->setProperty($this);
+        }
+
+        return $this;
+    }
+
+    public function removeSetPropertyValueAction(SetPropertyValueAction $setPropertyValueAction): self
+    {
+        if ($this->setPropertyValueActions->contains($setPropertyValueAction)) {
+            $this->setPropertyValueActions->removeElement($setPropertyValueAction);
+            // set the owning side to null (unless already changed)
+            if ($setPropertyValueAction->getProperty() === $this) {
+                $setPropertyValueAction->setProperty(null);
+            }
+        }
 
         return $this;
     }

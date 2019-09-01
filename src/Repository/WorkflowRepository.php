@@ -56,9 +56,24 @@ class WorkflowRepository extends ServiceEntityRepository
     public function getWorkflowAndAssociationsByUid($uid)
     {
         return $this->createQueryBuilder('workflow')
-            ->leftJoin('workflow.workflowTriggers', 'wt')
             ->where('workflow.uid = :uid')
             ->setParameter('uid', $uid)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+
+    /**
+     * @param $id
+     * @return mixed
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     */
+    public function getWorkflowById($id)
+    {
+        return $this->createQueryBuilder('workflow')
+            ->innerJoin('workflow.triggers', 'triggers')
+            ->where('workflow.id = :id')
+            ->setParameter('id', $id)
             ->getQuery()
             ->getOneOrNullResult();
     }

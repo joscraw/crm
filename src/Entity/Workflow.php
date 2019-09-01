@@ -5,78 +5,113 @@ namespace App\Entity;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Serializer\Encoder\JsonEncoder;
+use Symfony\Component\Serializer\Encoder\XmlEncoder;
+use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
+use Symfony\Component\Serializer\Serializer;
+
+// @ORM\EntityListeners({"App\EntityListener\WorkflowListener"})
 
 /**
- * @ORM\EntityListeners({"App\EntityListener\WorkflowListener"})
  * @ORM\Entity(repositoryClass="App\Repository\WorkflowRepository")
+ * @ORM\HasLifecycleCallbacks()
+ *
+ * @ORM\InheritanceType("JOINED")
+ * @ORM\DiscriminatorColumn(name="discr", type="string")
+ * @ORM\DiscriminatorMap({"objectWorkflow" = "ObjectWorkflow"})
  */
-class Workflow
+abstract class Workflow
 {
+    const OBJECT_WORKFLOW = 'OBJECT_WORKFLOW';
+
+    public static $types = [
+        [
+            'name' => self::OBJECT_WORKFLOW,
+            'label' => 'Object Workflow'
+        ]
+    ];
+
     /**
+     * @Groups({"WORKFLOW"})
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
      */
-    private $id;
-
-    /**
-     * @ORM\Column(type="json", nullable=true)
-     */
-    private $data = [];
-
-    /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
-    private $name;
+    protected $id;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Portal", inversedBy="workflows")
      * @ORM\JoinColumn(nullable=false)
      */
-    private $portal;
+    protected $portal;
 
     /**
+     * @Groups({"WORKFLOW"})
      * @ORM\Column(type="string", length=255)
      */
-    private $uid;
+    protected $uid;
+
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\WorkflowTrigger", mappedBy="workflow", orphanRemoval=true, cascade={"persist"})
+     * @ORM\PrePersist
+     * @throws \Exception
      */
-    private $workflowTriggers;
+    public function setWorkflowName()
+    {
+        if(empty($this->name)) {
+            $this->name = sprintf('New workflow (%s)', date("M j, Y g:i:s A"));
+        }
+    }
+
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    protected $published = false;
+
+    /**
+     * @Groups({"WORKFLOW", "MD5_HASH_WORKFLOW"})
+     * @ORM\OneToMany(targetEntity="App\Entity\Trigger", mappedBy="workflow", cascade={"persist", "remove"})
+     */
+    protected $triggers;
+
+    /**
+     * @Groups({"WORKFLOW", "MD5_HASH_WORKFLOW"})
+     * @ORM\OneToMany(targetEntity="App\Entity\Action", mappedBy="workflow", cascade={"persist", "remove"})
+     */
+    protected $actions;
+
+    /**
+     * @ORM\OneToOne(targetEntity="App\Entity\Workflow", cascade={"persist", "remove"})
+     */
+    protected $publishedWorkflow;
+
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    protected $draft = true;
+
+    /**
+     * @Groups({"WORKFLOW", "MD5_HASH_WORKFLOW"})
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    protected $name;
+
+    /**
+     * @Groups({"WORKFLOW"})
+     * @ORM\Column(type="boolean")
+     */
+    protected $paused = true;
 
     public function __construct()
     {
-        $this->workflowTriggers = new ArrayCollection();
+        $this->triggers = new ArrayCollection();
+        $this->actions = new ArrayCollection();
     }
 
     public function getId(): ?int
     {
         return $this->id;
-    }
-
-    public function getData(): ?array
-    {
-        return $this->data;
-    }
-
-    public function setData(?array $data): self
-    {
-        $this->data = $data;
-
-        return $this;
-    }
-
-    public function getName(): ?string
-    {
-        return $this->name;
-    }
-
-    public function setName(?string $name): self
-    {
-        $this->name = $name;
-
-        return $this;
     }
 
     public function getPortal(): ?Portal
@@ -103,38 +138,138 @@ class Workflow
         return $this;
     }
 
-    /**
-     * @return Collection|WorkflowTrigger[]
-     */
-    public function getWorkflowTriggers(): Collection
+    public function getPublished(): ?bool
     {
-        return $this->workflowTriggers;
+        return $this->published;
     }
 
-    public function addWorkflowTrigger(WorkflowTrigger $workflowTrigger): self
+    public function setPublished(bool $published): self
     {
-        if (!$this->workflowTriggers->contains($workflowTrigger)) {
-            $this->workflowTriggers[] = $workflowTrigger;
-            $workflowTrigger->setWorkflow($this);
+        $this->published = $published;
+
+        return $this;
+    }
+    
+    public function getClassName()
+    {
+        return (new \ReflectionClass($this))->getShortName();
+    }
+
+    /**
+     * @return Collection|Trigger[]
+     */
+    public function getTriggers(): Collection
+    {
+        return $this->triggers;
+    }
+
+    public function addTrigger(Trigger $trigger): self
+    {
+        if (!$this->triggers->contains($trigger)) {
+            $this->triggers[] = $trigger;
+            $trigger->setWorkflow($this);
         }
 
         return $this;
     }
 
-    public function removeWorkflowTrigger(WorkflowTrigger $workflowTrigger): self
+    public function removeTrigger(Trigger $trigger): self
     {
-        if ($this->workflowTriggers->contains($workflowTrigger)) {
-            $this->workflowTriggers->removeElement($workflowTrigger);
+        if ($this->triggers->contains($trigger)) {
+            $this->triggers->removeElement($trigger);
             // set the owning side to null (unless already changed)
-            if ($workflowTrigger->getWorkflow() === $this) {
-                $workflowTrigger->setWorkflow(null);
+            if ($trigger->getWorkflow() === $this) {
+                $trigger->setWorkflow(null);
             }
         }
 
         return $this;
     }
 
-    public function clearWorkflowTriggers() {
-        $this->workflowTriggers = new ArrayCollection();
+    /**
+     * @return Collection|Action[]
+     */
+    public function getActions(): Collection
+    {
+        return $this->actions;
+    }
+
+    public function addAction(Action $action): self
+    {
+        if (!$this->actions->contains($action)) {
+            $this->actions[] = $action;
+            $action->setWorkflow($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAction(Action $action): self
+    {
+        if ($this->actions->contains($action)) {
+            $this->actions->removeElement($action);
+            // set the owning side to null (unless already changed)
+            if ($action->getWorkflow() === $this) {
+                $action->setWorkflow(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getPublishedWorkflow(): ?self
+    {
+        return $this->publishedWorkflow;
+    }
+
+    public function setPublishedWorkflow(?self $publishedWorkflow): self
+    {
+        $this->publishedWorkflow = $publishedWorkflow;
+
+        return $this;
+    }
+
+    public function getDraft(): ?bool
+    {
+        return $this->draft;
+    }
+
+    public function setDraft(bool $draft): self
+    {
+        $this->draft = $draft;
+
+        return $this;
+    }
+
+    public function clearTriggers() {
+        $this->triggers = new ArrayCollection();
+    }
+
+    public function clearActions() {
+        $this->actions = new ArrayCollection();
+    }
+
+    public function getName(): ?string
+    {
+        return $this->name;
+    }
+
+    public function setName(?string $name): self
+    {
+        $this->name = $name;
+
+        return $this;
+    }
+
+    public function getPaused(): ?bool
+    {
+        return $this->paused;
+    }
+
+    public function setPaused(bool $paused): self
+    {
+        $this->paused = $paused;
+
+        return $this;
     }
 }

@@ -1,0 +1,15 @@
+{% extends 'baseNoNavBars.html.twig' %}
+
+{% block title %}Workflow Type{% endblock %}
+
+{% block pageClass %}p-workflow{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link href="{{ asset('build/workflows.css') }}" rel="stylesheet" />
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('build/workflows.js') }}"></script>
+{% endblock %}

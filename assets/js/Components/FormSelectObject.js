@@ -92,22 +92,6 @@ class FormSelectObject {
 
     }
 
-    handleAdvanceToReportPropertiesViewButtonClicked(e) {
-
-        debugger;
-        let customObjectField = this.$wrapper.find(ReportSelectCustomObject._selectors.customObjectField);
-        let customObjectId = customObjectField.val();
-
-
-        let customObject = this.customObjects.filter(customObject => {
-            return parseInt(customObject.id) === parseInt(customObjectId);
-        });
-
-        debugger;
-
-        this.globalEventDispatcher.publish(Settings.Events.ADVANCE_TO_REPORT_PROPERTIES_VIEW_BUTTON_CLICKED, customObject[0]);
-    }
-
     render() {
         debugger;
         this.$wrapper.html(FormSelectObject.markup(this));

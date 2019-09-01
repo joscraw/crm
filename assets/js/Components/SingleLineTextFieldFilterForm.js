@@ -94,6 +94,8 @@ class SingleLineTextFieldFilterForm {
 
         const customFilter = {...this.property, ...formData};
 
+        customFilter.property = this.property;
+
         this.globalEventDispatcher.publish(Settings.Events.APPLY_CUSTOM_FILTER_BUTTON_PRESSED, customFilter);
         console.log(`Event Dispatched: ${Settings.Events.APPLY_CUSTOM_FILTER_BUTTON_PRESSED}`);
 
@@ -114,12 +116,10 @@ class SingleLineTextFieldFilterForm {
     static markup({property, operator1, operator2, operator3, operator4}) {
 
         return `
-        <div>
-        <button type="button" class="btn btn-link js-back-to-list-button"><i class="fa fa-chevron-left"></i> Back</button>
-        </div>
+        <button type="button" class="btn btn-link js-back-to-list-button text-left" style="padding:0"><i class="fa fa-chevron-left"></i> Back</button>
         <p><small>${property.label}*</small></p>
         <form name="filter" id="js-apply-filter-form" novalidate="novalidate">
-            <div style="height: 200px; overflow-y: auto">
+            <div>
                 <div class="form-check">
                     <input class="form-check-input js-radio-button" type="radio" name="operator" id="${operator1}" value="EQ" checked data-has-text-input="true">
                     <label class="form-check-label" for="${operator1}">

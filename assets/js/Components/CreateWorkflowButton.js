@@ -23,7 +23,7 @@ class CreateWorkflowButton {
     static markup({portalInternalIdentifier}) {
 
         return `
-        <a class="btn btn-secondary" data-bypass="true" href="${Routing.generate('workflow_create', {internalIdentifier: portalInternalIdentifier})}" role="button">Create Workflow</a>
+        <a class="btn btn-secondary" data-bypass="true" href="${Routing.generate('workflow_type', {internalIdentifier: portalInternalIdentifier})}" role="button">Create Workflow</a>
     `;
     }
 }

@@ -91,30 +91,37 @@ class WorkflowController extends AbstractController
     }
 
     /**
-     * @Route("/{internalIdentifier}/workflows/create", name="workflow_create", requirements={"routing"=".+"}, defaults={"routing": null}, methods={"GET"}, options = { "expose" = true })
+     * @Route("/{internalIdentifier}/workflows/type", name="workflow_type", requirements={"routing"=".+"}, defaults={"routing": null}, methods={"GET"}, options = { "expose" = true })
      * @param Portal $portal
      * @return \Symfony\Component\HttpFoundation\Response
      */
-    public function createWorkflowAction(Portal $portal) {
+    public function typeAction(Portal $portal) {
 
-        $workflow = new Workflow();
-        $workflow->setPortal($portal);
-        $workflow->setUid($this->generateRandomString(40));
-        $this->entityManager->persist($workflow);
-        $this->entityManager->flush();
-
-        return $this->redirectToRoute('workflow_trigger', ['internalIdentifier' => $portal->getInternalIdentifier(), 'uid' => $workflow->getUid()]);
-
-
+        return $this->render('workflow/type.html.twig', array(
+            'portal' => $portal
+        ));
     }
 
     /**
-     * @Route("/{internalIdentifier}/workflows/{uid}/settings", name="workflow_trigger", requirements={"routing"=".+"}, defaults={"routing": null}, methods={"GET"}, options = { "expose" = true })
+     * @Route("/{internalIdentifier}/workflows/{uid}/object", name="workflow_object", requirements={"routing"=".+"}, defaults={"routing": null}, methods={"GET"}, options = { "expose" = true })
      * @param Portal $portal
      * @param Workflow $workflow
      * @return \Symfony\Component\HttpFoundation\Response
      */
-    public function settingsAction(Portal $portal, Workflow $workflow) {
+    public function objectAction(Portal $portal, Workflow $workflow) {
+
+        return $this->render('workflow/object.html.twig', array(
+            'portal' => $portal
+        ));
+    }
+
+    /**
+     * @Route("/{internalIdentifier}/workflows/{uid}/triggers", name="workflow_trigger", requirements={"routing"=".+"}, defaults={"routing": null}, methods={"GET"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param Workflow $workflow
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function triggersAction(Portal $portal, Workflow $workflow) {
 
         return $this->render('workflow/trigger.html.twig', array(
             'portal' => $portal
@@ -122,11 +129,24 @@ class WorkflowController extends AbstractController
     }
 
     /**
-     * @Route("/{internalIdentifier}/workflows/{routing}", name="workflows", requirements={"routing"=".+"}, defaults={"routing": null}, methods={"GET"}, options = { "expose" = true })
+     * @Route("/{internalIdentifier}/workflows/{uid}/actions", name="workflow_action", requirements={"routing"=".+"}, defaults={"routing": null}, methods={"GET"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param Workflow $workflow
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function actions(Portal $portal, Workflow $workflow) {
+
+        return $this->render('workflow/action.html.twig', array(
+            'portal' => $portal
+        ));
+    }
+
+    /**
+     * @Route("/{internalIdentifier}/workflows/{routing}", name="workflow_settings", requirements={"routing"=".+"}, defaults={"routing": null}, methods={"GET"}, options = { "expose" = true })
      * @param Portal $portal
      * @return \Symfony\Component\HttpFoundation\Response
      */
-    public function workflowsAction(Portal $portal) {
+    public function workflowSettings(Portal $portal) {
 
         return $this->render('workflow/settings.html.twig', array(
             'portal' => $portal
