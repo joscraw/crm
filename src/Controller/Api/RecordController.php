@@ -22,6 +22,7 @@ use App\Repository\PropertyGroupRepository;
 use App\Repository\PropertyRepository;
 use App\Repository\RecordRepository;
 use App\Service\MessageGenerator;
+use App\Service\WorkflowProcessor;
 use App\Utils\ArrayHelper;
 use App\Utils\MultiDimensionalArrayExtractor;
 use Doctrine\ORM\EntityManager;
@@ -94,6 +95,11 @@ class RecordController extends ApiController
     private $filterRepository;
 
     /**
+     * @var WorkflowProcessor
+     */
+    private $workflowProcessor;
+
+    /**
      * RecordController constructor.
      * @param EntityManagerInterface $entityManager
      * @param CustomObjectRepository $customObjectRepository
@@ -103,6 +109,7 @@ class RecordController extends ApiController
      * @param SerializerInterface $serializer
      * @param PermissionAuthorizationHandler $permissionAuthorizationHandler
      * @param FilterRepository $filterRepository
+     * @param WorkflowProcessor $workflowProcessor
      */
     public function __construct(
         EntityManagerInterface $entityManager,
@@ -112,7 +119,8 @@ class RecordController extends ApiController
         RecordRepository $recordRepository,
         SerializerInterface $serializer,
         PermissionAuthorizationHandler $permissionAuthorizationHandler,
-        FilterRepository $filterRepository
+        FilterRepository $filterRepository,
+        WorkflowProcessor $workflowProcessor
     ) {
         $this->entityManager = $entityManager;
         $this->customObjectRepository = $customObjectRepository;
@@ -122,7 +130,9 @@ class RecordController extends ApiController
         $this->serializer = $serializer;
         $this->permissionAuthorizationHandler = $permissionAuthorizationHandler;
         $this->filterRepository = $filterRepository;
+        $this->workflowProcessor = $workflowProcessor;
     }
+
 
     /**
      * @Route("/{internalName}/create-form", name="create_record_form", methods={"GET"}, options = { "expose" = true })
@@ -327,6 +337,8 @@ class RecordController extends ApiController
         $record->setProperties($form->getData());
         $this->entityManager->persist($record);
         $this->entityManager->flush();
+
+        $this->workflowProcessor->run($record);
 
         return new JsonResponse(
             [

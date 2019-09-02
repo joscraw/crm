@@ -274,7 +274,11 @@ class WorkflowController extends ApiController
         $customObject = $this->customObjectRepository->find($customObjectId);
 
         $workflow->setCustomObject($customObject);
+        $publishedWorkflow = $workflow->getPublishedWorkflow();
+        $publishedWorkflow->setCustomObject($customObject);
+
         $this->entityManager->persist($workflow);
+        $this->entityManager->persist($publishedWorkflow);
         $this->entityManager->flush();
 
         $json = $this->serializer->serialize($workflow, 'json', ['groups' => ['WORKFLOW']]);
