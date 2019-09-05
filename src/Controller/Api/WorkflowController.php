@@ -408,7 +408,10 @@ class WorkflowController extends ApiController
     public function publishWorkflowAction(Portal $portal, Workflow $workflow, Request $request) {
 
         $workflow->setPublished(true);
+        $name = $request->request->get('workflow')['name'];
+        $workflow->setName($name);
         $publishedWorkflow  = $workflow->getPublishedWorkflow();
+        $publishedWorkflow->setName($name);
 
         $this->entityManager->persist($publishedWorkflow);
         $this->entityManager->flush();

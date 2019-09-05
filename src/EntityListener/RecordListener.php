@@ -13,6 +13,7 @@ use App\Repository\WorkflowRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Event\LifecycleEventArgs;
 use Doctrine\ORM\Event\PreUpdateEventArgs;
+use Enqueue\Redis\RedisConnectionFactory;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\SerializerInterface;
@@ -118,8 +119,23 @@ class RecordListener
      *
      * @param Record $record
      * @param LifecycleEventArgs $args
+     * @throws \Interop\Queue\Exception
+     * @throws \Interop\Queue\Exception\InvalidDestinationException
+     * @throws \Interop\Queue\Exception\InvalidMessageException
      */
-    public function postPersist(Record $record, LifecycleEventArgs $args) {}
+    public function postPersist(Record $record, LifecycleEventArgs $args) {
+        $connectionFactory = new RedisConnectionFactory([
+            'host' => 'localhost',
+            'port' => 6379,
+            'scheme_extensions' => ['predis'],
+        ]);
+
+        $context = $connectionFactory->createContext();
+        $fooQueue = $context->createQueue('workflowQueue');
+        $message = $context->createMessage($record->getId());
+        $context->createProducer()->send($fooQueue, $message);
+
+    }
 
     /**
      * This gets called after a record is updated. This will only get called if the
@@ -127,7 +143,20 @@ class RecordListener
      *
      * @param Record $record
      * @param LifecycleEventArgs $args
-     * @throws \Doctrine\DBAL\DBALException
+     * @throws \Interop\Queue\Exception
+     * @throws \Interop\Queue\Exception\InvalidDestinationException
+     * @throws \Interop\Queue\Exception\InvalidMessageException
      */
-    public function postUpdate(Record $record, LifecycleEventArgs $args) {}
+    public function postUpdate(Record $record, LifecycleEventArgs $args) {
+        $connectionFactory = new RedisConnectionFactory([
+            'host' => 'localhost',
+            'port' => 6379,
+            'scheme_extensions' => ['predis'],
+        ]);
+
+        $context = $connectionFactory->createContext();
+        $fooQueue = $context->createQueue('workflowQueue');
+        $message = $context->createMessage($record->getId());
+        $context->createProducer()->send($fooQueue, $message);
+    }
 }
