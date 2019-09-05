@@ -238,6 +238,7 @@ php:
             - sqlite
             - soap
             - zip
+            - amqp
         pear: {  }
         pecl: {  }
     ini:

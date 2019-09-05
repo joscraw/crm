@@ -67,6 +67,5 @@ class WorkflowProcessorCommand extends Command
             '============',
             '',
         ]);
-
     }
 }

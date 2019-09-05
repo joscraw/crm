@@ -9,12 +9,14 @@ use App\Entity\Role;
 use App\Form\CustomObjectType;
 use App\Form\DeleteCustomObjectType;
 use App\Form\EditCustomObjectType;
+use App\Message\WorkflowMessage;
 use App\Repository\CustomObjectRepository;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
@@ -72,7 +74,7 @@ class CustomObjectSettingsController extends AbstractController
      */
     public function indexAction(Portal $portal) {
 
-        $connectionFactory = new RedisConnectionFactory([
+     /*   $connectionFactory = new RedisConnectionFactory([
             'host' => 'localhost',
             'port' => 6379,
             'scheme_extensions' => ['predis'],
@@ -85,7 +87,11 @@ class CustomObjectSettingsController extends AbstractController
 
         $context->createProducer()->send($fooQueue, $message);
 
-        $name = "Josh";
+        $name = "Josh";*/
+
+
+        /*$bus->dispatch(new WorkflowMessage('A string to be sent...'));*/
+
 
         return $this->render('objectSettings/index.html.twig', array(
             'portal' => $portal,

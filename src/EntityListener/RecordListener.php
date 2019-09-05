@@ -6,6 +6,7 @@ use App\Entity\Action;
 use App\Entity\Property;
 use App\Entity\PropertyTrigger;
 use App\Entity\Record;
+use App\Message\WorkflowMessage;
 use App\Model\AbstractField;
 use App\Repository\ObjectWorkflowRepository;
 use App\Repository\RecordRepository;
@@ -15,6 +16,7 @@ use Doctrine\ORM\Event\LifecycleEventArgs;
 use Doctrine\ORM\Event\PreUpdateEventArgs;
 use Enqueue\Redis\RedisConnectionFactory;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\SerializerInterface;
 
@@ -50,25 +52,33 @@ class RecordListener
     private $entityManager;
 
     /**
+     * @var MessageBusInterface $bus
+     */
+    private $bus;
+
+    /**
      * RecordListener constructor.
      * @param SerializerInterface $serializer
      * @param WorkflowRepository $workflowRepository
      * @param ObjectWorkflowRepository $objectWorkflowRepository
      * @param RecordRepository $recordRepository
      * @param EntityManagerInterface $entityManager
+     * @param MessageBusInterface $bus
      */
     public function __construct(
         SerializerInterface $serializer,
         WorkflowRepository $workflowRepository,
         ObjectWorkflowRepository $objectWorkflowRepository,
         RecordRepository $recordRepository,
-        EntityManagerInterface $entityManager
+        EntityManagerInterface $entityManager,
+        MessageBusInterface $bus
     ) {
         $this->serializer = $serializer;
         $this->workflowRepository = $workflowRepository;
         $this->objectWorkflowRepository = $objectWorkflowRepository;
         $this->recordRepository = $recordRepository;
         $this->entityManager = $entityManager;
+        $this->bus = $bus;
     }
 
     /**
@@ -124,7 +134,7 @@ class RecordListener
      * @throws \Interop\Queue\Exception\InvalidMessageException
      */
     public function postPersist(Record $record, LifecycleEventArgs $args) {
-        $connectionFactory = new RedisConnectionFactory([
+  /*      $connectionFactory = new RedisConnectionFactory([
             'host' => 'localhost',
             'port' => 6379,
             'scheme_extensions' => ['predis'],
@@ -134,6 +144,11 @@ class RecordListener
         $fooQueue = $context->createQueue('workflowQueue');
         $message = $context->createMessage($record->getId());
         $context->createProducer()->send($fooQueue, $message);
+*/
+
+        $this->bus->dispatch(new WorkflowMessage($record->getId()));
+
+
 
     }
 
@@ -148,7 +163,7 @@ class RecordListener
      * @throws \Interop\Queue\Exception\InvalidMessageException
      */
     public function postUpdate(Record $record, LifecycleEventArgs $args) {
-        $connectionFactory = new RedisConnectionFactory([
+        /*$connectionFactory = new RedisConnectionFactory([
             'host' => 'localhost',
             'port' => 6379,
             'scheme_extensions' => ['predis'],
@@ -157,6 +172,8 @@ class RecordListener
         $context = $connectionFactory->createContext();
         $fooQueue = $context->createQueue('workflowQueue');
         $message = $context->createMessage($record->getId());
-        $context->createProducer()->send($fooQueue, $message);
+        $context->createProducer()->send($fooQueue, $message);*/
+
+        $this->bus->dispatch(new WorkflowMessage($record->getId()));
     }
 }
