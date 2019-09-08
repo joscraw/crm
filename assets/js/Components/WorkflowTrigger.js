@@ -603,6 +603,7 @@ class WorkflowTrigger {
     }
 
     workflowNameChangedHandler(workflowName) {
+        debugger;
         this.workflow.name = workflowName;
     }
 

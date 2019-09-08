@@ -38,7 +38,6 @@ class TestCommand extends Command
 
 
         // process a message
-
         $consumer->acknowledge($message);
 
         $output->writeln([

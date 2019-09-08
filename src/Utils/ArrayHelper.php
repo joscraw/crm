@@ -111,6 +111,16 @@ trait ArrayHelper
         return array_key_exists($key, $data) ? $data[$key] : $default;
     }
 
+    function setValueByDotNotation(array &$arr, $path,$val)
+    {
+        $loc = &$arr;
+        foreach(explode('.', $path) as $step)
+        {
+            $loc = &$loc[$step];
+        }
+        return $loc = $val;
+    }
+
     /**
      * @param array $array1
      * @param array $array2

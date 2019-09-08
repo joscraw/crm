@@ -474,6 +474,59 @@ class RecordRepository extends ServiceEntityRepository
         return $query;
     }
 
+    /**
+     * @param $customFilters
+     * @param CustomObject $customObject
+     * @return array
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    public function getTriggerFilterMysqlOnly($customFilters, CustomObject $customObject)
+    {
+
+        // setup the join hierarchy
+        $joinHierarchy = ['root' => []];
+        foreach ($customFilters as $key => &$value) {
+
+            $value['fieldType'] = $value['property']['fieldType'];
+            $value['internalName'] = $value['property']['internalName'];
+
+            $newJoin = implode(".", $value['joins']);
+            if($this->getValueByDotNotation($newJoin, $joinHierarchy) === false || $this->getValueByDotNotation($newJoin, $joinHierarchy) === null) {
+                $this->setValueByDotNotation($joinHierarchy, $newJoin, ['filters' => []]);
+                $data = $this->getValueByDotNotation($newJoin, $joinHierarchy);
+                $data['filters'][] = $value;
+                $this->setValueByDotNotation($joinHierarchy, $newJoin, $data);
+            } else {
+                $data = $this->getValueByDotNotation($newJoin, $joinHierarchy);
+                $data['filters'][] = $value;
+                $this->setValueByDotNotation($joinHierarchy, $newJoin, $data);
+            }
+        }
+
+        // Setup Joins
+        $joins = [];
+        $joins = $this->joins($joinHierarchy, $joins);
+        $joinString = implode(" ", $joins);
+
+        // Setup Filters
+        $filters = [];
+        $filters = $this->filters($joinHierarchy, $filters);
+        $filterString = implode(" OR ", $filters);
+
+        $filterString = empty($filters) ? '' : "AND $filterString";
+
+        $query = sprintf("SELECT DISTINCT root.id from record root %s WHERE root.custom_object_id='%s' %s", $joinString, $customObject->getId(), $filterString);
+
+        $em = $this->getEntityManager();
+        $stmt = $em->getConnection()->prepare($query);
+        $stmt->execute();
+        $results = $stmt->fetchAll();
+
+        return array(
+            "results"  => $results
+        );
+    }
+
     private function fields($columnOrder)
     {
 
