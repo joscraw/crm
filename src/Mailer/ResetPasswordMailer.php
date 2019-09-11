@@ -19,7 +19,7 @@ class ResetPasswordMailer extends AbstractMailer
             );
 
         $message = (new \Swift_Message('Password Reset Email'))
-            ->setFrom('send@example.com')
+            ->setFrom($this->siteFromEmail)
             ->setTo($user->getEmail())
             ->setBody(
                 $this->templating->render(
@@ -42,10 +42,6 @@ class ResetPasswordMailer extends AbstractMailer
             )
             */
         ;
-
-        $n = $this->mailer->send($message);
-
-        $name = "Josh";
-
+        $this->mailer->send($message);
     }
 }

@@ -33,6 +33,7 @@
     "build": "encore production --progress"
   },
   "dependencies": {
+    "ckeditor": "^4.12.1",
     "copy-webpack-plugin": "^4.6.0",
     "datatables.net-responsive-bs4": "^2.2.3"
   }

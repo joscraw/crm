@@ -5,6 +5,7 @@ namespace App\Entity;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Gedmo\Timestampable\Traits\TimestampableEntity;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
@@ -23,6 +24,8 @@ use Symfony\Component\Serializer\Serializer;
  */
 abstract class Workflow
 {
+    use TimestampableEntity;
+
     const OBJECT_WORKFLOW = 'OBJECT_WORKFLOW';
 
     public static $types = [

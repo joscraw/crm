@@ -4,6 +4,7 @@ namespace App\Serializer;
 
 use App\Entity\Action;
 use App\Entity\Property;
+use App\Entity\SendEmailAction;
 use App\Entity\Workflow;
 use App\Model\AbstractField;
 use App\Model\CustomObjectField;
@@ -127,6 +128,22 @@ class WorkflowActionDenormalizer implements DenormalizerInterface, DenormalizerA
                 $action = $this->denormalizer->denormalize(
                     $data,
                     SetPropertyValueAction::class,
+                    $format,
+                    $context
+                );
+                break;
+            case Action::SEND_EMAIL_ACTION:
+
+                if(!empty($data['id'])) {
+                    $data['id'] = (int) $data['id'];
+                } else {
+                    unset($data['id']);
+                }
+
+                /** @var SendEmailAction $action */
+                $action = $this->denormalizer->denormalize(
+                    $data,
+                    SendEmailAction::class,
                     $format,
                     $context
                 );

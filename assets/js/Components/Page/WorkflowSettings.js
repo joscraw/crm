@@ -14,6 +14,7 @@ import ReportList from "../ReportList";
 import FormSettingsTopBar from "../FormSettingsTopBar";
 import FormList from "../FormList";
 import WorkflowSettingsTopBar from "../WorkflowSettingsTopBar";
+import WorkflowList from "../WorkflowList";
 
 class WorkflowSettings {
 
@@ -35,7 +36,7 @@ class WorkflowSettings {
 
         new WorkflowSettingsTopBar(this.$wrapper.find('.js-top-bar'), this.globalEventDispatcher, this.portalInternalIdentifier);
 
-        new FormList(this.$wrapper.find('.js-main-content'), this.globalEventDispatcher, this.portalInternalIdentifier);
+        new WorkflowList(this.$wrapper.find('.js-main-content'), this.globalEventDispatcher, this.portalInternalIdentifier);
 
     }
 

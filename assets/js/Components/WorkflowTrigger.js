@@ -33,6 +33,7 @@ import WorkflowActionType from "./WorkflowActionType";
 import WorkflowActionPropertyList from "./WorkflowActionPropertyList";
 import WorkflowActionSetPropertyValueForm from "./WorkflowActionSetPropertyValueForm";
 import EditWorkflowActionSetPropertyValueForm from "./EditWorkflowActionSetPropertyValueForm";
+import SendEmailAction from "./SendEmailAction";
 
 class WorkflowTrigger {
 
@@ -125,6 +126,11 @@ class WorkflowTrigger {
         this.globalEventDispatcher.subscribe(
             Settings.Events.APPLY_WORKFLOW_ACTION_BUTTON_PRESSED,
             this.applyWorkflowActionButtonPressedHandler.bind(this)
+        );
+
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.WORKFLOW_SEND_EMAIL_ACTION_FORM_SUBMIT,
+            this.workflowSendEmailActionFormSubmit.bind(this)
         );
 
         this.globalEventDispatcher.addRemovableToken(
@@ -244,6 +250,9 @@ class WorkflowTrigger {
         switch (action.name) {
             case 'set_property_value_action':
                 new WorkflowActionPropertyList(this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.uid, this.workflow.customObject);
+                break;
+            case 'send_email_action':
+                new SendEmailAction(this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.uid, this.workflow.customObject);
                 break;
         }
     }
@@ -471,6 +480,17 @@ class WorkflowTrigger {
         this.action.property = property;
         this.action.value = formData.value;
 
+        this._saveWorkflow().then((data) => {
+            this._setDataFromResponse(data);
+            this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_DATA_UPDATED, this.workflow, this.publishedWorkflow);
+            new WorkflowActionType(this.$wrapper.find(WorkflowTrigger._selectors.workflowTriggerContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.uid);
+        });
+    }
+
+    workflowSendEmailActionFormSubmit(formData) {
+        this.action.toAddresses = formData.toAddresses;
+        this.action.subject = formData.subject;
+        this.action.body = formData.body;
         this._saveWorkflow().then((data) => {
             this._setDataFromResponse(data);
             this.globalEventDispatcher.publish(Settings.Events.WORKFLOW_DATA_UPDATED, this.workflow, this.publishedWorkflow);

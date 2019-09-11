@@ -31,6 +31,7 @@ $(document).ready(function() {
         },
 
         index: function(internalIdentifier) {
+            debugger;
             new WorkflowSettings($('#app'), window.globalEventDispatcher, internalIdentifier);
             new SideNavigationMenu($('#side-nav'), window.globalEventDispatcher, internalIdentifier);
         },

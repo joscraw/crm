@@ -32,7 +32,7 @@ class WorkflowSettingsTopBar {
 
         this.$wrapper.html(WorkflowSettingsTopBar.markup());
 
-        new FormSearch(this.$wrapper.find('.js-top-bar-search-container'), this.globalEventDispatcher, this.portalInternalIdentifier, "Search for a form");
+        /*new FormSearch(this.$wrapper.find('.js-top-bar-search-container'), this.globalEventDispatcher, this.portalInternalIdentifier, "Search for a form");*/
 
         new CreateWorkflowButton(this.$wrapper.find('.js-create-form-button'), this.globalEventDispatcher, this.portalInternalIdentifier);
 

@@ -20,3 +20,5 @@ fos_ck_editor:
       basicstyles: [ 'Bold', 'Italic', 'Underline' ]
       paragraph:     [ 'NumberedList', 'BulletedList', 'JustifyLeft', 'JustifyCenter', 'JustifyRight' ]
       link:     [ 'Link']
+  base_path: "build/ckeditor"
+  js_path:   "build/ckeditor/ckeditor.js"

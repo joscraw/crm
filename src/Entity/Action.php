@@ -13,15 +13,17 @@ use Symfony\Component\Serializer\Annotation\Groups;
  *
  * @ORM\InheritanceType("JOINED")
  * @ORM\DiscriminatorColumn(name="discr", type="string")
- * @ORM\DiscriminatorMap({"setPropertyValueAction" = "SetPropertyValueAction"})
+ * @ORM\DiscriminatorMap({"setPropertyValueAction" = "SetPropertyValueAction", "sendEmailAction" = "SendEmailAction"})
  *
  * @DiscriminatorMap(typeProperty="name", mapping={
- *    "set_property_value_action"="App\Entity\SetPropertyValueAction"
+ *    "set_property_value_action"="App\Entity\SetPropertyValueAction",
+ *    "send_email_action"="App\Entity\SendEmailAction"
  * })
  */
 abstract class Action
 {
     const SET_PROPERTY_VALUE_ACTION = 'set_property_value_action';
+    const SEND_EMAIL_ACTION = 'send_email_action';
 
     /**
      * @Groups({"WORKFLOW_ACTION"})
