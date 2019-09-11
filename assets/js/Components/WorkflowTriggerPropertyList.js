@@ -29,7 +29,7 @@ class WorkflowTriggerPropertyList {
         this.bindEvents();
 
         this.render();
-        this.loadProperties()
+        this.loadProperties();
     }
 
     /**

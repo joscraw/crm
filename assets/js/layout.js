@@ -16,3 +16,8 @@ require('../css/main.scss');
 let _ = require('lodash');
 require('pace-js-amd-fix');
 
+
+
+
+require('ckeditor');
+

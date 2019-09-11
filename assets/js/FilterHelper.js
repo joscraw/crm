@@ -230,33 +230,39 @@ class FilterHelper {
             label;
 
         let actionCopy = _.cloneDeep(action);
-        actionCopy.joins.shift();
-        actionCopy.joins.push(action.property.label);
-        label = actionCopy.joins.join(" - ");
 
-        switch(action.operator) {
-            case 'SET_VALUE':
-                let typesWithMultiple = ['dropdown_select_field', 'multiple_checkbox_field', 'radio_select_field'];
-                if(typesWithMultiple.includes(action.property.fieldType)) {
-                    values = action.value.split(",");
-                    value = `"${values.join(" and ")}"`;
-                } else if (action.property.fieldType === 'single_checkbox_field') {
-                    value = action.value.trim() === '1' ? 'Yes' : `No`;
-                } else {
-                    value = action.value.trim() === '' ? '""' : `"${action.value.trim()}"`;
+        switch(action.name) {
+            case 'set_property_value_action':
+                actionCopy.joins.shift();
+                actionCopy.joins.push(action.property.label);
+                label = actionCopy.joins.join(" - ");
+                switch(action.operator) {
+                    case 'SET_VALUE':
+                        let typesWithMultiple = ['dropdown_select_field', 'multiple_checkbox_field', 'radio_select_field'];
+                        if(typesWithMultiple.includes(action.property.fieldType)) {
+                            values = action.value.split(",");
+                            value = `"${values.join(" and ")}"`;
+                        } else if (action.property.fieldType === 'single_checkbox_field') {
+                            value = action.value.trim() === '1' ? 'Yes' : `No`;
+                        } else {
+                            value = action.value.trim() === '' ? '""' : `"${action.value.trim()}"`;
+                        }
+                        text = `Set ${label} to <strong>${value}</strong>`;
+                        break;
+                    case 'INCREMENT_BY':
+                        value = action.value.trim() === '' ? '""' : `"${action.value.trim()}"`;
+                        text = `Increment ${label} by <strong>${value}</strong>`;
+                        break;
+                    case 'DECREMENT_BY':
+                        value = action.value.trim() === '' ? '""' : `"${action.value.trim()}"`;
+                        text = `Decrement ${label} by <strong>${value}</strong>`;
+                        break;
                 }
-                text = `Set ${label} to <strong>${value}</strong>`;
                 break;
-            case 'INCREMENT_BY':
-                value = action.value.trim() === '' ? '""' : `"${action.value.trim()}"`;
-                text = `Increment ${label} by <strong>${value}</strong>`;
-                break;
-            case 'DECREMENT_BY':
-                value = action.value.trim() === '' ? '""' : `"${action.value.trim()}"`;
-                text = `Decrement ${label} by <strong>${value}</strong>`;
+            case 'send_email_action':
+                text = `Send email to <strong>${action.toAddresses}</strong>`;
                 break;
         }
-
         return text;
     }
 

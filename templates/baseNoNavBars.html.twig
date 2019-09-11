@@ -18,6 +18,11 @@
             <script src="{{ asset('bundles/fosjsrouting/js/router.min.js') }}"></script>
             <script src="{{ path('fos_js_routing_js', { callback: 'fos.Router.setData' }) }}"></script>
             <script src="{{ asset('build/runtime.js') }}"></script>
+
+
+            <script src="{{ asset('build/ckeditor/ckeditor.js') }}"></script>
+
+            {#<script src="https://cdn.ckeditor.com/4.12.1/standard/ckeditor.js"></script>#}
             <script src="{{ asset('build/layout.js') }}"></script>
 
         {% endblock %}

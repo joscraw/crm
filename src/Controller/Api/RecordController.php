@@ -15,6 +15,7 @@ use App\Form\PropertyGroupType;
 use App\Form\PropertyType;
 use App\Form\RecordType;
 use App\Form\SaveFilterType;
+use App\Message\WorkflowMessage;
 use App\Model\FieldCatalog;
 use App\Repository\CustomObjectRepository;
 use App\Repository\FilterRepository;
@@ -31,6 +32,7 @@ use Enqueue\Redis\RedisConnectionFactory;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -101,6 +103,11 @@ class RecordController extends ApiController
     private $workflowProcessor;
 
     /**
+     * @var MessageBusInterface $bus
+     */
+    private $bus;
+
+    /**
      * RecordController constructor.
      * @param EntityManagerInterface $entityManager
      * @param CustomObjectRepository $customObjectRepository
@@ -111,6 +118,7 @@ class RecordController extends ApiController
      * @param PermissionAuthorizationHandler $permissionAuthorizationHandler
      * @param FilterRepository $filterRepository
      * @param WorkflowProcessor $workflowProcessor
+     * @param MessageBusInterface $bus
      */
     public function __construct(
         EntityManagerInterface $entityManager,
@@ -121,7 +129,8 @@ class RecordController extends ApiController
         SerializerInterface $serializer,
         PermissionAuthorizationHandler $permissionAuthorizationHandler,
         FilterRepository $filterRepository,
-        WorkflowProcessor $workflowProcessor
+        WorkflowProcessor $workflowProcessor,
+        MessageBusInterface $bus
     ) {
         $this->entityManager = $entityManager;
         $this->customObjectRepository = $customObjectRepository;
@@ -132,6 +141,7 @@ class RecordController extends ApiController
         $this->permissionAuthorizationHandler = $permissionAuthorizationHandler;
         $this->filterRepository = $filterRepository;
         $this->workflowProcessor = $workflowProcessor;
+        $this->bus = $bus;
     }
 
 
@@ -339,6 +349,8 @@ class RecordController extends ApiController
         $this->entityManager->persist($record);
         $this->entityManager->flush();
 
+        /*$this->bus->dispatch(new WorkflowMessage($record->getId()));*/
+
         return new JsonResponse(
             [
                 'success' => true,
@@ -401,6 +413,8 @@ class RecordController extends ApiController
 
         $this->entityManager->persist($record);
         $this->entityManager->flush();
+
+        /*$this->bus->dispatch(new WorkflowMessage($record->getId()));*/
 
         return new JsonResponse(
             [

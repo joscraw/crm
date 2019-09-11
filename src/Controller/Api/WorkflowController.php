@@ -16,6 +16,7 @@ use App\Entity\PropertyGroup;
 use App\Entity\Record;
 use App\Entity\Report;
 use App\Entity\Role;
+use App\Entity\SendEmailAction;
 use App\Entity\Trigger;
 use App\Entity\TriggerFilter;
 use App\Entity\Workflow;
@@ -212,6 +213,42 @@ class WorkflowController extends ApiController
     }
 
     /**
+     * DataTables passes unique params in the Request and expects a specific response payload
+     * @see https://datatables.net/manual/server-side Documentation for ServerSide Implimentation for DataTables
+     *
+     * @Route("/{internalIdentifier}/api/workflows/datatable", name="workflows_for_datatable", methods={"GET"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param Request $request
+     * @return Response
+     */
+    public function getWorkflowsForDatatableAction(Portal $portal, Request $request) {
+
+        $draw = intval($request->query->get('draw'));
+        $start = $request->query->get('start');
+        $length = $request->query->get('length');
+        $search = $request->query->get('search');
+        $orders = $request->query->get('order');
+        $columns = $request->query->get('columns');
+
+        $results = $this->workflowRepository->getDataTableData($portal, $start, $length, $search, $orders, $columns);
+
+        $totalWorkflowCount = $this->formRepository->getTotalCount($portal);
+        $arrayResults = $results['arrayResults'];
+        $filteredReportCount = count($arrayResults);
+
+        $response = new JsonResponse([
+            'draw'  => $draw,
+            'recordsFiltered' => !empty($search['value']) ? $filteredReportCount : $totalWorkflowCount,
+            'recordsTotal'  => $totalWorkflowCount,
+            'data'  => $arrayResults
+        ],  Response::HTTP_OK);
+
+        return $response;
+    }
+
+
+
+    /**
      * @Route("{internalIdentifier}/api/workflows/initialize", name="initialize_workflow", methods={"POST"}, options = { "expose" = true })
      * @param Portal $portal
      * @param Request $request
@@ -348,9 +385,16 @@ class WorkflowController extends ApiController
             $action = $this->serializer->deserialize(json_encode($action, true), Action::class, 'json');
             $action->setWorkflow($workflow);
 
-            if($action->getProperty()) {
-                $property = $this->propertyRepository->find($action->getProperty()->getId());
-                $action->setProperty($property);
+            // Just in case you meed some custom processing per action type
+            switch ($action->getName()) {
+                case Action::SET_PROPERTY_VALUE_ACTION:
+                    /** @var SetPropertyValueAction $action */
+                    $property = $this->propertyRepository->find($action->getProperty()->getId());
+                    $action->setProperty($property);
+                    break;
+                case Action::SEND_EMAIL_ACTION:
+                    /** @var SendEmailAction $action */
+                    break;
             }
 
             $this->entityManager->persist($action);
@@ -436,9 +480,19 @@ class WorkflowController extends ApiController
                     $clonedAction->setDescription($action->getDescription());
                     $clonedAction->setUid($action->getUid());
                     $clonedAction->setValue($action->getValue());
-                    $clonedAction->setDescription($action->getDescription());
                     $clonedAction->setJoins($action->getJoins());
                     $clonedAction->setOperator($action->getOperator());
+                    $clonedAction->setWorkflow($publishedWorkflow);
+                    $this->entityManager->persist($clonedAction);
+                    break;
+                case Action::SEND_EMAIL_ACTION:
+                    /* @var SendEmailAction $action */
+                    $clonedAction = new SendEmailAction();
+                    $clonedAction->setToAddresses($action->getToAddresses());
+                    $clonedAction->setName($action->getName());
+                    $clonedAction->setUid($action->getUid());
+                    $clonedAction->setSubject($action->getSubject());
+                    $clonedAction->setBody($action->getBody());
                     $clonedAction->setWorkflow($publishedWorkflow);
                     $this->entityManager->persist($clonedAction);
                     break;
@@ -540,6 +594,7 @@ class WorkflowController extends ApiController
 
         $payload = [
             json_decode($this->serializer->serialize(new SetPropertyValueAction(), 'json', ['groups' => ['WORKFLOW_ACTION', 'TRIGGER']]), true),
+            json_decode($this->serializer->serialize(new SendEmailAction(), 'json', ['groups' => ['WORKFLOW_ACTION', 'TRIGGER']]), true),
         ];
 
         return new JsonResponse([

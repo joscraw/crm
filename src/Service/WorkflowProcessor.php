@@ -6,6 +6,9 @@ namespace App\Service;
 use App\Entity\Action;
 use App\Entity\PropertyTrigger;
 use App\Entity\Record;
+use App\Entity\SendEmailAction;
+use App\Entity\SetPropertyValueAction;
+use App\Mailer\WorkflowSendEmailActionMailer;
 use App\Repository\ObjectWorkflowRepository;
 use App\Repository\RecordRepository;
 use App\Repository\WorkflowRepository;
@@ -40,25 +43,33 @@ class WorkflowProcessor
     private $entityManager;
 
     /**
-     * RecordListener constructor.
+     * @var WorkflowSendEmailActionMailer
+     */
+    private $workflowSendEmailActionMailer;
+
+    /**
+     * WorkflowProcessor constructor.
      * @param SerializerInterface $serializer
      * @param WorkflowRepository $workflowRepository
      * @param ObjectWorkflowRepository $objectWorkflowRepository
      * @param RecordRepository $recordRepository
      * @param EntityManagerInterface $entityManager
+     * @param WorkflowSendEmailActionMailer $workflowSendEmailActionMailer
      */
     public function __construct(
         SerializerInterface $serializer,
         WorkflowRepository $workflowRepository,
         ObjectWorkflowRepository $objectWorkflowRepository,
         RecordRepository $recordRepository,
-        EntityManagerInterface $entityManager
+        EntityManagerInterface $entityManager,
+        WorkflowSendEmailActionMailer $workflowSendEmailActionMailer
     ) {
         $this->serializer = $serializer;
         $this->workflowRepository = $workflowRepository;
         $this->objectWorkflowRepository = $objectWorkflowRepository;
         $this->recordRepository = $recordRepository;
         $this->entityManager = $entityManager;
+        $this->workflowSendEmailActionMailer = $workflowSendEmailActionMailer;
     }
 
     public function run(Record $record) {
@@ -72,33 +83,30 @@ class WorkflowProcessor
 
         foreach($objectWorkflowDrafts as $objectWorkflowDraft) {
             $publishedWorkflow = $objectWorkflowDraft->getPublishedWorkflow();
-
-            $json = $this->serializer->serialize($publishedWorkflow, 'json', ['groups' => ['WORKFLOW', 'TRIGGER', 'WORKFLOW_ACTION']]);
-            $publishedWorkflowArray = json_decode($json, true);
-
-            $triggers = $publishedWorkflowArray['triggers'];
-            foreach($triggers as $trigger) {
-
-                switch ($trigger['name']) {
+            foreach($publishedWorkflow->getTriggers() as $trigger) {
+                switch ($trigger->getName()) {
                     case PropertyTrigger::PROPERTY_BASED_TRIGGER:
-                        $filters = $trigger['filters'];
-
+                        /** @var PropertyTrigger $trigger */
+                        $filters = $trigger->getFilters();
+                        $json = $this->serializer->serialize($filters, 'json', ['groups' => ['WORKFLOW', 'TRIGGER', 'WORKFLOW_ACTION']]);
+                        $filters = json_decode($json, true);
                         $results = $this->recordRepository->getTriggerFilterMysqlOnly($filters, $objectWorkflowDraft->getCustomObject());
 
                         foreach($results['results'] as $result) {
-
                             $record = $this->recordRepository->find($result['id']);
-
-                            // get the actions
-                            $actions = $publishedWorkflowArray['actions'];
-                            foreach($actions as $action) {
-                                switch ($action['name']) {
+                            foreach($publishedWorkflow->getActions() as $action) {
+                                switch ($action->getName()) {
                                     case Action::SET_PROPERTY_VALUE_ACTION:
+                                        /** @var SetPropertyValueAction $action */
                                         $properties = $record->getProperties();
-                                        $properties[$action['property']['internalName']] = $action['value'];
+                                        $properties[$action->getProperty()->getInternalName()] = $action->getValue();
                                         $record->setProperties($properties);
                                         $this->entityManager->persist($record);
                                         $this->entityManager->flush();
+                                        break;
+                                    case Action::SEND_EMAIL_ACTION:
+                                        /** @var SendEmailAction $action */
+                                        $this->workflowSendEmailActionMailer->send($action);
                                         break;
                                 }
                             }
