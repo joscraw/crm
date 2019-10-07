@@ -12,6 +12,7 @@ import ReportSearch from "./ReportSearch";
 import CreateFormButton from "./CreateFormButton";
 import FormSearch from "./FormSearch";
 import CreateWorkflowButton from "./CreateWorkflowButton";
+import WorkflowSearch from "./WorkflowSearch";
 
 class WorkflowSettingsTopBar {
 
@@ -32,7 +33,7 @@ class WorkflowSettingsTopBar {
 
         this.$wrapper.html(WorkflowSettingsTopBar.markup());
 
-        /*new FormSearch(this.$wrapper.find('.js-top-bar-search-container'), this.globalEventDispatcher, this.portalInternalIdentifier, "Search for a form");*/
+        new WorkflowSearch(this.$wrapper.find('.js-top-bar-search-container'), this.globalEventDispatcher, this.portalInternalIdentifier, "Search for a workflow");
 
         new CreateWorkflowButton(this.$wrapper.find('.js-create-form-button'), this.globalEventDispatcher, this.portalInternalIdentifier);
 

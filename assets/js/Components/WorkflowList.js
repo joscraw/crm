@@ -7,6 +7,7 @@ import $ from "jquery";
 import DeleteCustomObjectButton from "./DeleteCustomObjectButton";
 import DeleteReportButton from "./DeleteReportButton";
 import DeleteFormButton from "./DeleteFormButton";
+import DeleteWorkflowButton from "./DeleteWorkflowButton";
 
 require( 'datatables.net-bs4' );
 require( 'datatables.net-responsive-bs4' );
@@ -34,16 +35,14 @@ class WorkflowList {
 
         this.render().then(() => {this.activatePlugins();});
 
-    /*    this.globalEventDispatcher.subscribe(
-            Settings.Events.FORM_DELETED,
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.WORKFLOW_DELETED,
             this.reloadList.bind(this)
         );
-
         this.globalEventDispatcher.subscribe(
-            Settings.Events.FORM_SEARCH_KEY_UP,
+            Settings.Events. WORKFLOW_SEARCH_KEY_UP,
             this.applySearch.bind(this)
         );
-*/
     }
 
     activatePlugins() {
@@ -89,7 +88,7 @@ class WorkflowList {
                     debugger;
             return `
                         ${row['name']} <span class="c-table__edit-button"><a href="${Routing.generate('workflow_trigger', {'uid' : row['uid'], 'internalIdentifier' : this.portal})}" data-bypass="true" class="btn btn-primary btn-sm">Edit</a></span>
-                        <span class="js-delete-form c-table__delete-button" data-uid="${row['uid']}"></span>
+                        <span class="js-delete-workflow c-table__delete-button" data-uid="${row['uid']}"></span>
                     `;
                 }}
             ],
@@ -101,7 +100,7 @@ class WorkflowList {
             },
             "drawCallback": (settings)  => {
 
-                /*this.addDeleteReportButton();*/
+                this.addDeleteReportButton();
             },
             "initComplete": function () {}
         });
@@ -110,8 +109,8 @@ class WorkflowList {
     addDeleteReportButton() {
 
         debugger;
-        this.$wrapper.find('.js-delete-form').each((index, element) => {
-            new DeleteFormButton($(element), this.globalEventDispatcher, this.portal, $(element).data('uid'), "Delete");
+        this.$wrapper.find('.js-delete-workflow').each((index, element) => {
+            new DeleteWorkflowButton($(element), this.globalEventDispatcher, this.portal, $(element).data('uid'), "Delete");
         });
     }
 

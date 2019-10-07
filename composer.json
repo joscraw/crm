@@ -35,7 +35,8 @@
         "symfony/validator": "4.2.*",
         "symfony/web-link": "4.2.*",
         "symfony/webpack-encore-bundle": "^1.0",
-        "symfony/yaml": "4.2.*"
+        "symfony/yaml": "4.2.*",
+        "ext-amqp": "*"
     },
     "require-dev": {
         "doctrine/doctrine-fixtures-bundle": "^3.1",

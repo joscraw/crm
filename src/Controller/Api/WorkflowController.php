@@ -24,6 +24,7 @@ use App\Form\CustomObjectType;
 use App\Form\DeleteFormType;
 use App\Form\DeleteListType;
 use App\Form\DeleteReportType;
+use App\Form\DeleteWorkflowType;
 use App\Form\FolderType;
 use App\Form\FormEditorEditOptionsType;
 use App\Form\FormType;
@@ -410,6 +411,52 @@ class WorkflowController extends ApiController
             [
                 'success' => true,
                 'data'  => $this->getWorkflowDataResponse($workflow)
+            ],
+            Response::HTTP_OK
+        );
+    }
+
+    /**
+     * @Route("/{internalIdentifier}/api/workflows/{uid}/delete", name="delete_workflow", options = { "expose" = true })
+     * @param Portal $portal
+     * @param Workflow $workflow
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function deleteWorkflowAction(Portal $portal, Workflow $workflow, Request $request) {
+
+        $form = $this->createForm(DeleteWorkflowType::class, $workflow);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+
+            // delete workflow here
+            /** @var $workflow Workflow */
+            $workflow = $form->getData();
+            $this->entityManager->remove($workflow);
+            $this->entityManager->flush();
+            $this->entityManager->remove($workflow->getPublishedWorkflow());
+            $this->entityManager->flush();
+
+            return new JsonResponse(
+                [
+                    'success' => true,
+                ],
+                Response::HTTP_OK
+            );
+        }
+
+        $formMarkup = $this->renderView(
+            'Api/form/delete_workflow_form.html.twig',
+            [
+                'form' => $form->createView(),
+            ]
+        );
+
+        return new JsonResponse(
+            [
+                'success' => true,
+                'formMarkup' => $formMarkup
             ],
             Response::HTTP_OK
         );

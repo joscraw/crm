@@ -5,6 +5,7 @@ namespace App\Entity;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\ORM\Mapping\JoinColumn;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
@@ -85,7 +86,7 @@ abstract class Workflow
     protected $actions;
 
     /**
-     * @ORM\OneToOne(targetEntity="App\Entity\Workflow", cascade={"persist", "remove"})
+     * @ORM\OneToOne(targetEntity="App\Entity\Workflow")
      */
     protected $publishedWorkflow;
 
