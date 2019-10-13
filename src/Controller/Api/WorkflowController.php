@@ -233,7 +233,11 @@ class WorkflowController extends ApiController
 
         $results = $this->workflowRepository->getDataTableData($portal, $start, $length, $search, $orders, $columns);
 
-        $totalWorkflowCount = $this->formRepository->getTotalCount($portal);
+        $totalWorkflowCount = count($this->workflowRepository->findBy([
+           'draft' => 1,
+           'portal' => $portal
+        ]));
+
         $arrayResults = $results['arrayResults'];
         $filteredReportCount = count($arrayResults);
 

@@ -9,6 +9,7 @@ use App\Entity\PropertyGroup;
 use App\Form\CustomObjectType;
 use App\Form\PropertyGroupType;
 use App\Form\PropertyType;
+use App\Model\CustomObjectField;
 use App\Model\FieldCatalog;
 use App\Repository\CustomObjectRepository;
 use App\Repository\PropertyGroupRepository;
@@ -115,5 +116,37 @@ class CustomObjectController extends ApiController
         ],  Response::HTTP_OK);
 
         return $response;
+    }
+
+    /**
+     * This doesn't return a list of all possible merge tags. Just 1 level deep.
+     * The user can go deeper with the extraction depending on the data they want to use
+     *
+     * @Route("/{internalName}/merge-tags", name="get_merge_tags", methods={"GET"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param CustomObject $customObject
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getMergeTags(Portal $portal, CustomObject $customObject, Request $request) {
+
+        $mergeTags = [];
+        foreach($customObject->getProperties() as $property) {
+            $parentTag = $property->getInternalName();
+            if($property->getFieldType() === FieldCatalog::CUSTOM_OBJECT) {
+                /** @var CustomObjectField $customObjectField */
+                $customObjectField = $property->getField();
+                foreach($customObjectField->getCustomObject()->getProperties() as $property) {
+                    $mergeTags[] = sprintf("{%s.%s}", $parentTag, $property->getInternalName());
+                }
+            } else {
+                $mergeTags[] = sprintf("{%s}", $parentTag);
+            }
+        }
+
+        return new JsonResponse([
+            'success' => true,
+            'data'  => $mergeTags
+        ], Response::HTTP_OK);
     }
 }
