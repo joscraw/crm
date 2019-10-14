@@ -95,4 +95,47 @@ class SendEmailAction extends Action
 
         return $this;
     }
+
+    public function getMergeTags() {
+
+        $mergeTags = [];
+        $regex = '~\{([^}]*)\}~';
+        preg_match_all($regex, $this->getBody(), $matches);
+        $mergeTags = array_merge($mergeTags, $matches[0]);
+        preg_match_all($regex, $this->getSubject(), $matches);
+        $mergeTags = array_merge($mergeTags, $matches[0]);
+        preg_match_all($regex, $this->getToAddresses(), $matches);
+        $mergeTags = array_merge($mergeTags, $matches[0]);
+        $mergeTags = array_unique($mergeTags);
+
+        foreach($mergeTags as $key => $value) {
+            $mergeTags[$key] = str_replace(["{", "}"], "", $value);
+        }
+
+        return $mergeTags;
+    }
+
+    public function getMergedBody($record) {
+        $body = $this->body;
+        foreach($record as $mergeTag => $value) {
+            $body = str_replace(sprintf("{%s}", $mergeTag), $value, $body);
+        }
+        return $body;
+    }
+
+    public function getMergedToAddresses($record) {
+        $toAddresses = $this->toAddresses;
+        foreach($record as $mergeTag => $value) {
+            $toAddresses = str_replace(sprintf("{%s}", $mergeTag), $value, $toAddresses);
+        }
+        return $toAddresses;
+    }
+
+    public function getMergedSubject($record) {
+        $subject = $this->subject;
+        foreach($record as $mergeTag => $value) {
+            $subject = str_replace(sprintf("{%s}", $mergeTag), $value, $subject);
+        }
+        return $subject;
+    }
 }

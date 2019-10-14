@@ -12,19 +12,17 @@ use App\Entity\User;
 class WorkflowSendEmailActionMailer extends AbstractMailer
 {
 
-    public function send(SendEmailAction $sendEmailAction) {
-
-        $message = (new \Swift_Message($sendEmailAction->getSubject()))
+    public function send($subject, $toAddresses, $body) {
+        $message = (new \Swift_Message($subject))
             ->setFrom($this->siteFromEmail)
-            ->setTo($sendEmailAction->getToAddresses())
+            ->setTo($toAddresses)
             ->setBody(
                 $this->templating->render(
                     'email/workflow_send_email_action.html.twig',
-                    ['body' => $sendEmailAction->getBody()]
+                    ['body' => $body]
                 ),
                 'text/html'
             );
-
-        $n = $this->mailer->send($message);
+        $this->mailer->send($message);
     }
 }

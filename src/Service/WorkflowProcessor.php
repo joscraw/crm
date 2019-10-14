@@ -98,7 +98,16 @@ class WorkflowProcessor
                                     break;
                                 case Action::SEND_EMAIL_ACTION:
                                     /** @var SendEmailAction $action */
-                                    $this->workflowSendEmailActionMailer->send($action);
+                                    $mergeTags = $action->getMergeTags();
+                                    $results = $this->recordRepository->getPropertiesFromMergeTagsByRecord($mergeTags, $record);
+
+                                    foreach($results['results'] as $record) {
+                                        $this->workflowSendEmailActionMailer->send(
+                                            $action->getMergedSubject($record),
+                                            $action->getMergedToAddresses($record),
+                                            $action->getMergedBody($record)
+                                        );
+                                    }
                                     break;
                             }
                         }
