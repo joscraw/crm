@@ -5,6 +5,7 @@ namespace App\Repository;
 ini_set('xdebug.max_nesting_level', 100000);
 
 use App\Entity\CustomObject;
+use App\Entity\Property;
 use App\Entity\Record;
 use App\Model\FieldCatalog;
 use App\Model\NumberField;
@@ -324,9 +325,7 @@ class RecordRepository extends ServiceEntityRepository
                     $jsonExtract = $this->getDefaultQuery('root');
                     $resultStr[] = sprintf($jsonExtract, $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $property->getInternalName());
                     break;
-
             }
-
         }
 
         // Setup Joins
@@ -416,6 +415,105 @@ class RecordRepository extends ServiceEntityRepository
     }
 
     /**
+     * @param CustomObject $customObject
+     * @param $mergeTag
+     * @return Property|object|null
+     */
+    public function getPropertyFromMergeTag(CustomObject $customObject, $mergeTag) {
+
+        $propertyPathArray = explode(".", $mergeTag);
+
+        foreach($propertyPathArray as $propertyPath) {
+
+            $property = $this->getEntityManager()->getRepository(Property::class)->findOneBy([
+                'internalName' => $propertyPath,
+                'customObject' => $customObject
+            ]);
+
+            if($property->getFieldType() === FieldCatalog::CUSTOM_OBJECT) {
+                array_shift($propertyPathArray);
+                return $this->getPropertyFromMergeTag($property->getField()->getCustomObject(), implode(".", $propertyPathArray));
+            }
+            return $property;
+        }
+    }
+
+    /**
+     * This function uses dot annotation to query property values between
+     * objects that have relationships
+     *
+     * @param $mergeTags
+     * @param Record $record
+     * @return array
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    public function getPropertiesFromMergeTagsByRecord($mergeTags, Record $record)
+    {
+        $resultStr = [];
+        foreach($mergeTags as $mergeTag) {
+
+            $property = $this->getPropertyFromMergeTag($record->getCustomObject(), $mergeTag);
+
+            $mergeTagArray = explode(".", $mergeTag);
+            array_pop($mergeTagArray);
+
+            $joinPath = !empty($mergeTagArray) ? sprintf('root.%s', implode(".", $mergeTagArray)) : 'root';
+
+            switch($property->getFieldType()) {
+
+                case FieldCatalog::DATE_PICKER:
+                    $jsonExtract = $this->getDatePickerQuery($joinPath);
+                    $resultStr[] = sprintf($jsonExtract, $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $mergeTag);
+                    break;
+                case FieldCatalog::SINGLE_CHECKBOX:
+                    $jsonExtract = $this->getSingleCheckboxQuery($joinPath);
+                    $resultStr[] = sprintf($jsonExtract, $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $mergeTag);
+                    break;
+                case FieldCatalog::NUMBER:
+                    $field = $property->getField();
+                    if($field->isCurrency()) {
+                        $jsonExtract = $this->getNumberIsCurrencyQuery($joinPath);
+                        $resultStr[] = sprintf($jsonExtract, $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $mergeTag);
+                    } elseif($field->isUnformattedNumber()) {
+                        $jsonExtract = $this->getNumberIsUnformattedQuery($joinPath);
+                        $resultStr[] = sprintf($jsonExtract, $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $mergeTag);
+                    }
+                    break;
+                default:
+                    $jsonExtract = $this->getDefaultQuery($joinPath);
+                    $resultStr[] = sprintf($jsonExtract, $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $mergeTag);
+                    break;
+            }
+        }
+
+        $joinData = [];
+        foreach($mergeTags as $mergeTag) {
+            $mergeTagArray = explode(".", $mergeTag);
+            array_pop($mergeTagArray);
+            $mergeTag = implode(".", $mergeTagArray);
+            if(!empty($mergeTag)) {
+                $this->setValueByDotNotation($joinData, $mergeTag, []);
+            }
+        }
+
+        $joins = [];
+        $joins = $this->joins($joinData, $joins, 'root');
+        $joinString = implode(" ", $joins);
+
+        $resultStr = implode(",",$resultStr);
+        $query = sprintf("SELECT DISTINCT root.id, %s from record root %s WHERE root.id = '%s'", $resultStr, $joinString, $record->getId());
+
+        $em = $this->getEntityManager();
+        $stmt = $em->getConnection()->prepare($query);
+        $stmt->execute();
+        $results = $stmt->fetchAll();
+
+        return array(
+            "results"  => $results
+        );
+    }
+
+    /**
      * @param $propertiesForDatatable
      * @param $customFilters
      * @param CustomObject $customObject
@@ -482,7 +580,6 @@ class RecordRepository extends ServiceEntityRepository
      */
     public function getTriggerFilterMysqlOnly($customFilters, CustomObject $customObject)
     {
-
         // setup the join hierarchy
         $joinHierarchy = ['root' => []];
         foreach ($customFilters as $key => &$value) {
@@ -529,9 +626,7 @@ class RecordRepository extends ServiceEntityRepository
 
     private function fields($columnOrder)
     {
-
         $resultStr = [];
-
         foreach($columnOrder as $column) {
 
             switch($column['fieldType']) {
@@ -1400,8 +1495,7 @@ HERE;
      */
     private function getJoinQuery() {
         return <<<HERE
-    
-    
+
     /* Given the id "11" This first statement matches: {"property_name": "11"} */
     LEFT JOIN record `%s` on `%s`.properties->>'$.%s' REGEXP concat('^', `%s`.id, '$')
     /* Given the id "11" This second statement matches: {"property_name": "12;11"} */
@@ -1410,8 +1504,7 @@ HERE;
     OR `%s`.properties->>'$.%s' REGEXP concat(';', `%s`.id, ';') 
     /* Given the id "11" This second statement matches: {"property_name": "11;12;13"} */
     OR `%s`.properties->>'$.%s' REGEXP concat('^', `%s`.id, ';') 
-    
-    
+
 HERE;
     }
 }

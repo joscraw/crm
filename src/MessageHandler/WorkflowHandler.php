@@ -3,9 +3,13 @@
 namespace App\MessageHandler;
 
 use App\Mailer\ResetPasswordMailer;
+use App\Mailer\WorkflowSendEmailActionMailer;
+use App\Repository\ObjectWorkflowRepository;
 use App\Repository\RecordRepository;
 use App\Repository\UserRepository;
+use App\Repository\WorkflowRepository;
 use App\Service\WorkflowProcessor;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
 use App\Message\WorkflowMessage;
 
@@ -27,40 +31,59 @@ class WorkflowHandler implements MessageHandlerInterface
     private $recordRepository;
 
     /**
-     * @var ResetPasswordMailer
-     */
-    private $resetPasswordMailer;
-
-    /**
      * @var UserRepository
      */
     private $userRepository;
 
     /**
+     * @var WorkflowRepository
+     */
+    private $workflowRepository;
+
+    /**
+     * @var ObjectWorkflowRepository
+     */
+    private $objectWorkflowRepository;
+
+    /**
+     * @var EntityManagerInterface
+     */
+    private $entityManager;
+
+    /**
      * WorkflowHandler constructor.
      * @param WorkflowProcessor $workflowProcessor
      * @param RecordRepository $recordRepository
-     * @param ResetPasswordMailer $resetPasswordMailer
      * @param UserRepository $userRepository
+     * @param WorkflowRepository $workflowRepository
+     * @param ObjectWorkflowRepository $objectWorkflowRepository
+     * @param EntityManagerInterface $entityManager
      */
     public function __construct(
         WorkflowProcessor $workflowProcessor,
         RecordRepository $recordRepository,
-        ResetPasswordMailer $resetPasswordMailer,
-        UserRepository $userRepository
+        UserRepository $userRepository,
+        WorkflowRepository $workflowRepository,
+        ObjectWorkflowRepository $objectWorkflowRepository,
+        EntityManagerInterface $entityManager
     ) {
         $this->workflowProcessor = $workflowProcessor;
         $this->recordRepository = $recordRepository;
-        $this->resetPasswordMailer = $resetPasswordMailer;
         $this->userRepository = $userRepository;
+        $this->workflowRepository = $workflowRepository;
+        $this->objectWorkflowRepository = $objectWorkflowRepository;
+        $this->entityManager = $entityManager;
     }
 
 
     public function __invoke(WorkflowMessage $message)
     {
-        $recordId = $message->getContent();
-        $record = $this->recordRepository->find($recordId);
-        $this->workflowProcessor->run($record);
+        // records can be modified in so many different ways. I think it might make more sense to have a command That loops through all the workflows and
+        // adds them to a queue.
+
+        $workflowId = $message->getContent();
+        $workflow = $this->workflowRepository->find($workflowId);
+        $this->workflowProcessor->run($workflow);
         echo 'completed...';
     }
 }

@@ -36,18 +36,52 @@ class SendEmailAction {
     static get _selectors() {
         return {
             form: '#js-send-email-action-form',
+            mergeTags: '.js-possible-merge-tags',
+            mergeTag: '.js-merge-tag',
+            toAddresses: '#toAddresses',
+            subject: '#subject',
+            body: '#body'
         }
     }
 
     bindEvents() {
-
-        this.$wrapper.on(
-            'submit',
-            SendEmailAction._selectors.form,
-            this.handleSendEmailActionFormSubmit.bind(this)
-        );
-
+        this.$wrapper.on('submit', SendEmailAction._selectors.form, this.handleSendEmailActionFormSubmit.bind(this));
+        this.$wrapper.on('click', SendEmailAction._selectors.mergeTag, this.insertText.bind(this));
+        this.$wrapper.on('focus', SendEmailAction._selectors.toAddresses, this.setActiveFormField.bind(this));
+        this.$wrapper.on('focus', SendEmailAction._selectors.subject, this.setActiveFormField.bind(this));
+        this.$wrapper.on('focus', SendEmailAction._selectors.body, this.setActiveFormField.bind(this));
         return this;
+    }
+
+    setActiveFormField(e) {
+        this.activeFormFieldName = $(e.target).attr('name');
+    }
+
+    insertText(e) {
+        let copyText = $(e.target).text();
+
+        if(this.activeFormFieldName === 'toAddresses') {
+            this.insertAtCursor(this.$wrapper.find('#toAddresses').get(0), copyText);
+        } else if(this.activeFormFieldName === 'subject') {
+            this.insertAtCursor(this.$wrapper.find('#subject').get(0), copyText);
+        } else if(this.activeFormFieldName === 'body') {
+            this.insertAtCursor(this.$wrapper.find('#body').get(0), copyText);
+        }
+    }
+
+    insertAtCursor (input, textToInsert) {
+        // get current text of the input
+        const value = input.value;
+
+        // save selection start and end position
+        const start = input.selectionStart;
+        const end = input.selectionEnd;
+
+        // update the value with our text inserted
+        input.value = value.slice(0, start) + textToInsert + value.slice(end);
+
+        // update cursor to be at the end of insertion
+        input.selectionStart = input.selectionEnd = start + textToInsert.length;
     }
 
     /**
@@ -56,6 +90,10 @@ class SendEmailAction {
      */
     unbindEvents() {
         this.$wrapper.off('submit', SendEmailAction._selectors.form);
+        this.$wrapper.off('click', SendEmailAction._selectors.mergeTag);
+        this.$wrapper.off('focus', SendEmailAction._selectors.toAddresses);
+        this.$wrapper.off('focus', SendEmailAction._selectors.subject);
+        this.$wrapper.off('focus', SendEmailAction._selectors.body);
 
         return this;
     }
@@ -91,7 +129,40 @@ class SendEmailAction {
 
     render() {
         this.$wrapper.html(SendEmailAction.markup(this));
+        this.$wrapper.find('#toAddresses').focus();
+        $('[data-toggle="tooltip"]').tooltip();
+        this.loadMergeTags().then(data => {
+            this.mergeTags = data.data;
+            this.renderMergeTags(this.mergeTags);
+        });
         return this;
+    }
+
+    loadMergeTags() {
+        return new Promise((resolve, reject) => {
+            let url = Routing.generate('' +
+                'get_merge_tags', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObject.internalName});
+
+            $.ajax({
+                url: url,
+            }).then(data => {
+                resolve(data);
+            }).catch(jqXHR => {
+                const errorData = JSON.parse(jqXHR.responseText);
+                reject(errorData);
+            });
+        });
+    }
+
+    renderMergeTags(mergeTags) {
+
+        for(let mergeTag of mergeTags) {
+            this.$wrapper.find(SendEmailAction._selectors.mergeTags).append(
+                ' <a href="javascript:void(0)" class="js-merge-tag">'+mergeTag+'</a> '
+            );
+        }
+
+        debugger;
     }
 
     static markup({customObject: {label}}) {
@@ -103,11 +174,11 @@ class SendEmailAction {
         <form name="sendEmailActionForm" id="js-send-email-action-form" novalidate="novalidate">
             <div class="form-group">
                 <label for="toAddresses">To</label>
-                <input type="text" name="toAddresses" class="form-control" autocomplete="off">
+                <input type="text" name="toAddresses" id="toAddresses" class="form-control" autocomplete="off">
             </div>
             <div class="form-group">
                 <label for="subject">Subject</label>
-                <input type="text" name="subject" class="form-control" autocomplete="off">
+                <input type="text" name="subject" class="form-control" id="subject" autocomplete="off">
             </div>
             <div class="form-group">
                 <label for="body">Body</label>
@@ -115,6 +186,9 @@ class SendEmailAction {
             </div>
             <button type="submit" class="js-apply-action-button btn btn-light btn--full-width">Apply action</button>
         </form>
+        <hr>
+        <h2>Possible Merge Tags <small><i class="fa fa-info-circle" data-toggle="tooltip" data-placement="right" title="Merge tags can be used to populate the form/email with dynamic data from your objects. Click anywhere inside the form, and then select a merge tag to insert into the form."></i></small></h2>
+        <div class="js-possible-merge-tags"></div>
         `;
     }
 }
