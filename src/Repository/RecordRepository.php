@@ -7,6 +7,7 @@ ini_set('xdebug.max_nesting_level', 100000);
 use App\Entity\CustomObject;
 use App\Entity\Property;
 use App\Entity\Record;
+use App\EntityListener\PropertyListener;
 use App\Model\FieldCatalog;
 use App\Model\NumberField;
 use App\Utils\ArrayHelper;
@@ -30,8 +31,14 @@ class RecordRepository extends ServiceEntityRepository
      */
     private $data = [];
 
-    public function __construct(RegistryInterface $registry)
+    /**
+     * @var PropertyRepository
+     */
+    private $propertyRepository;
+
+    public function __construct(RegistryInterface $registry, PropertyRepository $propertyRepository)
     {
+        $this->propertyRepository = $propertyRepository;
         parent::__construct($registry, Record::class);
     }
 
@@ -418,6 +425,7 @@ class RecordRepository extends ServiceEntityRepository
      * @param CustomObject $customObject
      * @param $mergeTag
      * @return Property|object|null
+     * @throws \Doctrine\ORM\ORMException
      */
     public function getPropertyFromMergeTag(CustomObject $customObject, $mergeTag) {
 
@@ -425,10 +433,18 @@ class RecordRepository extends ServiceEntityRepository
 
         foreach($propertyPathArray as $propertyPath) {
 
-            $property = $this->getEntityManager()->getRepository(Property::class)->findOneBy([
+            $property = $this->propertyRepository->findOneBy([
                 'internalName' => $propertyPath,
                 'customObject' => $customObject
             ]);
+
+            /**
+             * @see https://stackoverflow.com/questions/53672283/postload-doesnt-work-if-data-are-fetched-with-query-builder
+             *
+             * PostLoad event occurs for an entity after the entity has been loaded into the current EntityManager
+             * from the database or after the refresh operation has been applied to it
+             */
+            $this->getEntityManager()->refresh($property);
 
             if($property->getFieldType() === FieldCatalog::CUSTOM_OBJECT) {
                 array_shift($propertyPathArray);

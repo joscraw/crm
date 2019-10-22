@@ -86,6 +86,9 @@ class WorkflowProcessor
                     $results = $this->recordRepository->getTriggerFilterMysqlOnly($filters, $workflow->getCustomObject());
                     foreach($results['results'] as $result) {
                         $record = $this->recordRepository->find($result['id']);
+
+
+
                         foreach($publishedWorkflow->getActions() as $action) {
                             switch ($action->getName()) {
                                 case Action::SET_PROPERTY_VALUE_ACTION:

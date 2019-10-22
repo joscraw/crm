@@ -107,10 +107,16 @@ abstract class Workflow
      */
     protected $paused = true;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\WorkflowEnrollment", mappedBy="workflow", orphanRemoval=true)
+     */
+    private $workflowEnrollments;
+
     public function __construct()
     {
         $this->triggers = new ArrayCollection();
         $this->actions = new ArrayCollection();
+        $this->workflowEnrollments = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -273,6 +279,37 @@ abstract class Workflow
     public function setPaused(bool $paused): self
     {
         $this->paused = $paused;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|WorkflowEnrollment[]
+     */
+    public function getWorkflowEnrollments(): Collection
+    {
+        return $this->workflowEnrollments;
+    }
+
+    public function addWorkflowEnrollment(WorkflowEnrollment $workflowEnrollment): self
+    {
+        if (!$this->workflowEnrollments->contains($workflowEnrollment)) {
+            $this->workflowEnrollments[] = $workflowEnrollment;
+            $workflowEnrollment->setWorkflow($this);
+        }
+
+        return $this;
+    }
+
+    public function removeWorkflowEnrollment(WorkflowEnrollment $workflowEnrollment): self
+    {
+        if ($this->workflowEnrollments->contains($workflowEnrollment)) {
+            $this->workflowEnrollments->removeElement($workflowEnrollment);
+            // set the owning side to null (unless already changed)
+            if ($workflowEnrollment->getWorkflow() === $this) {
+                $workflowEnrollment->setWorkflow(null);
+            }
+        }
 
         return $this;
     }

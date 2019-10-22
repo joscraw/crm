@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 
@@ -30,6 +32,16 @@ class Record
      */
     private $properties = [];
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\WorkflowEnrollment", mappedBy="record", orphanRemoval=true)
+     */
+    private $workflowEnrollments;
+
+    public function __construct()
+    {
+        $this->workflowEnrollments = new ArrayCollection();
+    }
+
     public function getId(): ?int
     {
         return $this->id;
@@ -55,6 +67,37 @@ class Record
     public function setProperties($properties): self
     {
         $this->properties = $properties;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|WorkflowEnrollment[]
+     */
+    public function getWorkflowEnrollments(): Collection
+    {
+        return $this->workflowEnrollments;
+    }
+
+    public function addWorkflowEnrollment(WorkflowEnrollment $workflowEnrollment): self
+    {
+        if (!$this->workflowEnrollments->contains($workflowEnrollment)) {
+            $this->workflowEnrollments[] = $workflowEnrollment;
+            $workflowEnrollment->setRecord($this);
+        }
+
+        return $this;
+    }
+
+    public function removeWorkflowEnrollment(WorkflowEnrollment $workflowEnrollment): self
+    {
+        if ($this->workflowEnrollments->contains($workflowEnrollment)) {
+            $this->workflowEnrollments->removeElement($workflowEnrollment);
+            // set the owning side to null (unless already changed)
+            if ($workflowEnrollment->getRecord() === $this) {
+                $workflowEnrollment->setRecord(null);
+            }
+        }
 
         return $this;
     }

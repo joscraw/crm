@@ -2,16 +2,22 @@
 
 namespace App\MessageHandler;
 
+use App\Entity\Action;
+use App\Entity\SendEmailAction;
+use App\Entity\SetPropertyValueAction;
 use App\Mailer\ResetPasswordMailer;
 use App\Mailer\WorkflowSendEmailActionMailer;
 use App\Repository\ObjectWorkflowRepository;
 use App\Repository\RecordRepository;
 use App\Repository\UserRepository;
+use App\Repository\WorkflowEnrollmentRepository;
 use App\Repository\WorkflowRepository;
 use App\Service\WorkflowProcessor;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
 use App\Message\WorkflowMessage;
+use Symfony\Component\Messenger\MessageBusInterface;
+use Symfony\Component\Serializer\SerializerInterface;
 
 /**
  * @see https://symfony.com/doc/4.2/messenger.html
@@ -51,6 +57,26 @@ class WorkflowHandler implements MessageHandlerInterface
     private $entityManager;
 
     /**
+     * @var MessageBusInterface $bus
+     */
+    private $bus;
+
+    /**
+     * @var SerializerInterface
+     */
+    private $serializer;
+
+    /**
+     * @var WorkflowSendEmailActionMailer
+     */
+    private $workflowSendEmailActionMailer;
+
+    /**
+     * @var WorkflowEnrollmentRepository
+     */
+    private $workflowEnrollmentRepository;
+
+    /**
      * WorkflowHandler constructor.
      * @param WorkflowProcessor $workflowProcessor
      * @param RecordRepository $recordRepository
@@ -58,6 +84,10 @@ class WorkflowHandler implements MessageHandlerInterface
      * @param WorkflowRepository $workflowRepository
      * @param ObjectWorkflowRepository $objectWorkflowRepository
      * @param EntityManagerInterface $entityManager
+     * @param MessageBusInterface $bus
+     * @param SerializerInterface $serializer
+     * @param WorkflowSendEmailActionMailer $workflowSendEmailActionMailer
+     * @param WorkflowEnrollmentRepository $workflowEnrollmentRepository
      */
     public function __construct(
         WorkflowProcessor $workflowProcessor,
@@ -65,7 +95,11 @@ class WorkflowHandler implements MessageHandlerInterface
         UserRepository $userRepository,
         WorkflowRepository $workflowRepository,
         ObjectWorkflowRepository $objectWorkflowRepository,
-        EntityManagerInterface $entityManager
+        EntityManagerInterface $entityManager,
+        MessageBusInterface $bus,
+        SerializerInterface $serializer,
+        WorkflowSendEmailActionMailer $workflowSendEmailActionMailer,
+        WorkflowEnrollmentRepository $workflowEnrollmentRepository
     ) {
         $this->workflowProcessor = $workflowProcessor;
         $this->recordRepository = $recordRepository;
@@ -73,17 +107,54 @@ class WorkflowHandler implements MessageHandlerInterface
         $this->workflowRepository = $workflowRepository;
         $this->objectWorkflowRepository = $objectWorkflowRepository;
         $this->entityManager = $entityManager;
+        $this->bus = $bus;
+        $this->serializer = $serializer;
+        $this->workflowSendEmailActionMailer = $workflowSendEmailActionMailer;
+        $this->workflowEnrollmentRepository = $workflowEnrollmentRepository;
     }
-
 
     public function __invoke(WorkflowMessage $message)
     {
-        // records can be modified in so many different ways. I think it might make more sense to have a command That loops through all the workflows and
-        // adds them to a queue.
+        $workflowEnrollmentId = $message->getContent();
+        $workflowEnrollment = $this->workflowEnrollmentRepository->find($workflowEnrollmentId);
 
-        $workflowId = $message->getContent();
-        $workflow = $this->workflowRepository->find($workflowId);
-        $this->workflowProcessor->run($workflow);
-        echo 'completed...';
+        if(!$workflowEnrollment) {
+            echo $workflowEnrollmentId;
+            return;
+        }
+
+        $publishedWorkflow = $workflowEnrollment->getWorkflow();
+        $record = $workflowEnrollment->getRecord();
+
+        foreach($publishedWorkflow->getActions() as $action) {
+            switch ($action->getName()) {
+                case Action::SET_PROPERTY_VALUE_ACTION:
+                    /** @var SetPropertyValueAction $action */
+                    $properties = $record->getProperties();
+                    $properties[$action->getProperty()->getInternalName()] = $action->getValue();
+                    $record->setProperties($properties);
+                    $this->entityManager->persist($record);
+                    $this->entityManager->flush();
+                    break;
+                case Action::SEND_EMAIL_ACTION:
+                    /** @var SendEmailAction $action */
+                    $mergeTags = $action->getMergeTags();
+                    $results = $this->recordRepository->getPropertiesFromMergeTagsByRecord($mergeTags, $record);
+
+                    foreach($results['results'] as $result) {
+                        $this->workflowSendEmailActionMailer->send(
+                            $action->getMergedSubject($result),
+                            $action->getMergedToAddresses($result),
+                            $action->getMergedBody($result)
+                        );
+                    }
+                    break;
+            }
+        }
+
+        $workflowEnrollment->setIsCompleted(true);
+        $this->entityManager->flush();
+
+        echo sprintf("Workflow %s completed for record %s", $publishedWorkflow->getId(), $record->getId());
     }
 }
