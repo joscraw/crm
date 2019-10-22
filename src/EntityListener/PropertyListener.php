@@ -72,7 +72,7 @@ class PropertyListener
 
         $propertyField = $this->serializer->deserialize($propertyField, Property::class, 'json');
 
-        $name = "Josh";*/
+        */
 
         $propertyField = json_encode($property->getField());
         $propertyField = $this->serializer->deserialize($propertyField, AbstractField::class, 'json');

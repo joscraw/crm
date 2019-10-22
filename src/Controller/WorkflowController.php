@@ -148,6 +148,13 @@ class WorkflowController extends AbstractController
      */
     public function workflowSettings(Portal $portal) {
 
+
+        $property = $this->propertyRepository->findOneBy([
+           'customObject' =>  1,
+            'internalName' => 'drop'
+        ]);
+
+
         return $this->render('workflow/settings.html.twig', array(
             'portal' => $portal
         ));
