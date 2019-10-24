@@ -424,7 +424,7 @@ class RecordRepository extends ServiceEntityRepository
     /**
      * @param CustomObject $customObject
      * @param $mergeTag
-     * @return Property|object|null
+     * @return bool
      * @throws \Doctrine\ORM\ORMException
      */
     public function getPropertyFromMergeTag(CustomObject $customObject, $mergeTag) {
@@ -437,6 +437,11 @@ class RecordRepository extends ServiceEntityRepository
                 'internalName' => $propertyPath,
                 'customObject' => $customObject
             ]);
+
+            // if a property is missing from the given property path we just need to leave this function
+            if(!$property) {
+                return false;
+            }
 
             /**
              * @see https://stackoverflow.com/questions/53672283/postload-doesnt-work-if-data-are-fetched-with-query-builder
@@ -456,19 +461,22 @@ class RecordRepository extends ServiceEntityRepository
 
     /**
      * This function uses dot annotation to query property values between
-     * objects that have relationships
+     * objects that have relationships.
      *
      * @param $mergeTags
      * @param Record $record
      * @return array
      * @throws \Doctrine\DBAL\DBALException
+     * @throws \Doctrine\ORM\ORMException
      */
     public function getPropertiesFromMergeTagsByRecord($mergeTags, Record $record)
     {
         $resultStr = [];
         foreach($mergeTags as $mergeTag) {
 
-            $property = $this->getPropertyFromMergeTag($record->getCustomObject(), $mergeTag);
+            if(!$property = $this->getPropertyFromMergeTag($record->getCustomObject(), $mergeTag)) {
+                continue;
+            }
 
             $mergeTagArray = explode(".", $mergeTag);
             array_pop($mergeTagArray);
@@ -518,6 +526,87 @@ class RecordRepository extends ServiceEntityRepository
 
         $resultStr = implode(",",$resultStr);
         $query = sprintf("SELECT DISTINCT root.id, %s from record root %s WHERE root.id = '%s'", $resultStr, $joinString, $record->getId());
+
+        $em = $this->getEntityManager();
+        $stmt = $em->getConnection()->prepare($query);
+        $stmt->execute();
+        $results = $stmt->fetchAll();
+
+        return array(
+            "results"  => $results
+        );
+    }
+
+    /**
+     * This function uses property dot annotation to query record values no
+     * matter how deeply nested those values are through custom object relations
+     *
+     * Example:
+     * 1. $mergeTag = drop.name
+     * 2. $record = a contact record
+     * 3. the returned values will be the name of the associated drop and the ID of that associated drop
+     *
+     * single property value between
+     * objects that have relationships.
+     *
+     * @param $mergeTag
+     * @param Record $record
+     * @return bool
+     * @throws \Doctrine\DBAL\DBALException
+     * @throws \Doctrine\ORM\ORMException
+     */
+    public function getRecordByPropertyDotAnnotation($mergeTag, Record $record)
+    {
+        $resultStr = [];
+        if(!$property = $this->getPropertyFromMergeTag($record->getCustomObject(), $mergeTag)) {
+            return false;
+        }
+
+        $mergeTagArray = explode(".", $mergeTag);
+        array_pop($mergeTagArray);
+
+        $joinPath = !empty($mergeTagArray) ? sprintf('root.%s', implode(".", $mergeTagArray)) : 'root';
+
+        switch($property->getFieldType()) {
+
+            case FieldCatalog::DATE_PICKER:
+                $jsonExtract = $this->getDatePickerQuery($joinPath);
+                $resultStr[] = sprintf($jsonExtract, $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $mergeTag);
+                break;
+            case FieldCatalog::SINGLE_CHECKBOX:
+                $jsonExtract = $this->getSingleCheckboxQuery($joinPath);
+                $resultStr[] = sprintf($jsonExtract, $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $mergeTag);
+                break;
+            case FieldCatalog::NUMBER:
+                $field = $property->getField();
+                if($field->isCurrency()) {
+                    $jsonExtract = $this->getNumberIsCurrencyQuery($joinPath);
+                    $resultStr[] = sprintf($jsonExtract, $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $mergeTag);
+                } elseif($field->isUnformattedNumber()) {
+                    $jsonExtract = $this->getNumberIsUnformattedQuery($joinPath);
+                    $resultStr[] = sprintf($jsonExtract, $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $mergeTag);
+                }
+                break;
+            default:
+                $jsonExtract = $this->getDefaultQuery($joinPath);
+                $resultStr[] = sprintf($jsonExtract, $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $mergeTag);
+                break;
+        }
+
+        $joinData = [];
+        $mergeTagArray = explode(".", $mergeTag);
+        array_pop($mergeTagArray);
+        $mergeTag = implode(".", $mergeTagArray);
+        if(!empty($mergeTag)) {
+            $this->setValueByDotNotation($joinData, $mergeTag, []);
+        }
+
+        $joins = [];
+        $joins = $this->joins($joinData, $joins, 'root');
+        $joinString = implode(" ", $joins);
+
+        $resultStr = implode(",",$resultStr);
+        $query = sprintf("SELECT DISTINCT `{$joinPath}`.id, %s from record root %s WHERE root.id = '%s'", $resultStr, $joinString, $record->getId());
 
         $em = $this->getEntityManager();
         $stmt = $em->getConnection()->prepare($query);
@@ -944,7 +1033,7 @@ class RecordRepository extends ServiceEntityRepository
                             $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), null) = \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         } else {
                             $values = explode(',', $customFilter['value']);
-                            if($values == ['0','1']) {
+                            if($values == ['0','1'] || $values == ['1','0']) {
                                 $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), \'\') = \'%s\' OR IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), \'\') = \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], 'true', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], 'false');
                             } elseif ($values == ['0']) {
                                 $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), \'\') = \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], 'false');
@@ -960,7 +1049,7 @@ class RecordRepository extends ServiceEntityRepository
                             $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), null) != \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         } else {
                             $values = explode(',', $customFilter['value']);
-                            if($values == ['0','1']) {
+                            if($values == ['0','1'] || $values == ['1','0']) {
                                 $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), \'\') != \'%s\' AND IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), \'\') != \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], 'true', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], 'false');
                             } elseif ($values == ['0']) {
                                 $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), \'\') != \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], 'false');
@@ -1275,7 +1364,7 @@ class RecordRepository extends ServiceEntityRepository
                             $query = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), null) = \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         } else {
                             $values = explode(',', $customFilter['value']);
-                            if($values == ['0','1']) {
+                            if($values == ['0','1'] || $values == ['1','0']) {
                                 $query = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') = \'%s\' OR IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') = \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], 'true', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], 'false');
                             } elseif ($values == ['0']) {
                                 $query = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') = \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], 'false');
@@ -1291,7 +1380,7 @@ class RecordRepository extends ServiceEntityRepository
                             $query = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), null) != \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         } else {
                             $values = explode(',', $customFilter['value']);
-                            if($values == ['0','1']) {
+                            if($values == ['0','1'] || $values == ['1','0']) {
                                 $query = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') != \'%s\' AND IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') != \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], 'true', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], 'false');
                             } elseif ($values == ['0']) {
                                 $query = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') != \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], 'false');

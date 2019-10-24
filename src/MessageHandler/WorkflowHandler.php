@@ -119,7 +119,6 @@ class WorkflowHandler implements MessageHandlerInterface
         $workflowEnrollment = $this->workflowEnrollmentRepository->find($workflowEnrollmentId);
 
         if(!$workflowEnrollment) {
-            echo $workflowEnrollmentId;
             return;
         }
 
@@ -130,17 +129,46 @@ class WorkflowHandler implements MessageHandlerInterface
             switch ($action->getName()) {
                 case Action::SET_PROPERTY_VALUE_ACTION:
                     /** @var SetPropertyValueAction $action */
-                    $properties = $record->getProperties();
-                    $properties[$action->getProperty()->getInternalName()] = $action->getValue();
-                    $record->setProperties($properties);
-                    $this->entityManager->persist($record);
+                    $joinPath = $action->getJoins();
+                    array_shift($joinPath);
+                    $joinPath[] = $action->getProperty()->getInternalName();
+                    $mergeTag = implode(".", $joinPath);
+
+                    $results = $this->recordRepository->getRecordByPropertyDotAnnotation($mergeTag, $record);
+                    foreach($results['results'] as $result) {
+                        $recordToModify = $this->recordRepository->find($result['id']);
+                        $properties = $recordToModify->getProperties();
+
+                        switch ($action->getOperator()) {
+                            case 'INCREMENT_BY':
+                                if(!empty($properties[$action->getProperty()->getInternalName()])) {
+                                    $properties[$action->getProperty()->getInternalName()] = (string) ($properties[$action->getProperty()->getInternalName()] + $action->getValue());
+                                } else {
+                                    $properties[$action->getProperty()->getInternalName()] = "1";
+                                }
+                                break;
+                            case 'DECREMENT_BY':
+                                if(!empty($properties[$action->getProperty()->getInternalName()])) {
+                                    $properties[$action->getProperty()->getInternalName()] = (string) ($properties[$action->getProperty()->getInternalName()] - $action->getValue());
+                                } else {
+                                    $properties[$action->getProperty()->getInternalName()] = "-1";
+                                }
+                                break;
+                            default:
+                                $properties[$action->getProperty()->getInternalName()] = $action->getValue();
+                                break;
+                        }
+
+
+                        $recordToModify->setProperties($properties);
+                        $this->entityManager->persist($recordToModify);
+                    }
                     $this->entityManager->flush();
                     break;
                 case Action::SEND_EMAIL_ACTION:
                     /** @var SendEmailAction $action */
                     $mergeTags = $action->getMergeTags();
                     $results = $this->recordRepository->getPropertiesFromMergeTagsByRecord($mergeTags, $record);
-
                     foreach($results['results'] as $result) {
                         $this->workflowSendEmailActionMailer->send(
                             $action->getMergedSubject($result),
