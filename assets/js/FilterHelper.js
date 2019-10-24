@@ -27,9 +27,7 @@ class FilterHelper {
 
         customFilterCopy.joins.shift();
         customFilterCopy.joins.push(customFilter.label);
-        label = customFilterCopy.joins.join(" - ");
-
-        console.log(customFilter.joins);
+        label = "<strong>" + customFilterCopy.joins.join(" - ").toLowerCase() + "</strong><br>";
 
         switch(customFilter['fieldType']) {
             case 'custom_object_field':
@@ -88,7 +86,7 @@ class FilterHelper {
                         debugger;
                         values = customFilter.value.split(",");
 
-                        if(ArrayHelper.arraysEqual(values, ["0", "1"])) {
+                        if(ArrayHelper.arraysEqual(values, ["0", "1"]) || ArrayHelper.arraysEqual(values, ["1", "0"])) {
                             value = `"Yes" or "No"`;
                         } else if(ArrayHelper.arraysEqual(values, ["0"])) {
                             value = `"No"`;
@@ -96,7 +94,7 @@ class FilterHelper {
                             value = `"Yes"`;
                         }
 
-                        text = `${label} is any of ${value}`;
+                        text = `${label} is equal to ${value}`;
 
                         break;
                     case 'NOT_IN':
@@ -112,7 +110,7 @@ class FilterHelper {
                             value = `"Yes"`;
                         }
 
-                        text = `${label} is none of ${value}`;
+                        text = `${label} is not equal to ${value}`;
 
                         break;
                     case 'HAS_PROPERTY':
