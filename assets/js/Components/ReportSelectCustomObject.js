@@ -140,7 +140,7 @@ class ReportSelectCustomObject {
                  <div class="container">
                      <div class="row c-report-widget__header">
                          <div class="col-md-12" align="center">
-                             <h2>Select a custom object</h2>
+                             <h2>Select the object you would like to report on</h2>
                          </div>
                      </div>
                      

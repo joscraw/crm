@@ -185,8 +185,13 @@ class ReportProperties {
              </nav> 
         
             <div class="row container">
-                <div class="col-md-6 js-report-property-list-container"></div>
-                <div class="col-md-6">
+                <div class="col-md-4">
+                    <div class="col-md-12 js-report-property-list-container"></div>
+                    <div class="col-md-12">
+                        <h4>Connectable Objects</h4>
+                    </div>
+                </div>
+                <div class="col-md-8">
                 
                     <div class="js-report-selected-columns-count-container c-column-editor__selected-columns-count"></div>
                     <div class="js-report-selected-columns-container c-report-widget__selected-columns"></div>

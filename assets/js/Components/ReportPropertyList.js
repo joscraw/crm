@@ -332,6 +332,7 @@ class ReportPropertyList {
         debugger;
         return `
             <button type="button" class="btn btn-link js-back-button"><i class="fa fa-chevron-left"></i> Back</button>
+            <h4>Available Properties</h4>
             <div class="input-group c-search-control">
               <input class="form-control c-search-control__input js-search" type="search" placeholder="Search...">
               <span class="c-search-control__foreground"><i class="fa fa-search"></i></span>
