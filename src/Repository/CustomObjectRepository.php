@@ -200,4 +200,40 @@ class CustomObjectRepository extends ServiceEntityRepository
             ->getQuery()
             ->getOneOrNullResult();
     }
+
+    /**
+     * @param CustomObject $customObject
+     * @param bool $queryBuilder
+     * @return \Doctrine\ORM\QueryBuilder
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    public function getConnectableObjects(CustomObject $customObject, $queryBuilder = false) {
+
+        $query = sprintf("Select co.id from custom_object co inner join property p 
+                    on p.custom_object_id = co.id where p.field_type = 'custom_object_field' and 
+                    p.field->'$.customObject.internalName' = '%s'", $customObject->getInternalName());
+
+        $em = $this->getEntityManager();
+        $stmt = $em->getConnection()->prepare($query);
+        $stmt->execute();
+        $results = $stmt->fetchAll();
+
+        if(empty($results)) {
+            return [];
+        }
+
+        $ids = array_column($results, 'id');
+
+        if($queryBuilder) {
+            return $this->createQueryBuilder('co')
+                ->where('co.id IN (:ids)')
+                ->setParameter('ids', $ids);
+        }
+
+        return $this->createQueryBuilder('co')
+            ->where('co.id IN (:ids)')
+            ->setParameter('ids', $ids)
+            ->getQuery()
+            ->getResult();
+    }
 }

@@ -332,4 +332,41 @@ class PropertyRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
     }
 
+    /**
+     * @param CustomObject $customObject
+     * @param CustomObject $connectableCustomObject
+     * @param bool $queryBuilder
+     * @return \Doctrine\ORM\QueryBuilder
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    public function getConnectableProperties(CustomObject $customObject, CustomObject $connectableCustomObject, $queryBuilder = false) {
+
+        $query = sprintf("Select p.id from property p inner join 
+                    custom_object co on p.custom_object_id = co.id where p.field_type = 'custom_object_field' and 
+                    p.custom_object_id = '%s' and p.field->'$.customObject.internalName' = '%s'", $connectableCustomObject->getId(), $customObject->getInternalName());
+
+        $em = $this->getEntityManager();
+        $stmt = $em->getConnection()->prepare($query);
+        $stmt->execute();
+        $results = $stmt->fetchAll();
+
+        if(empty($results)) {
+            return [];
+        }
+
+        $ids = array_column($results, 'id');
+
+        if($queryBuilder) {
+            return $this->createQueryBuilder('p')
+                ->where('p.id IN (:ids)')
+                ->setParameter('ids', $ids);
+        }
+
+        return $this->createQueryBuilder('p')
+            ->where('p.id IN (:ids)')
+            ->setParameter('ids', $ids)
+            ->getQuery()
+            ->getResult();
+    }
+
 }

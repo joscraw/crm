@@ -6,6 +6,7 @@ use App\Entity\CustomObject;
 use App\Entity\Portal;
 use App\Entity\Property;
 use App\Entity\PropertyGroup;
+use App\Form\ConnectObjectType;
 use App\Form\CustomObjectType;
 use App\Form\PropertyGroupType;
 use App\Form\PropertyType;
@@ -116,6 +117,100 @@ class CustomObjectController extends ApiController
         ],  Response::HTTP_OK);
 
         return $response;
+    }
+
+    /**
+     * @Route("/{internalName}/connectable", name="get_connectable_objects", methods={"GET"}, options = { "expose" = true })
+     * @param CustomObject $customObject
+     * @param Portal $portal
+     * @param Request $request
+     * @return Response
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    public function getConnectableObjectsAction(CustomObject $customObject, Portal $portal, Request $request) {
+
+        $customObjects = $this->customObjectRepository->getConnectableObjects($customObject);
+
+        $payload = [];
+        $payload['custom_objects'] = [];
+
+        foreach($customObjects as $customObject) {
+            $json = $this->serializer->serialize($customObject, 'json', ['groups' => ['CUSTOM_OBJECTS_FOR_FILTER']]);
+            $payload['custom_objects'][] = json_decode($json, true);
+        }
+
+        $response = new JsonResponse([
+            'success' => true,
+            'data'  => $payload,
+        ],  Response::HTTP_OK);
+
+        return $response;
+    }
+
+    /**
+     * @Route("/{internalName}/connect/form", name="connect_object_form", methods={"GET", "POST"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param CustomObject $customObject
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function connectObjectFormAction(Portal $portal, CustomObject $customObject, Request $request) {
+
+        $form = $this->createForm(ConnectObjectType::class, null, [
+            'customObject' => $customObject
+        ]);
+
+        $form->handleRequest($request);
+
+        $formMarkup = $this->renderView(
+            'Api/form/connect_object_form.html.twig',
+            [
+                'form' => $form->createView(),
+            ]
+        );
+
+        if ($form->isSubmitted() && !$form->isValid()) {
+
+            return new JsonResponse(
+                [
+                    'success' => false,
+                    'formMarkup' => $formMarkup,
+                ], Response::HTTP_BAD_REQUEST
+            );
+        }
+
+
+        if ($form->isSubmitted() && $form->isValid()) {
+
+            $name = "Josh";
+
+          /*  $propertyToUpdate = $form->get('propertyToUpdate')->getData();
+            $propertyToUpdate = $this->propertyRepository->find($propertyToUpdate);
+
+            $records = $request->request->get('records', []);
+
+            foreach($records as $record) {
+
+                $record = $this->recordRepository->find($record);
+
+                $properties = $record->getProperties();
+                $properties[$propertyToUpdate->getInternalName()] = $form->get('propertyValue')->getData();
+                $record->setProperties($properties);
+
+                $this->entityManager->persist($record);
+                $this->entityManager->flush();
+
+            }*/
+
+        }
+
+        return new JsonResponse(
+            [
+                'success' => true,
+                'formMarkup' => $formMarkup
+            ],
+            Response::HTTP_OK
+        );
     }
 
     /**

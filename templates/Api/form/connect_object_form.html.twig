@@ -1,0 +1,17 @@
+{% form_theme form 'bootstrap_4_layout.html.twig' %}
+
+{{ form_start(form, {'attr': {class: 'js-bulk-edit-form', novalidate: 'novalidate'}}) }}
+
+{{ form_row(form.connectableObject, {'attr': {novalidate: 'novalidate'}}) }}
+{{ form_row(form.joinType, {'attr': {novalidate: 'novalidate'}}) }}
+
+<div class="js-property-value-container">
+    {% if form.propertyValue is defined %}
+        {{ form_row(form.propertyValue, {'attr': {novalidate: 'novalidate'}}) }}
+    {% endif %}
+</div>
+<br>
+<button type="submit" class="btn-primary btn w-100 js-connect-object-submit-button">Connect</button>
+
+{{ form_rest(form) }}
+{{ form_end(form) }}
