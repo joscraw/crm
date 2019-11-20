@@ -154,7 +154,7 @@ class ReportController extends ApiController
 
         $columnOrder = $request->request->get('columnOrder', []);
 
-        $query = $this->recordRepository->getReportMysqlOnly($data, $customObject, $columnOrder);
+        $query = $this->recordRepository->newReportLogicBuilder($data, $customObject, $columnOrder);
 
         $report = new Report();
         $report->setQuery($query);

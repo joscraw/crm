@@ -25,27 +25,34 @@ class ConnectObjectForm {
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
         this.customObjectInternalName = customObjectInternalName;
+        this.connectedObjects = [];
+        this.connectedProperties = [];
 
         this.$wrapper.on(
-            'submit',
-            ConnectObjectForm._selectors.bulkEditForm,
-            this.handleFormSubmit.bind(this)
+            'click',
+            ConnectObjectForm._selectors.connectedObjectButton,
+            this.handleApplyConnectedObjectButtonClick.bind(this)
         );
 
-        this.loadBulkEditForm().then(() => {
+        this.$wrapper.html(ConnectObjectForm.markup());
 
-            $('.js-selectize-single-select-connectable-object').selectize({
-                sortField: 'text'
+        this.loadConnectedObjects().then((data) => {
+            this.connectedObjects = data.data.custom_objects;
+            let options = [];
+            for(let i = 0; i < this.connectedObjects.length; i++) {
+                let option = this.connectedObjects[i];
+                options.push({value: option.id, name: option.label});
+            }
+            $('#js-select-connected-object').selectize({
+                valueField: 'value',
+                labelField: 'name',
+                searchField: ['name'],
+                options: options,
+                placeholder: 'Select an object to connect'
             }).on('change', this.handleConnectableObjectChange.bind(this));
-
-            $('.js-selectize-single-select').selectize({
-                sortField: 'text'
-            });
-
-            $('.js-selectize-single-select-property').selectize({
-                sortField: 'text'
-            });
         });
+
+        $('#js-select-join-type').selectize({});
     }
 
     /**
@@ -53,10 +60,24 @@ class ConnectObjectForm {
      */
     static get _selectors() {
         return {
-            bulkEditForm: '.js-bulk-edit-form',
-            fieldType: '.js-field-type',
-            property: 'js-property'
+            connectedObjectButton: '.js-apply-connected-object-button',
+            connectObjectForm: '#js-connect-object-form'
         }
+    }
+
+    loadConnectedObjects() {
+        return new Promise((resolve, reject) => {
+            const url = Routing.generate('get_connectable_objects', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
+            $.ajax({
+                url: url,
+                method: 'GET'
+            }).then(data => {
+                resolve(data);
+            }).catch(jqXHR => {
+                const errorData = JSON.parse(jqXHR.responseText);
+                reject(errorData);
+            });
+        });
     }
 
     handleConnectableObjectChange(e) {
@@ -64,111 +85,92 @@ class ConnectObjectForm {
         if(e.cancelable) {
             e.preventDefault();
         }
-        const formData = {};
-        formData[$(e.target).attr('name')] = $(e.target).val();
-        this._changeProperty(formData).then((data) => {}).catch((errorData) => {
+        let customObjectId =  $(e.target).val();
+        let data = {};
+        data.customObjectId = customObjectId;
 
-            $('.js-property-value-container').replaceWith(
-                // ... with the returned one from the AJAX response.
-                $(errorData.formMarkup).find('.js-property-value-container')
-            );
-
-            $('.js-selectize-single-select-property').selectize({
-                sortField: 'text'
+        this.getConnectableProperties(data).then((data) => {
+            debugger;
+            this.connectedProperties = data.data.properties;
+            let options = [];
+            for(let i = 0; i < this.connectedProperties.length; i++) {
+                let option = this.connectedProperties[i];
+                options.push({value: option.id, name: option.label});
+            }
+            $('#js-select-property').selectize({
+                valueField: 'value',
+                labelField: 'name',
+                searchField: ['name'],
+                options: options,
+                placeholder: 'Select a property to join on.'
             });
         });
     }
 
-    _changeProperty(data) {
+
+    getConnectableProperties(data) {
         return new Promise((resolve, reject) => {
 
-            const url = Routing.generate('connect_object_form', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
+            const url = Routing.generate('get_connectable_properties', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
 
             $.ajax({
                 url,
-                method: 'POST',
+                method: 'GET',
                 data: data
             }).then((data, textStatus, jqXHR) => {
+                debugger;
                 resolve(data);
             }).catch((jqXHR) => {
+                debugger;
                 const errorData = JSON.parse(jqXHR.responseText);
                 reject(errorData);
             });
         });
     }
 
-    loadBulkEditForm() {
-
-        debugger;
-        let url = Routing.generate('connect_object_form', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
-
-        return new Promise((resolve, reject) => {
-            $.ajax({
-                url: Routing.generate('connect_object_form', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName}),
-            }).then(data => {
-                this.$wrapper.html(data.formMarkup);
-                resolve(data);
-            }).catch(errorData => {
-                reject(errorData);
-            });
-        });
-    }
-
-    /**
-     * @param e
-     */
-    handleFormSubmit(e) {
-
+    handleApplyConnectedObjectButtonClick(e) {
         if(e.cancelable) {
             e.preventDefault();
         }
-
-        const $form = $(e.currentTarget);
+        const $form = $(ConnectObjectForm._selectors.connectObjectForm);
         let formData = new FormData($form.get(0));
-
-        for (let i = 0; i < this.records.length; i++) {
-            formData.append('records[]', this.records[i]);
-        }
-
-        this._updateProperty(formData)
-            .then((data) => {
-                swal("Hooray!", "Hooray!, record(s) successfully updated!", "success");
-                this.globalEventDispatcher.publish(Settings.Events.BULK_EDIT_SUCCESSFUL);
-            }).catch((errorData) => {
-
-            if(errorData.httpCode === 401) {
-                swal("Woah!", `You don't have proper permissions for this!`, "error");
+        var object = {};
+        formData.forEach((value, key) => {
+            if(!object.hasOwnProperty(key)){
+                object[key] = value;
                 return;
             }
-
-            this.$wrapper.html(errorData.formMarkup);
-            this.activatePlugins();
+            if(!Array.isArray(object[key])){
+                object[key] = [object[key]];
+            }
+            object[key].push(value);
         });
+        object.connected_property = this.connectedProperties.filter(property => {
+            return parseInt(property.id) === parseInt(object.connected_property);
+        })[0];
+        object.connected_object = this.connectedObjects.filter(connectedObject => {
+            return parseInt(connectedObject.id) === parseInt(object.connected_object);
+        })[0];
+        this.globalEventDispatcher.publish(Settings.Events.REPORT_OBJECT_CONNECTED, object);
     }
 
-    /**
-     * @param data
-     * @return {Promise<any>}
-     * @private
-     */
-    _updateProperty(data) {
-        return new Promise( (resolve, reject) => {
-            const url = Routing.generate('bulk_edit', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
-
-            $.ajax({
-                url,
-                method: 'POST',
-                data: data,
-                processData: false,
-                contentType: false
-            }).then((data, textStatus, jqXHR) => {
-                resolve(data);
-            }).catch((jqXHR) => {
-                const errorData = JSON.parse(jqXHR.responseText);
-                errorData.httpCode = jqXHR.status;
-                reject(errorData);
-            });
-        });
+    static markup() {
+        return `
+        <form id="js-connect-object-form">
+        <select name="connected_object" id="js-select-connected-object"></select>
+        <br>
+        <select name="join_type" id="js-select-join-type">
+            <option>With</option>
+            <option>Without</option>
+            <option>With/Without</option>
+        </select>
+        <br>
+        <select style="display:none" name="connected_property" id="js-select-property"></select>
+        <br>
+        <button type="button" class="btn-primary btn w-100 js-apply-connected-object-button">Connect Object</button>
+        </form>
+        
+    `;
     }
 }
 

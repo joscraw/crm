@@ -379,6 +379,67 @@ class PropertyController extends ApiController
     }
 
     /**
+     * @Route("/get-from-objects", name="get_properties_from_multiple_objects", methods={"POST"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param CustomObject $customObject
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getPropertiesFromMultipleObjectsAction(Portal $portal, CustomObject $customObject, Request $request) {
+
+        /**
+         * To see the JSON structure being used in reports see the below file
+         * https://jsoncompare.com/#!/simple/id=7b48824006f64ac81539d6f44b0c9fdd/
+         * @var array $data
+         */
+        $data = $request->request->get('data');
+
+        // Loop through the data set and find all the properties that relate to the objects including the  main custom object
+        // This could be task intensive. We might want a better way of doing this.
+        $propertyGroupsArray = [];
+        if(!empty($data['joins'])) {
+            foreach($data['joins'] as $uid => $join) {
+                $customObject = $this->customObjectRepository->find($join['connectable_object']['id']);
+                $propertyGroups = $this->propertyGroupRepository->getPropertyGroupsAndProperties($customObject);
+                foreach($propertyGroups as $propertyGroup) {
+                    $propertyGroupsArray[] = $propertyGroup;
+                }
+            }
+        }
+
+        $payload['property_groups'] = [];
+        $json = $this->serializer->serialize($propertyGroupsArray, 'json', ['groups' => ['SELECTABLE_PROPERTIES']]);
+        $payload['property_groups'] = json_decode($json, true);
+
+        return new JsonResponse([
+            'success' => true,
+            'data'  => $payload
+        ], Response::HTTP_OK);
+    }
+
+    /**
+     * @Route("/object/{internalName}/connectable", name="get_connectable_properties", methods={"GET"}, options = { "expose" = true })
+     * @param CustomObject $customObject
+     * @param Portal $portal
+     * @param Request $request
+     * @return Response
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    public function getConnectablePropertiesAction(CustomObject $customObject, Portal $portal, Request $request) {
+        $customObjectId = $request->query->get('customObjectId');
+        $connectableCustomObject = $this->customObjectRepository->find($customObjectId);
+        $properties = $this->propertyRepository->getConnectableProperties($customObject, $connectableCustomObject);
+        $payload = [];
+        $json = $this->serializer->serialize($properties, 'json', ['groups' => ['SELECTABLE_PROPERTIES']]);
+        $payload['properties'] = json_decode($json, true);
+        $response = new JsonResponse([
+            'success' => true,
+            'data'  => $payload,
+        ],  Response::HTTP_OK);
+        return $response;
+    }
+
+    /**
      * @Route("/{internalName}/get-default-properties", name="get_default_properties", methods={"GET"}, options = { "expose" = true })
      * @param Portal $portal
      * @param CustomObject $customObject

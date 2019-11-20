@@ -222,6 +222,56 @@ class RecordRepository extends ServiceEntityRepository
     /**
      * @param $data
      * @param CustomObject $customObject
+     * @param $columnOrder
+     * @return string
+     */
+    public function newReportLogicBuilder($data, CustomObject $customObject, $columnOrder)
+    {
+
+        $this->data = $data;
+
+        // Setup fields for select
+        $resultStr = $this->fields($columnOrder);
+        $resultStr = implode(",",$resultStr);
+
+        // Setup Joins
+        $joins = [];
+        $joins = $this->newJoinLogicBuilder($data, $joins);
+        $joinString = implode(" ", $joins);
+
+        // Setup Filters
+        $filters = [];
+        /*$filters = $this->filters($data, $filters);*/
+        $filterString = implode(" OR ", $filters);
+
+        $filterString = empty($filters) ? '' : "AND $filterString";
+
+        $query = sprintf("SELECT DISTINCT root.id, %s from record root %s WHERE root.custom_object_id='%s' %s", $resultStr, $joinString, $customObject->getId(), $filterString);
+
+        return $query;
+    }
+
+    private function newJoinLogicBuilder(&$data, &$joins = [], $lastJoin = null)
+    {
+        foreach ($data['joins'] as $alias => $joinData) {
+            $connectedObject = $joinData['connected_object'];
+            $connectedProperty = $joinData['connected_property'];
+            $join = $joinData['join'];
+            $joinType = $joinData['join_type'];
+            $joins[] = sprintf(
+                $this->getCrossJoinQuery(),
+                $alias,
+                'root',
+                $alias,
+                $connectedProperty['internalName']
+            );
+        }
+        return $joins;
+    }
+
+    /**
+     * @param $data
+     * @param CustomObject $customObject
      * @return array
      * @throws \Doctrine\DBAL\DBALException
      */
@@ -1610,6 +1660,20 @@ HERE;
     /* Given the id "11" This second statement matches: {"property_name": "11;12;13"} */
     OR `%s`.properties->>'$.%s' REGEXP concat('^', `%s`.id, ';') 
 
+HERE;
+    }
+
+    /**
+     * We store relations to a single object as a string.
+     * We store relations to multiple objects as a semicolon delimited string
+     * Single object example: {chapter: "11"}
+     * Multiple object example: {chapter: "11;12;13"}
+     * @return string
+     */
+    private function getCrossJoinQuery() {
+        return <<<HERE
+    /* Given the id "11" This first statement matches: {"property_name": "11"} */
+    INNER JOIN record `%s` on `%s`.id REGEXP concat('^', `%s`.properties->>'$.%s', '$')
 HERE;
     }
 }

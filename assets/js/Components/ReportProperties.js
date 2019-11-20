@@ -44,6 +44,7 @@ class ReportProperties {
         this.data = data;
         this.columnOrder = columnOrder;
         this.reportPropertiesEventDispatcher = new EventDispatcher();
+        this.connectedObjects = [];
 
         this.unbindEvents();
         this.bindEvents();
