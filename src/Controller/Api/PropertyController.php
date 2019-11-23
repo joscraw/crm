@@ -364,14 +364,28 @@ class PropertyController extends ApiController
      * @return JsonResponse
      */
     public function getPropertiesAction(Portal $portal, CustomObject $customObject, Request $request) {
-
+        $excludeCustomObjects = $request->query->get('excludeCustomObjects', false);
+        $includeGroupingLabel = $request->query->get('includeGroupingLabel', false);
         $propertyGroups = $this->propertyGroupRepository->getPropertyGroupsAndProperties($customObject);
+        if($excludeCustomObjects) {
+            foreach($propertyGroups as $propertyGroup) {
+                /** @var PropertyGroup $propertyGroup */
+                $properties = $propertyGroup->getProperties()->filter(function(Property $property) {
+                    return $property->getFieldType() !== FieldCatalog::CUSTOM_OBJECT;
 
+                });
+                $propertyGroup->setProperties($properties);
+            }
+        }
         $payload['property_groups'] = [];
-
         $json = $this->serializer->serialize($propertyGroups, 'json', ['groups' => ['SELECTABLE_PROPERTIES']]);
-        $payload['property_groups'] = json_decode($json, true);
-
+        $propertyGroups = json_decode($json, true);
+        if($includeGroupingLabel) {
+            foreach($propertyGroups as $propertyGroup) {
+                $propertyGroup['grouping_label'] = sprintf("%s - %s", $customObject->getLabel(), $propertyGroup['name']);
+            }
+        }
+        $payload['property_groups'] = $propertyGroups;
         return new JsonResponse([
             'success' => true,
             'data'  => $payload
@@ -384,33 +398,38 @@ class PropertyController extends ApiController
      * @param CustomObject $customObject
      * @param Request $request
      * @return JsonResponse
+     * @throws \Doctrine\DBAL\DBALException
      */
     public function getPropertiesFromMultipleObjectsAction(Portal $portal, CustomObject $customObject, Request $request) {
-
+        /**
+         * An array of all possible available properties. NO Duplicates though!
+         * @var array $availableProperties
+         */
+        $availableProperties = [];
         /**
          * To see the JSON structure being used in reports see the below file
          * https://jsoncompare.com/#!/simple/id=7b48824006f64ac81539d6f44b0c9fdd/
          * @var array $data
          */
         $data = $request->request->get('data');
-
-        // Loop through the data set and find all the properties that relate to the objects including the  main custom object
-        // This could be task intensive. We might want a better way of doing this.
-        $propertyGroupsArray = [];
+        $customObjectIds = [];
         if(!empty($data['joins'])) {
             foreach($data['joins'] as $uid => $join) {
-                $customObject = $this->customObjectRepository->find($join['connectable_object']['id']);
-                $propertyGroups = $this->propertyGroupRepository->getPropertyGroupsAndProperties($customObject);
-                foreach($propertyGroups as $propertyGroup) {
-                    $propertyGroupsArray[] = $propertyGroup;
-                }
+                $customObjectIds[] = $join['connected_object']['id'];
             }
         }
-
+        $availableProperties = $this->propertyRepository->getForReport($customObjectIds);
+        for($i = 0; $i < count($availableProperties); $i++) {
+            $availableProperties[$i]['field'] = json_decode($availableProperties[$i]['field'], true);
+        }
         $payload['property_groups'] = [];
-        $json = $this->serializer->serialize($propertyGroupsArray, 'json', ['groups' => ['SELECTABLE_PROPERTIES']]);
-        $payload['property_groups'] = json_decode($json, true);
-
+        for($i = 0; $i < count($availableProperties); $i++) {
+            $availableProperty = $availableProperties[$i];
+            $payload['property_groups'][$availableProperty['property_group_id']]['id'] = $availableProperty['property_group_id'];
+            $payload['property_groups'][$availableProperty['property_group_id']]['name'] = $availableProperty['property_group_name'];
+            $payload['property_groups'][$availableProperty['property_group_id']]['grouping_label'] = $availableProperty['grouping_label'];
+            $payload['property_groups'][$availableProperty['property_group_id']]['properties'][] = $availableProperty;
+        }
         return new JsonResponse([
             'success' => true,
             'data'  => $payload

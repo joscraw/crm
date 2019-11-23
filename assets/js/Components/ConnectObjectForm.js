@@ -27,6 +27,7 @@ class ConnectObjectForm {
         this.customObjectInternalName = customObjectInternalName;
         this.connectedObjects = [];
         this.connectedProperties = [];
+        this.propertySelect = null;
 
         this.$wrapper.on(
             'click',
@@ -97,13 +98,27 @@ class ConnectObjectForm {
                 let option = this.connectedProperties[i];
                 options.push({value: option.id, name: option.label});
             }
-            $('#js-select-property').selectize({
-                valueField: 'value',
-                labelField: 'name',
-                searchField: ['name'],
-                options: options,
-                placeholder: 'Select a property to join on.'
-            });
+
+            debugger;
+          if(!this.propertySelect) {
+              this.propertySelect = $('#js-select-property').selectize({
+                  valueField: 'value',
+                  labelField: 'name',
+                  searchField: ['name'],
+                  options: options,
+                  placeholder: 'Select a property to join on.'
+              });
+          } else {
+              debugger;
+
+              this.propertySelect.selectize()[0].selectize.clear();
+              this.propertySelect.selectize()[0].selectize.clearOptions();
+
+              for(var i = 0; i < options.length; i++) {
+                  this.propertySelect.selectize()[0].selectize.addOption(options[i]);
+                  this.propertySelect.selectize()[0].selectize.addItem(i);
+              }
+          }
         });
     }
 

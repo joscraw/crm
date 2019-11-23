@@ -127,22 +127,13 @@ class CustomObjectController extends ApiController
      * @throws \Doctrine\DBAL\DBALException
      */
     public function getConnectableObjectsAction(CustomObject $customObject, Portal $portal, Request $request) {
-
         $customObjects = $this->customObjectRepository->getConnectableObjects($customObject);
-
         $payload = [];
-        $payload['custom_objects'] = [];
-
-        foreach($customObjects as $customObject) {
-            $json = $this->serializer->serialize($customObject, 'json', ['groups' => ['CUSTOM_OBJECTS_FOR_FILTER']]);
-            $payload['custom_objects'][] = json_decode($json, true);
-        }
-
+        $payload['custom_objects'] = $customObjects;
         $response = new JsonResponse([
             'success' => true,
             'data'  => $payload,
         ],  Response::HTTP_OK);
-
         return $response;
     }
 

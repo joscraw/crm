@@ -33,7 +33,7 @@ import ReportConnectObjectButton from "./ReportConnectObjectButton";
 
 class ReportProperties {
 
-    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, data, columnOrder) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, data, columnOrder, customObject = {}) {
 
         debugger;
 
@@ -45,6 +45,7 @@ class ReportProperties {
         this.columnOrder = columnOrder;
         this.reportPropertiesEventDispatcher = new EventDispatcher();
         this.connectedObjects = [];
+        this.customObject = customObject;
 
         this.unbindEvents();
         this.bindEvents();
@@ -172,7 +173,7 @@ class ReportProperties {
 
         this.$wrapper.html(ReportProperties.markup(this));
 
-        new ReportPropertyList($(ReportProperties._selectors.reportPropertyListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, null, [], this.data);
+        new ReportPropertyList($(ReportProperties._selectors.reportPropertyListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, null, [], this.data, this.customObject);
 
         new ReportConnectObjectButton($(ReportProperties._selectors.reportConnectableObjectsContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);
 

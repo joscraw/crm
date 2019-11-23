@@ -59,6 +59,12 @@ class ReportWidget {
             joins: {},
         };
 
+        /**
+         * This array holds all the available properties even after other objects are connected through the relationship
+         * @type {Array}
+         */
+        this.availableProperties = [];
+
         this.unbindEvents();
 
         this.globalEventDispatcher.subscribe(
@@ -176,7 +182,7 @@ class ReportWidget {
     handleReportBackToPropertiesButtonPressed() {
         this.$wrapper.find(ReportWidget._selectors.reportFiltersContainer).addClass('d-none');
         this.$wrapper.find(ReportWidget._selectors.reportPropertiesContainer).removeClass('d-none');
-        new ReportProperties($(ReportWidget._selectors.reportPropertiesContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject.internalName, this.data, this.columnOrder);
+        new ReportProperties($(ReportWidget._selectors.reportPropertiesContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject.internalName, this.data, this.columnOrder, this.customObject);
     }
 
     handleReportAdvanceToFiltersViewButtonClicked(e) {
@@ -194,7 +200,7 @@ class ReportWidget {
         this.customObject = customObject;
         this.$wrapper.find(ReportWidget._selectors.reportSelectCustomObjectContainer).addClass('d-none');
         this.$wrapper.find(ReportWidget._selectors.reportPropertiesContainer).removeClass('d-none');
-        new ReportProperties($(ReportWidget._selectors.reportPropertiesContainer), this.globalEventDispatcher, this.portalInternalIdentifier, customObject.internalName, this.data, this.columnOrder);
+        new ReportProperties($(ReportWidget._selectors.reportPropertiesContainer), this.globalEventDispatcher, this.portalInternalIdentifier, customObject.internalName, this.data, this.columnOrder, this.customObject);
     }
 
     handleReportColumnOrderChanged(columnOrder) {
@@ -301,28 +307,17 @@ class ReportWidget {
 
     handleReportObjectConnected(connectedData) {
         debugger;
-        // We need to start setting up the JSON structure for the reporting and the filtering
-        this.newData = {
-            name: 'root',
-            properties: {},
-            filters: {},
-            joins: {},
-        };
         // make sure every join has a joins object itself so there can be nested joins
         if(!_.has(connectedData, 'joins')) {
             _.set(connectedData, 'joins', {});
-        }
-        // make sure to specify what type of join it is that way we know how to structure it on the server
-        if(!_.has(connectedData, 'join')) {
-            _.set(connectedData, 'join', 'cross_join');
         }
         let uID = StringHelper.makeCharId();
         _.set(this.newData.joins, uID, connectedData);
         debugger;
         // Make sure this even talks to the ReportPropertyList and updates the visible properties that are displayed.
         // Make sure you attach the uID to each property so we know which join it is attached to
-        /*this.globalEventDispatcher.publish(Settings.Events.REPORT_OBJECT_CONNECTED_JSON_UPDATED, data);*/
-        this._saveReport();
+        this.globalEventDispatcher.publish(Settings.Events.REPORT_OBJECT_CONNECTED_JSON_UPDATED, this.newData);
+        /*this._saveReport();*/
     }
 
     render() {

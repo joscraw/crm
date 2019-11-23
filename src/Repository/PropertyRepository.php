@@ -343,7 +343,11 @@ class PropertyRepository extends ServiceEntityRepository
 
         $query = sprintf("Select p.id from property p inner join 
                     custom_object co on p.custom_object_id = co.id where p.field_type = 'custom_object_field' and 
-                    p.custom_object_id = '%s' and p.field->'$.customObject.internalName' = '%s'", $connectableCustomObject->getId(), $customObject->getInternalName());
+                    p.custom_object_id = '%s'", $connectableCustomObject->getId());
+
+        if($customObject->getId() !== $connectableCustomObject->getId()) {
+            $query .= sprintf(" and p.field->'$.customObject.internalName' = '%s'", $customObject->getInternalName());
+        }
 
         $em = $this->getEntityManager();
         $stmt = $em->getConnection()->prepare($query);
@@ -369,4 +373,30 @@ class PropertyRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    /**
+     * @param $customObjectIds
+     * @return mixed[]
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    public function getForReport($customObjectIds) {
+        $conditionals = [];
+        foreach($customObjectIds as $customObjectId) {
+            $conditionals[] = sprintf("co.id = '%s'", $customObjectId);
+        }
+        $query = sprintf("select p.id, p.field_type, p.internal_name, p.label, p.field, 
+                pg.name as property_group_name, pg.id as property_group_id, 
+                co.label as custom_object_label, CONCAT(co.label, ' - ', pg.name) 
+                as grouping_label from property p 
+                inner join custom_object co on co.id = p.custom_object_id
+                inner join property_group pg on pg.id = p.property_group_id Where (%s)
+                and p.field_type != 'custom_object_field'", implode(" OR ", $conditionals));
+        $em = $this->getEntityManager();
+        $stmt = $em->getConnection()->prepare($query);
+        $stmt->execute();
+        $results = $stmt->fetchAll();
+        if(empty($results)) {
+            return [];
+        }
+        return $results;
+    }
 }

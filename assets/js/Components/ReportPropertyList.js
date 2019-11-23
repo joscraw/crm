@@ -7,10 +7,11 @@ import PropertySearch from "./PropertySearch";
 import List from "list.js";
 import SingleLineTextFieldFilterForm from "./SingleLineTextFieldFilterForm";
 import ColumnSearch from "./ColumnSearch";
+import StringHelper from "../StringHelper";
 
 class ReportPropertyList {
 
-    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, join = null, joins = [], data = {}) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, join = null, joins = [], data = {}, customObject = {}) {
         debugger;
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
@@ -20,6 +21,10 @@ class ReportPropertyList {
         this.joins = joins;
         this.lists = [];
         this.data = data;
+        let uID = StringHelper.makeCharId();
+        // set up the initial object to pull down associated properties
+        let initialData = {joins: {}};
+        _.set(initialData.joins, uID, {connected_object: customObject});
 
         this.unbindEvents();
 
@@ -44,7 +49,7 @@ class ReportPropertyList {
             ));
 
         this.render();
-        this.loadProperties();
+        this.refreshPropertyList(initialData)
     }
 
     /**
@@ -139,8 +144,8 @@ class ReportPropertyList {
     }
 
     refreshPropertyList(data) {
-        debugger;
         this.loadPropertiesForAllObjects(data).then((data) => {
+            debugger;
             this.propertyGroups = data.data.property_groups;
             this.renderProperties(this.propertyGroups).then(() => {
                 debugger;
@@ -151,7 +156,9 @@ class ReportPropertyList {
 
     loadPropertiesForAllObjects(data) {
         return new Promise((resolve, reject) => {
-            const url = Routing.generate('get_properties_from_multiple_objects', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
+            const url = Routing.generate('get_properties_from_multiple_objects', {
+                internalIdentifier: this.portalInternalIdentifier,
+                internalName: this.customObjectInternalName});
             $.ajax({
                 url: url,
                 method: 'POST',
@@ -232,10 +239,9 @@ class ReportPropertyList {
 
     renderProperties(propertyGroups) {
         let $propertyList = this.$wrapper.find(ReportPropertyList._selectors.propertyList);
-        $propertyList.html("");
         return new Promise((resolve, reject) => {
-            for(let i = 0; i < propertyGroups.length; i++) {
-                let propertyGroup = propertyGroups[i];
+            for(let propertyGroupId in propertyGroups) {
+                let propertyGroup = propertyGroups[propertyGroupId];
                 let properties = propertyGroup.properties;
                 this._addList(propertyGroup, properties);
             }
@@ -245,7 +251,10 @@ class ReportPropertyList {
 
     loadPropertiesForReport() {
         return new Promise((resolve, reject) => {
-            const url = Routing.generate('get_properties', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
+            const url = Routing.generate('get_properties', {
+                    internalIdentifier: this.portalInternalIdentifier,
+                    internalName: this.customObjectInternalName
+                }) + "?excludeCustomObjects=true&includeGroupingLabel=true";
             $.ajax({
                 url: url
             }).then(data => {
@@ -263,6 +272,7 @@ class ReportPropertyList {
      * @private
      */
     _addList(propertyGroup, properties) {
+        debugger;
         let $propertyList = this.$wrapper.find(ReportPropertyList._selectors.propertyList);
         const html = listTemplate(propertyGroup);
         const $list = $($.parseHTML(html));
@@ -270,7 +280,7 @@ class ReportPropertyList {
         var options = {
             valueNames: [ 'label' ],
             // Since there are no elements in the list, this will be used as template.
-            item: `<li class="js-property-list-item c-report-widget__list-item"><span class="label"></span></li>`
+            item: `<li class="js-property-list-item c-report-widget__list-item"><span class="label"></span><i class="fa fa-plus js-add-property" style="float: right"></i> <i class="fa fa-filter" style="float: right"></li>`
         };
         this.lists.push(new List(`list-property-${propertyGroup.id}`, options, properties));
         $( `#list-property-${propertyGroup.id} li` ).each((index, element) => {
@@ -297,9 +307,9 @@ class ReportPropertyList {
     }
 }
 
-const listTemplate = ({id, name}) => `
+const listTemplate = ({id, grouping_label}) => `
     <div id="list-property-${id}">
-      <p>${name}</p>
+      <p>${grouping_label}</p>
       <ul class="js-list list c-report-widget__list" data-property-group="${id}"></ul>
     </div>
     
