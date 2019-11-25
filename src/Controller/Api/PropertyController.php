@@ -412,15 +412,24 @@ class PropertyController extends ApiController
          * @var array $data
          */
         $data = $request->request->get('data');
-        $customObjectIds = [];
+        $uids = [];
         if(!empty($data['joins'])) {
             foreach($data['joins'] as $uid => $join) {
-                $customObjectIds[] = $join['connected_object']['id'];
+                if(!empty($join['connected_object']['join_direction']) &&  $join['connected_object']['join_direction'] === 'normal_join') {
+                    $uids[$join['connected_object']['id']] = $join['connected_object']['internal_name'];
+                    $uids[$join['connected_property']['field']['customObject']['id']] = $uid;
+                } else if(!empty($join['connected_object']['join_direction']) &&  $join['connected_object']['join_direction'] === 'cross_join') {
+                    $uids[$customObject->getId()] = $customObject->getInternalName();
+                    $uids[$join['connected_object']['id']] = $uid;
+                } else {
+                    $uids[$customObject->getId()] = $customObject->getInternalName();
+                }
             }
         }
-        $availableProperties = $this->propertyRepository->getForReport($customObjectIds);
+        $availableProperties = $this->propertyRepository->getForReport(array_keys($uids));
         for($i = 0; $i < count($availableProperties); $i++) {
             $availableProperties[$i]['field'] = json_decode($availableProperties[$i]['field'], true);
+            $availableProperties[$i]['uid'] = $uids[$availableProperties[$i]['custom_object_id']];
         }
         $payload['property_groups'] = [];
         for($i = 0; $i < count($availableProperties); $i++) {

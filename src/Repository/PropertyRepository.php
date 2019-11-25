@@ -385,7 +385,7 @@ class PropertyRepository extends ServiceEntityRepository
         }
         $query = sprintf("select p.id, p.field_type, p.internal_name, p.label, p.field, 
                 pg.name as property_group_name, pg.id as property_group_id, 
-                co.label as custom_object_label, CONCAT(co.label, ' - ', pg.name) 
+                co.label as custom_object_label, co.id as custom_object_id, CONCAT(co.label, ' - ', pg.name) 
                 as grouping_label from property p 
                 inner join custom_object co on co.id = p.custom_object_id
                 inner join property_group pg on pg.id = p.property_group_id Where (%s)

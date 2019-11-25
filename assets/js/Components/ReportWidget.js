@@ -198,6 +198,7 @@ class ReportWidget {
             this.columnOrder = [];
         }
         this.customObject = customObject;
+        this.newData.name = customObject.internalName;
         this.$wrapper.find(ReportWidget._selectors.reportSelectCustomObjectContainer).addClass('d-none');
         this.$wrapper.find(ReportWidget._selectors.reportPropertiesContainer).removeClass('d-none');
         new ReportProperties($(ReportWidget._selectors.reportPropertiesContainer), this.globalEventDispatcher, this.portalInternalIdentifier, customObject.internalName, this.data, this.columnOrder, this.customObject);
@@ -211,7 +212,16 @@ class ReportWidget {
     }
 
     handlePropertyListItemClicked(property) {
-        let uID = StringHelper.makeCharId();
+        debugger;
+        _.set(this.newData.properties, property.id, property);
+
+        debugger;
+        this._saveReport().then((data) => {
+            debugger;
+            this.globalEventDispatcher.publish('TEST', data, this.newData.properties);
+        });
+
+       /* let uID = StringHelper.makeCharId();
         _.set(property, 'uID', uID);
         let propertyPath = property.joins.join('.');
         this.columnOrder.push(property);
@@ -221,7 +231,7 @@ class ReportWidget {
             _.set(this.data, propertyPath, {});
             _.set(this.data, `${propertyPath}[${uID}]`, property);
         }
-        this.globalEventDispatcher.publish(Settings.Events.REPORT_PROPERTY_LIST_ITEM_ADDED, this.data, this.columnOrder);
+        this.globalEventDispatcher.publish(Settings.Events.REPORT_PROPERTY_LIST_ITEM_ADDED, this.data, this.columnOrder);*/
     }
 
     handleReportRemoveFilterButtonPressed(joinPath) {
@@ -313,11 +323,13 @@ class ReportWidget {
         }
         let uID = StringHelper.makeCharId();
         _.set(this.newData.joins, uID, connectedData);
+        // set the root custom object to start the query on
+        _.set(this.newData, 'name', this.customObject.internalName);
         debugger;
         // Make sure this even talks to the ReportPropertyList and updates the visible properties that are displayed.
         // Make sure you attach the uID to each property so we know which join it is attached to
-        this.globalEventDispatcher.publish(Settings.Events.REPORT_OBJECT_CONNECTED_JSON_UPDATED, this.newData);
-        /*this._saveReport();*/
+        this.globalEventDispatcher.publish(Settings.Events.REPORT_OBJECT_CONNECTED_JSON_UPDATED, this.newData, true);
+        this._saveReport();
     }
 
     render() {

@@ -154,9 +154,16 @@ class ReportController extends ApiController
 
         $columnOrder = $request->request->get('columnOrder', []);
 
-        $query = $this->recordRepository->newReportLogicBuilder($data, $customObject, $columnOrder);
+        $results = $this->recordRepository->newReportLogicBuilder($data, $customObject, $columnOrder);
 
-        $report = new Report();
+        $response = new JsonResponse([
+            'success' => true,
+            'data'  => $results['results']
+        ], Response::HTTP_OK);
+
+        return $response;
+
+     /*   $report = new Report();
         $report->setQuery($query);
         $report->setCustomObject($customObject);
         $report->setData($data);
@@ -165,7 +172,7 @@ class ReportController extends ApiController
         $report->setColumnOrder($columnOrder);
 
         $this->entityManager->persist($report);
-        $this->entityManager->flush();
+        $this->entityManager->flush();*/
 
         $response = new JsonResponse([
             'success' => true

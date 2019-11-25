@@ -30,6 +30,7 @@ import ReportFilters from "./ReportFilters";
 import EventDispatcher from "../EventDispatcher";
 import ReportConnectableObjects from "./ReportConnectableObjects";
 import ReportConnectObjectButton from "./ReportConnectObjectButton";
+import ReportPreviewResultsTable from "./ReportPreviewResultsTable";
 
 class ReportProperties {
 
@@ -164,24 +165,25 @@ class ReportProperties {
     }
 
     handleReportBackToSelectCustomObjectButton(e) {
-
         this.globalEventDispatcher.publish(Settings.Events.REPORT_BACK_TO_SELECT_CUSTOM_OBJECT_BUTTON_PRESSED, this.data);
-
     }
 
     render() {
 
+        debugger;
         this.$wrapper.html(ReportProperties.markup(this));
 
         new ReportPropertyList($(ReportProperties._selectors.reportPropertyListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, null, [], this.data, this.customObject);
 
         new ReportConnectObjectButton($(ReportProperties._selectors.reportConnectableObjectsContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);
 
+        new ReportPreviewResultsTable($(ReportProperties._selectors.reportSelectedColumnsCountContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, this.data, this.columnOrder);
+
         /*new ReportConnectableObjects($(ReportProperties._selectors.reportConnectableObjectsContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, null, [], this.data);*/
 
-        new ReportSelectedColumns(this.$wrapper.find(ReportProperties._selectors.reportSelectedColumnsContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.data, this.columnOrder);
+        /*new ReportSelectedColumns(this.$wrapper.find(ReportProperties._selectors.reportSelectedColumnsContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.data, this.columnOrder);*/
 
-        new ReportSelectedColumnsCount(this.$wrapper.find(ReportProperties._selectors.reportSelectedColumnsCountContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.data, this.columnOrder);
+       /* new ReportSelectedColumnsCount(this.$wrapper.find(ReportProperties._selectors.reportSelectedColumnsCountContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.data, this.columnOrder);*/
     }
 
     static markup({customObjectInternalName}) {
@@ -193,18 +195,18 @@ class ReportProperties {
              </nav> 
         
             <div class="row container">
-                <div class="col-md-12">Reporting on ${customObjectInternalName}</div>
                 <div class="col-md-4">
+                <h2>Reporting on ${customObjectInternalName}</h2>
                     <div class="col-md-12 js-report-property-list-container"></div>
                     <div class="col-md-12 js-report-connectable-objects"></div>
                     
-                    <div class="col-md-12">
+                <!--    <div class="col-md-12">
                         <ul class="list-group">
                           <li class="list-group-item">Connect <strong>Chapter</strong> with <strong>Chapter Officer</strong></li>
                           <li class="list-group-item">Connect <strong>Chapter</strong> without <strong>Chapter Leader</strong></li>
                           <li class="list-group-item">Connect <strong>Chapter</strong> with/without <strong>Chapter Ambassador</strong></li>
                         </ul>
-                    </div>
+                    </div>-->
                     
                     
                 </div>

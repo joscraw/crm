@@ -30,7 +30,7 @@ class ReportPropertyList {
 
         this.bindEvents();
 
-        this.globalEventDispatcher.addRemovableToken(
+     /*   this.globalEventDispatcher.addRemovableToken(
             this.globalEventDispatcher.subscribe(
             Settings.Events.REPORT_PROPERTY_LIST_ITEM_ADDED,
             this.handlePropertyListItemAdded.bind(this)
@@ -40,7 +40,7 @@ class ReportPropertyList {
             this.globalEventDispatcher.subscribe(
             Settings.Events.REPORT_PROPERTY_LIST_ITEM_REMOVED,
             this.handlePropertyListItemRemoved.bind(this)
-        ));
+        ));*/
 
         this.globalEventDispatcher.addRemovableToken(
             this.globalEventDispatcher.subscribe(
@@ -143,13 +143,13 @@ class ReportPropertyList {
         });
     }
 
-    refreshPropertyList(data) {
+    refreshPropertyList(data, refreshView = false) {
         this.loadPropertiesForAllObjects(data).then((data) => {
             debugger;
             this.propertyGroups = data.data.property_groups;
             this.renderProperties(this.propertyGroups).then(() => {
                 debugger;
-                this.highlightProperties(this.data);
+                /*this.highlightProperties(this.data);*/
             })
         });
     }
@@ -212,33 +212,36 @@ class ReportPropertyList {
     }
 
     handlePropertyListItemClicked(e) {
+        debugger;
         if(e.cancelable) {
             e.preventDefault();
         }
-        const $listItem = $(e.currentTarget);
+        const $listItem = $(e.currentTarget).parent('li');
         if($listItem.hasClass('c-report-widget__list-item--active')) {
             return;
         }
         let propertyGroupId = $listItem.closest(ReportPropertyList._selectors.list).attr('data-property-group');
         let propertyId = $listItem.attr('data-property-id');
         let joins = JSON.parse($listItem.attr('data-joins'));
-        let propertyGroup = this.propertyGroups.filter(propertyGroup => {
-            return parseInt(propertyGroup.id) === parseInt(propertyGroupId);
-        });
-        let properties = propertyGroup[0].properties;
+
+        let propertyGroup = this.propertyGroups[propertyGroupId];
+        let properties = propertyGroup.properties;
         let property = properties.filter(property => {
             return parseInt(property.id) === parseInt(propertyId);
         });
-        property[0].joins = joins;
+
+        this.globalEventDispatcher.publish(Settings.Events.REPORT_PROPERTY_LIST_ITEM_CLICKED, property[0]);
+       /* property[0].joins = joins;
         if(property[0].fieldType === 'custom_object_field') {
             this.globalEventDispatcher.publish(Settings.Events.REPORT_CUSTOM_OBJECT_PROPERTY_LIST_ITEM_CLICKED, property[0], joins);
         } else {
             this.globalEventDispatcher.publish(Settings.Events.REPORT_PROPERTY_LIST_ITEM_CLICKED, property[0]);
-        }
+        }*/
     }
 
     renderProperties(propertyGroups) {
         let $propertyList = this.$wrapper.find(ReportPropertyList._selectors.propertyList);
+        $propertyList.empty();
         return new Promise((resolve, reject) => {
             for(let propertyGroupId in propertyGroups) {
                 let propertyGroup = propertyGroups[propertyGroupId];
@@ -280,7 +283,7 @@ class ReportPropertyList {
         var options = {
             valueNames: [ 'label' ],
             // Since there are no elements in the list, this will be used as template.
-            item: `<li class="js-property-list-item c-report-widget__list-item"><span class="label"></span><i class="fa fa-plus js-add-property" style="float: right"></i> <i class="fa fa-filter" style="float: right"></li>`
+            item: `<li class="c-report-widget__list-item"><span class="label"></span><i class="fa fa-plus js-property-list-item" style="float: right"></i> <i class="fa fa-filter" style="float: right"></li>`
         };
         this.lists.push(new List(`list-property-${propertyGroup.id}`, options, properties));
         $( `#list-property-${propertyGroup.id} li` ).each((index, element) => {
@@ -296,7 +299,9 @@ class ReportPropertyList {
 
     static markup() {
         return `
+        <!--
             <button type="button" class="btn btn-link js-back-button"><i class="fa fa-chevron-left"></i> Back</button>
+            -->
             <h4>Available Properties</h4>
             <div class="input-group c-search-control">
               <input class="form-control c-search-control__input js-search" type="search" placeholder="Search...">

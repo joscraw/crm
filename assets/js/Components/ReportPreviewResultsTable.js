@@ -23,6 +23,8 @@ class ReportPreviewResultsTable {
      */
     constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, data, columnOrder) {
 
+        debugger;
+        console.log("table");
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
@@ -30,13 +32,12 @@ class ReportPreviewResultsTable {
         this.data = data;
         this.columnOrder = columnOrder;
 
-        this.globalEventDispatcher.addRemovableToken(
-            this.globalEventDispatcher.subscribe(
-            Settings.Events.REPORT_PREVIEW_RESULTS_BUTTON_CLICKED,
-            this.handleReportPreviewResultsButtonClicked.bind(this)
-        ));
+        this.globalEventDispatcher.subscribe(Settings.Events.REPORT_PREVIEW_RESULTS_BUTTON_CLICKED, this.handleReportPreviewResultsButtonClicked.bind(this));
+
+        this.globalEventDispatcher.subscribe('TEST', this.handleReportPreviewResultsButtonClicked.bind(this));
 
         this.render();
+        this.activatePlugins();
 
     }
 
@@ -46,14 +47,16 @@ class ReportPreviewResultsTable {
 
     }
 
-    handleReportPreviewResultsButtonClicked() {
+    handleReportPreviewResultsButtonClicked(data, columns) {
+        console.log("preview table update");
+        debugger;
+        this.table.destroy();
+        this.activatePlugins(data.data, columns);
 
-        this.loadReportPreview().then((data) => {
-
+       /* this.loadReportPreview().then((data) => {
             this.activatePlugins(data.data, this.columnOrder);
-
         });
-
+*/
     }
 
     loadReportPreview() {
@@ -77,17 +80,66 @@ class ReportPreviewResultsTable {
         });
     }
 
-    activatePlugins(data, columnOrder) {
+    activatePlugins(data = {}, columns = {}) {
+        let datatableColumns = [];
+        if(_.isEmpty(data)) {
+            data = [];
+        }
+        // Setup some default display data if columns is empty
+        if(_.isEmpty(columns)) {
+            datatableColumns = [{
+                data: 'Select property on the left to get started...',
+                name: 'Select property on the left to get started...',
+                title: 'Select property on the left to get started...'
+            }];
+        } else {
+            debugger;
+            for(let key in columns) {
+                debugger;
+                let column = columns[key];
+                datatableColumns.push({data: column.internal_name, name: column.internal_name, title: column.internal_name});
+            }
+            debugger;
+        }
 
-        let columns = [];
+   /*     if(datatableColumns.length === 2) {
+            datatableColumns = [
+                {data: 'first_name', name: 'first_name', title: 'first_name'},
+                {data: 'last_name', name: 'last_name', title: 'last_name'}
+            ];
+            data = [
+                {'first_name' : 'josh', 'last_name' : 'Crawmer'}
+            ];
+        }*/
 
-        for(let c of columnOrder) {
+        debugger;
+   /*     datatableColumns = [
+            {data: 'first_name', name: 'first_name', title: 'first_name'},
+            {data: 'last_name', name: 'last_name', title: 'last_name'}
+        ];
+        data = [
+            {'first_name' : 'josh', 'last_name' : 'Crawmer'}
+        ];
+*/
+   /*     data = [
+            {'first_name' : 'josh', 'last_name' : 'Crawmer'}
+        ];
+
+        datatableColumns = [
+            {data: 'first_name', name: 'first_name', title: 'first_name'},
+            {data: 'last_name', name: 'last_name', title: 'last_name'}
+        ];*/
+
+      /*  for(let c of columnOrder) {
 
             columns.push({data: c.internalName, name: c.internalName, title: c.label});
 
         }
+*/
+        $('#reportPreviewResultsTable thead').empty();
+        $('#reportPreviewResultsTable tbody').empty();
 
-        $('#reportPreviewResultsTable').DataTable({
+        this.table = $('#reportPreviewResultsTable').DataTable({
             "paging": true,
             "destroy": true,
             "responsive": true,
@@ -111,7 +163,7 @@ class ReportPreviewResultsTable {
             https://datatables.net/reference/option/dom
             */
             /*"dom": "rt",*/
-            "columns": columns,
+            "columns": datatableColumns,
             "data": data
         });
 
@@ -133,6 +185,7 @@ class ReportPreviewResultsTable {
         return `
             <table id="reportPreviewResultsTable" class="table table-striped table-bordered c-table" style="width:100%">
                 <thead>
+                <tr><th></th></tr>
                 </thead>
                 <tbody>
                 </tbody>
