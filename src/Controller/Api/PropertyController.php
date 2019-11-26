@@ -393,7 +393,7 @@ class PropertyController extends ApiController
     }
 
     /**
-     * @Route("/get-from-objects", name="get_properties_from_multiple_objects", methods={"POST"}, options = { "expose" = true })
+     * @Route("/{internalName}/get-from-objects", name="get_properties_from_multiple_objects", methods={"POST"}, options = { "expose" = true })
      * @param Portal $portal
      * @param CustomObject $customObject
      * @param Request $request
@@ -414,22 +414,22 @@ class PropertyController extends ApiController
         $data = $request->request->get('data');
         $uids = [];
         if(!empty($data['joins'])) {
-            foreach($data['joins'] as $uid => $join) {
+            foreach($data['joins'] as $join) {
                 if(!empty($join['connected_object']['join_direction']) &&  $join['connected_object']['join_direction'] === 'normal_join') {
-                    $uids[$join['connected_object']['id']] = $join['connected_object']['internal_name'];
-                    $uids[$join['connected_property']['field']['customObject']['id']] = $uid;
+                    $uids[] = $join['connected_object']['id'];
+                    $uids[] = $join['connected_property']['field']['customObject']['id'];
                 } else if(!empty($join['connected_object']['join_direction']) &&  $join['connected_object']['join_direction'] === 'cross_join') {
-                    $uids[$customObject->getId()] = $customObject->getInternalName();
-                    $uids[$join['connected_object']['id']] = $uid;
+                    $uids[] = $customObject->getId();
+                    $uids[] = $join['connected_object']['id'];
                 } else {
-                    $uids[$customObject->getId()] = $customObject->getInternalName();
+                    $uids[] = $customObject->getId();
                 }
             }
         }
-        $availableProperties = $this->propertyRepository->getForReport(array_keys($uids));
+        $availableProperties = $this->propertyRepository->getForReport(array_unique($uids));
+        // decode the nested JSON FIELD
         for($i = 0; $i < count($availableProperties); $i++) {
             $availableProperties[$i]['field'] = json_decode($availableProperties[$i]['field'], true);
-            $availableProperties[$i]['uid'] = $uids[$availableProperties[$i]['custom_object_id']];
         }
         $payload['property_groups'] = [];
         for($i = 0; $i < count($availableProperties); $i++) {

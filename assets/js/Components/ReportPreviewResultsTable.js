@@ -101,44 +101,8 @@ class ReportPreviewResultsTable {
             }
             debugger;
         }
-
-   /*     if(datatableColumns.length === 2) {
-            datatableColumns = [
-                {data: 'first_name', name: 'first_name', title: 'first_name'},
-                {data: 'last_name', name: 'last_name', title: 'last_name'}
-            ];
-            data = [
-                {'first_name' : 'josh', 'last_name' : 'Crawmer'}
-            ];
-        }*/
-
-        debugger;
-   /*     datatableColumns = [
-            {data: 'first_name', name: 'first_name', title: 'first_name'},
-            {data: 'last_name', name: 'last_name', title: 'last_name'}
-        ];
-        data = [
-            {'first_name' : 'josh', 'last_name' : 'Crawmer'}
-        ];
-*/
-   /*     data = [
-            {'first_name' : 'josh', 'last_name' : 'Crawmer'}
-        ];
-
-        datatableColumns = [
-            {data: 'first_name', name: 'first_name', title: 'first_name'},
-            {data: 'last_name', name: 'last_name', title: 'last_name'}
-        ];*/
-
-      /*  for(let c of columnOrder) {
-
-            columns.push({data: c.internalName, name: c.internalName, title: c.label});
-
-        }
-*/
         $('#reportPreviewResultsTable thead').empty();
         $('#reportPreviewResultsTable tbody').empty();
-
         this.table = $('#reportPreviewResultsTable').DataTable({
             "paging": true,
             "destroy": true,
@@ -164,7 +128,11 @@ class ReportPreviewResultsTable {
             */
             /*"dom": "rt",*/
             "columns": datatableColumns,
-            "data": data
+            "data": data,
+            "initComplete": () => {
+                debugger;
+                /*this.globalEventDispatcher.publish(Settings.Events.REPORT_PREVIEW_TABLE_INITIALIZED);*/
+            }
         });
 
     }

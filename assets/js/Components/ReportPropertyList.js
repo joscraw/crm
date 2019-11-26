@@ -8,6 +8,7 @@ import List from "list.js";
 import SingleLineTextFieldFilterForm from "./SingleLineTextFieldFilterForm";
 import ColumnSearch from "./ColumnSearch";
 import StringHelper from "../StringHelper";
+import ReportConnectObjectFormModal from "./ReportConnectObjectFormModal";
 
 class ReportPropertyList {
 
@@ -48,8 +49,13 @@ class ReportPropertyList {
                 this.refreshPropertyList.bind(this)
             ));
 
+      /*  this.globalEventDispatcher.addRemovableToken(
+            this.globalEventDispatcher.subscribe(
+                Settings.Events.REPORT_PREVIEW_TABLE_INITIALIZED,
+                this.addDefaultPropertiesToTable.bind(this)
+            ));*/
         this.render();
-        this.refreshPropertyList(initialData)
+        this.loadInitialProperties(initialData);
     }
 
     /**
@@ -61,7 +67,8 @@ class ReportPropertyList {
             propertyListItem: '.js-property-list-item',
             list: '.js-list',
             propertyList: '.js-property-list',
-            backButton: '.js-back-button'
+            backButton: '.js-back-button',
+            filterListItem: '.js-filter-list-item'
 
         }
     }
@@ -82,6 +89,12 @@ class ReportPropertyList {
 
         this.$wrapper.on(
             'click',
+            ReportPropertyList._selectors.filterListItem,
+            this.handleFilterListItemClicked.bind(this)
+        );
+
+        this.$wrapper.on(
+            'click',
             ReportPropertyList._selectors.backButton,
             this.handleBackButtonClicked.bind(this)
         );
@@ -94,8 +107,26 @@ class ReportPropertyList {
     unbindEvents() {
         this.$wrapper.off('keyup', ReportPropertyList._selectors.search);
         this.$wrapper.off('click', ReportPropertyList._selectors.propertyListItem);
+        this.$wrapper.off('click', ReportPropertyList._selectors.filterListItem);
         this.$wrapper.off('click', ReportPropertyList._selectors.backButton);
     }
+
+/*    addDefaultPropertiesToTable() {
+        debugger;
+        let propertyGroups = this.propertyGroups;
+        for(let propertyGroupId in propertyGroups) {
+            let propertyGroup = propertyGroups[propertyGroupId];
+            let properties = propertyGroup.properties;
+            //Lets go ahead and add a couple properties to the report right off the get go and simulate a property click
+            if(typeof properties[0] !== 'undefined') {
+                this.globalEventDispatcher.publish(Settings.Events.REPORT_PROPERTY_LIST_ITEM_CLICKED, properties[0]);
+            }
+            if(typeof properties[1] !== 'undefined') {
+                this.globalEventDispatcher.publish(Settings.Events.REPORT_PROPERTY_LIST_ITEM_CLICKED, properties[1]);
+            }
+            break;
+        }
+    }*/
 
     handleKeyupEvent(e) {
         debugger;
@@ -133,6 +164,22 @@ class ReportPropertyList {
         this.globalEventDispatcher.publish(Settings.Events.REPORT_BACK_BUTTON_CLICKED);
     }
 
+    loadInitialProperties(data) {
+        this.loadPropertiesForAllObjects(data).then((data) => {
+            this.propertyGroups = data.data.property_groups;
+            this.renderProperties(this.propertyGroups).then(() => {});
+            let properties = [];
+            for(let propertyGroupId in this.propertyGroups) {
+                let propertyGroup = this.propertyGroups[propertyGroupId];
+                for(let property of propertyGroup.properties) {
+                    properties.push(property);
+                }
+            }
+            debugger;
+            this.globalEventDispatcher.publish(Settings.Events.REPORT_INITIAL_PROPERTIES_LOADED, properties);
+        });
+    }
+
     loadProperties() {
         this.loadPropertiesForReport().then(data => {
             this.propertyGroups = data.data.property_groups;
@@ -155,6 +202,7 @@ class ReportPropertyList {
     }
 
     loadPropertiesForAllObjects(data) {
+        debugger;
         return new Promise((resolve, reject) => {
             const url = Routing.generate('get_properties_from_multiple_objects', {
                 internalIdentifier: this.portalInternalIdentifier,
@@ -239,6 +287,27 @@ class ReportPropertyList {
         }*/
     }
 
+    handleFilterListItemClicked(e) {
+        debugger;
+        if(e.cancelable) {
+            e.preventDefault();
+        }
+        const $listItem = $(e.currentTarget).parent('li');
+        let propertyGroupId = $listItem.closest(ReportPropertyList._selectors.list).attr('data-property-group');
+        let propertyId = $listItem.attr('data-property-id');
+        let joins = JSON.parse($listItem.attr('data-joins'));
+
+        let propertyGroup = this.propertyGroups[propertyGroupId];
+        let properties = propertyGroup.properties;
+        let property = properties.filter(property => {
+            return parseInt(property.id) === parseInt(propertyId);
+        });
+
+        debugger;
+
+        new ReportConnectObjectFormModal(this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);
+    }
+
     renderProperties(propertyGroups) {
         let $propertyList = this.$wrapper.find(ReportPropertyList._selectors.propertyList);
         $propertyList.empty();
@@ -283,7 +352,7 @@ class ReportPropertyList {
         var options = {
             valueNames: [ 'label' ],
             // Since there are no elements in the list, this will be used as template.
-            item: `<li class="c-report-widget__list-item"><span class="label"></span><i class="fa fa-plus js-property-list-item" style="float: right"></i> <i class="fa fa-filter" style="float: right"></li>`
+            item: `<li class="c-report-widget__list-item"><span class="label"></span><i class="fa fa-plus js-property-list-item" style="float: right"></i> <i class="fa fa-filter js-filter-list-item" style="float: right"></li>`
         };
         this.lists.push(new List(`list-property-${propertyGroup.id}`, options, properties));
         $( `#list-property-${propertyGroup.id} li` ).each((index, element) => {

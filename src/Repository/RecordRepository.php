@@ -229,7 +229,7 @@ class RecordRepository extends ServiceEntityRepository
     public function newReportLogicBuilder($data, CustomObject $customObject, $columnOrder)
     {
         $this->data = $data;
-        $root = $data['name'];
+        $root = sprintf("%s.%s", $customObject->getUid(), $customObject->getInternalName());
 
         // Setup fields for select
         $resultStr = $this->newFieldLogicBuilder($data);
@@ -238,7 +238,7 @@ class RecordRepository extends ServiceEntityRepository
 
         // Setup Joins
         $joins = [];
-        $joins = $this->newJoinLogicBuilder($data, $joins);
+        $joins = $this->newJoinLogicBuilder($root, $data, $joins);
         $joinString = implode(" ", $joins);
 
         // Setup Filters
@@ -250,9 +250,9 @@ class RecordRepository extends ServiceEntityRepository
 
         // On joins that use the "Without" join type we add a WHERE clause in the query string already. So in that case add an AND clause instead
         if (strpos($joinString, 'WHERE') !== false) {
-            $query = sprintf("SELECT DISTINCT %s.id %s from record %s %s AND %s.custom_object_id='%s' %s", $root, $resultStr, $root, $joinString, $root, $customObject->getId(), $filterString);
+            $query = sprintf("SELECT DISTINCT `%s`.id %s from record `%s` %s AND `%s`.custom_object_id='%s' %s", $root, $resultStr, $root, $joinString, $root, $customObject->getId(), $filterString);
         } else {
-            $query = sprintf("SELECT DISTINCT %s.id %s from record %s %s WHERE %s.custom_object_id='%s' %s", $root, $resultStr, $root, $joinString, $root, $customObject->getId(), $filterString);
+            $query = sprintf("SELECT DISTINCT `%s`.id %s from record `%s` %s WHERE `%s`.custom_object_id='%s' %s", $root, $resultStr, $root, $joinString, $root, $customObject->getId(), $filterString);
         }
 
         $em = $this->getEntityManager();
@@ -272,28 +272,28 @@ class RecordRepository extends ServiceEntityRepository
         }
         $resultStr = [];
         foreach($data['properties'] as $propertyId => $property) {
+            $alias = sprintf("%s.%s", $property['uid'], $property['custom_object_internal_name']);
             switch($property['field_type']) {
                 case FieldCatalog::DATE_PICKER:
-                    $jsonExtract = $this->getDatePickerQuery($property['uid']);
+                    $jsonExtract = $this->getDatePickerQuery($alias);
                     $resultStr[] = sprintf($jsonExtract, $property['internal_name'], $property['internal_name'], $property['internal_name'], $property['internal_name']);
                     break;
                 case FieldCatalog::SINGLE_CHECKBOX:
-                    $jsonExtract = $this->getSingleCheckboxQuery($property['uid']);
+                    $jsonExtract = $this->getSingleCheckboxQuery($alias);
                     $resultStr[] = sprintf($jsonExtract, $property['internal_name'], $property['internal_name'], $property['internal_name'], $property['internal_name'], $property['internal_name'], $property['internal_name']);
                     break;
                 case FieldCatalog::NUMBER:
                     $field = $property['field'];
-
                     if($field['type'] === NumberField::$types['Currency']) {
-                        $jsonExtract = $this->getNumberIsCurrencyQuery($property['uid']);
+                        $jsonExtract = $this->getNumberIsCurrencyQuery($alias);
                         $resultStr[] = sprintf($jsonExtract, $property['internal_name'], $property['internal_name'], $property['internal_name'], $property['internal_name']);
                     } elseif($field['type'] === NumberField::$types['Unformatted Number']) {
-                        $jsonExtract = $this->getNumberIsUnformattedQuery($property['uid']);
+                        $jsonExtract = $this->getNumberIsUnformattedQuery($alias);
                         $resultStr[] = sprintf($jsonExtract, $property['internal_name'], $property['internal_name'], $property['internal_name'], $property['internal_name']);
                     }
                     break;
                 default:
-                    $jsonExtract = $this->getDefaultQuery($property['uid']);
+                    $jsonExtract = $this->getDefaultQuery($alias);
                     $resultStr[] = sprintf($jsonExtract, $property['internal_name'], $property['internal_name'], $property['internal_name'], $property['internal_name']);
                     break;
 
@@ -303,20 +303,19 @@ class RecordRepository extends ServiceEntityRepository
         return $resultStr;
     }
 
-    private function newJoinLogicBuilder(&$data, &$joins = [], $lastJoin = null)
+    private function newJoinLogicBuilder($root, &$data, &$joins = [], $lastJoin = null)
     {
         if(empty($data['joins'])) {
             return [];
         }
-
-        foreach ($data['joins'] as $alias => $joinData) {
-            $root = $data['name'];
+        foreach ($data['joins'] as $joinData) {
             $connectedObject = $joinData['connected_object'];
             $connectedProperty = $joinData['connected_property'];
             $joinDirection = $connectedObject['join_direction'];
             $joinType = $joinData['join_type'];
             if($joinType === 'With' && $joinDirection === 'normal_join') {
-                /*$alias = sprintf("%s.%s", $alias, !empty($connectedProperty['field']['customObject']['internalName']) ? $connectedProperty['field']['customObject']['internalName'] : '');*/
+                $customObject = $this->getEntityManager()->getRepository(CustomObject::class)->find($connectedProperty['field']['customObject']['id']);
+                $alias = sprintf("%s.%s", $customObject->getUid(), $connectedProperty['field']['customObject']['internalName']);
                 $joins[] = sprintf($this->getJoinQuery(),
                     'INNER JOIN', $alias, $root, $connectedProperty['internalName'], $alias,
                     $root, $connectedProperty['internalName'], $alias,
@@ -324,7 +323,8 @@ class RecordRepository extends ServiceEntityRepository
                     $root, $connectedProperty['internalName'], $alias
                 );
             } elseif ($joinType === 'With/Without' && $joinDirection === 'normal_join') {
-                /*$alias = sprintf("%s.%s", $alias, !empty($connectedProperty['field']['customObject']['internalName']) ? $connectedProperty['field']['customObject']['internalName'] : '');*/
+                $customObject = $this->getEntityManager()->getRepository(CustomObject::class)->find($connectedProperty['field']['customObject']['id']);
+                $alias = sprintf("%s.%s", $customObject->getUid(), $connectedProperty['field']['customObject']['internalName']);
                 $joins[] = sprintf($this->getJoinQuery(),
                     'LEFT JOIN', $alias, $root, $connectedProperty['internalName'], $alias,
                     $root, $connectedProperty['internalName'], $alias,
@@ -334,28 +334,31 @@ class RecordRepository extends ServiceEntityRepository
             } elseif ($joinType === 'Without' && $joinDirection === 'normal_join') {
                 $joins[] = sprintf($this->getWithoutJoinQuery(), $root, $connectedProperty['internalName'], $root, $connectedProperty['internalName']);
             } elseif ($joinType === 'With' && $joinDirection === 'cross_join') {
-                /*$alias = sprintf("%s.%s", $alias, !empty($connectedObject['internal_name']) ? $connectedObject['internal_name'] : '');*/
+                $customObject = $this->getEntityManager()->getRepository(CustomObject::class)->find($connectedObject['id']);
+                $alias = $customObject->getUid();
                 $joins[] = sprintf($this->getCrossJoinQuery(),
-                    'INNER JOIN', $alias, $root, $alias, $connectedProperty['internalName'],
-                    $root, $alias, $connectedProperty['internalName'],
-                    $root, $alias, $connectedProperty['internalName'],
-                    $root, $alias, $connectedProperty['internalName']
+                    'INNER JOIN', $alias, $alias, $connectedProperty['internalName'], $root,
+                    $alias, $connectedProperty['internalName'], $root,
+                    $alias, $connectedProperty['internalName'], $root,
+                    $alias, $connectedProperty['internalName'], $root
                 );
             } elseif ($joinType === 'With/Without' && $joinDirection === 'cross_join') {
-                /*$alias = sprintf("%s.%s", $alias, !empty($connectedObject['internal_name']) ? $connectedObject['internal_name'] : '');*/
+                $customObject = $this->getEntityManager()->getRepository(CustomObject::class)->find($connectedObject['id']);
+                $alias = $customObject->getUid();
                 $joins[] = sprintf($this->getCrossJoinQuery(),
-                    'LEFT JOIN', $alias, $root, $alias, $connectedProperty['internalName'],
-                    $root, $alias, $connectedProperty['internalName'],
-                    $root, $alias, $connectedProperty['internalName'],
-                    $root, $alias, $connectedProperty['internalName']
+                    'LEFT JOIN', $alias, $alias, $connectedProperty['internalName'], $root,
+                    $alias, $connectedProperty['internalName'], $root,
+                    $alias, $connectedProperty['internalName'], $root,
+                    $alias, $connectedProperty['internalName'], $root
                 );
             } elseif ($joinType === 'Without' && $joinDirection === 'cross_join') {
-                /*$alias = sprintf("%s.%s", $alias, !empty($connectedObject['internal_name']) ? $connectedObject['internal_name'] : '');*/
+                $customObject = $this->getEntityManager()->getRepository(CustomObject::class)->find($connectedObject['id']);
+                $alias = $customObject->getUid();
                 $joins[] = sprintf($this->getWithoutCrossJoinQuery(),
-                    $alias, $root, $alias, $connectedProperty['internalName'],
-                    $root, $alias, $connectedProperty['internalName'],
-                    $root, $alias, $connectedProperty['internalName'],
-                    $root, $alias, $connectedProperty['internalName'],
+                    $alias, $alias, $connectedProperty['internalName'], $root,
+                    $alias, $connectedProperty['internalName'], $root,
+                    $alias, $connectedProperty['internalName'], $root,
+                    $alias, $connectedProperty['internalName'], $root,
                     $alias, $connectedProperty['internalName'], $alias, $connectedProperty['internalName']);
             }
         }
@@ -1773,13 +1776,13 @@ HERE;
     private function getWithoutCrossJoinQuery() {
         return <<<HERE
     /* Given the id "11" This first statement matches: {"property_name": "11"} */
-    LEFT JOIN record `%s` on `%s`.id REGEXP concat('^', `%s`.properties->>'$.%s', '$')
-     /* Given the id "11" This second statement matches: {"property_name": "12;11"} */
-     OR `%s`.id REGEXP concat('^', `%s`.properties->>'$.%s', '$') 
+    LEFT JOIN record `%s` on `%s`.properties->>'$.%s' REGEXP concat('^', `%s`.id, '$')
+    /* Given the id "11" This second statement matches: {"property_name": "12;11"} */
+     OR `%s`.properties->>'$.%s' REGEXP concat(';', `%s`.id, '$') 
      /* Given the id "11" This second statement matches: {"property_name": "12;11;13"} */
-     OR `%s`.id REGEXP concat('^', `%s`.properties->>'$.%s', '$') 
+     OR `%s`.properties->>'$.%s' REGEXP concat(';', `%s`.id, ';') 
      /* Given the id "11" This second statement matches: {"property_name": "11;12;13"} */
-     OR `%s`.id REGEXP concat('^', `%s`.properties->>'$.%s', '$')
+     OR `%s`.properties->>'$.%s' REGEXP concat('^', `%s`.id, ';')
     WHERE (`%s`.properties->>'$.%s' IS NULL OR `%s`.properties->>'$.%s' = '')
 HERE;
     }
@@ -1794,13 +1797,13 @@ HERE;
     private function getCrossJoinQuery() {
         return <<<HERE
     /* Given the id "11" This first statement matches: {"property_name": "11"} */
-    %s record `%s` on `%s`.id REGEXP concat('^', `%s`.properties->>'$.%s', '$')
+    %s record `%s` on `%s`.properties->>'$.%s' REGEXP concat('^', `%s`.id, '$')
     /* Given the id "11" This second statement matches: {"property_name": "12;11"} */
-     OR `%s`.id REGEXP concat('^', `%s`.properties->>'$.%s', '$') 
+     OR `%s`.properties->>'$.%s' REGEXP concat(';', `%s`.id, '$') 
      /* Given the id "11" This second statement matches: {"property_name": "12;11;13"} */
-     OR `%s`.id REGEXP concat('^', `%s`.properties->>'$.%s', '$') 
+     OR `%s`.properties->>'$.%s' REGEXP concat(';', `%s`.id, ';') 
      /* Given the id "11" This second statement matches: {"property_name": "11;12;13"} */
-     OR `%s`.id REGEXP concat('^', `%s`.properties->>'$.%s', '$')
+     OR `%s`.properties->>'$.%s' REGEXP concat('^', `%s`.id, ';')
 HERE;
     }
 }

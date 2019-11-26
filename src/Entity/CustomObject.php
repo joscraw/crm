@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Model\Content;
+use App\Utils\RandomStringGenerator;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -23,6 +24,7 @@ class CustomObject /*implements \JsonSerializable*/
 {
 
     use TimestampableEntity;
+    use RandomStringGenerator;
 
     /**
      * @Groups({"PROPERTY_FIELD_NORMALIZER", "PROPERTIES_FOR_FILTER", "CUSTOM_OBJECTS_FOR_FILTER", "REPORT", "LIST", "FORMS", "WORKFLOW_TRIGGER_DATA", "TRIGGER", "WORKFLOW"})
@@ -102,6 +104,11 @@ class CustomObject /*implements \JsonSerializable*/
      */
     private $objectWorkflows;
 
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $uid;
+
 
     public function __construct()
     {
@@ -123,6 +130,16 @@ class CustomObject /*implements \JsonSerializable*/
             $this->internalName = strtolower(
                 preg_replace('/\s+/', '_', $this->getLabel())
             );
+        }
+    }
+
+    /**
+     * @ORM\PrePersist
+     */
+    public function setUidValue()
+    {
+        if(!$this->uid) {
+            $this->uid = sprintf("%s.%s", $this->generateRandomString(5), $this->internalName);
         }
     }
 
@@ -437,6 +454,18 @@ class CustomObject /*implements \JsonSerializable*/
                 $objectWorkflow->setCustomObject(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getUid(): ?string
+    {
+        return $this->uid;
+    }
+
+    public function setUid(?string $uid): self
+    {
+        $this->uid = $uid;
 
         return $this;
     }
