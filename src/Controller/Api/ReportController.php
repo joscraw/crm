@@ -131,6 +131,7 @@ class ReportController extends ApiController
      * @param CustomObject $customObject
      * @param Request $request
      * @return Response
+     * @throws \Doctrine\DBAL\DBALException
      */
     public function saveReportAction(Portal $portal, CustomObject $customObject, Request $request) {
 

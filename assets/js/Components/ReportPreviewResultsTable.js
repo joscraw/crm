@@ -97,7 +97,7 @@ class ReportPreviewResultsTable {
             for(let key in columns) {
                 debugger;
                 let column = columns[key];
-                datatableColumns.push({data: column.internal_name, name: column.internal_name, title: column.internal_name});
+                datatableColumns.push({data: column.internalName, name: column.internalName, title: column.internalName});
             }
             debugger;
         }

@@ -269,7 +269,17 @@ class ReportWidget {
 
     applyCustomFilterButtonPressedHandler(customFilter) {
         debugger;
-        let filterPath = customFilter.joins.join('.') + `.filters`,
+
+        let uID = StringHelper.makeCharId();
+        _.set(this.newData.filters, uID, customFilter);
+        this._saveReport().then((data) => {
+            debugger;
+            this.globalEventDispatcher.publish('TEST', data, this.newData.properties);
+            swal("Yahoo!", `Filter successfully added!`, "success");
+        });
+
+
+/*        let filterPath = customFilter.joins.join('.') + `.filters`,
             referencedFilterPath = customFilter.referencedFilterPath.join('.'),
             uID = StringHelper.makeCharId();
         // if it has a joinPath we are editing the filter and th4e uID already exists
@@ -291,7 +301,9 @@ class ReportWidget {
                 let orFilterPath = customFilter.joins.concat(['filters', uID]);
                 _.set(this.data, `${referencedFilterPath}.orFilters.${uID}`, orFilterPath);
             }
-        }
+        }*/
+
+        debugger;
         this.globalEventDispatcher.publish(Settings.Events.REPORT_FILTER_ITEM_ADDED, this.data);
     }
 

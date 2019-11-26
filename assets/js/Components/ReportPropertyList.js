@@ -9,6 +9,7 @@ import SingleLineTextFieldFilterForm from "./SingleLineTextFieldFilterForm";
 import ColumnSearch from "./ColumnSearch";
 import StringHelper from "../StringHelper";
 import ReportConnectObjectFormModal from "./ReportConnectObjectFormModal";
+import ReportAddFilterFormModal from "./ReportAddFilterFormModal";
 
 class ReportPropertyList {
 
@@ -295,17 +296,13 @@ class ReportPropertyList {
         const $listItem = $(e.currentTarget).parent('li');
         let propertyGroupId = $listItem.closest(ReportPropertyList._selectors.list).attr('data-property-group');
         let propertyId = $listItem.attr('data-property-id');
-        let joins = JSON.parse($listItem.attr('data-joins'));
-
         let propertyGroup = this.propertyGroups[propertyGroupId];
         let properties = propertyGroup.properties;
         let property = properties.filter(property => {
             return parseInt(property.id) === parseInt(propertyId);
         });
-
         debugger;
-
-        new ReportConnectObjectFormModal(this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);
+        new ReportAddFilterFormModal(this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, property[0]);
     }
 
     renderProperties(propertyGroups) {

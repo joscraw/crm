@@ -383,7 +383,7 @@ class PropertyRepository extends ServiceEntityRepository
         foreach($customObjectIds as $customObjectId) {
             $conditionals[] = sprintf("co.id = '%s'", $customObjectId);
         }
-        $query = sprintf("select p.id, p.field_type, p.internal_name, p.label, p.field, 
+        $query = sprintf("select p.id, p.field_type as fieldType, p.internal_name as internalName, p.label, p.field, 
                 pg.name as property_group_name, pg.id as property_group_id, 
                 co.label as custom_object_label, co.id as custom_object_id, CONCAT(co.label, ' - ', pg.name) 
                 as grouping_label, co.uid as uid, co.internal_name as custom_object_internal_name from property p 

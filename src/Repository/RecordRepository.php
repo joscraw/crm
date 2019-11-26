@@ -243,7 +243,7 @@ class RecordRepository extends ServiceEntityRepository
 
         // Setup Filters
         $filters = [];
-        /*$filters = $this->filters($data, $filters);*/
+        $filters = $this->newFilterLogicBuilder($root, $data, $filters);
         $filterString = implode(" OR ", $filters);
 
         $filterString = empty($filters) ? '' : "AND $filterString";
@@ -273,28 +273,28 @@ class RecordRepository extends ServiceEntityRepository
         $resultStr = [];
         foreach($data['properties'] as $propertyId => $property) {
             $alias = sprintf("%s.%s", $property['uid'], $property['custom_object_internal_name']);
-            switch($property['field_type']) {
+            switch($property['fieldType']) {
                 case FieldCatalog::DATE_PICKER:
                     $jsonExtract = $this->getDatePickerQuery($alias);
-                    $resultStr[] = sprintf($jsonExtract, $property['internal_name'], $property['internal_name'], $property['internal_name'], $property['internal_name']);
+                    $resultStr[] = sprintf($jsonExtract, $property['internalName'], $property['internalName'], $property['internalName'], $property['internalName']);
                     break;
                 case FieldCatalog::SINGLE_CHECKBOX:
                     $jsonExtract = $this->getSingleCheckboxQuery($alias);
-                    $resultStr[] = sprintf($jsonExtract, $property['internal_name'], $property['internal_name'], $property['internal_name'], $property['internal_name'], $property['internal_name'], $property['internal_name']);
+                    $resultStr[] = sprintf($jsonExtract, $property['internalName'], $property['internalName'], $property['internalName'], $property['internalName'], $property['internalName'], $property['internalName']);
                     break;
                 case FieldCatalog::NUMBER:
                     $field = $property['field'];
                     if($field['type'] === NumberField::$types['Currency']) {
                         $jsonExtract = $this->getNumberIsCurrencyQuery($alias);
-                        $resultStr[] = sprintf($jsonExtract, $property['internal_name'], $property['internal_name'], $property['internal_name'], $property['internal_name']);
+                        $resultStr[] = sprintf($jsonExtract, $property['internalName'], $property['internalName'], $property['internalName'], $property['internalName']);
                     } elseif($field['type'] === NumberField::$types['Unformatted Number']) {
                         $jsonExtract = $this->getNumberIsUnformattedQuery($alias);
-                        $resultStr[] = sprintf($jsonExtract, $property['internal_name'], $property['internal_name'], $property['internal_name'], $property['internal_name']);
+                        $resultStr[] = sprintf($jsonExtract, $property['internalName'], $property['internalName'], $property['internalName'], $property['internalName']);
                     }
                     break;
                 default:
                     $jsonExtract = $this->getDefaultQuery($alias);
-                    $resultStr[] = sprintf($jsonExtract, $property['internal_name'], $property['internal_name'], $property['internal_name'], $property['internal_name']);
+                    $resultStr[] = sprintf($jsonExtract, $property['internalName'], $property['internalName'], $property['internalName'], $property['internalName']);
                     break;
 
             }
@@ -364,6 +364,19 @@ class RecordRepository extends ServiceEntityRepository
         }
         return $joins;
     }
+
+    private function newFilterLogicBuilder($root, &$data, &$filters = [])
+    {
+        if(empty($data['filters'])) {
+            return [];
+        }
+        foreach ($data['filters'] as $filter) {
+            $alias = sprintf("%s.%s", $filter['uid'], $filter['custom_object_internal_name']);
+            $filters[] = $this->getConditionForReport($filter, $alias);
+        }
+        return $filters;
+    }
+
 
     /**
      * @param $data
@@ -983,9 +996,7 @@ class RecordRepository extends ServiceEntityRepository
 
             }
         }
-
         return $filters;
-
     }
 
 
