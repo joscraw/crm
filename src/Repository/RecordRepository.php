@@ -335,7 +335,7 @@ class RecordRepository extends ServiceEntityRepository
                 $joins[] = sprintf($this->getWithoutJoinQuery(), $root, $connectedProperty['internalName'], $root, $connectedProperty['internalName']);
             } elseif ($joinType === 'With' && $joinDirection === 'cross_join') {
                 $customObject = $this->getEntityManager()->getRepository(CustomObject::class)->find($connectedObject['id']);
-                $alias = $customObject->getUid();
+                $alias = sprintf("%s.%s", $customObject->getUid(), $connectedObject['internal_name']);
                 $joins[] = sprintf($this->getCrossJoinQuery(),
                     'INNER JOIN', $alias, $alias, $connectedProperty['internalName'], $root,
                     $alias, $connectedProperty['internalName'], $root,
@@ -344,7 +344,7 @@ class RecordRepository extends ServiceEntityRepository
                 );
             } elseif ($joinType === 'With/Without' && $joinDirection === 'cross_join') {
                 $customObject = $this->getEntityManager()->getRepository(CustomObject::class)->find($connectedObject['id']);
-                $alias = $customObject->getUid();
+                $alias = sprintf("%s.%s", $customObject->getUid(), $connectedObject['internal_name']);
                 $joins[] = sprintf($this->getCrossJoinQuery(),
                     'LEFT JOIN', $alias, $alias, $connectedProperty['internalName'], $root,
                     $alias, $connectedProperty['internalName'], $root,
@@ -353,7 +353,7 @@ class RecordRepository extends ServiceEntityRepository
                 );
             } elseif ($joinType === 'Without' && $joinDirection === 'cross_join') {
                 $customObject = $this->getEntityManager()->getRepository(CustomObject::class)->find($connectedObject['id']);
-                $alias = $customObject->getUid();
+                $alias = sprintf("%s.%s", $customObject->getUid(), $connectedObject['internal_name']);
                 $joins[] = sprintf($this->getWithoutCrossJoinQuery(),
                     $alias, $alias, $connectedProperty['internalName'], $root,
                     $alias, $connectedProperty['internalName'], $root,
