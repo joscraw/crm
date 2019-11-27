@@ -60,18 +60,6 @@ class ReportFilterNavigation {
 
         this.$wrapper.on(
             'click',
-            ReportFilterNavigation._selectors.addFilterButton,
-            this.handleAddFilterButtonPressed.bind(this)
-        );
-
-        this.$wrapper.on(
-            'click',
-            ReportFilterNavigation._selectors.addOrFilterButton,
-            this.handleAddOrFilterButtonPressed.bind(this)
-        );
-
-        this.$wrapper.on(
-            'click',
             ReportFilterNavigation._selectors.removeFilterIcon,
             this.handleRemoveFilterIconPressed.bind(this)
         );
@@ -83,14 +71,26 @@ class ReportFilterNavigation {
         );
 */
 
+        this.$wrapper.on(
+            'click',
+            ReportFilterNavigation._selectors.addAndFilterButton,
+            this.handleAddAndFilterButtonPressed.bind(this)
+        );
+
+        this.$wrapper.on(
+            'click',
+            ReportFilterNavigation._selectors.addOrFilterButton,
+            this.handleAddOrFilterButtonPressed.bind(this)
+        );
+
         this.render(data);
     }
 
     static get _selectors() {
         return {
 
-            addFilterButton: '.js-add-filter-button',
             addOrFilterButton: '.js-add-or-filter-button',
+            addAndFilterButton: '.js-add-and-filter-button',
             reportSelectedCustomFilters: '.js-report-selected-custom-filters',
             filterContainer: '.js-filter-container',
             removeFilterIcon: '.js-remove-filter-icon',
@@ -100,9 +100,9 @@ class ReportFilterNavigation {
 
     unbindEvents() {
 
-        this.$wrapper.off('click', ReportFilterNavigation._selectors.addFilterButton);
-
         this.$wrapper.off('click', ReportFilterNavigation._selectors.addOrFilterButton);
+
+        this.$wrapper.off('click', ReportFilterNavigation._selectors.addAndFilterButton);
 
         this.$wrapper.off('click', ReportFilterNavigation._selectors.removeFilterIcon);
 
@@ -132,31 +132,23 @@ class ReportFilterNavigation {
         this.globalEventDispatcher.publish(Settings.Events.REPORT_REMOVE_FILTER_BUTTON_PRESSED, joinPath);
     }
 
-    handleAddFilterButtonPressed() {
-
-        debugger;
-
+    handleAddOrFilterButtonPressed() {
         this.globalEventDispatcher.publish(Settings.Events.REPORT_ADD_FILTER_BUTTON_PRESSED);
     }
 
-    handleAddOrFilterButtonPressed(e) {
-
+    handleAddAndFilterButtonPressed(e) {
         debugger;
-
         const $card = $(e.currentTarget);
-        let orPath = JSON.parse($card.attr('data-or-path'));
-
-        this.globalEventDispatcher.publish(Settings.Events.REPORT_ADD_OR_FILTER_BUTTON_PRESSED, orPath);
-
+        let parentFilterUid = $card.attr('data-parent-filter-uid');
+        this.globalEventDispatcher.publish(Settings.Events.REPORT_ADD_AND_FILTER_BUTTON_PRESSED, parentFilterUid);
         debugger;
-
     }
 
     reportFilterItemAddedHandler(data) {
 
         this.renderCustomFilters(data);
 
-        this.updateAddFilterButtonText(data);
+        this.updateaddOrFilterButtonText(data);
 
     }
 
@@ -164,11 +156,11 @@ class ReportFilterNavigation {
 
         this.renderCustomFilters(data);
 
-        this.updateAddFilterButtonText(data);
+        this.updateaddOrFilterButtonText(data);
 
     }
 
-    updateAddFilterButtonText(data) {
+    updateaddOrFilterButtonText(data) {
 
         let text = "Add Filter";
 
@@ -177,100 +169,44 @@ class ReportFilterNavigation {
             text = 'Add "OR" Filter';
         }
 
-        this.$wrapper.find(ReportFilterNavigation._selectors.addFilterButton).html('<i class="fa fa-plus"></i> ' + text);
+        this.$wrapper.find(ReportFilterNavigation._selectors.addOrFilterButton).html('<i class="fa fa-plus"></i> ' + text);
 
     }
 
     renderCustomFilters(data) {
-
-        debugger;
-        let customFilters = {};
-        function search(data) {
-
-            for(let key in data) {
-
-                if(isNaN(key) && key !== 'filters') {
-
-                    search(data[key]);
-
-                } else if(key === 'filters'){
-
-                    for(let uID in data[key]) {
-
-                        // only add the custom filter to the array if it is not an "OR" condition
-                        if(_.size(_.get(data, `${key}.${uID}.referencedFilterPath`, [])) === 0) {
-
-                            _.set(customFilters, uID, data[key][uID]);
-
-                        }
-
-                    }
-                }
-            }
-        }
-
-        debugger;
-        search(data);
-
+        let customFilters = data.filters;
         this.$wrapper.find(ReportFilterNavigation._selectors.reportSelectedCustomFilters).html("");
-
         let i = 1;
-        for(let uID in customFilters) {
+        for(let uid in customFilters) {
             debugger;
-            let customFilter = _.get(customFilters, uID, false);
-
+            let customFilter = _.get(customFilters, uid, false);
             let text = "";
-
-            let orPath = customFilter.joins.concat(['filters', uID]);
-
-
-            // get or conditions for filter
-
+            if(customFilter.hasParentFilter) {
+                continue;
+            }
             debugger;
-
-            text = FilterHelper.getFilterTextFromCustomFilter(customFilter);
-
-            const html = filterContainerTemplate(JSON.stringify(orPath));
+            text = FilterHelper.getFilterTextFromCustomFilterForReport(customFilter);
+            const html = filterContainerTemplate(uid);
             const $filterContainerTemplate = $($.parseHTML(html));
             const $filters = $filterContainerTemplate.find('.js-filters');
-
-            const filterHtml = filterTemplate(text, JSON.stringify(customFilter.joins.concat(['filters', uID])));
+            const filterHtml = filterTemplate(text, uid);
             const $filterTemplate = $($.parseHTML(filterHtml));
-
             $filters.append($filterTemplate);
-
             debugger;
-
-            // or filters needs to be an object
-
-            let orFilters = customFilter.orFilters;
-            for (let key in orFilters) {
-
-                debugger;
-                let orFilter = _.get(orFilters, key);
-
-                debugger;
-
-                let filterPath = orFilter.join('.');
-
-                if(!_.has(data, filterPath)) {
-                    continue;
+            // render the child filters
+            if(_.has(customFilter, 'childFilters') && !_.isEmpty(customFilter.childFilters)) {
+                let childFilters = _.get(customFilter, 'childFilters');
+                for(let uid in childFilters) {
+                    let childFilter = childFilters[uid];
+                    debugger;
+                    let conditionalHtml = conditionalTemplate("And");
+                    let $conditionalTemplate = $($.parseHTML(conditionalHtml));
+                    $filters.append($conditionalTemplate);
+                    text = FilterHelper.getFilterTextFromCustomFilterForReport(childFilter);
+                    const filterHtml = filterTemplate(text, uid);
+                    const $filterTemplate = $($.parseHTML(filterHtml));
+                    $filters.append($filterTemplate);
                 }
-
-                let conditionalHtml = conditionalTemplate("And");
-                let $conditionalTemplate = $($.parseHTML(conditionalHtml));
-
-                $filters.append($conditionalTemplate);
-
-                let customFilter = _.get(data, filterPath);
-
-                text = FilterHelper.getFilterTextFromCustomFilter(customFilter);
-
-                const filterHtml = filterTemplate(text, JSON.stringify(customFilter.joins.concat(['filters', key])));
-                const $filterTemplate = $($.parseHTML(filterHtml));
-
-                $filters.append($filterTemplate);
-
             }
 
             this.$wrapper.find(ReportFilterNavigation._selectors.reportSelectedCustomFilters).append($filterContainerTemplate);
@@ -350,20 +286,18 @@ class ReportFilterNavigation {
                 <div class="js-report-selected-custom-filters c-report-widget__selected-filters"></div>
               </li>
               <li class="nav-item">
-                <button type="button" class="btn btn-link js-add-filter-button"><i class="fa fa-plus"></i> Add Filter</button>
+                <button type="button" class="btn btn-link js-add-or-filter-button"><i class="fa fa-plus"></i> Add "OR" Filter</button>
               </li>
              </ul>
     `;
     }
 }
 
-const filterContainerTemplate = (orPath) => `
+const filterContainerTemplate = (uid) => `
     <div class="card">
         <div class="card-body js-filter-container">
-        
         <div class="js-filters"></div>
-        
-        <button type="button" class="btn btn-link js-add-or-filter-button" data-or-path=${orPath}><i class="fa fa-plus"></i> Add Filter</button>
+        <button type="button" class="btn btn-link js-add-and-filter-button" data-parent-filter-uid=${uid}><i class="fa fa-plus"></i> Add "AND" Filter</button>
         </div>
     </div>
 `;

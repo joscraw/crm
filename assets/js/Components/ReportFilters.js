@@ -78,13 +78,14 @@ class ReportFilters {
 
         this.globalEventDispatcher.addRemovableToken(
             this.globalEventDispatcher.subscribe(
-            Settings.Events.REPORT_ADD_FILTER_BUTTON_PRESSED,
+            Settings.Events.
+            REPORT_ADD_FILTER_BUTTON_PRESSED,
             this.reportAddFilterButtonPressedHandler.bind(this)
         ));
 
         this.globalEventDispatcher.addRemovableToken(
             this.globalEventDispatcher.subscribe(
-            Settings.Events.REPORT_ADD_OR_FILTER_BUTTON_PRESSED,
+            Settings.Events.REPORT_ADD_AND_FILTER_BUTTON_PRESSED,
             this.reportAddOrFilterButtonPressedHandler.bind(this)
         ));
 

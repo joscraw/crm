@@ -28,6 +28,10 @@ import ReportFilters from "./ReportFilters";
 import ReportProperties from "./ReportProperties";
 import StringHelper from "../StringHelper";
 import swal from "sweetalert2";
+import ReportFilterList from "./ReportFilterList";
+import ReportFilterNavigationModal from "./ReportFilterNavigationModal";
+import ReportAddFilterFormModal from "./ReportAddFilterFormModal";
+import ReportSelectPropertyForFilterFormModal from "./ReportSelectPropertyForFilterFormModal";
 
 class ReportWidget {
 
@@ -140,6 +144,17 @@ class ReportWidget {
             Settings.Events.REPORT_INITIAL_PROPERTIES_LOADED,
             this.handleReportInitialPropertiesLoaded.bind(this)
         );
+
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.REPORT_ADD_AND_FILTER_BUTTON_PRESSED,
+            this.reportAddAndFilterButtonPressedHandler.bind(this)
+        );
+
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.REPORT_ADD_FILTER_BUTTON_PRESSED,
+            this.reportAddFilterButtonPressedHandler.bind(this)
+        );
+
         this.render();
     }
 
@@ -219,6 +234,14 @@ class ReportWidget {
         this.globalEventDispatcher.publish(Settings.Events.REPORT_COLUMN_ORDER_UPDATED, this.data, this.columnOrder);
     }
 
+    reportAddAndFilterButtonPressedHandler(parentFilterUid) {
+        new ReportSelectPropertyForFilterFormModal(this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject.internalName, this.newData, parentFilterUid);
+    }
+
+    reportAddFilterButtonPressedHandler() {
+        new ReportSelectPropertyForFilterFormModal(this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject.internalName, this.newData);
+    }
+
     handlePropertyListItemClicked(property) {
         debugger;
         _.set(this.newData.properties, property.id, property);
@@ -269,40 +292,26 @@ class ReportWidget {
 
     applyCustomFilterButtonPressedHandler(customFilter) {
         debugger;
-
+        // setup the new filter
         let uID = StringHelper.makeCharId();
         _.set(this.newData.filters, uID, customFilter);
+
+        // if this is a child filter and has a parent then setup the relationship
+        let parentFilter = null;
+        if(_.has(customFilter, 'parentFilterUid')) {
+            parentFilter = _.get(this.newData.filters, customFilter.parentFilterUid);
+        }
+        if(parentFilter) {
+            if(!_.has(parentFilter, 'childFilters')) {
+                _.set(parentFilter, 'childFilters', {});
+            }
+            _.set(parentFilter.childFilters, uID, customFilter);
+        }
         this._saveReport().then((data) => {
             debugger;
             this.globalEventDispatcher.publish('TEST', data, this.newData.properties);
             swal("Yahoo!", `Filter successfully added!`, "success");
         });
-
-
-/*        let filterPath = customFilter.joins.join('.') + `.filters`,
-            referencedFilterPath = customFilter.referencedFilterPath.join('.'),
-            uID = StringHelper.makeCharId();
-        // if it has a joinPath we are editing the filter and th4e uID already exists
-        if(_.has(customFilter, 'joinPath')) {
-            filterPath = customFilter.joinPath.join('.');
-            _.set(this.data, filterPath, customFilter);
-        } else if(_.has(this.data, filterPath)) {
-            _.set(this.data, `${filterPath}[${uID}]`, customFilter);
-            _.set(this.data, `${filterPath}[${uID}].orFilters`, {});
-            if(referencedFilterPath !== "") {
-                let orFilterPath = customFilter.joins.concat(['filters', uID]);
-                _.set(this.data, `${referencedFilterPath}.orFilters.${uID}`, orFilterPath);
-            }
-        } else {
-            _.set(this.data, filterPath, {});
-            _.set(this.data, `${filterPath}[${uID}]`, customFilter);
-            _.set(this.data, `${filterPath}[${uID}].orFilters`, {});
-            if(referencedFilterPath !== "") {
-                let orFilterPath = customFilter.joins.concat(['filters', uID]);
-                _.set(this.data, `${referencedFilterPath}.orFilters.${uID}`, orFilterPath);
-            }
-        }*/
-
         debugger;
         this.globalEventDispatcher.publish(Settings.Events.REPORT_FILTER_ITEM_ADDED, this.newData);
     }

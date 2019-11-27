@@ -425,6 +425,8 @@ class PropertyController extends ApiController
                     $uids[] = $customObject->getId();
                 }
             }
+        } else {
+            $uids[] = $customObject->getId();
         }
         $availableProperties = $this->propertyRepository->getForReport(array_unique($uids));
         // decode the nested JSON FIELD

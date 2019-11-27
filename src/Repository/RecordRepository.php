@@ -244,15 +244,14 @@ class RecordRepository extends ServiceEntityRepository
         // Setup Filters
         $filters = [];
         $filters = $this->newFilterLogicBuilder($root, $data, $filters);
-        $filterString = implode(" OR ", $filters);
-
+        $filterString = !empty($filters) ? sprintf("(\n%s)", implode(" OR \n", $filters)) : '';
         $filterString = empty($filters) ? '' : "AND $filterString";
 
         // On joins that use the "Without" join type we add a WHERE clause in the query string already. So in that case add an AND clause instead
         if (strpos($joinString, 'WHERE') !== false) {
-            $query = sprintf("SELECT DISTINCT `%s`.id %s from record `%s` %s AND `%s`.custom_object_id='%s' %s", $root, $resultStr, $root, $joinString, $root, $customObject->getId(), $filterString);
+            $query = sprintf("SELECT DISTINCT `%s`.id %s from record `%s` %s AND `%s`.custom_object_id='%s' \n %s", $root, $resultStr, $root, $joinString, $root, $customObject->getId(), $filterString);
         } else {
-            $query = sprintf("SELECT DISTINCT `%s`.id %s from record `%s` %s WHERE `%s`.custom_object_id='%s' %s", $root, $resultStr, $root, $joinString, $root, $customObject->getId(), $filterString);
+            $query = sprintf("SELECT DISTINCT `%s`.id %s from record `%s` %s WHERE `%s`.custom_object_id='%s' \n %s", $root, $resultStr, $root, $joinString, $root, $customObject->getId(), $filterString);
         }
 
         $em = $this->getEntityManager();
@@ -371,6 +370,10 @@ class RecordRepository extends ServiceEntityRepository
             return [];
         }
         foreach ($data['filters'] as $filter) {
+            // if the filter has a parent filter don't add it here. It will be added as an AND conditional below
+            if(!empty($filter['hasParentFilter'])) {
+                continue;
+            }
             $alias = sprintf("%s.%s", $filter['uid'], $filter['custom_object_internal_name']);
             $filters[] = $this->getConditionForReport($filter, $alias);
         }
@@ -1658,27 +1661,15 @@ class RecordRepository extends ServiceEntityRepository
                 break;
         }
 
-        // add any OR conditions
-
-        if(isset($customFilter['orFilters'])) {
-
-            /*$andFilters = [];*/
-
-            foreach($customFilter['orFilters'] as $orFilter) {
-
-                $filterPath = implode(".", $orFilter);
-
-                $filter = $this->getValueByDotNotation($filterPath, $this->data);
-
-                $andFilters[] = $this->getConditionForReport($filter, implode('.', $filter['joins']));
+        // add the child filters (AND conditionals)
+        if(!empty($customFilter['childFilters'])) {
+            foreach($customFilter['childFilters'] as $childFilter) {
+                $alias = sprintf("%s.%s", $childFilter['uid'], $childFilter['custom_object_internal_name']);
+                $andFilters[] = $this->getConditionForReport($childFilter, $alias);
             }
-
         }
-
-        $query .= implode(' AND ', $andFilters);
-
-        $query = sprintf('(%s)', $query) . PHP_EOL . PHP_EOL;
-
+        $query .= implode(" AND ", $andFilters);
+        $query = sprintf("(\n%s\n)", $query) . PHP_EOL . PHP_EOL;
         return $query;
     }
 
