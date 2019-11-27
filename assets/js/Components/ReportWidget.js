@@ -304,7 +304,7 @@ class ReportWidget {
         }*/
 
         debugger;
-        this.globalEventDispatcher.publish(Settings.Events.REPORT_FILTER_ITEM_ADDED, this.data);
+        this.globalEventDispatcher.publish(Settings.Events.REPORT_FILTER_ITEM_ADDED, this.newData);
     }
 
     handleReportRemoveSelectedColumnIconClicked(property) {

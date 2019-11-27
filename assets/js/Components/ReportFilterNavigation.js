@@ -32,6 +32,7 @@ class ReportFilterNavigation {
 
     constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, data = {}) {
 
+        debugger;
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
@@ -43,7 +44,7 @@ class ReportFilterNavigation {
          */
         this.data = data;
 
-        this.unbindEvents();
+   /*     this.unbindEvents();
 
         this.globalEventDispatcher.addRemovableToken(
             this.globalEventDispatcher.subscribe(
@@ -80,7 +81,7 @@ class ReportFilterNavigation {
             ReportFilterNavigation._selectors.filter,
             this.handleFilterPressed.bind(this)
         );
-
+*/
 
         this.render(data);
     }
