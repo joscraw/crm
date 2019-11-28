@@ -117,6 +117,7 @@ class ReportPropertyList {
         this.$wrapper.off('click', ReportPropertyList._selectors.propertyListItem);
         this.$wrapper.off('click', ReportPropertyList._selectors.filterListItem);
         this.$wrapper.off('click', ReportPropertyList._selectors.backButton);
+        this.$wrapper.off('click', ReportPropertyList._selectors.propertyRemoveItem);
     }
 
 /*    addDefaultPropertiesToTable() {

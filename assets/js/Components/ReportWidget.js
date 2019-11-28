@@ -267,29 +267,22 @@ class ReportWidget {
         this.globalEventDispatcher.publish(Settings.Events.REPORT_PROPERTY_LIST_ITEM_ADDED, this.data, this.columnOrder);*/
     }
 
-    handleReportRemoveFilterButtonPressed(joinPath) {
-        let filterPath = joinPath.join('.');
-        /**
-         * If a referenced filter is being deleted we need to setup a new referenced filter and make
-         * sure to update all the child (orFilters) to point to the new referenced filter
-         */
-        if(_.keys(_.get(this.data, `${filterPath}.orFilters`, [])).length !== 0) {
-            let orFilterPaths = _.get(this.data, `${filterPath}.orFilters`);
-            let orFilterPath = orFilterPaths[Object.keys(orFilterPaths)[0]];
-            let uID = orFilterPath[orFilterPath.length-1];
-            _.unset(orFilterPaths, uID);
-            _.set(this.data, `${orFilterPath.join('.')}.referencedFilterPath`, []);
-            _.set(this.data, `${orFilterPath.join('.')}.orFilters`, orFilterPaths);
-            _.forOwn(orFilterPaths, (value, key) => {
-                _.set(this.data, `${value.join('.')}.referencedFilterPath`, orFilterPath);
-            });
+    handleReportRemoveFilterButtonPressed(uid) {
+        debugger;
+        // remove the parent reference from the child filters
+        if(_.has(this.newData.filters[uid], 'childFilters')) {
+            let childFilters = this.newData.filters[uid].childFilters;
+            for(let key in childFilters) {
+                let childFilter = childFilters[key];
+                _.unset(childFilter, 'hasParentFilter');
+                _.unset(childFilter, 'parentFilterUid');
+            }
         }
-        if(_.keys(_.get(this.data, `${filterPath}.referencedFilterPath`, [])).length !== 0) {
-            let referencedFilterPath = _.get(this.data, `${filterPath}.referencedFilterPath`).join('.');
-            _.unset(this.data, `${referencedFilterPath}.orFilters.${joinPath[joinPath.length - 1]}`);
-        }
-        _.unset(this.data, filterPath);
-        this.globalEventDispatcher.publish(Settings.Events.REPORT_FILTER_ITEM_REMOVED, this.data);
+        _.unset(this.newData.filters, uid);
+        this._saveReport().then((data) => {
+            this.globalEventDispatcher.publish('TEST', data, this.newData.properties);
+        });
+        this.globalEventDispatcher.publish(Settings.Events.REPORT_FILTER_ITEM_REMOVED, this.newData);
     }
 
     applyCustomFilterButtonPressedHandler(customFilter) {
