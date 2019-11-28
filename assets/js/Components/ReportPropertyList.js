@@ -69,7 +69,8 @@ class ReportPropertyList {
             list: '.js-list',
             propertyList: '.js-property-list',
             backButton: '.js-back-button',
-            filterListItem: '.js-filter-list-item'
+            filterListItem: '.js-filter-list-item',
+            propertyRemoveItem: '.js-property-remove-item'
 
         }
     }
@@ -86,6 +87,12 @@ class ReportPropertyList {
             'click',
             ReportPropertyList._selectors.propertyListItem,
             this.handlePropertyListItemClicked.bind(this)
+        );
+
+        this.$wrapper.on(
+            'click',
+            ReportPropertyList._selectors.propertyRemoveItem,
+            this.handlePropertyRemoveItemClicked.bind(this)
         );
 
         this.$wrapper.on(
@@ -271,21 +278,32 @@ class ReportPropertyList {
         }
         let propertyGroupId = $listItem.closest(ReportPropertyList._selectors.list).attr('data-property-group');
         let propertyId = $listItem.attr('data-property-id');
-        let joins = JSON.parse($listItem.attr('data-joins'));
+        let propertyGroup = this.propertyGroups[propertyGroupId];
+        let properties = propertyGroup.properties;
+        let property = properties.filter(property => {
+            return parseInt(property.id) === parseInt(propertyId);
+        });
+        this.globalEventDispatcher.publish(Settings.Events.REPORT_PROPERTY_LIST_ITEM_CLICKED, property[0]);
+    }
+
+    handlePropertyRemoveItemClicked(e) {
+        debugger;
+        if(e.cancelable) {
+            e.preventDefault();
+        }
+        const $listItem = $(e.currentTarget).parent('li');
+        if($listItem.hasClass('c-report-widget__list-item--active')) {
+            return;
+        }
+        let propertyGroupId = $listItem.closest(ReportPropertyList._selectors.list).attr('data-property-group');
+        let propertyId = $listItem.attr('data-property-id');
 
         let propertyGroup = this.propertyGroups[propertyGroupId];
         let properties = propertyGroup.properties;
         let property = properties.filter(property => {
             return parseInt(property.id) === parseInt(propertyId);
         });
-
-        this.globalEventDispatcher.publish(Settings.Events.REPORT_PROPERTY_LIST_ITEM_CLICKED, property[0]);
-       /* property[0].joins = joins;
-        if(property[0].fieldType === 'custom_object_field') {
-            this.globalEventDispatcher.publish(Settings.Events.REPORT_CUSTOM_OBJECT_PROPERTY_LIST_ITEM_CLICKED, property[0], joins);
-        } else {
-            this.globalEventDispatcher.publish(Settings.Events.REPORT_PROPERTY_LIST_ITEM_CLICKED, property[0]);
-        }*/
+        this.globalEventDispatcher.publish(Settings.Events.REPORT_REMOVE_SELECTED_COLUMN_ICON_CLICKED, property[0]);
     }
 
     handleFilterListItemClicked(e) {
@@ -349,7 +367,7 @@ class ReportPropertyList {
         var options = {
             valueNames: [ 'label' ],
             // Since there are no elements in the list, this will be used as template.
-            item: `<li class="c-report-widget__list-item"><span class="label"></span><i class="fa fa-plus js-property-list-item" style="float: right"></i> <i class="fa fa-filter js-filter-list-item" style="float: right"></li>`
+            item: `<li class="c-report-widget__list-item"><span class="label"></span><i class="fa fa-trash-o js-property-remove-item" style="float: right; padding-left: 5px"></i> <i class="fa fa-plus js-property-list-item" style="float: right; padding-left: 5px"></i> <i class="fa fa-filter js-filter-list-item" style="float: right"></li>`
         };
         this.lists.push(new List(`list-property-${propertyGroup.id}`, options, properties));
         $( `#list-property-${propertyGroup.id} li` ).each((index, element) => {

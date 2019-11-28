@@ -319,15 +319,11 @@ class ReportWidget {
     }
 
     handleReportRemoveSelectedColumnIconClicked(property) {
-        let propertyPath = property.joins.concat([property.uID]).join('.');
-        _.unset(this.data, propertyPath);
-        // go ahead and remove the main filter
-        this.columnOrder = $.grep(this.columnOrder, function(co){
-
-            return !(property.uID === co.uID);
-
+        debugger;
+        _.unset(this.newData.properties, property.id);
+        this._saveReport().then((data) => {
+            this.globalEventDispatcher.publish('TEST', data, this.newData.properties);
         });
-        this.globalEventDispatcher.publish(Settings.Events.REPORT_PROPERTY_LIST_ITEM_REMOVED, this.data, this.columnOrder);
     }
 
     handleCustomObjectPropertyListItemClicked(property, joins) {
