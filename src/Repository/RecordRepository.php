@@ -25,6 +25,7 @@ class RecordRepository extends ServiceEntityRepository
 {
 
     use ArrayHelper;
+    use RandomStringGenerator;
 
     /**
      * @var array
@@ -220,6 +221,7 @@ class RecordRepository extends ServiceEntityRepository
     }
 
     /**
+     * This function is the new and improved logic for the report builder.
      * @param $data
      * @param CustomObject $customObject
      * @param $columnOrder
@@ -231,8 +233,11 @@ class RecordRepository extends ServiceEntityRepository
         $this->data = $data;
         $root = sprintf("%s.%s", $customObject->getUid(), $customObject->getInternalName());
 
+        // setup the join aliases
+        $this->newJoinAliasBuilder($data);
+
         // Setup fields for select
-        $resultStr = $this->newFieldLogicBuilder($data);
+        $resultStr = $this->newFieldLogicBuilder($data,  $root);
         $resultStr = implode(",",$resultStr);
         $resultStr  = !empty($resultStr) ? ', ' . $resultStr : '';
 
@@ -264,14 +269,83 @@ class RecordRepository extends ServiceEntityRepository
         );
     }
 
-    private function newFieldLogicBuilder($data)
+    /**
+     * This function loops through all the joins and creates aliases for each join
+     * and then attaches the properties and filters to their corresponding aliases.
+     * @param $data
+     * @return array
+     */
+    private function newJoinAliasBuilder(&$data)
+    {
+        if(empty($data['joins'])) {
+            return [];
+        }
+        // configure the aliases
+        foreach ($data['joins'] as &$joinData) {
+            $connectedObject = $joinData['connected_object'];
+            $connectedProperty = $joinData['connected_property'];
+            $joinDirection = $connectedObject['join_direction'];
+            $joinType = $joinData['join_type'];
+            $randomString = $this->generateRandomString(5);
+            if($joinType === 'With' && $joinDirection === 'normal_join' || $joinType === 'With/Without' && $joinDirection === 'normal_join') {
+                $alias = sprintf("%s.%s", $randomString, $connectedProperty['field']['customObject']['internalName']);
+                $joinData['alias'] = $alias;
+                // add the alias to each property
+                if(!empty($data['properties'])) {
+                    foreach($data['properties'] as $propertyId => &$property) {
+                        if($connectedProperty['field']['customObject']['id'] === $property['custom_object_id']) {
+                            $property['alias'] = $alias;
+                        }
+                    }
+                }
+                // add each alias to each filter
+                if(!empty($data['filters'])) {
+                    foreach ($data['filters'] as &$filter) {
+                        if($connectedProperty['field']['customObject']['id'] === $filter['custom_object_id']) {
+                            $filter['alias'] = $alias;
+                        }
+                    }
+                }
+            } elseif ($joinType === 'Without' && $joinDirection === 'normal_join') {
+                // do nothing
+            } elseif ($joinType === 'With' && $joinDirection === 'cross_join' ||
+                $joinType === 'With/Without' && $joinDirection === 'cross_join' ||
+                $joinType === 'Without' && $joinDirection === 'cross_join') {
+                $alias = sprintf("%s.%s", $randomString, $connectedObject['internal_name']);
+                $joinData['alias'] = $alias;
+                if(!empty($data['properties'])) {
+                    foreach($data['properties'] as $propertyId => &$property) {
+                        if($connectedObject['id'] === $property['custom_object_id']) {
+                            $property['alias'] = $alias;
+                        }
+                    }
+                }
+                // add each alias to each filter
+                if(!empty($data['filters'])) {
+                    foreach ($data['filters'] as &$filter) {
+                        if($connectedObject['id'] === $filter['custom_object_id']) {
+                            $filter['alias'] = $alias;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * This function sets up the property fields we are querying
+     * @param $data
+     * @param $root
+     * @return array
+     */
+    private function newFieldLogicBuilder($data, $root)
     {
         if(empty($data['properties'])) {
             return [];
         }
         $resultStr = [];
         foreach($data['properties'] as $propertyId => $property) {
-            $alias = sprintf("%s.%s", $property['uid'], $property['custom_object_internal_name']);
+            $alias = !empty($property['alias']) ? $property['alias'] : $root;
             switch($property['fieldType']) {
                 case FieldCatalog::DATE_PICKER:
                     $jsonExtract = $this->getDatePickerQuery($alias);
@@ -302,6 +376,14 @@ class RecordRepository extends ServiceEntityRepository
         return $resultStr;
     }
 
+    /**
+     * This function sets up the joins for the query
+     * @param $root
+     * @param $data
+     * @param array $joins
+     * @param null $lastJoin
+     * @return array
+     */
     private function newJoinLogicBuilder($root, &$data, &$joins = [], $lastJoin = null)
     {
         if(empty($data['joins'])) {
@@ -312,9 +394,8 @@ class RecordRepository extends ServiceEntityRepository
             $connectedProperty = $joinData['connected_property'];
             $joinDirection = $connectedObject['join_direction'];
             $joinType = $joinData['join_type'];
+            $alias = !empty($joinData['alias']) ? $joinData['alias'] : $root;
             if($joinType === 'With' && $joinDirection === 'normal_join') {
-                $customObject = $this->getEntityManager()->getRepository(CustomObject::class)->find($connectedProperty['field']['customObject']['id']);
-                $alias = sprintf("%s.%s", $customObject->getUid(), $connectedProperty['field']['customObject']['internalName']);
                 $joins[] = sprintf($this->getJoinQuery(),
                     'INNER JOIN', $alias, $root, $connectedProperty['internalName'], $alias,
                     $root, $connectedProperty['internalName'], $alias,
@@ -322,8 +403,6 @@ class RecordRepository extends ServiceEntityRepository
                     $root, $connectedProperty['internalName'], $alias
                 );
             } elseif ($joinType === 'With/Without' && $joinDirection === 'normal_join') {
-                $customObject = $this->getEntityManager()->getRepository(CustomObject::class)->find($connectedProperty['field']['customObject']['id']);
-                $alias = sprintf("%s.%s", $customObject->getUid(), $connectedProperty['field']['customObject']['internalName']);
                 $joins[] = sprintf($this->getJoinQuery(),
                     'LEFT JOIN', $alias, $root, $connectedProperty['internalName'], $alias,
                     $root, $connectedProperty['internalName'], $alias,
@@ -333,8 +412,6 @@ class RecordRepository extends ServiceEntityRepository
             } elseif ($joinType === 'Without' && $joinDirection === 'normal_join') {
                 $joins[] = sprintf($this->getWithoutJoinQuery(), $root, $connectedProperty['internalName'], $root, $connectedProperty['internalName']);
             } elseif ($joinType === 'With' && $joinDirection === 'cross_join') {
-                $customObject = $this->getEntityManager()->getRepository(CustomObject::class)->find($connectedObject['id']);
-                $alias = sprintf("%s.%s", $customObject->getUid(), $connectedObject['internal_name']);
                 $joins[] = sprintf($this->getCrossJoinQuery(),
                     'INNER JOIN', $alias, $alias, $connectedProperty['internalName'], $root,
                     $alias, $connectedProperty['internalName'], $root,
@@ -342,8 +419,6 @@ class RecordRepository extends ServiceEntityRepository
                     $alias, $connectedProperty['internalName'], $root
                 );
             } elseif ($joinType === 'With/Without' && $joinDirection === 'cross_join') {
-                $customObject = $this->getEntityManager()->getRepository(CustomObject::class)->find($connectedObject['id']);
-                $alias = sprintf("%s.%s", $customObject->getUid(), $connectedObject['internal_name']);
                 $joins[] = sprintf($this->getCrossJoinQuery(),
                     'LEFT JOIN', $alias, $alias, $connectedProperty['internalName'], $root,
                     $alias, $connectedProperty['internalName'], $root,
@@ -351,8 +426,6 @@ class RecordRepository extends ServiceEntityRepository
                     $alias, $connectedProperty['internalName'], $root
                 );
             } elseif ($joinType === 'Without' && $joinDirection === 'cross_join') {
-                $customObject = $this->getEntityManager()->getRepository(CustomObject::class)->find($connectedObject['id']);
-                $alias = sprintf("%s.%s", $customObject->getUid(), $connectedObject['internal_name']);
                 $joins[] = sprintf($this->getWithoutCrossJoinQuery(),
                     $alias, $alias, $connectedProperty['internalName'], $root,
                     $alias, $connectedProperty['internalName'], $root,
@@ -364,6 +437,13 @@ class RecordRepository extends ServiceEntityRepository
         return $joins;
     }
 
+    /**
+     * This function sets up the filters for the query
+     * @param $root
+     * @param $data
+     * @param array $filters
+     * @return array
+     */
     private function newFilterLogicBuilder($root, &$data, &$filters = [])
     {
         if(empty($data['filters'])) {
@@ -374,7 +454,7 @@ class RecordRepository extends ServiceEntityRepository
             if(!empty($filter['hasParentFilter'])) {
                 continue;
             }
-            $alias = sprintf("%s.%s", $filter['uid'], $filter['custom_object_internal_name']);
+            $alias = !empty($filter['alias']) ? $filter['alias'] : $root;
             $filters[] = $this->getConditionForReport($filter, $alias);
         }
         return $filters;

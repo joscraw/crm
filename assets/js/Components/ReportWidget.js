@@ -51,6 +51,8 @@ class ReportWidget {
 
         this.columnOrder = [];
 
+        // todo consider storing the entire state of this SPA in this array including all available properties
+        //  this would make managing the app easier when you get to the edit report builder
         /**
          * version 2.0
          * This newData object is the new data store for all the properties, filters, and joins
