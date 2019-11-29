@@ -27,34 +27,13 @@ class ReportPropertyList {
         // set up the initial object to pull down associated properties
         let initialData = {joins: {}};
         _.set(initialData.joins, uID, {connected_object: customObject});
-
         this.unbindEvents();
-
         this.bindEvents();
-
-     /*   this.globalEventDispatcher.addRemovableToken(
-            this.globalEventDispatcher.subscribe(
-            Settings.Events.REPORT_PROPERTY_LIST_ITEM_ADDED,
-            this.handlePropertyListItemAdded.bind(this)
-        ));
-
-        this.globalEventDispatcher.addRemovableToken(
-            this.globalEventDispatcher.subscribe(
-            Settings.Events.REPORT_PROPERTY_LIST_ITEM_REMOVED,
-            this.handlePropertyListItemRemoved.bind(this)
-        ));*/
-
         this.globalEventDispatcher.addRemovableToken(
             this.globalEventDispatcher.subscribe(
                 Settings.Events.REPORT_OBJECT_CONNECTED_JSON_UPDATED,
                 this.refreshPropertyList.bind(this)
             ));
-
-      /*  this.globalEventDispatcher.addRemovableToken(
-            this.globalEventDispatcher.subscribe(
-                Settings.Events.REPORT_PREVIEW_TABLE_INITIALIZED,
-                this.addDefaultPropertiesToTable.bind(this)
-            ));*/
         this.render();
         this.loadInitialProperties(initialData);
     }

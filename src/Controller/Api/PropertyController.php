@@ -459,9 +459,12 @@ class PropertyController extends ApiController
         $customObjectId = $request->query->get('customObjectId');
         $connectableCustomObject = $this->customObjectRepository->find($customObjectId);
         $properties = $this->propertyRepository->getConnectableProperties($customObject, $connectableCustomObject);
+        // decode the nested JSON FIELD
+        for($i = 0; $i < count($properties); $i++) {
+            $properties[$i]['field'] = json_decode($properties[$i]['field'], true);
+        }
         $payload = [];
-        $json = $this->serializer->serialize($properties, 'json', ['groups' => ['SELECTABLE_PROPERTIES']]);
-        $payload['properties'] = json_decode($json, true);
+        $payload['properties'] = $properties;
         $response = new JsonResponse([
             'success' => true,
             'data'  => $payload,

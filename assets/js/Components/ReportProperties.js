@@ -32,6 +32,7 @@ import ReportConnectableObjects from "./ReportConnectableObjects";
 import ReportConnectObjectButton from "./ReportConnectObjectButton";
 import ReportPreviewResultsTable from "./ReportPreviewResultsTable";
 import ReportAllFiltersButton from "./ReportAllFiltersButton";
+import ReportConnectedObjectsList from "./ReportConnectedObjectsList";
 
 class ReportProperties {
 
@@ -73,14 +74,14 @@ class ReportProperties {
      */
     static get _selectors() {
         return {
-
             reportSelectedColumnsContainer: '.js-report-selected-columns-container',
             reportPropertyListContainer: '.js-report-property-list-container',
             reportSelectedColumnsCountContainer: '.js-report-selected-columns-count-container',
             reportBackToSelectCustomObjectButton: '.js-back-to-select-custom-object-button',
             reportAdvanceToFiltersView: '.js-advance-to-filters-view',
             reportConnectableObjectsContainer: '.js-report-connectable-objects',
-            reportAllFiltersButtonContainer: '.js-report-all-filters-button-container'
+            reportAllFiltersButtonContainer: '.js-report-all-filters-button-container',
+            reportConnectedObjectsListContainer: '.js-report-connected-objects-list-container'
 
         }
     }
@@ -177,11 +178,7 @@ class ReportProperties {
         new ReportPropertyList($(ReportProperties._selectors.reportPropertyListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, null, [], this.data, this.customObject);
         new ReportConnectObjectButton($(ReportProperties._selectors.reportConnectableObjectsContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);
         new ReportAllFiltersButton($(ReportProperties._selectors.reportAllFiltersButtonContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);
-        /*new ReportConnectableObjects($(ReportProperties._selectors.reportConnectableObjectsContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, null, [], this.data);*/
-
-        /*new ReportSelectedColumns(this.$wrapper.find(ReportProperties._selectors.reportSelectedColumnsContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.data, this.columnOrder);*/
-
-       /* new ReportSelectedColumnsCount(this.$wrapper.find(ReportProperties._selectors.reportSelectedColumnsCountContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.data, this.columnOrder);*/
+        new ReportConnectedObjectsList($(ReportProperties._selectors.reportConnectedObjectsListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);
     }
 
     static markup({customObjectInternalName}) {
@@ -198,6 +195,7 @@ class ReportProperties {
                     <div class="col-md-12 js-report-property-list-container"></div>
                     <div class="col-md-12 js-report-connectable-objects"></div>
                     <div class="col-md-12 js-report-all-filters-button-container"></div>
+                    <div class="col-md-12 js-report-connected-objects-list-container"></div>
                     
                 <!--    <div class="col-md-12">
                         <ul class="list-group">

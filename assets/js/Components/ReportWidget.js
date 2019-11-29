@@ -342,17 +342,9 @@ class ReportWidget {
             _.set(connectedData, 'joins', {});
         }
         this.newData.joins.push(connectedData);
-        /*let uID = StringHelper.makeCharId();*/
-        /*_.set(this.newData.joins, uID, connectedData);
-        // set the root custom object to start the query on
-        _.set(this.newData, 'name', this.customObject.internalName);*/
-        debugger;
-        // Make sure this even talks to the ReportPropertyList and updates the visible properties that are displayed.
-        // Make sure you attach the uID to each property so we know which join it is attached to
-        this.globalEventDispatcher.publish(Settings.Events.REPORT_OBJECT_CONNECTED_JSON_UPDATED, this.newData, true);
         this._saveReport().then((data) => {
-            debugger;
             this.globalEventDispatcher.publish('TEST', data, this.newData.properties);
+            this.globalEventDispatcher.publish(Settings.Events.REPORT_OBJECT_CONNECTED_JSON_UPDATED, this.newData, true);
             swal("Hooray!", `Object successfully connected!`, "success");
         });
     }
