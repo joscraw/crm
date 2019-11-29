@@ -19,12 +19,13 @@ class ConnectObjectForm {
      * @param portalInternalIdentifier
      * @param customObjectInternalName
      */
-    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, parentConnectionUid) {
 
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
         this.customObjectInternalName = customObjectInternalName;
+        this.parentConnectionUid = parentConnectionUid;
         this.connectedObjects = [];
         this.connectedProperties = [];
         this.propertySelect = null;
@@ -166,6 +167,10 @@ class ConnectObjectForm {
         object.connected_object = this.connectedObjects.filter(connectedObject => {
             return parseInt(connectedObject.id) === parseInt(object.connected_object);
         })[0];
+        if(this.parentConnectionUid) {
+            object.parentConnectionUid = this.parentConnectionUid;
+            object.hasParentConnection = true;
+        }
         this.globalEventDispatcher.publish(Settings.Events.REPORT_OBJECT_CONNECTED, object);
     }
 

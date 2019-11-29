@@ -29,11 +29,14 @@ class ReportPropertyList {
         _.set(initialData.joins, uID, {connected_object: customObject});
         this.unbindEvents();
         this.bindEvents();
-        this.globalEventDispatcher.addRemovableToken(
-            this.globalEventDispatcher.subscribe(
-                Settings.Events.REPORT_OBJECT_CONNECTED_JSON_UPDATED,
-                this.refreshPropertyList.bind(this)
-            ));
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.REPORT_OBJECT_CONNECTED_JSON_UPDATED,
+            this.refreshPropertyList.bind(this)
+        );
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.REPORT_CONNECTION_REMOVED,
+            this.refreshPropertyList.bind(this)
+        );
         this.render();
         this.loadInitialProperties(initialData);
     }
@@ -178,14 +181,11 @@ class ReportPropertyList {
         });
     }
 
-    refreshPropertyList(data, refreshView = false) {
+    refreshPropertyList(data) {
         this.loadPropertiesForAllObjects(data).then((data) => {
             debugger;
             this.propertyGroups = data.data.property_groups;
-            this.renderProperties(this.propertyGroups).then(() => {
-                debugger;
-                /*this.highlightProperties(this.data);*/
-            })
+            this.renderProperties(this.propertyGroups).then(() => {})
         });
     }
 

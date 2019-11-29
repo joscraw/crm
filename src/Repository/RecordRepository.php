@@ -224,11 +224,10 @@ class RecordRepository extends ServiceEntityRepository
      * This function is the new and improved logic for the report builder.
      * @param $data
      * @param CustomObject $customObject
-     * @param $columnOrder
      * @return array
      * @throws \Doctrine\DBAL\DBALException
      */
-    public function newReportLogicBuilder($data, CustomObject $customObject, $columnOrder)
+    public function newReportLogicBuilder($data, CustomObject $customObject)
     {
         $this->data = $data;
         $root = sprintf("%s.%s", $customObject->getUid(), $customObject->getInternalName());
@@ -390,51 +389,72 @@ class RecordRepository extends ServiceEntityRepository
             return [];
         }
         foreach ($data['joins'] as $joinData) {
-            $connectedObject = $joinData['connected_object'];
-            $connectedProperty = $joinData['connected_property'];
-            $joinDirection = $connectedObject['join_direction'];
-            $joinType = $joinData['join_type'];
-            $alias = !empty($joinData['alias']) ? $joinData['alias'] : $root;
-            if($joinType === 'With' && $joinDirection === 'normal_join') {
-                $joins[] = sprintf($this->getJoinQuery(),
-                    'INNER JOIN', $alias, $root, $connectedProperty['internalName'], $alias,
-                    $root, $connectedProperty['internalName'], $alias,
-                    $root, $connectedProperty['internalName'], $alias,
-                    $root, $connectedProperty['internalName'], $alias
-                );
-            } elseif ($joinType === 'With/Without' && $joinDirection === 'normal_join') {
-                $joins[] = sprintf($this->getJoinQuery(),
-                    'LEFT JOIN', $alias, $root, $connectedProperty['internalName'], $alias,
-                    $root, $connectedProperty['internalName'], $alias,
-                    $root, $connectedProperty['internalName'], $alias,
-                    $root, $connectedProperty['internalName'], $alias
-                );
-            } elseif ($joinType === 'Without' && $joinDirection === 'normal_join') {
-                $joins[] = sprintf($this->getWithoutJoinQuery(), $root, $connectedProperty['internalName'], $root, $connectedProperty['internalName']);
-            } elseif ($joinType === 'With' && $joinDirection === 'cross_join') {
-                $joins[] = sprintf($this->getCrossJoinQuery(),
-                    'INNER JOIN', $alias, $alias, $connectedProperty['internalName'], $root,
-                    $alias, $connectedProperty['internalName'], $root,
-                    $alias, $connectedProperty['internalName'], $root,
-                    $alias, $connectedProperty['internalName'], $root
-                );
-            } elseif ($joinType === 'With/Without' && $joinDirection === 'cross_join') {
-                $joins[] = sprintf($this->getCrossJoinQuery(),
-                    'LEFT JOIN', $alias, $alias, $connectedProperty['internalName'], $root,
-                    $alias, $connectedProperty['internalName'], $root,
-                    $alias, $connectedProperty['internalName'], $root,
-                    $alias, $connectedProperty['internalName'], $root
-                );
-            } elseif ($joinType === 'Without' && $joinDirection === 'cross_join') {
-                $joins[] = sprintf($this->getWithoutCrossJoinQuery(),
-                    $alias, $alias, $connectedProperty['internalName'], $root,
-                    $alias, $connectedProperty['internalName'], $root,
-                    $alias, $connectedProperty['internalName'], $root,
-                    $alias, $connectedProperty['internalName'], $root,
-                    $alias, $connectedProperty['internalName'], $alias, $connectedProperty['internalName']);
+            // if the join has a parent connection don't add the join here. It will be added below as a nested join
+            if(!empty($joinData['hasParentConnection'])) {
+                continue;
             }
+            // add the main connections (joins)
+            $joins[] = $this->calculateJoin($joinData, $root);
+            // add the child connections (joins)
+            if(!empty($joinData['childConnections'])) {
+                foreach($joinData['childConnections'] as $uid => $childConnection) {
+                    $childConnection['alias'] = $data['joins'][$uid]['alias'];
+                    // set the new root equal to the parent alias so the next join references the correct alias
+                    $root = $joinData['alias'];
+                    $joins[] = $this->calculateJoin($childConnection, $root);
+                }
+            }
+
         }
         return $joins;
+    }
+
+    private function calculateJoin($joinData, $root) {
+        $connectedObject = $joinData['connected_object'];
+        $connectedProperty = $joinData['connected_property'];
+        $joinDirection = $connectedObject['join_direction'];
+        $joinType = $joinData['join_type'];
+        $alias = !empty($joinData['alias']) ? $joinData['alias'] : $root;
+        $query = '';
+        if($joinType === 'With' && $joinDirection === 'normal_join') {
+            $query = sprintf($this->getJoinQuery(),
+                'INNER JOIN', $alias, $root, $connectedProperty['internalName'], $alias,
+                $root, $connectedProperty['internalName'], $alias,
+                $root, $connectedProperty['internalName'], $alias,
+                $root, $connectedProperty['internalName'], $alias
+            );
+        } elseif ($joinType === 'With/Without' && $joinDirection === 'normal_join') {
+            $query = sprintf($this->getJoinQuery(),
+                'LEFT JOIN', $alias, $root, $connectedProperty['internalName'], $alias,
+                $root, $connectedProperty['internalName'], $alias,
+                $root, $connectedProperty['internalName'], $alias,
+                $root, $connectedProperty['internalName'], $alias
+            );
+        } elseif ($joinType === 'Without' && $joinDirection === 'normal_join') {
+            $query = sprintf($this->getWithoutJoinQuery(), $root, $connectedProperty['internalName'], $root, $connectedProperty['internalName']);
+        } elseif ($joinType === 'With' && $joinDirection === 'cross_join') {
+            $query = sprintf($this->getCrossJoinQuery(),
+                'INNER JOIN', $alias, $alias, $connectedProperty['internalName'], $root,
+                $alias, $connectedProperty['internalName'], $root,
+                $alias, $connectedProperty['internalName'], $root,
+                $alias, $connectedProperty['internalName'], $root
+            );
+        } elseif ($joinType === 'With/Without' && $joinDirection === 'cross_join') {
+            $query = sprintf($this->getCrossJoinQuery(),
+                'LEFT JOIN', $alias, $alias, $connectedProperty['internalName'], $root,
+                $alias, $connectedProperty['internalName'], $root,
+                $alias, $connectedProperty['internalName'], $root,
+                $alias, $connectedProperty['internalName'], $root
+            );
+        } elseif ($joinType === 'Without' && $joinDirection === 'cross_join') {
+            $query = sprintf($this->getWithoutCrossJoinQuery(),
+                $alias, $alias, $connectedProperty['internalName'], $root,
+                $alias, $connectedProperty['internalName'], $root,
+                $alias, $connectedProperty['internalName'], $root,
+                $alias, $connectedProperty['internalName'], $root,
+                $alias, $connectedProperty['internalName'], $alias, $connectedProperty['internalName']);
+        }
+        return $query;
     }
 
     /**
