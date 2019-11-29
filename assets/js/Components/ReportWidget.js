@@ -232,13 +232,22 @@ class ReportWidget {
 
     handleReportRemoveConnectionButtonPressed(connectionUid) {
         debugger;
-        // child connections (joins) are dependent on their parent connection (join) so go ahead and remove any children
+        // if a parent connection is being removed take note that child connections (joins)
+        // are dependent on their parent connection (join) so go ahead and remove any children
         if(_.has(this.newData.joins[connectionUid], 'childConnections')) {
             let childConnections = this.newData.joins[connectionUid].childConnections;
             for(let uid in childConnections) {
                 _.unset(this.newData.joins, uid);
             }
         }
+        // if a child connection is being removed check to see if it has a parent connection
+        // if it does then remove the child connection from it's parent
+        if(_.has(this.newData.joins[connectionUid], 'parentConnectionUid')) {
+            debugger;
+            let parentConnectionId = _.get(this.newData.joins[connectionUid], 'parentConnectionUid');
+            _.unset(this.newData.joins[parentConnectionId].childConnections, connectionUid);
+        }
+        // Last but not least finally remove the main connection
         _.unset(this.newData.joins, connectionUid);
         this._saveReport().then((data) => {
             this.globalEventDispatcher.publish('TEST', data, this.newData.properties);
