@@ -119,6 +119,26 @@ class CustomObjectController extends ApiController
     }
 
     /**
+     * @Route("/{internalName}/connectable", name="get_connectable_objects", methods={"GET"}, options = { "expose" = true })
+     * @param CustomObject $customObject
+     * @param Portal $portal
+     * @param Request $request
+     * @return Response
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    public function getConnectableObjectsAction(CustomObject $customObject, Portal $portal, Request $request) {
+        $customObjects = $this->customObjectRepository->getConnectableObjects($customObject);
+        $payload = [];
+        $payload['custom_objects'] = $customObjects;
+        $response = new JsonResponse([
+            'success' => true,
+            'data'  => $payload,
+        ],  Response::HTTP_OK);
+        return $response;
+    }
+
+
+    /**
      * This doesn't return a list of all possible merge tags. Just 1 level deep.
      * The user can go deeper with the extraction depending on the data they want to use
      *

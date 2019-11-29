@@ -364,18 +364,112 @@ class PropertyController extends ApiController
      * @return JsonResponse
      */
     public function getPropertiesAction(Portal $portal, CustomObject $customObject, Request $request) {
-
+        $excludeCustomObjects = $request->query->get('excludeCustomObjects', false);
+        $includeGroupingLabel = $request->query->get('includeGroupingLabel', false);
         $propertyGroups = $this->propertyGroupRepository->getPropertyGroupsAndProperties($customObject);
+        if($excludeCustomObjects) {
+            foreach($propertyGroups as $propertyGroup) {
+                /** @var PropertyGroup $propertyGroup */
+                $properties = $propertyGroup->getProperties()->filter(function(Property $property) {
+                    return $property->getFieldType() !== FieldCatalog::CUSTOM_OBJECT;
 
+                });
+                $propertyGroup->setProperties($properties);
+            }
+        }
         $payload['property_groups'] = [];
-
         $json = $this->serializer->serialize($propertyGroups, 'json', ['groups' => ['SELECTABLE_PROPERTIES']]);
-        $payload['property_groups'] = json_decode($json, true);
-
+        $propertyGroups = json_decode($json, true);
+        if($includeGroupingLabel) {
+            foreach($propertyGroups as $propertyGroup) {
+                $propertyGroup['grouping_label'] = sprintf("%s - %s", $customObject->getLabel(), $propertyGroup['name']);
+            }
+        }
+        $payload['property_groups'] = $propertyGroups;
         return new JsonResponse([
             'success' => true,
             'data'  => $payload
         ], Response::HTTP_OK);
+    }
+
+    /**
+     * @Route("/{internalName}/get-from-objects", name="get_properties_from_multiple_objects", methods={"POST"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param CustomObject $customObject
+     * @param Request $request
+     * @return JsonResponse
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    public function getPropertiesFromMultipleObjectsAction(Portal $portal, CustomObject $customObject, Request $request) {
+        /**
+         * An array of all possible available properties. NO Duplicates though!
+         * @var array $availableProperties
+         */
+        $availableProperties = [];
+        /**
+         * To see the JSON structure being used in reports see the below file
+         * https://jsoncompare.com/#!/simple/id=7b48824006f64ac81539d6f44b0c9fdd/
+         * @var array $data
+         */
+        $data = $request->request->get('data');
+        $uids = [];
+        if(!empty($data['joins'])) {
+            foreach($data['joins'] as $join) {
+                if(!empty($join['connected_object']['join_direction']) &&  $join['connected_object']['join_direction'] === 'normal_join') {
+                    $uids[] = $join['connected_object']['id'];
+                    $uids[] = $join['connected_property']['field']['customObject']['id'];
+                } else if(!empty($join['connected_object']['join_direction']) &&  $join['connected_object']['join_direction'] === 'cross_join') {
+                    $uids[] = $customObject->getId();
+                    $uids[] = $join['connected_object']['id'];
+                } else {
+                    $uids[] = $customObject->getId();
+                }
+            }
+        } else {
+            $uids[] = $customObject->getId();
+        }
+        $availableProperties = $this->propertyRepository->getForReport(array_unique($uids));
+        // decode the nested JSON FIELD
+        for($i = 0; $i < count($availableProperties); $i++) {
+            $availableProperties[$i]['field'] = json_decode($availableProperties[$i]['field'], true);
+        }
+        $payload['property_groups'] = [];
+        for($i = 0; $i < count($availableProperties); $i++) {
+            $availableProperty = $availableProperties[$i];
+            $payload['property_groups'][$availableProperty['property_group_id']]['id'] = $availableProperty['property_group_id'];
+            $payload['property_groups'][$availableProperty['property_group_id']]['name'] = $availableProperty['property_group_name'];
+            $payload['property_groups'][$availableProperty['property_group_id']]['grouping_label'] = $availableProperty['grouping_label'];
+            $payload['property_groups'][$availableProperty['property_group_id']]['properties'][] = $availableProperty;
+        }
+        return new JsonResponse([
+            'success' => true,
+            'data'  => $payload
+        ], Response::HTTP_OK);
+    }
+
+    /**
+     * @Route("/object/{internalName}/connectable", name="get_connectable_properties", methods={"GET"}, options = { "expose" = true })
+     * @param CustomObject $customObject
+     * @param Portal $portal
+     * @param Request $request
+     * @return Response
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    public function getConnectablePropertiesAction(CustomObject $customObject, Portal $portal, Request $request) {
+        $customObjectId = $request->query->get('customObjectId');
+        $connectableCustomObject = $this->customObjectRepository->find($customObjectId);
+        $properties = $this->propertyRepository->getConnectableProperties($customObject, $connectableCustomObject);
+        // decode the nested JSON FIELD
+        for($i = 0; $i < count($properties); $i++) {
+            $properties[$i]['field'] = json_decode($properties[$i]['field'], true);
+        }
+        $payload = [];
+        $payload['properties'] = $properties;
+        $response = new JsonResponse([
+            'success' => true,
+            'data'  => $payload,
+        ],  Response::HTTP_OK);
+        return $response;
     }
 
     /**

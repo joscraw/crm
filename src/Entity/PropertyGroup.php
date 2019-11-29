@@ -141,6 +141,10 @@ class PropertyGroup
         return $this;
     }
 
+    public function setProperties($properties) {
+        $this->properties = $properties;
+    }
+
     public function getCustomObject(): ?CustomObject
     {
         return $this->customObject;

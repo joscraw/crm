@@ -7,12 +7,13 @@ import StringHelper from "../StringHelper";
 
 class SingleLineTextFieldFilterForm {
 
-    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, property) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, property, hideBackButton = false) {
         debugger;
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
         this.property = property;
+        this.hideBackButton = hideBackButton;
 
         this.unbindEvents();
 
@@ -67,6 +68,9 @@ class SingleLineTextFieldFilterForm {
     render() {
         this.$wrapper.html(SingleLineTextFieldFilterForm.markup(this));
         this.$wrapper.find('.js-radio-button').first().click();
+        if(this.hideBackButton) {
+            this.$wrapper.find('.js-back-to-list-button').remove();
+        }
     }
 
     setupFormAttributes() {

@@ -131,15 +131,14 @@ class ReportController extends ApiController
      * @param CustomObject $customObject
      * @param Request $request
      * @return Response
+     * @throws \Doctrine\DBAL\DBALException
      */
     public function saveReportAction(Portal $portal, CustomObject $customObject, Request $request) {
-
         $hasPermission = $this->permissionAuthorizationHandler->isAuthorized(
             $this->getUser(),
             Role::CREATE_REPORT,
             Role::SYSTEM_PERMISSION
         );
-
         if(!$hasPermission) {
             return new JsonResponse(
                 [
@@ -147,16 +146,17 @@ class ReportController extends ApiController
                 ], Response::HTTP_UNAUTHORIZED
             );
         }
-
         $data = $request->request->get('data', []);
-
         $reportName = $request->request->get('reportName', '');
+        $results = $this->recordRepository->newReportLogicBuilder($data, $customObject);
+        $response = new JsonResponse([
+            'success' => true,
+            'data'  => $results['results']
+        ], Response::HTTP_OK);
 
-        $columnOrder = $request->request->get('columnOrder', []);
+        return $response;
 
-        $query = $this->recordRepository->getReportMysqlOnly($data, $customObject, $columnOrder);
-
-        $report = new Report();
+     /*   $report = new Report();
         $report->setQuery($query);
         $report->setCustomObject($customObject);
         $report->setData($data);
@@ -165,13 +165,7 @@ class ReportController extends ApiController
         $report->setColumnOrder($columnOrder);
 
         $this->entityManager->persist($report);
-        $this->entityManager->flush();
-
-        $response = new JsonResponse([
-            'success' => true
-        ], Response::HTTP_OK);
-
-        return $response;
+        $this->entityManager->flush();*/
     }
 
     /**

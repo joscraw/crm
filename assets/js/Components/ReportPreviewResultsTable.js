@@ -4,12 +4,10 @@ import Routing from '../Routing';
 import Settings from '../Settings';
 import $ from "jquery";
 import DeletePropertyButton from "./DeletePropertyButton";
-
 require( 'datatables.net-bs4' );
 require( 'datatables.net-responsive-bs4' );
 require( 'datatables.net-responsive-bs4/css/responsive.bootstrap4.css' );
 require( 'datatables.net-bs4/css/dataTables.bootstrap4.css' );
-
 
 class ReportPreviewResultsTable {
 
@@ -17,51 +15,28 @@ class ReportPreviewResultsTable {
      * @param $wrapper
      * @param globalEventDispatcher
      * @param portalInternalIdentifier
-     * @param customObjectInternalName
      * @param data
-     * @param columnOrder
      */
-    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, data, columnOrder) {
-
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, data) {
+        debugger;
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
-        this.customObjectInternalName = customObjectInternalName;
         this.data = data;
-        this.columnOrder = columnOrder;
-
-        this.globalEventDispatcher.addRemovableToken(
-            this.globalEventDispatcher.subscribe(
-            Settings.Events.REPORT_PREVIEW_RESULTS_BUTTON_CLICKED,
-            this.handleReportPreviewResultsButtonClicked.bind(this)
-        ));
-
+        this.globalEventDispatcher.subscribe('TEST', this.refreshTable.bind(this));
         this.render();
-
+        this.activatePlugins();
     }
 
-    reportPreviewResultsLoaded(data, columnOrder) {
-
-        this.activatePlugins(data, columnOrder);
-
-    }
-
-    handleReportPreviewResultsButtonClicked() {
-
-        this.loadReportPreview().then((data) => {
-
-            this.activatePlugins(data.data, this.columnOrder);
-
-        });
-
+    refreshTable(data, columns) {
+        this.table.destroy();
+        this.activatePlugins(data.data, columns);
     }
 
     loadReportPreview() {
         return new Promise((resolve, reject) => {
             debugger;
-
-            const url = Routing.generate('get_report_preview', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
-
+            const url = Routing.generate('get_report_preview', {internalIdentifier: this.portalInternalIdentifier, internalName: this.data.selectedCustomObject.internalName});
             $.ajax({
                 url: url,
                 data: {data: this.data, columnOrder: this.columnOrder},
@@ -77,17 +52,30 @@ class ReportPreviewResultsTable {
         });
     }
 
-    activatePlugins(data, columnOrder) {
-
-        let columns = [];
-
-        for(let c of columnOrder) {
-
-            columns.push({data: c.internalName, name: c.internalName, title: c.label});
-
+    activatePlugins(data = {}, columns = {}) {
+        let datatableColumns = [];
+        if(_.isEmpty(data)) {
+            data = [];
         }
-
-        $('#reportPreviewResultsTable').DataTable({
+        // Setup some default display data if columns is empty
+        if(_.isEmpty(columns)) {
+            datatableColumns = [{
+                data: 'Select property on the left to get started...',
+                name: 'Select property on the left to get started...',
+                title: 'Select property on the left to get started...'
+            }];
+        } else {
+            debugger;
+            for(let key in columns) {
+                debugger;
+                let column = columns[key];
+                datatableColumns.push({data: column.internalName, name: column.internalName, title: column.internalName});
+            }
+            debugger;
+        }
+        $('#reportPreviewResultsTable thead').empty();
+        $('#reportPreviewResultsTable tbody').empty();
+        this.table = $('#reportPreviewResultsTable').DataTable({
             "paging": true,
             "destroy": true,
             "responsive": true,
@@ -111,19 +99,15 @@ class ReportPreviewResultsTable {
             https://datatables.net/reference/option/dom
             */
             /*"dom": "rt",*/
-            "columns": columns,
-            "data": data
+            "columns": datatableColumns,
+            "data": data,
+            "initComplete": () => {
+                debugger;
+                /*this.globalEventDispatcher.publish(Settings.Events.REPORT_PREVIEW_TABLE_INITIALIZED);*/
+            }
         });
 
     }
-
-/*    reloadTable() {
-        this.loadColumnsForTable().then((data) => {
-            this.table.destroy();
-            this.activatePlugins(data.data);
-        }).catch(errorData => {
-        });
-    }*/
 
     render() {
         this.$wrapper.html(ReportPreviewResultsTable.markup(this));
@@ -133,6 +117,7 @@ class ReportPreviewResultsTable {
         return `
             <table id="reportPreviewResultsTable" class="table table-striped table-bordered c-table" style="width:100%">
                 <thead>
+                <tr><th></th></tr>
                 </thead>
                 <tbody>
                 </tbody>
