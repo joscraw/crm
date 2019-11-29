@@ -36,36 +36,14 @@ import ReportConnectedObjectsList from "./ReportConnectedObjectsList";
 
 class ReportProperties {
 
-    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, data, columnOrder, customObject = {}) {
-
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, data) {
         debugger;
-
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
-        this.customObjectInternalName = customObjectInternalName;
         this.data = data;
-        this.columnOrder = columnOrder;
-        this.reportPropertiesEventDispatcher = new EventDispatcher();
-        this.connectedObjects = [];
-        this.customObject = customObject;
-
         this.unbindEvents();
         this.bindEvents();
-        this.globalEventDispatcher.removeRemovableTokens();
-
-        this.globalEventDispatcher.addRemovableToken(
-            this.globalEventDispatcher.subscribe(
-            Settings.Events.REPORT_BACK_BUTTON_CLICKED,
-            this.handleBackButtonClicked.bind(this)
-        ));
-
-        this.globalEventDispatcher.addRemovableToken(
-            this.globalEventDispatcher.subscribe(
-            Settings.Events.REPORT_CUSTOM_OBJECT_JOIN_PATH_SET,
-            this.handleCustomObjectJoinPathSet.bind(this)
-        ));
-
         this.render();
     }
 
@@ -82,89 +60,19 @@ class ReportProperties {
             reportConnectableObjectsContainer: '.js-report-connectable-objects',
             reportAllFiltersButtonContainer: '.js-report-all-filters-button-container',
             reportConnectedObjectsListContainer: '.js-report-connected-objects-list-container'
-
         }
     }
 
     bindEvents() {
-
         this.$wrapper.on(
             'click',
             ReportProperties._selectors.reportBackToSelectCustomObjectButton,
             this.handleReportBackToSelectCustomObjectButton.bind(this)
         );
-
-        this.$wrapper.on(
-            'click',
-            ReportProperties._selectors.reportAdvanceToFiltersView,
-            this.handleReportAdvanceToFiltersViewButtonClicked.bind(this)
-        );
-
     }
 
     unbindEvents() {
-
         this.$wrapper.off('click', ReportProperties._selectors.reportBackToSelectCustomObjectButton);
-        this.$wrapper.off('click', ReportProperties._selectors.reportAdvanceToFiltersView);
-    }
-
-    handleReportAdvanceToFiltersViewButtonClicked(e) {
-
-        let properties = this.getPropertiesFromData();
-
-        if(Object.keys(properties).length === 0) {
-
-            swal("Yikes!!!", "You need at least one property.", "warning");
-
-            return;
-        }
-
-        debugger;
-        this.globalEventDispatcher.publish(Settings.Events.ADVANCE_TO_REPORT_FILTERS_VIEW_BUTTON_CLICKED);
-
-    }
-
-    getPropertiesFromData() {
-
-        let properties = {};
-        function search(data) {
-
-            for(let key in data) {
-
-                if(key !== 'filters' && !_.has(data[key], 'uID')) {
-
-                    search(data[key]);
-
-                } else if(key === 'filters'){
-
-                    continue;
-
-                } else {
-
-                    _.set(properties, key, data[key]);
-
-                }
-            }
-        }
-
-        debugger;
-        search(this.data);
-
-        return properties;
-    }
-
-    handleBackButtonClicked() {
-
-        debugger;
-        new ReportPropertyList($(ReportProperties._selectors.reportPropertyListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, null, [], this.data);
-
-    }
-
-    handleCustomObjectJoinPathSet(property, joins, data) {
-
-        debugger;
-        new ReportPropertyList($(ReportProperties._selectors.reportPropertyListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, property.field.customObject.internalName, property, joins, data);
-
     }
 
     handleReportBackToSelectCustomObjectButton(e) {
@@ -174,44 +82,30 @@ class ReportProperties {
     render() {
         debugger;
         this.$wrapper.html(ReportProperties.markup(this));
-        new ReportPreviewResultsTable($(ReportProperties._selectors.reportSelectedColumnsCountContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, this.data, this.columnOrder);
-        new ReportPropertyList($(ReportProperties._selectors.reportPropertyListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, null, [], this.data, this.customObject);
-        new ReportConnectObjectButton($(ReportProperties._selectors.reportConnectableObjectsContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);
-        new ReportAllFiltersButton($(ReportProperties._selectors.reportAllFiltersButtonContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);
-        new ReportConnectedObjectsList($(ReportProperties._selectors.reportConnectedObjectsListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);
+        new ReportPreviewResultsTable($(ReportProperties._selectors.reportSelectedColumnsCountContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.data);
+        new ReportPropertyList($(ReportProperties._selectors.reportPropertyListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.data);
+        new ReportConnectObjectButton($(ReportProperties._selectors.reportConnectableObjectsContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.data.selectedCustomObject.internalName);
+        new ReportAllFiltersButton($(ReportProperties._selectors.reportAllFiltersButtonContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.data.selectedCustomObject.internalName);
+        new ReportConnectedObjectsList($(ReportProperties._selectors.reportConnectedObjectsListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.data.selectedCustomObject.internalName);
     }
 
-    static markup({customObjectInternalName}) {
-
+    static markup({data: {selectedCustomObject: {internalName}}}) {
         return `
              <nav class="navbar navbar-expand-sm l-top-bar justify-content-end c-report-widget__nav">
                   <button type="button" style="color: #FFF" class="btn btn-link js-back-to-select-custom-object-button"><i class="fa fa-angle-left" aria-hidden="true"></i> Back</button>
                  <button class="btn btn-lg btn-secondary ml-auto js-advance-to-filters-view">Next</button> 
              </nav> 
-        
             <div class="row container">
                 <div class="col-md-4">
-                <h2 style="text-decoration: underline">Reporting on ${customObjectInternalName}</h2>
+                <h2 style="text-decoration: underline">Reporting on ${internalName}</h2>
                     <div class="col-md-12 js-report-property-list-container"></div>
                     <div class="col-md-12 js-report-connectable-objects"></div>
                     <div class="col-md-12 js-report-all-filters-button-container"></div>
                     <div class="col-md-12 js-report-connected-objects-list-container"></div>
-                    
-                <!--    <div class="col-md-12">
-                        <ul class="list-group">
-                          <li class="list-group-item">Connect <strong>Chapter</strong> with <strong>Chapter Officer</strong></li>
-                          <li class="list-group-item">Connect <strong>Chapter</strong> without <strong>Chapter Leader</strong></li>
-                          <li class="list-group-item">Connect <strong>Chapter</strong> with/without <strong>Chapter Ambassador</strong></li>
-                        </ul>
-                    </div>-->
-                    
-                    
                 </div>
                 <div class="col-md-8">
-                
                     <div class="js-report-selected-columns-count-container c-column-editor__selected-columns-count"></div>
                     <div class="js-report-selected-columns-container c-report-widget__selected-columns"></div>
-               
                 </div>  
             </div>
     `;

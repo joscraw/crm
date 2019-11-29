@@ -18,6 +18,7 @@ class ConnectObjectForm {
      * @param globalEventDispatcher
      * @param portalInternalIdentifier
      * @param customObjectInternalName
+     * @param parentConnectionUid
      */
     constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, parentConnectionUid) {
 

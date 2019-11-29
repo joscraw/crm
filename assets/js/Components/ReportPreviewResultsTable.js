@@ -4,12 +4,10 @@ import Routing from '../Routing';
 import Settings from '../Settings';
 import $ from "jquery";
 import DeletePropertyButton from "./DeletePropertyButton";
-
 require( 'datatables.net-bs4' );
 require( 'datatables.net-responsive-bs4' );
 require( 'datatables.net-responsive-bs4/css/responsive.bootstrap4.css' );
 require( 'datatables.net-bs4/css/dataTables.bootstrap4.css' );
-
 
 class ReportPreviewResultsTable {
 
@@ -17,54 +15,28 @@ class ReportPreviewResultsTable {
      * @param $wrapper
      * @param globalEventDispatcher
      * @param portalInternalIdentifier
-     * @param customObjectInternalName
      * @param data
-     * @param columnOrder
      */
-    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, data, columnOrder) {
-
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, data) {
         debugger;
-        console.log("table");
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
-        this.customObjectInternalName = customObjectInternalName;
         this.data = data;
-        this.columnOrder = columnOrder;
-
-        this.globalEventDispatcher.subscribe(Settings.Events.REPORT_PREVIEW_RESULTS_BUTTON_CLICKED, this.handleReportPreviewResultsButtonClicked.bind(this));
-
-        this.globalEventDispatcher.subscribe('TEST', this.handleReportPreviewResultsButtonClicked.bind(this));
-
+        this.globalEventDispatcher.subscribe('TEST', this.refreshTable.bind(this));
         this.render();
         this.activatePlugins();
-
     }
 
-    reportPreviewResultsLoaded(data, columnOrder) {
-
-        this.activatePlugins(data, columnOrder);
-
-    }
-
-    handleReportPreviewResultsButtonClicked(data, columns) {
-        console.log("preview table update");
-        debugger;
+    refreshTable(data, columns) {
         this.table.destroy();
         this.activatePlugins(data.data, columns);
-
-       /* this.loadReportPreview().then((data) => {
-            this.activatePlugins(data.data, this.columnOrder);
-        });
-*/
     }
 
     loadReportPreview() {
         return new Promise((resolve, reject) => {
             debugger;
-
-            const url = Routing.generate('get_report_preview', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
-
+            const url = Routing.generate('get_report_preview', {internalIdentifier: this.portalInternalIdentifier, internalName: this.data.selectedCustomObject.internalName});
             $.ajax({
                 url: url,
                 data: {data: this.data, columnOrder: this.columnOrder},
@@ -136,14 +108,6 @@ class ReportPreviewResultsTable {
         });
 
     }
-
-/*    reloadTable() {
-        this.loadColumnsForTable().then((data) => {
-            this.table.destroy();
-            this.activatePlugins(data.data);
-        }).catch(errorData => {
-        });
-    }*/
 
     render() {
         this.$wrapper.html(ReportPreviewResultsTable.markup(this));

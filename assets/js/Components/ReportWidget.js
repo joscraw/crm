@@ -40,19 +40,8 @@ class ReportWidget {
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
-        this.customObject = null;
         this.reportName = '';
 
-        /**
-         * This data object is responsible for storing all the properties and filters that will get sent to the server
-         * @type {{}}
-         */
-        this.data = {};
-
-        this.columnOrder = [];
-
-        // todo consider storing the entire state of this SPA in this array including all available properties
-        //  this would make managing the app easier when you get to the edit report builder
         /**
          * version 2.0
          * This newData object is the new data store for all the properties, filters, and joins
@@ -62,6 +51,8 @@ class ReportWidget {
             properties: {},
             filters: {},
             joins: {},
+            selectedCustomObject: {},
+            allAvailableProperties: []
         };
 
         /**
@@ -123,8 +114,8 @@ class ReportWidget {
         );
 
         this.globalEventDispatcher.subscribe(
-            Settings.Events.REPORT_INITIAL_PROPERTIES_LOADED,
-            this.handleReportInitialPropertiesLoaded.bind(this)
+            Settings.Events.REPORT_PROPERTY_LIST_REFRESHED,
+            this.handleReportPropertyListRefreshed.bind(this)
         );
 
         this.globalEventDispatcher.subscribe(
@@ -177,31 +168,23 @@ class ReportWidget {
     reportBackToSelectCustomObjectButtonHandler(e) {
         this.$wrapper.find(ReportWidget._selectors.reportSelectCustomObjectContainer).removeClass('d-none');
         this.$wrapper.find(ReportWidget._selectors.reportPropertiesContainer).addClass('d-none');
-        new ReportSelectCustomObject($(ReportWidget._selectors.reportSelectCustomObjectContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject);
+        new ReportSelectCustomObject($(ReportWidget._selectors.reportSelectCustomObjectContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.newData.selectedCustomObject);
     }
 
     handleAdvanceToReportPropertiesViewButtonClicked(customObject) {
-        // If a brand new custom object is selected then clear the data
-        if(this.customObject && this.customObject.id !== customObject.id) {
-            this.data = {};
-            this.columnOrder = [];
-        }
-        this.customObject = customObject;
-        this.newData.name = customObject.internalName;
-        // set up the initial object to pull down associated properties
-       /* let uID = StringHelper.makeCharId();
-        _.set(this.newData.joins, uID, {connected_object: customObject});*/
+        debugger;
+        this.newData.selectedCustomObject = customObject;
         this.$wrapper.find(ReportWidget._selectors.reportSelectCustomObjectContainer).addClass('d-none');
         this.$wrapper.find(ReportWidget._selectors.reportPropertiesContainer).removeClass('d-none');
-        new ReportProperties($(ReportWidget._selectors.reportPropertiesContainer), this.globalEventDispatcher, this.portalInternalIdentifier, customObject.internalName, this.data, this.columnOrder, this.customObject);
+        new ReportProperties($(ReportWidget._selectors.reportPropertiesContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.newData);
     }
 
     reportAddAndFilterButtonPressedHandler(parentFilterUid) {
-        new ReportSelectPropertyForFilterFormModal(this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject.internalName, this.newData, parentFilterUid);
+        new ReportSelectPropertyForFilterFormModal(this.globalEventDispatcher, this.portalInternalIdentifier, this.newData.selectedCustomObject.internalName, this.newData, parentFilterUid);
     }
 
     reportAddFilterButtonPressedHandler() {
-        new ReportSelectPropertyForFilterFormModal(this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject.internalName, this.newData);
+        new ReportSelectPropertyForFilterFormModal(this.globalEventDispatcher, this.portalInternalIdentifier, this.newData.selectedCustomObject.internalName, this.newData);
     }
 
     handlePropertyListItemClicked(property) {
@@ -316,13 +299,24 @@ class ReportWidget {
         });
     }
 
-    handleReportInitialPropertiesLoaded(properties) {
+    handleReportPropertyListRefreshed(properties) {
+        debugger;
         if(properties.length === 0) {
             return;
         }
-        for(let property of properties) {
-            _.set(this.newData.properties, property.id, property);
+        // We need to set some initial properties so the table has some to show
+        // Let's go ahead and set the first 6 properties on the object if that many exist
+        if(_.isEmpty(this.newData.properties)) {
+            for(let i = 0; i < properties.length; i++) {
+                if(i === 5) {
+                    break;
+                }
+                let property = properties[i];
+                _.set(this.newData.properties, property.id, property);
+                i++;
+            }
         }
+        this.newData.allAvailableProperties = properties;
         this._saveReport().then((data) => {
             debugger;
             this.globalEventDispatcher.publish('TEST', data, this.newData.properties);
@@ -336,11 +330,11 @@ class ReportWidget {
 
     _saveReport() {
         return new Promise((resolve, reject) => {
-            const url = Routing.generate('save_report', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObject.internalName});
+            const url = Routing.generate('save_report', {internalIdentifier: this.portalInternalIdentifier, internalName: this.newData.selectedCustomObject.internalName});
             $.ajax({
                 url,
                 method: 'POST',
-                data: {'data': this.newData, reportName: this.reportName, columnOrder: this.columnOrder}
+                data: {'data': this.newData, reportName: this.reportName}
             }).then((data, textStatus, jqXHR) => {
                 resolve(data);
             }).catch((jqXHR) => {
@@ -353,7 +347,6 @@ class ReportWidget {
     }
 
     static markup() {
-
         return `
       <div class="js-report-widget c-report-widget">
             <div class="js-report-select-custom-object-container"></div>

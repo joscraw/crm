@@ -13,20 +13,18 @@ import ReportAddFilterFormModal from "./ReportAddFilterFormModal";
 
 class ReportPropertyList {
 
-    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, join = null, joins = [], data = {}, customObject = {}) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, data) {
         debugger;
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
-        this.customObjectInternalName = customObjectInternalName;
-        this.join = join;
-        this.joins = joins;
+        this.customObjectInternalName = data.selectedCustomObject.internalName;
         this.lists = [];
         this.data = data;
         let uID = StringHelper.makeCharId();
         // set up the initial object to pull down associated properties
         let initialData = {joins: {}};
-        _.set(initialData.joins, uID, {connected_object: customObject});
+        _.set(initialData.joins, uID, {connected_object: data.selectedCustomObject});
         this.unbindEvents();
         this.bindEvents();
         this.globalEventDispatcher.subscribe(
@@ -38,7 +36,7 @@ class ReportPropertyList {
             this.refreshPropertyList.bind(this)
         );
         this.render();
-        this.loadInitialProperties(initialData);
+        this.refreshPropertyList(initialData);
     }
 
     /**
@@ -155,37 +153,19 @@ class ReportPropertyList {
         this.globalEventDispatcher.publish(Settings.Events.REPORT_BACK_BUTTON_CLICKED);
     }
 
-    loadInitialProperties(data) {
-        this.loadPropertiesForAllObjects(data).then((data) => {
-            this.propertyGroups = data.data.property_groups;
-            this.renderProperties(this.propertyGroups).then(() => {});
-            let properties = [];
-            for(let propertyGroupId in this.propertyGroups) {
-                let propertyGroup = this.propertyGroups[propertyGroupId];
-                for(let property of propertyGroup.properties) {
-                    properties.push(property);
-                }
-            }
-            debugger;
-            this.globalEventDispatcher.publish(Settings.Events.REPORT_INITIAL_PROPERTIES_LOADED, properties);
-        });
-    }
-
-    loadProperties() {
-        this.loadPropertiesForReport().then(data => {
-            this.propertyGroups = data.data.property_groups;
-            this.renderProperties(this.propertyGroups).then(() => {
-                debugger;
-                this.highlightProperties(this.data);
-            })
-        });
-    }
-
     refreshPropertyList(data) {
         this.loadPropertiesForAllObjects(data).then((data) => {
-            debugger;
             this.propertyGroups = data.data.property_groups;
-            this.renderProperties(this.propertyGroups).then(() => {})
+            this.renderProperties(this.propertyGroups).then(() => {
+                let properties = [];
+                for(let propertyGroupId in this.propertyGroups) {
+                    let propertyGroup = this.propertyGroups[propertyGroupId];
+                    for(let property of propertyGroup.properties) {
+                        properties.push(property);
+                    }
+                }
+                this.globalEventDispatcher.publish(Settings.Events.REPORT_PROPERTY_LIST_REFRESHED, properties);
+            })
         });
     }
 
@@ -207,41 +187,6 @@ class ReportPropertyList {
             });
         });
     }
-
-    handlePropertyListItemAdded(data) {
-        this.data = data;
-        this.highlightProperties(data);
-    }
-
-    handlePropertyListItemRemoved(data) {
-        this.data = data;
-        this.highlightProperties(data);
-    }
-
-    highlightProperties(data) {
-        $(ReportPropertyList._selectors.propertyListItem).each((index, element) => {
-            if($(element).hasClass('c-report-widget__list-item--active')) {
-                $(element).removeClass('c-report-widget__list-item--active');
-            }
-            let propertyId = $(element).attr('data-property-id');
-            let joins = JSON.parse($(element).attr('data-joins'));
-            let propertyPath = joins.join('.');
-            if(_.has(data, propertyPath)) {
-                let properties = _.get(data, propertyPath);
-                let propertyMatch = null;
-                for(let key in properties) {
-                    let property = properties[key];
-                    if(parseInt(property.id) === parseInt(propertyId)) {
-                        propertyMatch = property;
-                    }
-                }
-                if(propertyMatch) {
-                    $(element).addClass('c-report-widget__list-item--active');
-                }
-            }
-        });
-    }
-
 
     render() {
         this.$wrapper.html(ReportPropertyList.markup(this));
@@ -316,23 +261,6 @@ class ReportPropertyList {
         });
     }
 
-    loadPropertiesForReport() {
-        return new Promise((resolve, reject) => {
-            const url = Routing.generate('get_properties', {
-                    internalIdentifier: this.portalInternalIdentifier,
-                    internalName: this.customObjectInternalName
-                }) + "?excludeCustomObjects=true&includeGroupingLabel=true";
-            $.ajax({
-                url: url
-            }).then(data => {
-                resolve(data);
-            }).catch(jqXHR => {
-                const errorData = JSON.parse(jqXHR.responseText);
-                reject(errorData);
-            });
-        });
-    }
-
     /**
      * @param propertyGroup
      * @param properties
@@ -363,9 +291,6 @@ class ReportPropertyList {
 
     static markup() {
         return `
-        <!--
-            <button type="button" class="btn btn-link js-back-button"><i class="fa fa-chevron-left"></i> Back</button>
-            -->
             <h4>Available Properties</h4>
             <div class="input-group c-search-control">
               <input class="form-control c-search-control__input js-search" type="search" placeholder="Search...">

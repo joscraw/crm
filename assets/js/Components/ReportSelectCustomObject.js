@@ -24,7 +24,6 @@ class ReportSelectCustomObject {
         this.customObject = customObject;
 
         this.unbindEvents();
-
         this.$wrapper.on(
             'click',
             ReportSelectCustomObject._selectors.advanceToReportPropertiesViewButton,
@@ -35,9 +34,7 @@ class ReportSelectCustomObject {
     }
 
     unbindEvents() {
-
         this.$wrapper.off('click', ReportSelectCustomObject._selectors.advanceToReportPropertiesViewButton);
-
     }
 
     /**
@@ -52,72 +49,48 @@ class ReportSelectCustomObject {
     }
 
     handleAdvanceToReportPropertiesViewButtonClicked(e) {
-
-        debugger;
         let customObjectField = this.$wrapper.find(ReportSelectCustomObject._selectors.customObjectField);
         let customObjectId = customObjectField.val();
-
-
         let customObject = this.customObjects.filter(customObject => {
             return parseInt(customObject.id) === parseInt(customObjectId);
         });
-
-        debugger;
-
         this.globalEventDispatcher.publish(Settings.Events.ADVANCE_TO_REPORT_PROPERTIES_VIEW_BUTTON_CLICKED, customObject[0]);
     }
 
     render() {
-        debugger;
         this.$wrapper.html(ReportSelectCustomObject.markup(this));
-
         this.loadCustomObjects().then(data => {
-            debugger;
             this.renderCustomObjectForm(data);
         })
     }
 
     renderCustomObjectForm(data) {
-
-        debugger;
         let customObjects = this.customObjects = data.data.custom_objects;
-
         let options = {
             valueNames: [ 'label' ],
             // Since there are no elements in the list, this will be used as template.
             item: '<div class="form-check"><input class="form-check-input js-custom-object" type="radio" name="customObject" id="" value=""><label class="form-check-label label" for=""></label></div>'
         };
-
         new List('listCustomObjects', options, customObjects);
-
         $( `#listCustomObjects input[type="radio"]`).each((index, element) => {
             $(element).attr('data-label', customObjects[index].label);
             $(element).attr('value', customObjects[index].id);
             $(element).attr('data-custom-object-id', customObjects[index].id);
             $(element).attr('id', `customObject-${customObjects[index].id}`);
             $(element).next('label').attr('for', `customObject-${customObjects[index].id}`);
-
         });
-
-        debugger;
-
         if(this.customObject) {
-            debugger;
             let index = _.findIndex(customObjects, (customObject) => { return customObject.id === this.customObject.id });
             $( `#listCustomObjects input[type="radio"]`).eq(index).prop('checked', true);
         } else {
-            debugger;
             $( `#listCustomObjects input[type="radio"]`).first().prop('checked', true);
         }
-
-
     }
 
     loadCustomObjects() {
         return new Promise((resolve, reject) => {
             let url = Routing.generate('' +
                 'get_custom_objects', {internalIdentifier: this.portalInternalIdentifier});
-
             $.ajax({
                 url: url,
             }).then(data => {
