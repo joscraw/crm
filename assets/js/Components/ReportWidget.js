@@ -61,7 +61,7 @@ class ReportWidget {
         this.newData = {
             properties: {},
             filters: {},
-            joins: [],
+            joins: {},
         };
 
         /**
@@ -83,16 +83,6 @@ class ReportWidget {
         );
 
         this.globalEventDispatcher.subscribe(
-            Settings.Events.REPORT_CUSTOM_OBJECT_PROPERTY_LIST_ITEM_CLICKED,
-            this.handleCustomObjectPropertyListItemClicked.bind(this)
-        );
-
-        this.globalEventDispatcher.subscribe(
-            Settings.Events.REPORT_CUSTOM_OBJECT_FILTER_LIST_ITEM_CLICKED,
-            this.handleReportCustomObjectFilterListItemClicked.bind(this)
-        );
-
-        this.globalEventDispatcher.subscribe(
             Settings.Events.REPORT_REMOVE_SELECTED_COLUMN_ICON_CLICKED,
             this.handleReportRemoveSelectedColumnIconClicked.bind(this)
         );
@@ -108,18 +98,13 @@ class ReportWidget {
         );
 
         this.globalEventDispatcher.subscribe(
-            Settings.Events.ADVANCE_TO_REPORT_FILTERS_VIEW_BUTTON_CLICKED,
-            this.handleReportAdvanceToFiltersViewButtonClicked.bind(this)
-        );
-
-        this.globalEventDispatcher.subscribe(
             Settings.Events.REPORT_REMOVE_FILTER_BUTTON_PRESSED,
             this.handleReportRemoveFilterButtonPressed.bind(this)
         );
 
         this.globalEventDispatcher.subscribe(
-            Settings.Events.REPORT_BACK_TO_PROPERTIES_BUTTON_PRESSED,
-            this.handleReportBackToPropertiesButtonPressed.bind(this)
+            Settings.Events.REPORT_REMOVE_CONNECTION_BUTTON_PRESSED,
+            this.handleReportRemoveConnectionButtonPressed.bind(this)
         );
 
         this.globalEventDispatcher.subscribe(
@@ -130,11 +115,6 @@ class ReportWidget {
         this.globalEventDispatcher.subscribe(
             Settings.Events.REPORT_NAME_CHANGED,
             this.handleReportNameChange.bind(this)
-        );
-
-        this.globalEventDispatcher.subscribe(
-            Settings.Events.REPORT_COLUMN_ORDER_CHANGED,
-            this.handleReportColumnOrderChanged.bind(this)
         );
 
         this.globalEventDispatcher.subscribe(
@@ -200,25 +180,12 @@ class ReportWidget {
         new ReportSelectCustomObject($(ReportWidget._selectors.reportSelectCustomObjectContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject);
     }
 
-    handleReportBackToPropertiesButtonPressed() {
-        this.$wrapper.find(ReportWidget._selectors.reportFiltersContainer).addClass('d-none');
-        this.$wrapper.find(ReportWidget._selectors.reportPropertiesContainer).removeClass('d-none');
-        new ReportProperties($(ReportWidget._selectors.reportPropertiesContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject.internalName, this.data, this.columnOrder, this.customObject);
-    }
-
-    handleReportAdvanceToFiltersViewButtonClicked(e) {
-        this.$wrapper.find(ReportWidget._selectors.reportFiltersContainer).removeClass('d-none');
-        this.$wrapper.find(ReportWidget._selectors.reportPropertiesContainer).addClass('d-none');
-        new ReportFilters($(ReportWidget._selectors.reportFiltersContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObject.internalName, this.data, this.reportName, this.columnOrder);
-    }
-
     handleAdvanceToReportPropertiesViewButtonClicked(customObject) {
         // If a brand new custom object is selected then clear the data
         if(this.customObject && this.customObject.id !== customObject.id) {
             this.data = {};
             this.columnOrder = [];
         }
-        debugger;
         this.customObject = customObject;
         this.newData.name = customObject.internalName;
         // set up the initial object to pull down associated properties
@@ -227,13 +194,6 @@ class ReportWidget {
         this.$wrapper.find(ReportWidget._selectors.reportSelectCustomObjectContainer).addClass('d-none');
         this.$wrapper.find(ReportWidget._selectors.reportPropertiesContainer).removeClass('d-none');
         new ReportProperties($(ReportWidget._selectors.reportPropertiesContainer), this.globalEventDispatcher, this.portalInternalIdentifier, customObject.internalName, this.data, this.columnOrder, this.customObject);
-    }
-
-    handleReportColumnOrderChanged(columnOrder) {
-        for(let i = 0; i < columnOrder.length; i++) {
-            this.columnOrder[i] = _.get(this.data, JSON.parse(columnOrder[i]).join('.'));
-        }
-        this.globalEventDispatcher.publish(Settings.Events.REPORT_COLUMN_ORDER_UPDATED, this.data, this.columnOrder);
     }
 
     reportAddAndFilterButtonPressedHandler(parentFilterUid) {
@@ -247,28 +207,13 @@ class ReportWidget {
     handlePropertyListItemClicked(property) {
         debugger;
         _.set(this.newData.properties, property.id, property);
-
-        debugger;
         this._saveReport().then((data) => {
             debugger;
             this.globalEventDispatcher.publish('TEST', data, this.newData.properties);
         });
-
-       /* let uID = StringHelper.makeCharId();
-        _.set(property, 'uID', uID);
-        let propertyPath = property.joins.join('.');
-        this.columnOrder.push(property);
-        if(_.has(this.data, propertyPath)) {
-            _.set(this.data, `${propertyPath}[${uID}]`, property);
-        } else {
-            _.set(this.data, propertyPath, {});
-            _.set(this.data, `${propertyPath}[${uID}]`, property);
-        }
-        this.globalEventDispatcher.publish(Settings.Events.REPORT_PROPERTY_LIST_ITEM_ADDED, this.data, this.columnOrder);*/
     }
 
     handleReportRemoveFilterButtonPressed(uid) {
-        debugger;
         // remove the parent reference from the child filters
         if(_.has(this.newData.filters[uid], 'childFilters')) {
             let childFilters = this.newData.filters[uid].childFilters;
@@ -283,6 +228,22 @@ class ReportWidget {
             this.globalEventDispatcher.publish('TEST', data, this.newData.properties);
         });
         this.globalEventDispatcher.publish(Settings.Events.REPORT_FILTER_ITEM_REMOVED, this.newData);
+    }
+
+    handleReportRemoveConnectionButtonPressed(connectionUid) {
+        debugger;
+        // child connections (joins) are dependent on their parent connection (join) so go ahead and remove any children
+        if(_.has(this.newData.joins[connectionUid], 'childConnections')) {
+            let childConnections = this.newData.joins[connectionUid].childConnections;
+            for(let uid in childConnections) {
+                _.unset(this.newData.joins, uid);
+            }
+        }
+        _.unset(this.newData.joins, connectionUid);
+        this._saveReport().then((data) => {
+            this.globalEventDispatcher.publish('TEST', data, this.newData.properties);
+            this.globalEventDispatcher.publish(Settings.Events.REPORT_CONNECTION_REMOVED, this.newData);
+        });
     }
 
     applyCustomFilterButtonPressedHandler(customFilter) {
@@ -319,29 +280,26 @@ class ReportWidget {
         });
     }
 
-    handleCustomObjectPropertyListItemClicked(property, joins) {
-        let propertyPath = property.joins.join('.');
-        if(!_.has(this.data, propertyPath)) {
-            _.set(this.data, propertyPath, {});
-        }
-        this.globalEventDispatcher.publish(Settings.Events.REPORT_CUSTOM_OBJECT_JOIN_PATH_SET, property, joins, this.data);
-    }
-
-    handleReportCustomObjectFilterListItemClicked(property, joins) {
-        let propertyPath = property.joins.join('.');
-        if(!_.has(this.data, propertyPath)) {
-            _.set(this.data, propertyPath, {});
-        }
-        this.globalEventDispatcher.publish(Settings.Events.REPORT_FILTER_CUSTOM_OBJECT_JOIN_PATH_SET, property, joins, this.data);
-    }
-
     handleReportObjectConnected(connectedData) {
         debugger;
         // make sure every join has a joins object itself so there can be nested joins
         if(!_.has(connectedData, 'joins')) {
             _.set(connectedData, 'joins', {});
         }
-        this.newData.joins.push(connectedData);
+        // setup the new connection
+        let uID = StringHelper.makeCharId();
+        _.set(this.newData.joins, uID, connectedData);
+        // if this is a child connection and has a parent then setup the relationship
+        let parentConnection = null;
+        if(_.has(connectedData, 'parentConnectionUid')) {
+            parentConnection = _.get(this.newData.joins, connectedData.parentConnectionUid);
+        }
+        if(parentConnection) {
+            if(!_.has(parentConnection, 'childConnections')) {
+                _.set(parentConnection, 'childConnections', {});
+            }
+            _.set(parentConnection.childConnections, uID, connectedData);
+        }
         this._saveReport().then((data) => {
             this.globalEventDispatcher.publish('TEST', data, this.newData.properties);
             this.globalEventDispatcher.publish(Settings.Events.REPORT_OBJECT_CONNECTED_JSON_UPDATED, this.newData, true);

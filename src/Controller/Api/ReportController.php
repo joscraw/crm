@@ -134,13 +134,11 @@ class ReportController extends ApiController
      * @throws \Doctrine\DBAL\DBALException
      */
     public function saveReportAction(Portal $portal, CustomObject $customObject, Request $request) {
-
         $hasPermission = $this->permissionAuthorizationHandler->isAuthorized(
             $this->getUser(),
             Role::CREATE_REPORT,
             Role::SYSTEM_PERMISSION
         );
-
         if(!$hasPermission) {
             return new JsonResponse(
                 [
@@ -148,15 +146,9 @@ class ReportController extends ApiController
                 ], Response::HTTP_UNAUTHORIZED
             );
         }
-
         $data = $request->request->get('data', []);
-
         $reportName = $request->request->get('reportName', '');
-
-        $columnOrder = $request->request->get('columnOrder', []);
-
-        $results = $this->recordRepository->newReportLogicBuilder($data, $customObject, $columnOrder);
-
+        $results = $this->recordRepository->newReportLogicBuilder($data, $customObject);
         $response = new JsonResponse([
             'success' => true,
             'data'  => $results['results']
@@ -174,12 +166,6 @@ class ReportController extends ApiController
 
         $this->entityManager->persist($report);
         $this->entityManager->flush();*/
-
-        $response = new JsonResponse([
-            'success' => true
-        ], Response::HTTP_OK);
-
-        return $response;
     }
 
     /**

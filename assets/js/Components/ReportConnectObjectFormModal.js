@@ -16,12 +16,14 @@ class ReportConnectObjectFormModal {
      * @param globalEventDispatcher
      * @param portal
      * @param customObjectInternalName
+     * @param parentConnectionUid
      */
-    constructor(globalEventDispatcher, portal, customObjectInternalName) {
+    constructor(globalEventDispatcher, portal, customObjectInternalName, parentConnectionUid = null) {
         debugger;
         this.globalEventDispatcher = globalEventDispatcher;
         this.portal = portal;
         this.customObjectInternalName = customObjectInternalName;
+        this.parentConnectionUid = parentConnectionUid;
         this.render();
     }
 
@@ -32,7 +34,7 @@ class ReportConnectObjectFormModal {
             html: ReportConnectObjectFormModal.markup()
         });
 
-        new ConnectObjectForm($('#js-connect-object-form-modal-container'), this.globalEventDispatcher, this.portal, this.customObjectInternalName);
+        new ConnectObjectForm($('#js-connect-object-form-modal-container'), this.globalEventDispatcher, this.portal, this.customObjectInternalName, this.parentConnectionUid);
     }
 
     static markup() {

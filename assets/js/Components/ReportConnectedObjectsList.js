@@ -20,15 +20,16 @@ class ReportConnectedObjectsList {
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
         this.customObjectInternalName = customObjectInternalName;
-
         this.unbindEvents();
         this.bindEvents();
-
         this.globalEventDispatcher.subscribe(
             Settings.Events.REPORT_OBJECT_CONNECTED_JSON_UPDATED,
             this.refreshConnectedObjects.bind(this)
         );
-
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.REPORT_CONNECTION_REMOVED,
+            this.refreshConnectedObjects.bind(this)
+        );
         this.render();
     }
 
@@ -51,6 +52,11 @@ class ReportConnectedObjectsList {
             this.handleConnectionAddItemButtonClick.bind(this)
         );
 
+        this.$wrapper.on(
+            'click',
+            ReportConnectedObjectsList._selectors.connectionRemoveItem,
+            this.handleConnectionRemoveItemButtonClick.bind(this)
+        );
     }
 
     /**
@@ -67,40 +73,65 @@ class ReportConnectedObjectsList {
 
     refreshConnectedObjects(data = {}) {
         debugger;
-        if(!_.isEmpty(data)) {
-            this.$wrapper.find(ReportConnectedObjectsList._selectors.noConnectionsExistMessage).hide();
-        } else {
-            this.$wrapper.find(ReportConnectedObjectsList._selectors.noConnectionsExistMessage).show();
-        }
-        if(!_.has(data, 'joins') || _.isEmpty(data.joins)) {
-            return;
-        }
         this.$wrapper.find(ReportConnectedObjectsList._selectors.connectedObjects).html("");
-        for(let join of data.joins) {
+        if(!_.has(data, 'joins') || _.isEmpty(data.joins)) {
+            this.$wrapper.find(ReportConnectedObjectsList._selectors.noConnectionsExistMessage).show();
+            return;
+        } else {
+            this.$wrapper.find(ReportConnectedObjectsList._selectors.noConnectionsExistMessage).hide();
+        }
+        for(let uid in data.joins) {
+            let join = data.joins[uid];
+            if(join.hasParentConnection) {
+                continue;
+            }
             debugger;
             let connectedObject = join.connected_object,
                 connectedProperty = join.connected_property,
                 joinType = join.join_type,
                 customObjectInternalName = connectedProperty.field.customObject.internalName;
-            debugger;
             let text = `${connectedObject.label} ${joinType} ${connectedProperty.label}`;
-            const html = listItemTemplate(text, customObjectInternalName);
+            const html = connectionTemplate(text, customObjectInternalName, uid);
             const $listTemplate = $($.parseHTML(html));
             this.$wrapper.find(ReportConnectedObjectsList._selectors.connectedObjects).append($listTemplate);
+            // render any child connections here
+            debugger;
+            if(_.has(join, 'childConnections') && !_.isEmpty(join.childConnections)) {
+                debugger;
+                let childConnections = _.get(join, 'childConnections');
+                for(let uid in childConnections) {
+                    let childConnection = childConnections[uid];
+                    let connectedObject = childConnection.connected_object,
+                        connectedProperty = childConnection.connected_property,
+                        joinType = childConnection.join_type,
+                        customObjectInternalName = connectedProperty.field.customObject.internalName;
+                    let text = `${connectedObject.label} ${joinType} ${connectedProperty.label}`;
+                    const html = childConnectionTemplate(text, customObjectInternalName, uid);
+                    const $listTemplate = $($.parseHTML(html));
+                    this.$wrapper.find(ReportConnectedObjectsList._selectors.connectedObjects).find('.js-child-connections').append($listTemplate);
+                }
+            }
         }
     }
 
     handleConnectionAddItemButtonClick(e) {
+        if(e.cancelable) {
+            e.preventDefault();
+        }
+        const $listItem = $(e.currentTarget);
+        let parentConnectionObject = $listItem.attr('data-parent-connection-object');
+        let parentConnectionUid = $listItem.attr('data-parent-connection-uid');
+        new ReportConnectObjectFormModal(this.globalEventDispatcher, this.portalInternalIdentifier, parentConnectionObject, parentConnectionUid);
+    }
+
+    handleConnectionRemoveItemButtonClick(e) {
         debugger;
         if(e.cancelable) {
             e.preventDefault();
         }
-        debugger;
         const $listItem = $(e.currentTarget);
-        let parentConnectionObject = $listItem.attr('data-parent-connection-object');
-        debugger;
-        new ReportConnectObjectFormModal(this.globalEventDispatcher, this.portalInternalIdentifier, parentConnectionObject);
-        /*this.globalEventDispatcher.publish(Settings.Events.REPORT_PROPERTY_LIST_ITEM_CLICKED, property[0]);*/
+        let connectionUid = $listItem.attr('data-connection-uid');
+        this.globalEventDispatcher.publish(Settings.Events.REPORT_REMOVE_CONNECTION_BUTTON_PRESSED, connectionUid);
     }
 
     static markup() {
@@ -112,10 +143,17 @@ class ReportConnectedObjectsList {
     }
 }
 
-const listItemTemplate = (text, customObjectInternalName) => `
+const connectionTemplate = (text, customObjectInternalName, uid) => `
     <li style="margin-top: 10px; margin-bottom: 10px">${text} 
-    <i class="fa fa-trash-o js-connection-remove-item" style="float: right; padding-left: 5px"></i> 
-    <i class="fa fa-plus js-connection-add-item" style="float: right; padding-left: 5px" data-parent-connection-object="${customObjectInternalName}"></i>
+    <i class="fa fa-trash-o js-connection-remove-item" style="float: right; padding-left: 5px" data-connection-uid="${uid}"></i> 
+    <i class="fa fa-plus js-connection-add-item" style="float: right; padding-left: 5px" data-parent-connection-uid="${uid}" data-parent-connection-object="${customObjectInternalName}"></i>
+    <ul class="js-child-connections"></ul>
+    </li>
+`;
+
+const childConnectionTemplate = (text, customObjectInternalName, uid) => `
+    <li style="margin-top: 10px; margin-bottom: 10px">${text} 
+    <i class="fa fa-trash-o js-connection-remove-item" style="float: right; padding-left: 5px" data-connection-uid="${uid}"></i> 
     </li>
 `;
 
