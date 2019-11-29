@@ -21,10 +21,12 @@ class ReportPropertyList {
         this.customObjectInternalName = data.selectedCustomObject.internalName;
         this.lists = [];
         this.data = data;
-        let uID = StringHelper.makeCharId();
-        // set up the initial object to pull down associated properties
-        let initialData = {joins: {}};
-        _.set(initialData.joins, uID, {connected_object: data.selectedCustomObject});
+        // setup the default connection for pulling in properties if no connections exist yet
+        // usually this is only when initially coming to the view
+        if(_.isEmpty(this.data.joins)) {
+            let uID = StringHelper.makeCharId();
+            _.set(this.data.joins, uID, {connected_object: data.selectedCustomObject});
+        }
         this.unbindEvents();
         this.bindEvents();
         this.globalEventDispatcher.subscribe(
@@ -36,7 +38,7 @@ class ReportPropertyList {
             this.refreshPropertyList.bind(this)
         );
         this.render();
-        this.refreshPropertyList(initialData);
+        this.refreshPropertyList(this.data);
     }
 
     /**

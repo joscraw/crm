@@ -52,16 +52,9 @@ class ReportWidget {
             filters: {},
             joins: {},
             selectedCustomObject: {},
-            allAvailableProperties: []
+            allAvailableProperties: [],
+            reportName: ''
         };
-
-        /**
-         * This array holds all the available properties even after other objects are connected through the relationship
-         * @type {Array}
-         */
-        this.availableProperties = [];
-
-        this.unbindEvents();
 
         this.globalEventDispatcher.subscribe(
             Settings.Events.ADVANCE_TO_REPORT_PROPERTIES_VIEW_BUTTON_CLICKED,
@@ -142,11 +135,10 @@ class ReportWidget {
         }
     }
 
-    unbindEvents() {
-        this.$wrapper.off('click', ReportPropertyList._selectors.reportAdvanceToFiltersView);
-    }
+    unbindEvents() {}
 
-    handleReportSaveButtonPressed() {
+    handleReportSaveButtonPressed(reportName) {
+        this.newData.reportName = reportName;
         this._saveReport().then((data) => {
             swal("Woohoo!!!", "Report successfully saved.", "success");
         }).catch((errorData) => {
@@ -190,7 +182,7 @@ class ReportWidget {
     handlePropertyListItemClicked(property) {
         debugger;
         _.set(this.newData.properties, property.id, property);
-        this._saveReport().then((data) => {
+        this._getReportResults().then((data) => {
             debugger;
             this.globalEventDispatcher.publish('TEST', data, this.newData.properties);
         });
@@ -207,7 +199,7 @@ class ReportWidget {
             }
         }
         _.unset(this.newData.filters, uid);
-        this._saveReport().then((data) => {
+        this._getReportResults().then((data) => {
             this.globalEventDispatcher.publish('TEST', data, this.newData.properties);
         });
         this.globalEventDispatcher.publish(Settings.Events.REPORT_FILTER_ITEM_REMOVED, this.newData);
@@ -232,7 +224,7 @@ class ReportWidget {
         }
         // Last but not least finally remove the main connection
         _.unset(this.newData.joins, connectionUid);
-        this._saveReport().then((data) => {
+        this._getReportResults().then((data) => {
             this.globalEventDispatcher.publish('TEST', data, this.newData.properties);
             this.globalEventDispatcher.publish(Settings.Events.REPORT_CONNECTION_REMOVED, this.newData);
         });
@@ -255,7 +247,7 @@ class ReportWidget {
             }
             _.set(parentFilter.childFilters, uID, customFilter);
         }
-        this._saveReport().then((data) => {
+        this._getReportResults().then((data) => {
             debugger;
             this.globalEventDispatcher.publish('TEST', data, this.newData.properties);
             swal("Yahoo!", `Filter successfully added!`, "success");
@@ -267,7 +259,7 @@ class ReportWidget {
     handleReportRemoveSelectedColumnIconClicked(property) {
         debugger;
         _.unset(this.newData.properties, property.id);
-        this._saveReport().then((data) => {
+        this._getReportResults().then((data) => {
             this.globalEventDispatcher.publish('TEST', data, this.newData.properties);
         });
     }
@@ -292,7 +284,7 @@ class ReportWidget {
             }
             _.set(parentConnection.childConnections, uID, connectedData);
         }
-        this._saveReport().then((data) => {
+        this._getReportResults().then((data) => {
             this.globalEventDispatcher.publish('TEST', data, this.newData.properties);
             this.globalEventDispatcher.publish(Settings.Events.REPORT_OBJECT_CONNECTED_JSON_UPDATED, this.newData, true);
             swal("Hooray!", `Object successfully connected!`, "success");
@@ -313,11 +305,10 @@ class ReportWidget {
                 }
                 let property = properties[i];
                 _.set(this.newData.properties, property.id, property);
-                i++;
             }
         }
         this.newData.allAvailableProperties = properties;
-        this._saveReport().then((data) => {
+        this._getReportResults().then((data) => {
             debugger;
             this.globalEventDispatcher.publish('TEST', data, this.newData.properties);
         });
@@ -326,6 +317,24 @@ class ReportWidget {
     render() {
         this.$wrapper.html(ReportWidget.markup(this));
         new ReportSelectCustomObject($(ReportWidget._selectors.reportSelectCustomObjectContainer), this.globalEventDispatcher, this.portalInternalIdentifier);
+    }
+
+    _getReportResults() {
+        return new Promise((resolve, reject) => {
+            const url = Routing.generate('get_report_results', {internalIdentifier: this.portalInternalIdentifier, internalName: this.newData.selectedCustomObject.internalName});
+            $.ajax({
+                url,
+                method: 'POST',
+                data: {'data': this.newData, reportName: this.reportName}
+            }).then((data, textStatus, jqXHR) => {
+                resolve(data);
+            }).catch((jqXHR) => {
+                debugger;
+                const errorData = JSON.parse(jqXHR.responseText);
+                errorData.httpCode = jqXHR.status;
+                reject(errorData);
+            });
+        });
     }
 
     _saveReport() {

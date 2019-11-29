@@ -23,13 +23,20 @@ class ReportPreviewResultsTable {
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
         this.data = data;
+        this.table = null;
         this.globalEventDispatcher.subscribe('TEST', this.refreshTable.bind(this));
         this.render();
-        this.activatePlugins();
+        this.refreshTable({}, this.data.properties);
     }
 
     refreshTable(data, columns) {
-        this.table.destroy();
+        if(this.table) {
+            $('#reportPreviewResultsTable').DataTable().clear();
+            $('#reportPreviewResultsTable').DataTable().destroy();
+            $('#reportPreviewResultsTable thead').empty();
+            $('#reportPreviewResultsTable tbody').empty();
+            /*this.table.destroy();*/
+        }
         this.activatePlugins(data.data, columns);
     }
 

@@ -224,10 +224,11 @@ class RecordRepository extends ServiceEntityRepository
      * This function is the new and improved logic for the report builder.
      * @param $data
      * @param CustomObject $customObject
+     * @param bool $mysqlOnly
      * @return array
      * @throws \Doctrine\DBAL\DBALException
      */
-    public function newReportLogicBuilder($data, CustomObject $customObject)
+    public function newReportLogicBuilder($data, CustomObject $customObject, $mysqlOnly = false)
     {
         $this->data = $data;
         $root = sprintf("%s.%s", $customObject->getUid(), $customObject->getInternalName());
@@ -258,11 +259,14 @@ class RecordRepository extends ServiceEntityRepository
             $query = sprintf("SELECT DISTINCT `%s`.id %s from record `%s` %s WHERE `%s`.custom_object_id='%s' \n %s", $root, $resultStr, $root, $joinString, $root, $customObject->getId(), $filterString);
         }
 
+        if($mysqlOnly) {
+            return $query;
+        }
+
         $em = $this->getEntityManager();
         $stmt = $em->getConnection()->prepare($query);
         $stmt->execute();
         $results = $stmt->fetchAll();
-
         return array(
             "results"  => $results
         );
@@ -272,15 +276,18 @@ class RecordRepository extends ServiceEntityRepository
      * This function loops through all the joins and creates aliases for each join
      * and then attaches the properties and filters to their corresponding aliases.
      * @param $data
-     * @return array
+     * @return array|void
      */
     private function newJoinAliasBuilder(&$data)
     {
         if(empty($data['joins'])) {
-            return [];
+            return;
         }
         // configure the aliases
         foreach ($data['joins'] as &$joinData) {
+            if(empty($joinData['connected_object']) || empty($joinData['connected_property'])) {
+                continue;
+            }
             $connectedObject = $joinData['connected_object'];
             $connectedProperty = $joinData['connected_property'];
             $joinDirection = $connectedObject['join_direction'];
@@ -389,6 +396,10 @@ class RecordRepository extends ServiceEntityRepository
             return [];
         }
         foreach ($data['joins'] as $joinData) {
+            if(empty($joinData['connected_object']) || empty($joinData['connected_property'])) {
+                continue;
+            }
+
             // if the join has a parent connection don't add the join here. It will be added below as a nested join
             if(!empty($joinData['hasParentConnection'])) {
                 continue;

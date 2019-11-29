@@ -52,14 +52,14 @@ class ReportProperties {
      */
     static get _selectors() {
         return {
-            reportSelectedColumnsContainer: '.js-report-selected-columns-container',
-            reportPropertyListContainer: '.js-report-property-list-container',
-            reportSelectedColumnsCountContainer: '.js-report-selected-columns-count-container',
+            reportTablePreview: '.js-report-table-preview',
             reportBackToSelectCustomObjectButton: '.js-back-to-select-custom-object-button',
-            reportAdvanceToFiltersView: '.js-advance-to-filters-view',
             reportConnectableObjectsContainer: '.js-report-connectable-objects',
             reportAllFiltersButtonContainer: '.js-report-all-filters-button-container',
-            reportConnectedObjectsListContainer: '.js-report-connected-objects-list-container'
+            reportConnectedObjectsListContainer: '.js-report-connected-objects-list-container',
+            saveReportButton: '.js-save-report-button',
+            reportName:  '.js-report-name',
+            reportPropertyListContainer: '.js-report-property-list-container'
         }
     }
 
@@ -69,10 +69,29 @@ class ReportProperties {
             ReportProperties._selectors.reportBackToSelectCustomObjectButton,
             this.handleReportBackToSelectCustomObjectButton.bind(this)
         );
+        this.$wrapper.on(
+            'click',
+            ReportProperties._selectors.saveReportButton,
+            this.handleSaveReportButtonClicked.bind(this)
+        );
+    }
+
+    handleSaveReportButtonClicked(e) {
+        debugger;
+        if(e.cancelable) {
+            e.preventDefault();
+        }
+        let reportName = this.$wrapper.find(ReportProperties._selectors.reportName).val();
+        if(reportName === '') {
+            swal("Woahhh snap!!!", "Don't forget a name for your report.", "warning");
+            return;
+        }
+        this.globalEventDispatcher.publish(Settings.Events.REPORT_SAVE_BUTTON_PRESSED, reportName);
     }
 
     unbindEvents() {
         this.$wrapper.off('click', ReportProperties._selectors.reportBackToSelectCustomObjectButton);
+        this.$wrapper.off('click', ReportProperties._selectors.saveReportButton);
     }
 
     handleReportBackToSelectCustomObjectButton(e) {
@@ -82,7 +101,7 @@ class ReportProperties {
     render() {
         debugger;
         this.$wrapper.html(ReportProperties.markup(this));
-        new ReportPreviewResultsTable($(ReportProperties._selectors.reportSelectedColumnsCountContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.data);
+        new ReportPreviewResultsTable($(ReportProperties._selectors.reportTablePreview), this.globalEventDispatcher, this.portalInternalIdentifier, this.data);
         new ReportPropertyList($(ReportProperties._selectors.reportPropertyListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.data);
         new ReportConnectObjectButton($(ReportProperties._selectors.reportConnectableObjectsContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.data.selectedCustomObject.internalName);
         new ReportAllFiltersButton($(ReportProperties._selectors.reportAllFiltersButtonContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.data.selectedCustomObject.internalName);
@@ -91,10 +110,26 @@ class ReportProperties {
 
     static markup({data: {selectedCustomObject: {internalName}}}) {
         return `
-             <nav class="navbar navbar-expand-sm l-top-bar justify-content-end c-report-widget__nav">
-                  <button type="button" style="color: #FFF" class="btn btn-link js-back-to-select-custom-object-button"><i class="fa fa-angle-left" aria-hidden="true"></i> Back</button>
-                 <button class="btn btn-lg btn-secondary ml-auto js-advance-to-filters-view">Next</button> 
-             </nav> 
+
+            <nav class="navbar navbar-expand-sm l-top-bar justify-content-end c-report-widget__nav">
+                 <div class="container-fluid">
+                    <div class="navbar-collapse collapse dual-nav w-50 order-1 order-md-0">
+                        <ul class="navbar-nav">
+                            <li class="nav-item">
+                                <button type="button" style="color: #FFF" class="btn btn-link js-back-to-select-custom-object-button"><i class="fa fa-angle-left" aria-hidden="true"></i> Back</button>
+                            </li>
+                        </ul>
+                    </div>
+                    <input style="width: 200px;" class="form-control navbar-brand mx-auto d-block text-center order-0 order-md-1 w-25 c-report-widget__report-name js-report-name" type="search" placeholder="Report name" aria-label="Search">
+                    <div class="navbar-collapse collapse dual-nav w-50 order-2">
+                        <ul class="nav navbar-nav ml-auto">
+                            <li class="nav-item">
+                            <button class="btn btn-lg btn-secondary ml-auto js-save-report-button c-report-widget__report-save">Save</button>
+                            </li>
+                        </ul>
+                    </div>
+                </div>               
+            </nav> 
             <div class="row container">
                 <div class="col-md-4">
                 <h2 style="text-decoration: underline">Reporting on ${internalName}</h2>
@@ -104,8 +139,7 @@ class ReportProperties {
                     <div class="col-md-12 js-report-connected-objects-list-container"></div>
                 </div>
                 <div class="col-md-8">
-                    <div class="js-report-selected-columns-count-container c-column-editor__selected-columns-count"></div>
-                    <div class="js-report-selected-columns-container c-report-widget__selected-columns"></div>
+                    <div class="js-report-table-preview c-column-editor__selected-columns-count"></div>
                 </div>  
             </div>
     `;

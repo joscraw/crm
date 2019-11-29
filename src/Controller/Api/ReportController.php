@@ -147,7 +147,47 @@ class ReportController extends ApiController
             );
         }
         $data = $request->request->get('data', []);
-        $reportName = $request->request->get('reportName', '');
+        $reportName = $data['reportName'];
+        $query = $this->recordRepository->newReportLogicBuilder($data, $customObject, true);
+
+        $report = new Report();
+        $report->setQuery($query);
+        $report->setCustomObject($customObject);
+        $report->setData($data);
+        $report->setName($reportName);
+        $report->setPortal($portal);
+        $this->entityManager->persist($report);
+        $this->entityManager->flush();
+
+        $response = new JsonResponse([
+            'success' => true
+        ], Response::HTTP_OK);
+
+        return $response;
+    }
+
+    /**
+     * @Route("/{internalName}/results", name="get_report_results", methods={"POST"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param CustomObject $customObject
+     * @param Request $request
+     * @return Response
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    public function getReportResults(Portal $portal, CustomObject $customObject, Request $request) {
+        $hasPermission = $this->permissionAuthorizationHandler->isAuthorized(
+            $this->getUser(),
+            Role::CREATE_REPORT,
+            Role::SYSTEM_PERMISSION
+        );
+        if(!$hasPermission) {
+            return new JsonResponse(
+                [
+                    'success' => false,
+                ], Response::HTTP_UNAUTHORIZED
+            );
+        }
+        $data = $request->request->get('data', []);
         $results = $this->recordRepository->newReportLogicBuilder($data, $customObject);
         $response = new JsonResponse([
             'success' => true,
@@ -155,17 +195,6 @@ class ReportController extends ApiController
         ], Response::HTTP_OK);
 
         return $response;
-
-     /*   $report = new Report();
-        $report->setQuery($query);
-        $report->setCustomObject($customObject);
-        $report->setData($data);
-        $report->setName($reportName);
-        $report->setPortal($portal);
-        $report->setColumnOrder($columnOrder);
-
-        $this->entityManager->persist($report);
-        $this->entityManager->flush();*/
     }
 
     /**
