@@ -56,6 +56,7 @@ class ReportPreviewResultsTable {
     }
 
     activatePlugins(data = {}, columns = {}) {
+        debugger;
         let datatableColumns = [];
         if(_.isEmpty(data)) {
             data = [];
@@ -70,7 +71,11 @@ class ReportPreviewResultsTable {
         } else {
             for(let key in columns) {
                 let column = columns[key];
-                datatableColumns.push({data: column.internalName, name: column.internalName, title: column.internalName});
+                datatableColumns.push({
+                    data: column.custom_object_label + ' ' + column.label,
+                    name: column.custom_object_label + ' ' + column.label,
+                    title: column.custom_object_label + ' ' + column.label
+                });
             }
         }
         $('#reportPreviewResultsTable thead').empty();

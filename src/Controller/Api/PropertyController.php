@@ -442,9 +442,9 @@ class PropertyController extends ApiController
             $payload['property_groups'][$availableProperty['property_group_id']]['properties'][] = $availableProperty;
         }
 
-        usort($payload['property_groups'], function ($a, $b) {
+        /*usort($payload['property_groups'], function ($a, $b) {
             return strcmp($a["grouping_label"], $b["grouping_label"]);
-        });
+        });*/
         return new JsonResponse([
             'success' => true,
             'data'  => $payload
