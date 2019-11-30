@@ -72,9 +72,9 @@ class ReportPreviewResultsTable {
             for(let key in columns) {
                 let column = columns[key];
                 datatableColumns.push({
-                    data: column.custom_object_internal_name + '_' + column.internalName,
-                    name: column.custom_object_internal_name + '_' + column.internalName,
-                    title: column.custom_object_internal_name + '_' + column.internalName
+                    data: column.custom_object_label + ' ' + column.label,
+                    name: column.custom_object_label + ' ' + column.label,
+                    title: column.custom_object_label + ' ' + column.label
                 });
             }
         }
