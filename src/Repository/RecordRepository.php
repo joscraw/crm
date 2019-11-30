@@ -352,28 +352,29 @@ class RecordRepository extends ServiceEntityRepository
         $resultStr = [];
         foreach($data['properties'] as $propertyId => $property) {
             $alias = !empty($property['alias']) ? $property['alias'] : $root;
+            $columnName = sprintf("%s_%s", $property['custom_object_internal_name'], $property['internalName']);
             switch($property['fieldType']) {
                 case FieldCatalog::DATE_PICKER:
                     $jsonExtract = $this->getDatePickerQuery($alias);
-                    $resultStr[] = sprintf($jsonExtract, $property['internalName'], $property['internalName'], $property['internalName'], $property['internalName']);
+                    $resultStr[] = sprintf($jsonExtract, $property['internalName'], $property['internalName'], $property['internalName'], $columnName);
                     break;
                 case FieldCatalog::SINGLE_CHECKBOX:
                     $jsonExtract = $this->getSingleCheckboxQuery($alias);
-                    $resultStr[] = sprintf($jsonExtract, $property['internalName'], $property['internalName'], $property['internalName'], $property['internalName'], $property['internalName'], $property['internalName']);
+                    $resultStr[] = sprintf($jsonExtract, $property['internalName'], $property['internalName'], $property['internalName'], $property['internalName'], $property['internalName'], $columnName);
                     break;
                 case FieldCatalog::NUMBER:
                     $field = $property['field'];
                     if($field['type'] === NumberField::$types['Currency']) {
                         $jsonExtract = $this->getNumberIsCurrencyQuery($alias);
-                        $resultStr[] = sprintf($jsonExtract, $property['internalName'], $property['internalName'], $property['internalName'], $property['internalName']);
+                        $resultStr[] = sprintf($jsonExtract, $property['internalName'], $property['internalName'], $property['internalName'], $columnName);
                     } elseif($field['type'] === NumberField::$types['Unformatted Number']) {
                         $jsonExtract = $this->getNumberIsUnformattedQuery($alias);
-                        $resultStr[] = sprintf($jsonExtract, $property['internalName'], $property['internalName'], $property['internalName'], $property['internalName']);
+                        $resultStr[] = sprintf($jsonExtract, $property['internalName'], $property['internalName'], $property['internalName'], $columnName);
                     }
                     break;
                 default:
                     $jsonExtract = $this->getDefaultQuery($alias);
-                    $resultStr[] = sprintf($jsonExtract, $property['internalName'], $property['internalName'], $property['internalName'], $property['internalName']);
+                    $resultStr[] = sprintf($jsonExtract, $property['internalName'], $property['internalName'], $property['internalName'], $columnName);
                     break;
 
             }
@@ -486,7 +487,7 @@ class RecordRepository extends ServiceEntityRepository
                 continue;
             }
             $alias = !empty($filter['alias']) ? $filter['alias'] : $root;
-            $filters[] = $this->getConditionForReport($filter, $alias);
+            $filters[] = $this->getConditionForReport($filter, $alias, $data);
         }
         return $filters;
     }
@@ -1447,10 +1448,11 @@ class RecordRepository extends ServiceEntityRepository
     /**
      * @param $customFilter
      * @param $alias
+     * @param null $data
      * @param bool $isChildFilter
      * @return string
      */
-    private function getConditionForReport($customFilter, $alias, $isChildFilter = false) {
+    private function getConditionForReport($customFilter, $alias, $data = null, $isChildFilter = false) {
 
         $query = '';
         $andFilters = [];
@@ -1698,9 +1700,9 @@ class RecordRepository extends ServiceEntityRepository
 
         // add the child filters (AND conditionals)
         if(!empty($customFilter['childFilters'])) {
-            foreach($customFilter['childFilters'] as $childFilter) {
-                $alias = sprintf("%s.%s", $childFilter['uid'], $childFilter['custom_object_internal_name']);
-                $andFilters[] = $this->getConditionForReport($childFilter, $alias, true);
+            foreach($customFilter['childFilters'] as $uid => $childFilter) {
+                $alias = $data['filters'][$uid]['alias'];
+                $andFilters[] = $this->getConditionForReport($childFilter, $alias, $data, true);
             }
         }
         $query .= !empty($andFilters) ? implode(" AND ", $andFilters) : '';
