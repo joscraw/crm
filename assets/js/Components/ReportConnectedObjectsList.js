@@ -74,7 +74,7 @@ class ReportConnectedObjectsList {
     refreshConnectedObjects(data = {}) {
         debugger;
         this.$wrapper.find(ReportConnectedObjectsList._selectors.connectedObjects).html("");
-        if(!_.has(data, 'joins') || _.isEmpty(data.joins)) {
+        if(!_.has(data, 'joins') || _.isEmpty(data.joins) || Object.keys(data.joins).length === 1) {
             this.$wrapper.find(ReportConnectedObjectsList._selectors.noConnectionsExistMessage).show();
             return;
         } else {
@@ -82,7 +82,7 @@ class ReportConnectedObjectsList {
         }
         for(let uid in data.joins) {
             let join = data.joins[uid];
-            if(join.hasParentConnection) {
+            if(join.hasParentConnection || !_.has(join, 'connected_property') || !_.has(join, 'join_type')) {
                 continue;
             }
             debugger;
