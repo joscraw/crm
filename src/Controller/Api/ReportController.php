@@ -160,7 +160,8 @@ class ReportController extends ApiController
         $this->entityManager->flush();
 
         $response = new JsonResponse([
-            'success' => true
+            'success' => true,
+            'reportId' => $report->getId()
         ], Response::HTTP_OK);
 
         return $response;
@@ -356,7 +357,7 @@ class ReportController extends ApiController
 
         return new JsonResponse([
             'success' => true,
-            'data'  => $payload
+            'data'  => $payload['data']
         ], Response::HTTP_OK);
     }
 

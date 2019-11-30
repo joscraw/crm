@@ -105,10 +105,10 @@ class ReportProperties {
         new ReportPropertyList($(ReportProperties._selectors.reportPropertyListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.data);
         new ReportConnectObjectButton($(ReportProperties._selectors.reportConnectableObjectsContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.data.selectedCustomObject.internalName);
         new ReportAllFiltersButton($(ReportProperties._selectors.reportAllFiltersButtonContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.data.selectedCustomObject.internalName);
-        new ReportConnectedObjectsList($(ReportProperties._selectors.reportConnectedObjectsListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.data.selectedCustomObject.internalName);
+        new ReportConnectedObjectsList($(ReportProperties._selectors.reportConnectedObjectsListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.data.selectedCustomObject.internalName, this.data);
     }
 
-    static markup({data: {selectedCustomObject: {internalName}}}) {
+    static markup({data: {reportName, selectedCustomObject: {internalName}}}) {
         return `
 
             <nav class="navbar navbar-expand-sm l-top-bar justify-content-end c-report-widget__nav">
@@ -120,7 +120,7 @@ class ReportProperties {
                             </li>
                         </ul>
                     </div>
-                    <input style="width: 200px;" class="form-control navbar-brand mx-auto d-block text-center order-0 order-md-1 w-25 c-report-widget__report-name js-report-name" type="search" placeholder="Report name" aria-label="Search">
+                    <input style="width: 200px;" value="${reportName}" class="form-control navbar-brand mx-auto d-block text-center order-0 order-md-1 w-25 c-report-widget__report-name js-report-name" type="text" placeholder="Report name">
                     <div class="navbar-collapse collapse dual-nav w-50 order-2">
                         <ul class="nav navbar-nav ml-auto">
                             <li class="nav-item">

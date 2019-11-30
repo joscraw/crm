@@ -40,7 +40,6 @@ class ReportWidget {
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
-        this.reportName = '';
 
         /**
          * version 2.0
@@ -97,11 +96,6 @@ class ReportWidget {
         );
 
         this.globalEventDispatcher.subscribe(
-            Settings.Events.REPORT_NAME_CHANGED,
-            this.handleReportNameChange.bind(this)
-        );
-
-        this.globalEventDispatcher.subscribe(
             Settings.Events.REPORT_OBJECT_CONNECTED,
             this.handleReportObjectConnected.bind(this)
         );
@@ -139,7 +133,11 @@ class ReportWidget {
     handleReportSaveButtonPressed(reportName) {
         this.newData.reportName = reportName;
         this._saveReport().then((data) => {
-            swal("Woohoo!!!", "Report successfully saved.", "success");
+            debugger;
+            swal("Woohoo!!!", "Report successfully saved. Redirecting to edit view...", "success");
+            setTimeout(() => {
+                this.redirectToEditView(data['reportId']);
+            }, 3000);
         }).catch((errorData) => {
             if(errorData.httpCode === 401) {
                 swal("Woah!", `You don't have proper permissions for this!`, "error");
@@ -152,9 +150,9 @@ class ReportWidget {
         window.location = Routing.generate('report_settings', {internalIdentifier: this.portalInternalIdentifier});
     }
 
-    handleReportNameChange(reportName) {
-        this.reportName = reportName;
-    }
+    redirectToEditView(reportId) {
+        window.location = Routing.generate('edit_report', {internalIdentifier: this.portalInternalIdentifier, 'reportId' : reportId});
+    };
 
     reportBackToSelectCustomObjectButtonHandler(e) {
         this.$wrapper.find(ReportWidget._selectors.reportSelectCustomObjectContainer).removeClass('d-none');
@@ -162,8 +160,24 @@ class ReportWidget {
         new ReportSelectCustomObject($(ReportWidget._selectors.reportSelectCustomObjectContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.newData.selectedCustomObject);
     }
 
+    reinitializeData() {
+        this.newData = {
+            properties: {},
+            filters: {},
+            joins: {},
+            selectedCustomObject: {},
+            allAvailableProperties: [],
+            reportName: ''
+        };
+    }
+
     handleAdvanceToReportPropertiesViewButtonClicked(customObject) {
         debugger;
+        // reinitialize the data if a new object is being selected
+        // (if a user has gone back to the select object view and selected a new object)
+        if(this.newData.selectedCustomObject.id !== customObject.id) {
+            this.reinitializeData();
+        }
         this.newData.selectedCustomObject = customObject;
         this.$wrapper.find(ReportWidget._selectors.reportSelectCustomObjectContainer).addClass('d-none');
         this.$wrapper.find(ReportWidget._selectors.reportPropertiesContainer).removeClass('d-none');
@@ -413,7 +427,7 @@ class ReportWidget {
             $.ajax({
                 url,
                 method: 'POST',
-                data: {'data': this.newData, reportName: this.reportName}
+                data: {'data': this.newData, reportName: this.newData.reportName}
             }).then((data, textStatus, jqXHR) => {
                 resolve(data);
             }).catch((jqXHR) => {
@@ -431,7 +445,7 @@ class ReportWidget {
             $.ajax({
                 url,
                 method: 'POST',
-                data: {'data': this.newData, reportName: this.reportName}
+                data: {'data': this.newData, reportName: this.newData.reportName}
             }).then((data, textStatus, jqXHR) => {
                 resolve(data);
             }).catch((jqXHR) => {

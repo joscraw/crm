@@ -14,12 +14,13 @@ import FilterHelper from "../FilterHelper";
 
 class ReportConnectedObjectsList {
 
-    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, data = {}) {
         debugger;
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
         this.customObjectInternalName = customObjectInternalName;
+        this.data = data;
         this.unbindEvents();
         this.bindEvents();
         this.globalEventDispatcher.subscribe(
@@ -30,7 +31,7 @@ class ReportConnectedObjectsList {
             Settings.Events.REPORT_CONNECTION_REMOVED,
             this.refreshConnectedObjects.bind(this)
         );
-        this.render();
+        this.render(data);
     }
 
     /**
@@ -65,9 +66,9 @@ class ReportConnectedObjectsList {
      */
     unbindEvents() {}
 
-    render() {
+    render(data) {
         this.$wrapper.html(ReportConnectedObjectsList.markup(this));
-        this.refreshConnectedObjects();
+        this.refreshConnectedObjects(data);
         $('[data-toggle="tooltip"]').tooltip();
     }
 
