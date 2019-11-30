@@ -35,24 +35,20 @@ class ReportPreviewResultsTable {
             $('#reportPreviewResultsTable').DataTable().destroy();
             $('#reportPreviewResultsTable thead').empty();
             $('#reportPreviewResultsTable tbody').empty();
-            /*this.table.destroy();*/
         }
         this.activatePlugins(data.data, columns);
     }
 
     loadReportPreview() {
         return new Promise((resolve, reject) => {
-            debugger;
             const url = Routing.generate('get_report_preview', {internalIdentifier: this.portalInternalIdentifier, internalName: this.data.selectedCustomObject.internalName});
             $.ajax({
                 url: url,
                 data: {data: this.data, columnOrder: this.columnOrder},
                 method: 'POST'
             }).then(data => {
-                debugger;
                 resolve(data);
             }).catch(jqXHR => {
-                debugger;
                 const errorData = JSON.parse(jqXHR.responseText);
                 reject(errorData);
             });
@@ -72,13 +68,10 @@ class ReportPreviewResultsTable {
                 title: 'Select property on the left to get started...'
             }];
         } else {
-            debugger;
             for(let key in columns) {
-                debugger;
                 let column = columns[key];
                 datatableColumns.push({data: column.internalName, name: column.internalName, title: column.internalName});
             }
-            debugger;
         }
         $('#reportPreviewResultsTable thead').empty();
         $('#reportPreviewResultsTable tbody').empty();
@@ -99,6 +92,7 @@ class ReportPreviewResultsTable {
             f - filtering input
             t - The table!
             i - Table information summary
+
             p - pagination control
             r - processing display element
 
@@ -108,10 +102,7 @@ class ReportPreviewResultsTable {
             /*"dom": "rt",*/
             "columns": datatableColumns,
             "data": data,
-            "initComplete": () => {
-                debugger;
-                /*this.globalEventDispatcher.publish(Settings.Events.REPORT_PREVIEW_TABLE_INITIALIZED);*/
-            }
+            "initComplete": () => {}
         });
 
     }

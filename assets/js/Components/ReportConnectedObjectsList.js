@@ -82,7 +82,7 @@ class ReportConnectedObjectsList {
         }
         for(let uid in data.joins) {
             let join = data.joins[uid];
-            if(join.hasParentConnection) {
+            if(join.hasParentConnection || !_.has(join, 'connected_property') || !_.has(join, 'join_type')) {
                 continue;
             }
             debugger;

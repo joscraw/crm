@@ -115,7 +115,6 @@ class DatePickerFieldFilterForm {
             const $textField = $($.parseHTML(html));
             $radioButton.closest('div').after($textField);
         }
-
         this.activatePlugins();
     }
 

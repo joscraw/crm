@@ -120,6 +120,7 @@ class NumberFieldFilterForm {
             const $textField = $($.parseHTML(html));
             $radioButton.closest('div').after($textField);
         }
+        this.$wrapper.find('.js-operator-value').find('input[type="text"]').first().focus();
     }
 
     static markup({property, operator1, operator2, operator3, operator4, operator5, operator6, operator7}) {

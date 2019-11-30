@@ -130,8 +130,7 @@ class ReportWidget {
     static get _selectors() {
         return {
             reportSelectCustomObjectContainer: '.js-report-select-custom-object-container',
-            reportPropertiesContainer: '.js-report-properties-container',
-            reportFiltersContainer: '.js-report-filters-container'
+            reportPropertiesContainer: '.js-report-properties-container'
         }
     }
 
@@ -189,6 +188,105 @@ class ReportWidget {
     }
 
     handleReportRemoveFilterButtonPressed(uid) {
+        debugger;
+        this._removeFilterByUid(uid);
+        this._getReportResults().then((data) => {
+            this.globalEventDispatcher.publish('TEST', data, this.newData.properties);
+        });
+        this.globalEventDispatcher.publish(Settings.Events.REPORT_FILTER_ITEM_REMOVED, this.newData);
+    }
+
+    handleReportRemoveConnectionButtonPressed(connectionUid) {
+        debugger;
+        let connection = this.newData.joins[connectionUid];
+        // if a parent connection is being removed take note that child connections (joins)
+        // are dependent on their parent connection (join) so go ahead and remove any children
+        if(_.has(connection, 'childConnections')) {
+            let childConnections = connection.childConnections;
+            for(let uid in childConnections) {
+                let childConnection = childConnections[uid];
+                // since you are removing each child connection, don't forget to clean up
+                // and remove it's properties and filters
+                this._removePropertiesFromConnection(childConnection)
+                    ._removeFiltersFromConnection(childConnection);
+                _.unset(this.newData.joins, uid);
+            }
+        }
+        // if a child connection is being removed check to see if it has a parent connection
+        // if it does then remove the child connection from it's parent
+        if(_.has(connection, 'parentConnectionUid')) {
+            let parentConnectionId = _.get(connection, 'parentConnectionUid');
+            _.unset(this.newData.joins[parentConnectionId].childConnections, connectionUid);
+        }
+        // go ahead and remove any properties and filters that rely on this connection
+        this._removePropertiesFromConnection(connection)
+            ._removeFiltersFromConnection(connection);
+        // go ahead and remove any filters that rely on this connection
+        debugger;
+        // Last but not least finally remove the main connection
+        _.unset(this.newData.joins, connectionUid);
+        this._getReportResults().then((data) => {
+            this.globalEventDispatcher.publish('TEST', data, this.newData.properties);
+            this.globalEventDispatcher.publish(Settings.Events.REPORT_CONNECTION_REMOVED, this.newData);
+        });
+    }
+
+    /**
+     * This function takes a connection and removes any related properties for it
+     * @param connection
+     * @return {ReportWidget}
+     * @private
+     */
+    _removePropertiesFromConnection(connection) {
+        if(!_.isEmpty(this.newData.properties)) {
+            for(let propertyId in this.newData.properties) {
+                let property = this.newData.properties[propertyId];
+                if(connection.connected_object.join_direction === 'cross_join') {
+                    if(connection.connected_object.id == property.custom_object_id) {
+                        this._removeProperty(property);
+                    }
+                } else if(connection.connected_object.join_direction === 'normal_join') {
+                    if(connection.connected_property.field.customObject.id == property.custom_object_id) {
+                        this._removeProperty(property);
+                    }
+                }
+            }
+        }
+        return this;
+    }
+
+    /**
+     * This function takes a connection and removes any related filters for it
+     * @param connection
+     * @return {ReportWidget}
+     * @private
+     */
+    _removeFiltersFromConnection(connection) {
+        debugger;
+        if(!_.isEmpty(this.newData.filters)) {
+            for(let filterId in this.newData.filters) {
+                let filter = this.newData.filters[filterId];
+                if(connection.connected_object.join_direction === 'cross_join') {
+                    if(connection.connected_object.id == filter.custom_object_id) {
+                        this._removeFilterByUid(filterId);
+                    }
+                } else if(connection.connected_object.join_direction === 'normal_join') {
+                    if(connection.connected_property.field.customObject.id == filter.custom_object_id) {
+                        this._removeFilterByUid(filterId);
+                    }
+                }
+            }
+        }
+        return this;
+    }
+
+    /**
+     * Remove filter by uid
+     * @param uid
+     * @return {ReportWidget}
+     * @private
+     */
+    _removeFilterByUid(uid) {
         // remove the parent reference from the child filters
         if(_.has(this.newData.filters[uid], 'childFilters')) {
             let childFilters = this.newData.filters[uid].childFilters;
@@ -198,36 +296,26 @@ class ReportWidget {
                 _.unset(childFilter, 'parentFilterUid');
             }
         }
+        // if a child filter is being removed check to see if it has a parent filter
+        // if it does then remove the child filters from it's parent
+        if(_.has(this.newData.filters[uid], 'parentFilterUid')) {
+            debugger;
+            let parentFilterId = _.get(this.newData.filters[uid], 'parentFilterUid');
+            _.unset(this.newData.filters[parentFilterId].childFilters, uid);
+        }
         _.unset(this.newData.filters, uid);
-        this._getReportResults().then((data) => {
-            this.globalEventDispatcher.publish('TEST', data, this.newData.properties);
-        });
-        this.globalEventDispatcher.publish(Settings.Events.REPORT_FILTER_ITEM_REMOVED, this.newData);
+        return this;
     }
 
-    handleReportRemoveConnectionButtonPressed(connectionUid) {
-        debugger;
-        // if a parent connection is being removed take note that child connections (joins)
-        // are dependent on their parent connection (join) so go ahead and remove any children
-        if(_.has(this.newData.joins[connectionUid], 'childConnections')) {
-            let childConnections = this.newData.joins[connectionUid].childConnections;
-            for(let uid in childConnections) {
-                _.unset(this.newData.joins, uid);
-            }
-        }
-        // if a child connection is being removed check to see if it has a parent connection
-        // if it does then remove the child connection from it's parent
-        if(_.has(this.newData.joins[connectionUid], 'parentConnectionUid')) {
-            debugger;
-            let parentConnectionId = _.get(this.newData.joins[connectionUid], 'parentConnectionUid');
-            _.unset(this.newData.joins[parentConnectionId].childConnections, connectionUid);
-        }
-        // Last but not least finally remove the main connection
-        _.unset(this.newData.joins, connectionUid);
-        this._getReportResults().then((data) => {
-            this.globalEventDispatcher.publish('TEST', data, this.newData.properties);
-            this.globalEventDispatcher.publish(Settings.Events.REPORT_CONNECTION_REMOVED, this.newData);
-        });
+    /**
+     * Remove property by object
+     * @param property
+     * @return {ReportWidget}
+     * @private
+     */
+    _removeProperty(property) {
+        _.unset(this.newData.properties, property.id);
+        return this;
     }
 
     applyCustomFilterButtonPressedHandler(customFilter) {
@@ -258,7 +346,7 @@ class ReportWidget {
 
     handleReportRemoveSelectedColumnIconClicked(property) {
         debugger;
-        _.unset(this.newData.properties, property.id);
+        this._removeProperty(property);
         this._getReportResults().then((data) => {
             this.globalEventDispatcher.publish('TEST', data, this.newData.properties);
         });
@@ -360,7 +448,6 @@ class ReportWidget {
       <div class="js-report-widget c-report-widget">
             <div class="js-report-select-custom-object-container"></div>
             <div class="js-report-properties-container d-none"></div>
-            <div class="js-report-filters-container d-none"></div>
       </div>
     `;
     }

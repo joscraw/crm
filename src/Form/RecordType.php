@@ -268,7 +268,10 @@ class RecordType extends AbstractType
                         'attr' => [
                             'data-property-id' => $property->getId(),
                             'autocomplete' => 'off'
-                        ]
+                        ],
+                        // This converts number to use commas instead of periods.
+                        // https://symfony.com/doc/current/reference/forms/types/number.html#grouping
+                        'grouping' => true
                     ], $options);
 
                     $builder->add($property->getInternalName(), NumberType::class, $options);

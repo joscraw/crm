@@ -106,15 +106,14 @@ class SingleLineTextFieldFilterForm {
     }
 
     handleOperatorRadioButtonClicked(e) {
-
         this.$wrapper.find('.js-operator-value').remove();
-
         let $radioButton = $(e.currentTarget);
         if($radioButton.attr('data-has-text-input')) {
             const html = textFieldTemplate();
             const $textField = $($.parseHTML(html));
             $radioButton.closest('div').after($textField);
         }
+        this.$wrapper.find('.js-operator-value').find('input[type="text"]').focus();
     }
 
     static markup({property, operator1, operator2, operator3, operator4}) {

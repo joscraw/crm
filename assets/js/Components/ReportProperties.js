@@ -131,7 +131,7 @@ class ReportProperties {
                 </div>               
             </nav> 
             <div class="row container">
-                <div class="col-md-4">
+                <div class="col-md-4" style="height: 600px;  overflow-y: auto">
                 <h2 style="text-decoration: underline">Reporting on ${internalName}</h2>
                     <div class="col-md-12 js-report-property-list-container"></div>
                     <div class="col-md-12 js-report-connectable-objects"></div>

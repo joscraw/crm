@@ -12,24 +12,11 @@ class FilterHelper {
      * @return {string}
      */
     static getFilterTextFromCustomFilterForReport(customFilter) {
-
         let text = '',
             value = '',
             values = '',
             label;
-
-        debugger;
-        // Here we are creating the label path. We don't want to actually
-        // modify the joins so just create a copy
-        /*let customFilterCopy = JSON.parse(JSON.stringify(customFilter));*/
-
-        let customFilterCopy = _.cloneDeep(customFilter);
-
         label = customFilter.label;
-        /*customFilterCopy.joins.shift();
-        customFilterCopy.joins.push(customFilter.label);
-        label = "<strong>" + customFilterCopy.joins.join(" - ").toLowerCase() + "</strong><br>";*/
-
         switch(customFilter['fieldType']) {
             case 'custom_object_field':
                 // do nothing
@@ -37,45 +24,31 @@ class FilterHelper {
             case 'date_picker_field':
                 switch(customFilter['operator']) {
                     case 'EQ':
-
                         value = customFilter.value.trim() === '' ? '""' : `"${customFilter.value.trim()}"`;
                         text = `${label} is equal to ${value}`;
-
                         break;
                     case 'NEQ':
-
                         value = customFilter.value.trim() === '' ? '""' : `"${customFilter.value.trim()}"`;
                         text = `${label} is not equal to ${value}`;
-
                         break;
                     case 'LT':
-
                         value = customFilter.value.trim() === '' ? '""' : `"${customFilter.value.trim()}"`;
                         text = `${label} is before ${value}`;
-
                         break;
                     case 'GT':
-
                         value = customFilter.value.trim() === '' ? '""' : `"${customFilter.value.trim()}"`;
                         text = `${label} is after ${value}`;
-
                         break;
                     case 'BETWEEN':
-
                         let lowValue = customFilter.low_value.trim() === '' ? '""' : `"${customFilter.low_value.trim()}"`;
                         let highValue = customFilter.high_value.trim() === '' ? '""' : `"${customFilter.high_value.trim()}"`;
                         text = `${label} is between ${lowValue} and ${highValue}`;
-
                         break;
                     case 'HAS_PROPERTY':
-
                         text = `${label} is known`;
-
                         break;
                     case 'NOT_HAS_PROPERTY':
-
                         text = `${label} is unknown`;
-
                         break;
                 }
                 break;
@@ -83,10 +56,8 @@ class FilterHelper {
                 debugger;
                 switch(customFilter['operator']) {
                     case 'IN':
-
                         debugger;
                         values = customFilter.value.split(",");
-
                         if(ArrayHelper.arraysEqual(values, ["0", "1"]) || ArrayHelper.arraysEqual(values, ["1", "0"])) {
                             value = `"Yes" or "No"`;
                         } else if(ArrayHelper.arraysEqual(values, ["0"])) {
@@ -94,15 +65,11 @@ class FilterHelper {
                         } else if(ArrayHelper.arraysEqual(values, ["1"])) {
                             value = `"Yes"`;
                         }
-
                         text = `${label} is equal to ${value}`;
-
                         break;
                     case 'NOT_IN':
-
                         debugger;
                         values = customFilter.value.split(",");
-
                         if(ArrayHelper.arraysEqual(values, ["0", "1"])) {
                             value = `"Yes" or "No"`;
                         } else if(ArrayHelper.arraysEqual(values, ["0"])) {
@@ -110,19 +77,13 @@ class FilterHelper {
                         } else if(ArrayHelper.arraysEqual(values, ["1"])) {
                             value = `"Yes"`;
                         }
-
                         text = `${label} is not equal to ${value}`;
-
                         break;
                     case 'HAS_PROPERTY':
-
-                        text = `${label} is known`;
-
+                        text = `${label} "is known"`;
                         break;
                     case 'NOT_HAS_PROPERTY':
-
-                        text = `${label} is unknown`;
-
+                        text = `${label} "is unknown"`;
                         break;
                 }
                 break;
@@ -132,30 +93,20 @@ class FilterHelper {
                 debugger;
                 switch(customFilter['operator']) {
                     case 'IN':
-
                         values = customFilter.value.split(",");
                         values = values.join(" or ");
-
-                        text = `${label} is any of ${values}`;
-
+                        text = `${label} is any of "${values}"`;
                         break;
                     case 'NOT_IN':
-
                         values = customFilter.value.split(",");
                         values = values.join(" or ");
-
-                        text = `${label} is none of ${values}`;
-
+                        text = `${label} is none of "${values}"`;
                         break;
                     case 'HAS_PROPERTY':
-
-                        text = `${label} is known`;
-
+                        text = `${label} "is known"`;
                         break;
                     case 'NOT_HAS_PROPERTY':
-
-                        text = `${label} is unknown`;
-
+                        text = `${label} "is unknown"`;
                         break;
                 }
                 break;
@@ -164,48 +115,32 @@ class FilterHelper {
             case 'number_field':
                 switch(customFilter['operator']) {
                     case 'EQ':
-
                         debugger;
                         value = customFilter.value.trim() === '' ? '""' : `"${customFilter.value.trim()}"`;
                         text = `${label} contains exactly ${value}`;
-
                         break;
                     case 'NEQ':
-
                         value = customFilter.value.trim() === '' ? '""' : `"${customFilter.value.trim()}"`;
                         text = `${label} doesn't contain exactly ${value}`;
-
                         break;
                     case 'LT':
-
                         value = customFilter.value.trim() === '' ? '""' : `"${customFilter.value.trim()}"`;
                         text = `${label} is less than ${value}`;
-
                         break;
                     case 'GT':
-
                         value = customFilter.value.trim() === '' ? '""' : `"${customFilter.value.trim()}"`;
                         text = `${label} is greater than ${value}`;
-
                         break;
                     case 'BETWEEN':
-
                         let lowValue = customFilter.low_value.trim() === '' ? '""' : `"${customFilter.low_value.trim()}"`;
                         let highValue = customFilter.high_value.trim() === '' ? '""' : `"${customFilter.high_value.trim()}"`;
-
-                        value = customFilter.value.trim() === '' ? '""' : `"${customFilter.value.trim()}"`;
                         text = `${label} is between ${lowValue} and ${highValue}`;
-
                         break;
                     case 'HAS_PROPERTY':
-
                         text = `${label} is known`;
-
                         break;
                     case 'NOT_HAS_PROPERTY':
-
                         text = `${label} is unknown`;
-
                         break;
                 }
                 break;
