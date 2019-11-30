@@ -1064,6 +1064,7 @@ class RecordRepository extends ServiceEntityRepository
 
                 $joins[] = sprintf(
                     $this->getJoinQuery(),
+                    'INNER JOIN',
                     $newJoin,
                     $lastJoin,
                     $key,
