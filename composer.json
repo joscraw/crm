@@ -54,7 +54,8 @@
     },
     "autoload": {
         "psr-4": {
-            "App\\": "src/"
+            "App\\": "src/",
+            "NSCSBundle\\": "lib/NSCSBundle/src"
         }
     },
     "autoload-dev": {
