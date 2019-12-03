@@ -1702,7 +1702,7 @@ class RecordRepository extends ServiceEntityRepository
         // add the child filters (AND conditionals)
         if(!empty($customFilter['childFilters'])) {
             foreach($customFilter['childFilters'] as $uid => $childFilter) {
-                $alias = $data['filters'][$uid]['alias'];
+                $alias = !empty($data['filters'][$uid]['alias']) ? $data['filters'][$uid]['alias'] : $alias;
                 $andFilters[] = $this->getConditionForReport($childFilter, $alias, $data, true);
             }
         }
