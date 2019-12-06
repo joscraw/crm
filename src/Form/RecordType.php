@@ -290,7 +290,7 @@ class RecordType extends AbstractType
                         'required' => false,
                         'label' => $property->getLabel(),
                         'widget' => 'single_text',
-                        'format' => 'MM-dd-yyyy',
+                        'format' => 'MM/dd/yyyy',
                         // prevents rendering it as type="date", to avoid HTML5 date pickers
                         'html5' => false,
                         // adds a class that can be selected in JavaScript

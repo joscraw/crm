@@ -15,13 +15,13 @@ class DatePickerField extends AbstractField
      * matches the format set on the front end with the DatePicker jQuery plugin
      * @var string
      */
-    public static $displayFormat = 'm-d-Y';
+    public static $displayFormat = 'm/d/Y';
 
     /**
      * Needs to be stored in different format  mysql to be able to CAST() into a DateTime Format
      * @var string
      */
-    public static $storedFormat = 'Y-m-d';
+    public static $storedFormat = 'm/d/Y';
 
     /**
      * @Groups({"PROPERTY_FIELD_NORMALIZER"})

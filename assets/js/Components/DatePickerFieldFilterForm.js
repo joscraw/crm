@@ -57,7 +57,7 @@ class DatePickerFieldFilterForm {
 
     activatePlugins() {
         $('.js-datepicker').datepicker({
-            format: 'mm-dd-yyyy'
+            format: 'mm/dd/yyyy'
         });
     }
 

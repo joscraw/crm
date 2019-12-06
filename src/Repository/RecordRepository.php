@@ -1546,14 +1546,14 @@ class RecordRepository extends ServiceEntityRepository
                         if(trim($customFilter['value']) === '') {
                             $andFilters[] = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), null) = \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         } else {
-                            $andFilters[] = sprintf('IF(DATE_FORMAT( CAST( JSON_UNQUOTE( `%s`.properties->>\'$.%s\' ) as DATETIME ), \'%%m-%%d-%%Y\' ), DATE_FORMAT( CAST( JSON_UNQUOTE( `%s`.properties->>\'$.%s\' ) as DATETIME ), \'%%m-%%d-%%Y\' ), \'\') = \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], $customFilter['value']);
+                            $andFilters[] = sprintf('STR_TO_DATE(`%s`.properties->>\'$.%s\', \'%%m/%%d/%%Y\') = STR_TO_DATE(\'%s\', \'%%m/%%d/%%Y\')', $alias, $customFilter['internalName'], $customFilter['value']);
                         }
                         break;
                     case 'NEQ':
                         if(trim($customFilter['value']) === '') {
                             $andFilters[] = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), null) != \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         } else {
-                            $andFilters[] = sprintf('IF(DATE_FORMAT( CAST( JSON_UNQUOTE( `%s`.properties->>\'$.%s\' ) as DATETIME ), \'%%m-%%d-%%Y\' ), DATE_FORMAT( CAST( JSON_UNQUOTE( `%s`.properties->>\'$.%s\' ) as DATETIME ), \'%%m-%%d-%%Y\' ), \'\') != \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], $customFilter['value']);
+                            $andFilters[] = sprintf('STR_TO_DATE(`%s`.properties->>\'$.%s\', \'%%m/%%d/%%Y\') != STR_TO_DATE(\'%s\', \'%%m/%%d/%%Y\')', $alias, $customFilter['internalName'], $customFilter['value']);
                         }
                         break;
                     case 'LT':
@@ -1561,7 +1561,7 @@ class RecordRepository extends ServiceEntityRepository
                             // TODO revisit this one. how do you compare less than to an empty string? What should we do? Right now this is just returning 0 results
                             $andFilters[] = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') < \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         } else {
-                            $andFilters[] = sprintf('IF(DATE_FORMAT( CAST( JSON_UNQUOTE( `%s`.properties->>\'$.%s\' ) as DATETIME ), \'%%m-%%d-%%Y\' ), DATE_FORMAT( CAST( JSON_UNQUOTE( `%s`.properties->>\'$.%s\' ) as DATETIME ), \'%%m-%%d-%%Y\' ), null) < \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], $customFilter['value']);
+                            $andFilters[] = sprintf('STR_TO_DATE(`%s`.properties->>\'$.%s\', \'%%m/%%d/%%Y\') < STR_TO_DATE(\'%s\', \'%%m/%%d/%%Y\')', $alias, $customFilter['internalName'], $customFilter['value']);
                         }
                         break;
                     case 'GT':
@@ -1569,7 +1569,7 @@ class RecordRepository extends ServiceEntityRepository
                             // TODO revisit this one. how do you compare greater than to an empty string? What should we do? Right now this is just returning 0 results
                             $andFilters[] = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') > \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         } else {
-                            $andFilters[] = sprintf('IF(DATE_FORMAT( CAST( JSON_UNQUOTE( `%s`.properties->>\'$.%s\' ) as DATETIME ), \'%%m-%%d-%%Y\' ), DATE_FORMAT( CAST( JSON_UNQUOTE( `%s`.properties->>\'$.%s\' ) as DATETIME ), \'%%m-%%d-%%Y\' ), null) > \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], $customFilter['value']);
+                            $andFilters[] = sprintf('STR_TO_DATE(`%s`.properties->>\'$.%s\', \'%%m/%%d/%%Y\') > STR_TO_DATE(\'%s\', \'%%m/%%d/%%Y\')', $alias, $customFilter['internalName'], $customFilter['value']);
                         }
                         break;
                     case 'BETWEEN':
@@ -1577,7 +1577,7 @@ class RecordRepository extends ServiceEntityRepository
                             // TODO revisit this one. IF the low value or high value is empty, what should we do? Right now this is just returning 0 results
                             $andFilters[] = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, `%s`.properties->>\'$.%s\', \'\') BETWEEN \'%s\' AND \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], '', '');
                         } else {
-                            $andFilters[] = sprintf('IF(DATE_FORMAT( CAST( JSON_UNQUOTE( `%s`.properties->>\'$.%s\' ) as DATETIME ), \'%%m-%%d-%%Y\' ), DATE_FORMAT( CAST( JSON_UNQUOTE( `%s`.properties->>\'$.%s\' ) as DATETIME ), \'%%m-%%d-%%Y\' ), null) BETWEEN \'%s\' AND \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], $customFilter['low_value'], $customFilter['high_value']);
+                            $andFilters[] = sprintf('STR_TO_DATE(`%s`.properties->>\'$.%s\', \'%%m/%%d/%%Y\') BETWEEN STR_TO_DATE(\'%s\', \'%%m/%%d/%%Y\') AND STR_TO_DATE(\'%s\', \'%%m/%%d/%%Y\')', $alias, $customFilter['internalName'], $customFilter['low_value'], $customFilter['high_value']);
                         }
                         break;
                     case 'HAS_PROPERTY':
@@ -1732,7 +1732,7 @@ class RecordRepository extends ServiceEntityRepository
     CASE 
         WHEN `${alias}`.properties->>'$.%s' IS NULL THEN "-" 
         WHEN `${alias}`.properties->>'$.%s' = '' THEN ""
-        ELSE DATE_FORMAT( CAST( JSON_UNQUOTE( `${alias}`.properties->>'$.%s' ) as DATETIME ), '%%m-%%d-%%Y' )
+        ELSE `${alias}`.properties->>'$.%s'
     END AS "%s"
 HERE;
     }
