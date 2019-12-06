@@ -33,7 +33,7 @@ class Record
     private $properties = [];
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\WorkflowEnrollment", mappedBy="record", orphanRemoval=true)
+     * @ORM\OneToMany(targetEntity="App\Entity\WorkflowEnrollment", mappedBy="record", orphanRemoval=true, cascade={"persist", "remove"})
      */
     private $workflowEnrollments;
 

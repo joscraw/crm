@@ -9,8 +9,10 @@ use App\Entity\Portal;
 use App\Entity\Property;
 use App\Entity\PropertyGroup;
 use App\Entity\Record;
+use App\Entity\Role;
 use App\Form\BulkEditType;
 use App\Form\CustomObjectType;
+use App\Form\DeleteRecordType;
 use App\Form\PropertyGroupType;
 use App\Form\PropertyType;
 use App\Form\RecordType;
@@ -677,6 +679,76 @@ class RecordController extends ApiController
         $filter->setCustomFilters($customFilters);
 
         $this->entityManager->persist($filter);
+        $this->entityManager->flush();
+
+        return new JsonResponse(
+            [
+                'success' => true,
+            ],
+            Response::HTTP_OK
+        );
+
+    }
+
+    /**
+     * @Route("/{recordId}/delete-form", name="delete_record_form", methods={"GET"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param Record $record
+     * @return JsonResponse
+     */
+    public function getDeleteRecordFormAction(Portal $portal, Record $record) {
+
+        $form = $this->createForm(DeleteRecordType::class, $record);
+
+        $formMarkup = $this->renderView(
+            'Api/form/delete_record_form.html.twig',
+            [
+                'form' => $form->createView(),
+            ]
+        );
+
+        return new JsonResponse(
+            [
+                'success' => true,
+                'formMarkup' => $formMarkup
+            ],
+            Response::HTTP_OK
+        );
+    }
+
+    /**
+     * @Route("/{recordId}/delete", name="delete_record", methods={"POST"}, options={"expose" = true})
+     * @param Portal $portal
+     * @param Record $record
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function deleteRecordAction(Portal $portal, Record $record, Request $request)
+    {
+
+        $form = $this->createForm(DeleteRecordType::class, $record);
+
+        $form->handleRequest($request);
+
+        if (!$form->isValid()) {
+            $formMarkup = $this->renderView(
+                'Api/form/delete_record_form.html.twig',
+                [
+                    'form' => $form->createView(),
+                ]
+            );
+            return new JsonResponse(
+                [
+                    'success' => false,
+                    'formMarkup' => $formMarkup,
+                ], Response::HTTP_BAD_REQUEST
+            );
+        }
+
+        // delete report here
+        /** @var Record $record */
+        $record = $form->getData();
+        $this->entityManager->remove($record);
         $this->entityManager->flush();
 
         return new JsonResponse(
