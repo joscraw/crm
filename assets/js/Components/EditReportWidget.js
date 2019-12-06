@@ -119,6 +119,13 @@ class EditReportWidget {
         this.loadReport().then((data) => {
             debugger;
             this.newData = data.data;
+            // when pulling the data from the database empty objects are returned as empty arrays.
+            // Make sure we correct this and set them back to objects
+            this.newData.properties = _.isEmpty(this.newData.properties) ? {} : this.newData.properties;
+            this.newData.filters = _.isEmpty(this.newData.filters) ? {} : this.newData.filters;
+            this.newData.joins = _.isEmpty(this.newData.joins) ? {} : this.newData.joins;
+            this.newData.selectedCustomObject = _.isEmpty(this.newData.selectedCustomObject) ? {} : this.newData.selectedCustomObject;
+            this.newData.allAvailableProperties = _.isEmpty(this.newData.allAvailableProperties) ? [] : this.newData.allAvailableProperties;
             this.render();
         });
     }
@@ -443,7 +450,8 @@ class EditReportWidget {
 
     _saveReport() {
         return new Promise((resolve, reject) => {
-            const url = Routing.generate('save_report', {internalIdentifier: this.portalInternalIdentifier, internalName: this.newData.selectedCustomObject.internalName});
+            debugger;
+            const url = Routing.generate('api_edit_report', {reportId: this.newData.reportId, internalIdentifier: this.portalInternalIdentifier, internalName: this.newData.selectedCustomObject.internalName});
             $.ajax({
                 url,
                 method: 'POST',

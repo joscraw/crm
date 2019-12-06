@@ -149,6 +149,9 @@
     "nikic/php-parser": {
         "version": "v4.1.0"
     },
+    "nscs/nscs-bundle": {
+        "version": "dev-master"
+    },
     "ocramius/proxy-manager": {
         "version": "2.1.1"
     },

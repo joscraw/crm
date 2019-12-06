@@ -1,0 +1,3 @@
+_nscs:
+  resource: '@NSCSBundle/Resources/config/routes.xml'
+  prefix: /api/nscs

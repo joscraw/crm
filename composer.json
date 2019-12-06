@@ -10,6 +10,7 @@
         "friendsofsymfony/ckeditor-bundle": "^2.1",
         "friendsofsymfony/jsrouting-bundle": "^2.2",
         "lexik/form-filter-bundle": "^5.0",
+        "nscs/nscs-bundle": "*@dev",
         "rollerworks/password-strength-bundle": "^2.0",
         "scienta/doctrine-json-functions": "^4.0",
         "sensio/framework-extra-bundle": "^5.2",
@@ -35,8 +36,7 @@
         "symfony/validator": "4.2.*",
         "symfony/web-link": "4.2.*",
         "symfony/webpack-encore-bundle": "^1.0",
-        "symfony/yaml": "4.2.*",
-        "ext-amqp": "*"
+        "symfony/yaml": "4.2.*"
     },
     "require-dev": {
         "doctrine/doctrine-fixtures-bundle": "^3.1",
@@ -54,7 +54,8 @@
     },
     "autoload": {
         "psr-4": {
-            "App\\": "src/"
+            "App\\": "src/",
+            "NSCSBundle\\": "lib/NSCSBundle/src"
         }
     },
     "autoload-dev": {
@@ -91,5 +92,11 @@
             "allow-contrib": false,
             "require": "4.2.*"
         }
-    }
+    },
+    "repositories": [
+      {
+        "type": "path",
+        "url": "NSCSBundle"
+      }
+    ]
 }

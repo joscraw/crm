@@ -74,6 +74,13 @@ class ReportProperties {
             ReportProperties._selectors.saveReportButton,
             this.handleSaveReportButtonClicked.bind(this)
         );
+
+        this.$wrapper.on('change', ReportProperties._selectors.listName, this.handleReportNameChange.bind(this));
+
+    }
+
+    handleReportNameChange(e) {
+        this.globalEventDispatcher.publish(Settings.Events.REPORT_NAME_CHANGED, $(e.target).val());
     }
 
     handleSaveReportButtonClicked(e) {
@@ -92,6 +99,7 @@ class ReportProperties {
     unbindEvents() {
         this.$wrapper.off('click', ReportProperties._selectors.reportBackToSelectCustomObjectButton);
         this.$wrapper.off('click', ReportProperties._selectors.saveReportButton);
+        this.$wrapper.off('change', ReportProperties._selectors.listName);
     }
 
     handleReportBackToSelectCustomObjectButton(e) {
@@ -104,7 +112,7 @@ class ReportProperties {
         new ReportPreviewResultsTable($(ReportProperties._selectors.reportTablePreview), this.globalEventDispatcher, this.portalInternalIdentifier, this.data);
         new ReportPropertyList($(ReportProperties._selectors.reportPropertyListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.data);
         new ReportConnectObjectButton($(ReportProperties._selectors.reportConnectableObjectsContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.data.selectedCustomObject.internalName);
-        new ReportAllFiltersButton($(ReportProperties._selectors.reportAllFiltersButtonContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.data.selectedCustomObject.internalName);
+        new ReportAllFiltersButton($(ReportProperties._selectors.reportAllFiltersButtonContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.data.selectedCustomObject.internalName, this.data);
         new ReportConnectedObjectsList($(ReportProperties._selectors.reportConnectedObjectsListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.data.selectedCustomObject.internalName, this.data);
     }
 

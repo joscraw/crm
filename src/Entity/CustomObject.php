@@ -104,12 +104,6 @@ class CustomObject /*implements \JsonSerializable*/
      */
     private $objectWorkflows;
 
-    /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
-    private $uid;
-
-
     public function __construct()
     {
         $this->properties = new ArrayCollection();
@@ -130,16 +124,6 @@ class CustomObject /*implements \JsonSerializable*/
             $this->internalName = strtolower(
                 preg_replace('/\s+/', '_', $this->getLabel())
             );
-        }
-    }
-
-    /**
-     * @ORM\PrePersist
-     */
-    public function setUidValue()
-    {
-        if(!$this->uid) {
-            $this->uid = sprintf("%s.%s", $this->generateRandomString(5), $this->internalName);
         }
     }
 
@@ -454,18 +438,6 @@ class CustomObject /*implements \JsonSerializable*/
                 $objectWorkflow->setCustomObject(null);
             }
         }
-
-        return $this;
-    }
-
-    public function getUid(): ?string
-    {
-        return $this->uid;
-    }
-
-    public function setUid(?string $uid): self
-    {
-        $this->uid = $uid;
 
         return $this;
     }

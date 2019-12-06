@@ -13,13 +13,13 @@ import ReportFilterNavigationModal from "./ReportFilterNavigationModal";
 
 class ReportAllFiltersButton {
 
-    constructor($wrapper, globalEventDispatcher, portal, customObjectInternalName) {
+    constructor($wrapper, globalEventDispatcher, portal, customObjectInternalName, data = {}) {
         debugger;
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
         this.portal = portal;
         this.customObjectInternalName = customObjectInternalName;
-        this.data = {};
+        this.data = data;
 
         this.globalEventDispatcher.subscribe(
             Settings.Events.REPORT_FILTER_ITEM_ADDED,
