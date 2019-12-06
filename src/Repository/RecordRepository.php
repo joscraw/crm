@@ -231,7 +231,7 @@ class RecordRepository extends ServiceEntityRepository
     public function newReportLogicBuilder($data, CustomObject $customObject, $mysqlOnly = false)
     {
         $this->data = $data;
-        $root = sprintf("%s.%s", $customObject->getUid(), $customObject->getInternalName());
+        $root = sprintf("%s.%s", $this->generateRandomString(5), $customObject->getInternalName());
 
         // setup the join aliases
         $this->newJoinAliasBuilder($data);

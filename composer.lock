@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "8456911f2aae7756a3996c7b691d07fb",
+    "content-hash": "fdb9e52391f520d5d37254db40cc27d2",
     "packages": [
         {
             "name": "behat/transliterator",
@@ -1839,6 +1839,35 @@
                 "psr-3"
             ],
             "time": "2018-11-05T09:00:11+00:00"
+        },
+        {
+            "name": "nscs/nscs-bundle",
+            "version": "dev-master",
+            "dist": {
+                "type": "path",
+                "url": "NSCSBundle",
+                "reference": "b038c4d84a9d424c52172a6420a9ab856aac3454",
+                "shasum": null
+            },
+            "require": {
+                "php": "^7.1.3"
+            },
+            "type": "symfony-bundle",
+            "autoload": {
+                "psr-4": {
+                    "NSCSBundle\\": "src/"
+                }
+            },
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Josh Crawmer",
+                    "email": "joshcrawmer4@yahoo.com"
+                }
+            ],
+            "description": "nscs bundle for connecting to crm"
         },
         {
             "name": "ocramius/package-versions",
@@ -7274,7 +7303,9 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {
+        "nscs/nscs-bundle": 20
+    },
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {

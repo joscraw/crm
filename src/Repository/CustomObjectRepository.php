@@ -209,11 +209,11 @@ class CustomObjectRepository extends ServiceEntityRepository
      */
     public function getConnectableObjects(CustomObject $customObject, $queryBuilder = false) {
 
-        $query = sprintf("select co.id, co.internal_name, co.uid, co.label, 'normal_join' as join_direction from custom_object co 
+        $query = sprintf("select co.id, co.internal_name, co.label, 'normal_join' as join_direction from custom_object co 
           inner join property p on p.custom_object_id = co.id
           where co.internal_name = '%s' and p.field_type = 'custom_object_field'
           UNION
-          Select co.id, co.internal_name, co.uid, co.label, 'cross_join' as join_direction from custom_object co inner join property p 
+          Select co.id, co.internal_name, co.label, 'cross_join' as join_direction from custom_object co inner join property p 
           on p.custom_object_id = co.id where p.field_type = 'custom_object_field' and 
           p.field->'$.customObject.internalName' = '%s'", $customObject->getInternalName(), $customObject->getInternalName());
 

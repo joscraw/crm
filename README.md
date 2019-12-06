@@ -5,3 +5,11 @@
 5. install php-amqp. You should be able to do an apt-cache search amqp
 6. install rabbit mq https://tecadmin.net/install-rabbitmq-server-on-ubuntu/
 7. install messenger component https://symfony.com/doc/current/messenger.html
+
+
+    Make sure you setup nscs/nscs-bundle as a private repo 
+    https://getcomposer.org/doc/05-repositories.md#using-private-repositories
+    before you deploy
+    
+    Disable amqp rabbit mq on the app as the prod server does not have rabbit mq instlled and is
+    causing errors. 

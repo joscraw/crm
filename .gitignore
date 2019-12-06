@@ -30,3 +30,5 @@ yarn-error.log
 /node_modules/*
 /public/build/*
 /public/.htaccess
+
+NSCSBundle/

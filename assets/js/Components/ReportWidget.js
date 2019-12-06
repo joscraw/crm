@@ -52,7 +52,7 @@ class ReportWidget {
             joins: {},
             selectedCustomObject: {},
             allAvailableProperties: [],
-            reportName: ''
+            reportName: []
         };
 
         this.globalEventDispatcher.subscribe(
@@ -115,6 +115,11 @@ class ReportWidget {
             this.reportAddFilterButtonPressedHandler.bind(this)
         );
 
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.REPORT_NAME_CHANGED,
+            this.handleReportNameChange.bind(this)
+        );
+
         this.render();
     }
 
@@ -129,6 +134,10 @@ class ReportWidget {
     }
 
     unbindEvents() {}
+
+    handleReportNameChange(reportName) {
+        this.newData.reportName = reportName;
+    }
 
     handleReportSaveButtonPressed(reportName) {
         this.newData.reportName = reportName;
@@ -176,7 +185,7 @@ class ReportWidget {
         // reinitialize the data if a new object is being selected
         // (if a user has gone back to the select object view and selected a new object)
         if(this.newData.selectedCustomObject.id !== customObject.id) {
-            this.reinitializeData();
+            /*this.reinitializeData();*/
         }
         this.newData.selectedCustomObject = customObject;
         this.$wrapper.find(ReportWidget._selectors.reportSelectCustomObjectContainer).addClass('d-none');
@@ -421,13 +430,20 @@ class ReportWidget {
         new ReportSelectCustomObject($(ReportWidget._selectors.reportSelectCustomObjectContainer), this.globalEventDispatcher, this.portalInternalIdentifier);
     }
 
+    /**
+     * You have to pass the data up as JSON otherwise it will
+     * get sent up as form data and lots of it will get truncated
+     * @return {Promise<any>}
+     * @private
+     */
     _getReportResults() {
         return new Promise((resolve, reject) => {
             const url = Routing.generate('get_report_results', {internalIdentifier: this.portalInternalIdentifier, internalName: this.newData.selectedCustomObject.internalName});
             $.ajax({
                 url,
+                contentType: 'application/json',
                 method: 'POST',
-                data: {'data': this.newData, reportName: this.newData.reportName}
+                data: JSON.stringify({data : this.newData})
             }).then((data, textStatus, jqXHR) => {
                 resolve(data);
             }).catch((jqXHR) => {
@@ -439,13 +455,22 @@ class ReportWidget {
         });
     }
 
+    /**
+     * You have to pass the data up as JSON otherwise it will
+     * get sent up as form data and lots of it will get truncated
+     *
+     * @return {Promise<any>}
+     * @private
+     */
     _saveReport() {
+        debugger;
         return new Promise((resolve, reject) => {
             const url = Routing.generate('save_report', {internalIdentifier: this.portalInternalIdentifier, internalName: this.newData.selectedCustomObject.internalName});
             $.ajax({
                 url,
                 method: 'POST',
-                data: {'data': this.newData, reportName: this.newData.reportName}
+                contentType: 'application/json',
+                data: JSON.stringify({data : this.newData})
             }).then((data, textStatus, jqXHR) => {
                 resolve(data);
             }).catch((jqXHR) => {

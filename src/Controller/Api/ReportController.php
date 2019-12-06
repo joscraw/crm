@@ -158,10 +158,57 @@ class ReportController extends ApiController
         $report->setPortal($portal);
         $this->entityManager->persist($report);
         $this->entityManager->flush();
+        $data['reportId'] = $report->getId();
+        $report->setData($data);
+        $this->entityManager->persist($report);
+        $this->entityManager->flush();
 
         $response = new JsonResponse([
             'success' => true,
             'reportId' => $report->getId()
+        ], Response::HTTP_OK);
+
+        return $response;
+    }
+
+    /**
+     * @Route("/{internalName}/{reportId}/edit-report-save", name="api_edit_report", methods={"POST"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param CustomObject $customObject
+     * @param Report $report
+     * @param Request $request
+     * @return Response
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    public function editReportAction(Portal $portal, CustomObject $customObject, Report $report, Request $request) {
+
+        $hasPermission = $this->permissionAuthorizationHandler->isAuthorized(
+            $this->getUser(),
+            Role::EDIT_REPORT,
+            Role::SYSTEM_PERMISSION
+        );
+
+        if(!$hasPermission) {
+            return new JsonResponse(
+                [
+                    'success' => false,
+                ], Response::HTTP_UNAUTHORIZED
+            );
+        }
+
+        $data = $request->request->get('data', []);
+        $reportName = $data['reportName'];
+        $query = $this->recordRepository->newReportLogicBuilder($data, $customObject, true);
+        $report->setQuery($query);
+        $report->setCustomObject($customObject);
+        $report->setData($data);
+        $report->setName($reportName);
+        $report->setPortal($portal);
+        $this->entityManager->persist($report);
+        $this->entityManager->flush();
+
+        $response = new JsonResponse([
+            'success' => true
         ], Response::HTTP_OK);
 
         return $response;
@@ -359,55 +406,6 @@ class ReportController extends ApiController
             'success' => true,
             'data'  => $payload['data']
         ], Response::HTTP_OK);
-    }
-
-    /**
-     * @Route("/{internalName}/{reportId}/edit-report-save", name="api_edit_report", methods={"POST"}, options = { "expose" = true })
-     * @param Portal $portal
-     * @param CustomObject $customObject
-     * @param Report $report
-     * @param Request $request
-     * @return Response
-     */
-    public function editReportAction(Portal $portal, CustomObject $customObject, Report $report, Request $request) {
-
-        $hasPermission = $this->permissionAuthorizationHandler->isAuthorized(
-            $this->getUser(),
-            Role::EDIT_REPORT,
-            Role::SYSTEM_PERMISSION
-        );
-
-        if(!$hasPermission) {
-            return new JsonResponse(
-                [
-                    'success' => false,
-                ], Response::HTTP_UNAUTHORIZED
-            );
-        }
-
-        $data = $request->request->get('data', []);
-
-        $reportName = $request->request->get('reportName', '');
-
-        $columnOrder = $request->request->get('columnOrder', []);
-
-        $query = $this->recordRepository->getReportMysqlOnly($data, $customObject, $columnOrder);
-
-        $report->setQuery($query);
-        $report->setCustomObject($customObject);
-        $report->setData($data);
-        $report->setName($reportName);
-        $report->setPortal($portal);
-        $report->setColumnOrder($columnOrder);
-
-        $this->entityManager->persist($report);
-        $this->entityManager->flush();
-
-        $response = new JsonResponse([
-            'success' => true
-        ], Response::HTTP_OK);
-
-        return $response;
     }
 
     /**

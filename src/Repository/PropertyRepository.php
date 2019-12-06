@@ -340,7 +340,7 @@ class PropertyRepository extends ServiceEntityRepository
      */
     public function getConnectableProperties(CustomObject $customObject, CustomObject $connectableCustomObject) {
         $query = sprintf("Select p.id, p.field_type as fieldType, p.internal_name as internalName, 
-                    p.label, p.field, p.required, co.uid as uid from property p inner join 
+                    p.label, p.field, p.required from property p inner join 
                     custom_object co on p.custom_object_id = co.id where p.field_type = 'custom_object_field' and 
                     p.custom_object_id = '%s'", $connectableCustomObject->getId());
 
@@ -370,7 +370,7 @@ class PropertyRepository extends ServiceEntityRepository
         $query = sprintf("select p.id, p.field_type as fieldType, p.internal_name as internalName, p.label, p.field, 
                 pg.name as property_group_name, pg.id as property_group_id, 
                 co.label as custom_object_label, co.id as custom_object_id, CONCAT(co.label, ' - ', pg.name) 
-                as grouping_label, co.uid as uid, co.internal_name as custom_object_internal_name from property p 
+                as grouping_label, co.internal_name as custom_object_internal_name from property p 
                 inner join custom_object co on co.id = p.custom_object_id
                 inner join property_group pg on pg.id = p.property_group_id Where (%s)
                 and p.field_type != 'custom_object_field'", implode(" OR ", $conditionals));
