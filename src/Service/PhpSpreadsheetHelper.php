@@ -7,6 +7,7 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 class PhpSpreadsheetHelper
 {
     /**
+     * Return the column names from the CSV
      * @param UploadedFile $uploadedFile
      * @return array|bool
      */
@@ -53,6 +54,50 @@ class PhpSpreadsheetHelper
     }
 
     /**
+     * Return all the spreadsheet rows
+     * @param UploadedFile $uploadedFile
+     * @return array|bool
+     */
+    public function getAllRows(UploadedFile $uploadedFile) {
+        $tempPathName = $uploadedFile->getRealPath();
+        $fileExtension = $uploadedFile->getClientOriginalExtension();
+        $error = false;
+        $reader = false;
+        $spreadsheet = false;
+        $rows = false;
+        switch ($fileExtension) {
+            case 'xlsx':
+                $reader = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx();
+                break;
+            case 'xls':
+                $reader = new \PhpOffice\PhpSpreadsheet\Reader\Xls();
+                break;
+            case 'csv':
+                $reader = new \PhpOffice\PhpSpreadsheet\Reader\Csv();
+                break;
+        }
+        if($reader) {
+            try {
+                $spreadsheet = $reader->load($tempPathName);
+            } catch(\PhpOffice\PhpSpreadsheet\Reader\Exception $exception) {
+                $error = 'Error reading in file: ' . $exception->getMessage();
+            }
+        }
+        if($spreadsheet && !$error) {
+            try {
+                $rows = $spreadsheet->getActiveSheet()->toArray();
+            } catch (\PhpOffice\PhpSpreadsheet\Exception $exception) {
+                $error = 'Error converting spreadsheet to an array: ' . $exception->getMessage();
+            }
+        }
+        if(!$error && !empty($rows)) {
+            // remove empty or null values from array
+            return $rows;
+        }
+        return false;
+    }
+
+    /**
      * @param $columns
      * @return string|string[]|null
      */
@@ -77,7 +122,7 @@ class PhpSpreadsheetHelper
         $columns = !is_array($columns) ? [$columns] : $columns;
         $choices = [];
         foreach($columns as $column) {
-            $choices[$column] = $this->formFriendly($column)[0];
+            $choices[$this->formFriendly($column)[0]] = $column;
         }
         return $choices;
     }

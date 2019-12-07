@@ -812,7 +812,7 @@ class RecordController extends ApiController
                 'columns' => []
             ]
         );
-        if ($form->isSubmitted() && !$form->isValid()) {
+        if ($form->isSubmitted() && $form->isValid()) {
             /** @var UploadedFile $file */
             $file = $form->get('file')->getData();
             $columns = $this->phpSpreadsheetHelper->getColumnNames($file);
@@ -824,33 +824,16 @@ class RecordController extends ApiController
                     'columns' => $columns
                 ]
             );
-            return new JsonResponse(
-                [
-                    'success' => false,
-                    'formMarkup' => $formMarkup,
-                ], Response::HTTP_BAD_REQUEST
-            );
+        } elseif ($form->isSubmitted() && !$form->isValid()) {
+            return new JsonResponse([
+                'success' => true,
+                'formMarkup' => $formMarkup,
+            ], Response::HTTP_BAD_REQUEST);
         }
-
-        if($form->isSubmitted() && $form->isValid()) {
-            /** @var UploadedFile $file */
-            $file = $form->get('file')->getData();
-            $columns = $this->phpSpreadsheetHelper->getColumnNames($file);
-            $columns = $this->phpSpreadsheetHelper->formFriendly($columns);
-            $formMarkup = $this->renderView(
-                'Api/form/record_import_form.html.twig',
-                [
-                    'form' => $form->createView(),
-                    'columns' => $columns
-                ]
-            );
-        }
-        $response = new JsonResponse([
+        return new JsonResponse([
             'success' => true,
             'formMarkup' => $formMarkup,
         ], Response::HTTP_OK);
-
-        return $response;
     }
 
     /**
@@ -861,6 +844,35 @@ class RecordController extends ApiController
      * @return JsonResponse
      */
     public function importAction(Portal $portal, CustomObject $customObject, Request $request) {
-
+        $user = $this->getUser();
+        $form = $this->createForm(ImportRecordType::class, null, [
+            'customObject' => $customObject
+        ]);
+        $form->handleRequest($request);
+        $formMarkup = $this->renderView(
+            'Api/form/record_import_form.html.twig',
+            [
+                'form' => $form->createView(),
+                'columns' => []
+            ]
+        );
+        if($form->isSubmitted() && $form->isValid()) {
+            $importData = $form->getData();
+            /** @var UploadedFile $file */
+            $file = $form->get('file')->getData();
+            $rows = $this->phpSpreadsheetHelper->getAllRows($file);
+            $name = "Josh";
+            // let's go ahead and store the file and pass this off to a job to take care of
+            return new JsonResponse([
+                'success' => true,
+                'formMarkup' => $formMarkup,
+            ], Response::HTTP_OK);
+        }
+        return new JsonResponse(
+            [
+                'success' => false,
+                'formMarkup' => $formMarkup,
+            ], Response::HTTP_BAD_REQUEST
+        );
     }
 }

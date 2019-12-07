@@ -19,6 +19,7 @@ use App\Model\FieldCatalog;
 use App\Repository\RecordRepository;
 use App\Service\ChunkReadFilter;
 use App\Service\PhpSpreadsheetHelper;
+use App\Validator\Constraints\RecordImportSpreadsheet;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
@@ -71,6 +72,9 @@ class ImportRecordType extends AbstractType
             'label' => 'CSV File',
             'required' => true,
             'multiple' => false,
+            'constraints' => [
+                new RecordImportSpreadsheet([])
+            ]
         ]);
         $builder->get('file')->addEventListener(FormEvents::POST_SUBMIT, [$this, 'fieldModifier']);
     }
@@ -85,7 +89,9 @@ class ImportRecordType extends AbstractType
         $customObject = $form->getConfig()->getOption('customObject');
         /** @var UploadedFile $uploadedFile */
         $uploadedFile = $event->getData();
-        $columns = $this->phpSpreadsheetHelper->getColumnNames($uploadedFile);
+        if(!$columns = $this->phpSpreadsheetHelper->getColumnNames($uploadedFile)) {
+            return;
+        }
         foreach($columns as $column) {
             $columnFormFieldName = $this->phpSpreadsheetHelper->formFriendly($column)[0];
             $builder = $form->getConfig()->getFormFactory()->createNamedBuilder(
@@ -131,6 +137,7 @@ class ImportRecordType extends AbstractType
 
     public function configureOptions(OptionsResolver $resolver)
     {
+        $resolver->setDefault('allow_extra_fields', true);
         $resolver->setRequired(['customObject']);
     }
 }

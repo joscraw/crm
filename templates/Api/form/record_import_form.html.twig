@@ -1,7 +1,13 @@
 {% form_theme form 'bootstrap_4_layout.html.twig' %}
 
 {{ form_start(form, {'attr': {class: 'js-record-import-form', novalidate: 'novalidate'}}) }}
-{{ form_row(form.file, {'attr': {novalidate: 'novalidate', class: 'js-import-file-field'}}) }}
+<div class="js-import-file">
+    <label for="import_record_file" class="required">CSV File</label>
+    <div class="js-import-file-error">
+        {{ form_errors(form.file) }}
+    </div>
+    {{ form_widget(form.file, {'attr': {novalidate: 'novalidate', class: 'js-import-file-field'}}) }}
+</div>
 <br>
 <div class="js-column-mapper">
     {% for column in columns %}
