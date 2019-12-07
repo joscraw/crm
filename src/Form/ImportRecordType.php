@@ -67,11 +67,6 @@ class ImportRecordType extends AbstractType
      */
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
-        /** @var CustomObject $customObject */
-        $customObject = $options['customObject'];
-        foreach($customObject->getProperties() as $property) {
-            $name = "Josh";
-        }
         $builder->add('file', FileType::class, [
             'label' => 'CSV File',
             'required' => true,
@@ -91,10 +86,8 @@ class ImportRecordType extends AbstractType
         /** @var UploadedFile $uploadedFile */
         $uploadedFile = $event->getData();
         $columns = $this->phpSpreadsheetHelper->getColumnNames($uploadedFile);
-        $columns = $this->phpSpreadsheetHelper->formFriendly($columns);
         foreach($columns as $column) {
-            // we only allow letters, numbers, and underscores in the form field name
-            $columnFormFieldName = preg_replace('/[^a-zA-Z0-9_ ]/', '', $column);
+            $columnFormFieldName = $this->phpSpreadsheetHelper->formFriendly($column)[0];
             $builder = $form->getConfig()->getFormFactory()->createNamedBuilder(
                 $columnFormFieldName,
                 ChoiceType::class,
@@ -102,9 +95,7 @@ class ImportRecordType extends AbstractType
                [
                    'auto_initialize' => false,
                    'label' => false,
-                   'choices'  => [
-                       $column => $columnFormFieldName
-                   ],
+                   'choices'  => $this->phpSpreadsheetHelper->choicesForForm($column)
                ]
             );
             $form->add($builder->getForm());
@@ -133,7 +124,6 @@ class ImportRecordType extends AbstractType
                 'attr' => [
                     'class' => 'js-bulk-edit-update-button btn btn-primary btn-block'
                 ]
-
             ]
         );
         $form->add($builder->getForm());
@@ -141,8 +131,6 @@ class ImportRecordType extends AbstractType
 
     public function configureOptions(OptionsResolver $resolver)
     {
-        $resolver->setRequired([
-            'customObject'
-        ]);
+        $resolver->setRequired(['customObject']);
     }
 }

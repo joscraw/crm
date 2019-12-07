@@ -813,6 +813,17 @@ class RecordController extends ApiController
             ]
         );
         if ($form->isSubmitted() && !$form->isValid()) {
+            /** @var UploadedFile $file */
+            $file = $form->get('file')->getData();
+            $columns = $this->phpSpreadsheetHelper->getColumnNames($file);
+            $columns = $this->phpSpreadsheetHelper->formFriendly($columns);
+            $formMarkup = $this->renderView(
+                'Api/form/record_import_form.html.twig',
+                [
+                    'form' => $form->createView(),
+                    'columns' => $columns
+                ]
+            );
             return new JsonResponse(
                 [
                     'success' => false,
@@ -840,5 +851,16 @@ class RecordController extends ApiController
         ], Response::HTTP_OK);
 
         return $response;
+    }
+
+    /**
+     * @Route("/{internalName}/import", name="record_import", methods={"POST"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param CustomObject $customObject
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function importAction(Portal $portal, CustomObject $customObject, Request $request) {
+
     }
 }

@@ -218,15 +218,18 @@ class RecordImportForm {
         if(e.cancelable) {
             e.preventDefault();
         }
-      /*  const $selectedColumnsContainer = $(RecordImportForm._selectors.selectedColumnsContainer);
-        const formData = {};
-        formData[$(e.target).attr('name')] = $(e.target).val();
-        formData['skip_validation'] = true;*/
+        const $selectedColumnsContainer = $(RecordImportForm._selectors.selectedColumnsContainer);
+        let formData = new FormData();
+        formData.append($(e.target).attr('name'), e.target.files[0]);
+        /* const formData = {};
+         let files = e.target.files;
+         formData[$(e.target).attr('name')] = files;
+         formData['skip_validation'] = true;*/
         if(e.cancelable) {
             e.preventDefault();
         }
-        const $form = $(RecordImportForm._selectors.form);
-        let formData = new FormData($form.get(0));
+      /*  const $form = $(RecordImportForm._selectors.form);
+        let formData = new FormData($form.get(0));*/
         Pace.start();
         this._import(formData)
             .then((data) => {
@@ -235,7 +238,10 @@ class RecordImportForm {
                 /*this.globalEventDispatcher.publish(Settings.Events.BINGO_CARDS_GENERATED, data.urlToDownload);*/
             }).catch((errorData) => {
             debugger;
-            this.$wrapper.html(errorData.formMarkup);
+            $('.js-column-mapper').replaceWith(
+                // ... with the returned one from the AJAX response.
+                $(errorData.formMarkup).find('.js-column-mapper')
+            );
         });
     }
 

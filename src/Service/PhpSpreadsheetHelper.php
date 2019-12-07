@@ -57,6 +57,7 @@ class PhpSpreadsheetHelper
      * @return string|string[]|null
      */
     public function formFriendly($columns) {
+        $columns = !is_array($columns) ? [$columns] : $columns;
         $columns = preg_replace('/[^a-zA-Z0-9_ ]/', '', $columns);
         $columns = array_map('strtolower', $columns);
         $columns = array_map(
@@ -66,5 +67,18 @@ class PhpSpreadsheetHelper
             $columns
         );
         return $columns;
+    }
+
+    /**
+     * @param $columns
+     * @return string|string[]|null
+     */
+    public function choicesForForm($columns) {
+        $columns = !is_array($columns) ? [$columns] : $columns;
+        $choices = [];
+        foreach($columns as $column) {
+            $choices[$column] = $this->formFriendly($column)[0];
+        }
+        return $choices;
     }
 }

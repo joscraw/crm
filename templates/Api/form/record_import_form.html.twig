@@ -3,17 +3,22 @@
 {{ form_start(form, {'attr': {class: 'js-record-import-form', novalidate: 'novalidate'}}) }}
 {{ form_row(form.file, {'attr': {novalidate: 'novalidate', class: 'js-import-file-field'}}) }}
 <br>
-{% for column in columns %}
-    {% if (attribute(form, column) is defined) %}
-    <div class="row">
-        <div class="col-md-6">
-            {{ form_row(attribute(form, column)) }}
-        </div>
-        <div class="col-md-6">
-            {{ form_row(attribute(form, column ~ '_properties')) }}
-        </div>
-    </div>
+<div class="js-column-mapper">
+    {% for column in columns %}
+        {% if (attribute(form, column) is defined) %}
+            <div class="row">
+                <div class="col-md-6">
+                    {{ form_row(attribute(form, column)) }}
+                </div>
+                <div class="col-md-6">
+                    {{ form_row(attribute(form, column ~ '_properties')) }}
+                </div>
+            </div>
+        {% endif %}
+    {% endfor %}
+    {% if form.import is defined %}
+        {{ form_row(form.import) }}
     {% endif %}
-{% endfor %}
+</div>
 {{ form_rest(form) }}
 {{ form_end(form) }}
