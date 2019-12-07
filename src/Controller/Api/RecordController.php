@@ -13,6 +13,7 @@ use App\Entity\Role;
 use App\Form\BulkEditType;
 use App\Form\CustomObjectType;
 use App\Form\DeleteRecordType;
+use App\Form\ImportRecordType;
 use App\Form\PropertyGroupType;
 use App\Form\PropertyType;
 use App\Form\RecordType;
@@ -25,12 +26,14 @@ use App\Repository\PropertyGroupRepository;
 use App\Repository\PropertyRepository;
 use App\Repository\RecordRepository;
 use App\Service\MessageGenerator;
+use App\Service\PhpSpreadsheetHelper;
 use App\Service\WorkflowProcessor;
 use App\Utils\ArrayHelper;
 use App\Utils\MultiDimensionalArrayExtractor;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Messenger\MessageBusInterface;
@@ -109,6 +112,11 @@ class RecordController extends ApiController
     private $bus;
 
     /**
+     * @var PhpSpreadsheetHelper;
+     */
+    private $phpSpreadsheetHelper;
+
+    /**
      * RecordController constructor.
      * @param EntityManagerInterface $entityManager
      * @param CustomObjectRepository $customObjectRepository
@@ -120,6 +128,7 @@ class RecordController extends ApiController
      * @param FilterRepository $filterRepository
      * @param WorkflowProcessor $workflowProcessor
      * @param MessageBusInterface $bus
+     * @param PhpSpreadsheetHelper $phpSpreadsheetHelper
      */
     public function __construct(
         EntityManagerInterface $entityManager,
@@ -131,7 +140,8 @@ class RecordController extends ApiController
         PermissionAuthorizationHandler $permissionAuthorizationHandler,
         FilterRepository $filterRepository,
         WorkflowProcessor $workflowProcessor,
-        MessageBusInterface $bus
+        MessageBusInterface $bus,
+        PhpSpreadsheetHelper $phpSpreadsheetHelper
     ) {
         $this->entityManager = $entityManager;
         $this->customObjectRepository = $customObjectRepository;
@@ -143,8 +153,8 @@ class RecordController extends ApiController
         $this->filterRepository = $filterRepository;
         $this->workflowProcessor = $workflowProcessor;
         $this->bus = $bus;
+        $this->phpSpreadsheetHelper = $phpSpreadsheetHelper;
     }
-
 
     /**
      * @Route("/{internalName}/create-form", name="create_record_form", methods={"GET"}, options = { "expose" = true })
@@ -781,5 +791,54 @@ class RecordController extends ApiController
             Response::HTTP_OK
         );
 
+    }
+
+    /**
+     * @Route("/{internalName}/import-form", name="record_import_form", methods={"GET", "POST"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param CustomObject $customObject
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function importFormAction(Portal $portal, CustomObject $customObject, Request $request) {
+        $form = $this->createForm(ImportRecordType::class, null, [
+            'customObject' => $customObject
+        ]);
+        $form->handleRequest($request);
+        $formMarkup = $this->renderView(
+            'Api/form/record_import_form.html.twig',
+            [
+                'form' => $form->createView(),
+                'columns' => []
+            ]
+        );
+        if ($form->isSubmitted() && !$form->isValid()) {
+            return new JsonResponse(
+                [
+                    'success' => false,
+                    'formMarkup' => $formMarkup,
+                ], Response::HTTP_BAD_REQUEST
+            );
+        }
+
+        if($form->isSubmitted() && $form->isValid()) {
+            /** @var UploadedFile $file */
+            $file = $form->get('file')->getData();
+            $columns = $this->phpSpreadsheetHelper->getColumnNames($file);
+            $columns = $this->phpSpreadsheetHelper->formFriendly($columns);
+            $formMarkup = $this->renderView(
+                'Api/form/record_import_form.html.twig',
+                [
+                    'form' => $form->createView(),
+                    'columns' => $columns
+                ]
+            );
+        }
+        $response = new JsonResponse([
+            'success' => true,
+            'formMarkup' => $formMarkup,
+        ], Response::HTTP_OK);
+
+        return $response;
     }
 }

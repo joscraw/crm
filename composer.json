@@ -11,6 +11,7 @@
         "friendsofsymfony/jsrouting-bundle": "^2.2",
         "lexik/form-filter-bundle": "^5.0",
         "nscs/nscs-bundle": "*@dev",
+        "phpoffice/phpspreadsheet": "^1.10",
         "rollerworks/password-strength-bundle": "^2.0",
         "scienta/doctrine-json-functions": "^4.0",
         "sensio/framework-extra-bundle": "^5.2",

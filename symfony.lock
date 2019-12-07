@@ -143,6 +143,12 @@
     "lexik/form-filter-bundle": {
         "version": "v5.0.7"
     },
+    "markbaker/complex": {
+        "version": "1.4.7"
+    },
+    "markbaker/matrix": {
+        "version": "1.2.0"
+    },
     "monolog/monolog": {
         "version": "1.24.0"
     },
@@ -163,6 +169,9 @@
     },
     "phpdocumentor/type-resolver": {
         "version": "0.4.0"
+    },
+    "phpoffice/phpspreadsheet": {
+        "version": "1.10.1"
     },
     "psr/cache": {
         "version": "1.0.1"

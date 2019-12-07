@@ -3,6 +3,7 @@
 import Settings from '../Settings';
 import RecordFormModal from './RecordFormModal';
 import EditColumnsButton from "./EditColumnsButton";
+import RecordImportButton from "./RecordImportButton";
 
 class Dropdown {
 
@@ -19,6 +20,7 @@ class Dropdown {
     render() {
         this.$wrapper.html(Dropdown.markup(this));
         new EditColumnsButton(this.$wrapper.find('.js-edit-columns'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);
+        new RecordImportButton(this.$wrapper.find('.js-import'), this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName);
 
     }
 
@@ -31,6 +33,7 @@ class Dropdown {
           </button>
           <div class="dropdown-menu" aria-labelledby="dropdownMenu2">
                <div class="js-edit-columns"></div>
+               <div class="js-import"></div>
           </div>
       </div>
     `;

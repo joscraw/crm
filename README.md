@@ -13,3 +13,7 @@
     
     Disable amqp rabbit mq on the app as the prod server does not have rabbit mq instlled and is
     causing errors. 
+    
+    when deploying look at the PHPinfo for your local. You 
+    will need to copy that on staging/production. for example
+    you will need to install GD and amqp
