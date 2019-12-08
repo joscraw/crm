@@ -36,6 +36,7 @@ use App\Utils\MultiDimensionalArrayExtractor;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -867,6 +868,25 @@ class RecordController extends ApiController
                 'columns' => []
             ]
         );
+        if($form->isSubmitted()) {
+            $importData = $form->getData();
+            // We don't need to pass the file object into the message
+            unset($importData['file']);
+            $duplicates = $this->arrayNotUnique($importData);
+            foreach($duplicates as $duplicate) {
+                if($duplicate !== 'unmapped') {
+                    $form->addError(new FormError('You can\'t map more than one column to the same property!'));
+                }
+                break;
+            }
+            $formMarkup = $this->renderView(
+                'Api/form/record_import_form.html.twig',
+                [
+                    'form' => $form->createView(),
+                    'columns' => []
+                ]
+            );
+        }
         if($form->isSubmitted() && $form->isValid()) {
             $importData = $form->getData();
             /** @var UploadedFile $file */

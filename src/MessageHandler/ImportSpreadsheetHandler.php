@@ -101,7 +101,10 @@ class ImportSpreadsheetHandler implements MessageHandlerInterface, LoggerAwareIn
         }
         $path = $this->uploadsPath.'/'.$spreadsheet->getPath();
         $file = new File($path);
-        $rows = $this->phpSpreadsheetHelper->getAllRows($file);
+        // if the service can't load the rows just return
+        if(!$rows = $this->phpSpreadsheetHelper->getAllRows($file)) {
+            return;
+        }
         $importData = $message->getImportData();
         // The first row is the columns. So let's go ahead and remove those
         $columns = array_shift($rows);
@@ -111,7 +114,13 @@ class ImportSpreadsheetHandler implements MessageHandlerInterface, LoggerAwareIn
             foreach($row as $index => $column) {
                 $formFriendlyName = $this->phpSpreadsheetHelper->formFriendly($columns[$index])[0];
                 $internalName = $importData[$formFriendlyName . '_properties'];
-                $properties[$internalName] = $column;
+                // if the user chose unmapped for one of the columns
+                // go ahead and use the form friendly column name from the csv
+                if($internalName === 'unmapped') {
+                    $properties[$formFriendlyName] = $column;
+                } else {
+                    $properties[$internalName] = $column;
+                }
             }
             $record->setProperties($properties);
             $record->setCustomObject($spreadsheet->getCustomObject());

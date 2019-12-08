@@ -87,8 +87,11 @@ class RecordImportForm {
                 AjaxLoader.kill(this.$wrapper);
                 swal("Whoop whoop!", `Spreadsheet successfully queued for import!`, "success");
             }).catch((errorData) => {
+                debugger;
             AjaxLoader.kill(this.$wrapper);
-            swal("Oh no!", `Error adding spreadsheet to queue for import. Contact customer support.`, "warning");
+            $('.js-import-file-generic-errors').replaceWith(
+                $(errorData.formMarkup).find('.js-import-file-generic-errors')
+            );
         });
     }
 

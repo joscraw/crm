@@ -106,6 +106,7 @@ class ImportRecordType extends AbstractType
             );
             $form->add($builder->getForm());
             $properties = [];
+            $properties['Unmapped'] = 'unmapped';
             foreach($customObject->getProperties() as $property) {
                 $properties[$property->getLabel()] = $property->getInternalName();
             }
@@ -116,7 +117,8 @@ class ImportRecordType extends AbstractType
                 [
                     'auto_initialize' => false,
                     'label' => false,
-                    'choices'  => $properties
+                    'choices'  => $properties,
+                    'data' => 'unmapped'
                 ]
             );
             $form->add($builder->getForm());

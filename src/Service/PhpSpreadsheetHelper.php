@@ -123,7 +123,7 @@ class PhpSpreadsheetHelper
         $columns = !is_array($columns) ? [$columns] : $columns;
         $choices = [];
         foreach($columns as $column) {
-            $choices[$this->formFriendly($column)[0]] = $column;
+            $choices[$column] = $this->formFriendly($column)[0];
         }
         return $choices;
     }
