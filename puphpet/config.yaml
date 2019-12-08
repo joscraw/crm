@@ -239,6 +239,7 @@ php:
             - soap
             - zip
             - amqp
+            - gd
         pear: {  }
         pecl: {  }
     ini:

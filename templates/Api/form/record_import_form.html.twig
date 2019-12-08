@@ -1,0 +1,51 @@
+{% form_theme form 'bootstrap_4_layout.html.twig' %}
+
+{{ form_start(form, {'attr': {class: 'js-record-import-form', novalidate: 'novalidate'}}) }}
+<div class="js-import-file-generic-errors">
+    {{ form_errors(form) }}
+</div>
+<div class="js-import-file">
+    <label for="import_record_file" class="required">CSV File</label>
+    <div class="js-import-file-error">
+        {{ form_errors(form.file) }}
+    </div>
+    {{ form_widget(form.file, {'attr': {novalidate: 'novalidate', class: 'js-import-file-field'}}) }}
+</div>
+<br>
+<div class="js-column-mapper">
+    {% if columns is not empty %}
+        <small style="font-weight: bold">Here's a fun fact for you!</small>
+        <br>
+        <small>
+            Choosing "Unmapped" will use the exact same name as the column from your spreadsheet! We have to spice it up a little bit though!
+            We remove all special characters (except underscores), convert to lowercase,
+            and replace all spaces with underscores. Example: "NC FIRST NAME" will be mapped in as "nc_first_name".
+        </small>
+        <br>
+        <small style="font-weight: bold">Okay, so what does that mean for you?</small>
+        <br>
+        <small>
+            This means that even if you haven't created a property that matches one of your column names,
+            you can always create one later. Even after you've done the import!
+        </small>
+        <br>
+        <br>
+    {% endif %}
+    {% for column in columns %}
+        {% if (attribute(form, column) is defined) %}
+            <div class="row">
+                <div class="col-md-6">
+                    {{ form_row(attribute(form, column)) }}
+                </div>
+                <div class="col-md-6">
+                    {{ form_row(attribute(form, column ~ '_properties')) }}
+                </div>
+            </div>
+        {% endif %}
+    {% endfor %}
+    {% if form.import is defined %}
+        {{ form_row(form.import) }}
+    {% endif %}
+</div>
+{{ form_rest(form) }}
+{{ form_end(form) }}

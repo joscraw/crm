@@ -3,6 +3,8 @@
 import Routing from '../Routing';
 import Settings from '../Settings';
 import $ from "jquery";
+import DeleteReportButton from "./DeleteReportButton";
+import DeleteRecordButton from "./DeleteRecordButton";
 
 require( 'datatables.net-bs4' );
 require( 'datatables.net-responsive-bs4' );
@@ -33,6 +35,11 @@ class RecordTable {
 
         this.globalEventDispatcher.subscribe(
             Settings.Events.RECORD_CREATED,
+            this.reloadTable.bind(this)
+        );
+
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.RECORD_DELETED,
             this.reloadTable.bind(this)
         );
 
@@ -71,7 +78,7 @@ class RecordTable {
 
                 return `
                         ${data} <span class="c-table__edit-button"><a href="${url}" role="button" class="btn btn-primary btn-sm">Edit</a></span>
-                        <span class="js-delete-property c-table__delete-button" data-record-id="${row['id']}"></span>
+                        <span class="js-delete-record c-table__delete-button" data-record-id="${row['id']}"></span>
                          `;
 
             };
@@ -118,7 +125,18 @@ class RecordTable {
                 type: "POST",
                 data: {'customFilters': this.customFilters}
             },
-            "initComplete": function () {}
+            "initComplete": function () {},
+            "drawCallback": (settings)  => {
+
+                this.addDeleteReportButton();
+            },
+        });
+    }
+
+    addDeleteReportButton() {
+        debugger;
+        this.$wrapper.find('.js-delete-record').each((index, element) => {
+            new DeleteRecordButton($(element), this.globalEventDispatcher, this.portalInternalIdentifier, $(element).data('recordId'), "Delete");
         });
     }
 

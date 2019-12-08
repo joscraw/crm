@@ -95,26 +95,8 @@ class RecordController extends AbstractController
      * @return \Symfony\Component\HttpFoundation\Response
      */
     public function listAction(Portal $portal, CustomObject $customObject) {
-
         $records = $this->recordRepository->findAll();
-
         return $this->render('record/list.html.twig', array(
-            'portal' => $portal,
-            'customObject' => $customObject,
-        ));
-    }
-
-    /**
-     * @Route("/{internalName}/properties", name="record_properties", methods={"GET"}, options = { "expose" = true })
-     * @param Portal $portal
-     * @param CustomObject $customObject
-     * @return \Symfony\Component\HttpFoundation\Response
-     */
-    public function managePropertiesAction(Portal $portal, CustomObject $customObject) {
-
-        return new Response("record list view");
-
-        return $this->render('propertySettings/index.html.twig', array(
             'portal' => $portal,
             'customObject' => $customObject,
         ));

@@ -2,25 +2,25 @@
 
 namespace App\Repository;
 
-use App\Entity\SetPropertyValueAction;
+use App\Entity\Spreadsheet;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Common\Persistence\ManagerRegistry;
 
 /**
- * @method SetPropertyValueAction|null find($id, $lockMode = null, $lockVersion = null)
- * @method SetPropertyValueAction|null findOneBy(array $criteria, array $orderBy = null)
- * @method SetPropertyValueAction[]    findAll()
- * @method SetPropertyValueAction[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method Spreadsheet|null find($id, $lockMode = null, $lockVersion = null)
+ * @method Spreadsheet|null findOneBy(array $criteria, array $orderBy = null)
+ * @method Spreadsheet[]    findAll()
+ * @method Spreadsheet[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class SetPropertyValueActionRepository extends ServiceEntityRepository
+class SpreadsheetRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, SetPropertyValueAction::class);
+        parent::__construct($registry, Spreadsheet::class);
     }
 
     // /**
-    //  * @return SetPropertyValueAction[] Returns an array of SetPropertyValueAction objects
+    //  * @return Spreadsheet[] Returns an array of Spreadsheet objects
     //  */
     /*
     public function findByExampleField($value)
@@ -37,7 +37,7 @@ class SetPropertyValueActionRepository extends ServiceEntityRepository
     */
 
     /*
-    public function findOneBySomeField($value): ?SetPropertyValueAction
+    public function findOneBySomeField($value): ?Spreadsheet
     {
         return $this->createQueryBuilder('s')
             ->andWhere('s.exampleField = :val')

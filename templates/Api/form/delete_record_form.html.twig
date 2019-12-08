@@ -1,0 +1,8 @@
+{% form_theme form 'bootstrap_4_layout.html.twig' %}
+
+{{ form_start(form, {'attr': {class: 'js-delete-record-form', novalidate: 'novalidate'}}) }}
+{{ form_errors(form) }}
+<small class="form-text text-muted">Deleting a record is irreversible and can't be undone! Are you sure you want to do this?</small>
+<br>
+{{ form_rest(form) }}
+{{ form_end(form) }}

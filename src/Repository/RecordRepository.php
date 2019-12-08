@@ -13,7 +13,7 @@ use App\Model\NumberField;
 use App\Utils\ArrayHelper;
 use App\Utils\RandomStringGenerator;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Symfony\Bridge\Doctrine\RegistryInterface;
+use Doctrine\Common\Persistence\ManagerRegistry;
 
 /**
  * @method Record|null find($id, $lockMode = null, $lockVersion = null)
@@ -37,7 +37,7 @@ class RecordRepository extends ServiceEntityRepository
      */
     private $propertyRepository;
 
-    public function __construct(RegistryInterface $registry, PropertyRepository $propertyRepository)
+    public function __construct(ManagerRegistry $registry, PropertyRepository $propertyRepository)
     {
         $this->propertyRepository = $propertyRepository;
         parent::__construct($registry, Record::class);

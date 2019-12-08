@@ -9,12 +9,17 @@ use App\Entity\Portal;
 use App\Entity\Property;
 use App\Entity\PropertyGroup;
 use App\Entity\Record;
+use App\Entity\Role;
+use App\Entity\Spreadsheet;
 use App\Form\BulkEditType;
 use App\Form\CustomObjectType;
+use App\Form\DeleteRecordType;
+use App\Form\ImportRecordType;
 use App\Form\PropertyGroupType;
 use App\Form\PropertyType;
 use App\Form\RecordType;
 use App\Form\SaveFilterType;
+use App\Message\ImportSpreadsheet;
 use App\Message\WorkflowMessage;
 use App\Model\FieldCatalog;
 use App\Repository\CustomObjectRepository;
@@ -23,12 +28,16 @@ use App\Repository\PropertyGroupRepository;
 use App\Repository\PropertyRepository;
 use App\Repository\RecordRepository;
 use App\Service\MessageGenerator;
+use App\Service\PhpSpreadsheetHelper;
+use App\Service\UploaderHelper;
 use App\Service\WorkflowProcessor;
 use App\Utils\ArrayHelper;
 use App\Utils\MultiDimensionalArrayExtractor;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\FormError;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Messenger\MessageBusInterface;
@@ -107,6 +116,16 @@ class RecordController extends ApiController
     private $bus;
 
     /**
+     * @var PhpSpreadsheetHelper;
+     */
+    private $phpSpreadsheetHelper;
+
+    /**
+     * @var UploaderHelper
+     */
+    private $uploadHelper;
+
+    /**
      * RecordController constructor.
      * @param EntityManagerInterface $entityManager
      * @param CustomObjectRepository $customObjectRepository
@@ -118,6 +137,8 @@ class RecordController extends ApiController
      * @param FilterRepository $filterRepository
      * @param WorkflowProcessor $workflowProcessor
      * @param MessageBusInterface $bus
+     * @param PhpSpreadsheetHelper $phpSpreadsheetHelper
+     * @param UploaderHelper $uploadHelper
      */
     public function __construct(
         EntityManagerInterface $entityManager,
@@ -129,7 +150,9 @@ class RecordController extends ApiController
         PermissionAuthorizationHandler $permissionAuthorizationHandler,
         FilterRepository $filterRepository,
         WorkflowProcessor $workflowProcessor,
-        MessageBusInterface $bus
+        MessageBusInterface $bus,
+        PhpSpreadsheetHelper $phpSpreadsheetHelper,
+        UploaderHelper $uploadHelper
     ) {
         $this->entityManager = $entityManager;
         $this->customObjectRepository = $customObjectRepository;
@@ -141,8 +164,9 @@ class RecordController extends ApiController
         $this->filterRepository = $filterRepository;
         $this->workflowProcessor = $workflowProcessor;
         $this->bus = $bus;
+        $this->phpSpreadsheetHelper = $phpSpreadsheetHelper;
+        $this->uploadHelper = $uploadHelper;
     }
-
 
     /**
      * @Route("/{internalName}/create-form", name="create_record_form", methods={"GET"}, options = { "expose" = true })
@@ -689,6 +713,76 @@ class RecordController extends ApiController
     }
 
     /**
+     * @Route("/{recordId}/delete-form", name="delete_record_form", methods={"GET"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param Record $record
+     * @return JsonResponse
+     */
+    public function getDeleteRecordFormAction(Portal $portal, Record $record) {
+
+        $form = $this->createForm(DeleteRecordType::class, $record);
+
+        $formMarkup = $this->renderView(
+            'Api/form/delete_record_form.html.twig',
+            [
+                'form' => $form->createView(),
+            ]
+        );
+
+        return new JsonResponse(
+            [
+                'success' => true,
+                'formMarkup' => $formMarkup
+            ],
+            Response::HTTP_OK
+        );
+    }
+
+    /**
+     * @Route("/{recordId}/delete", name="delete_record", methods={"POST"}, options={"expose" = true})
+     * @param Portal $portal
+     * @param Record $record
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function deleteRecordAction(Portal $portal, Record $record, Request $request)
+    {
+
+        $form = $this->createForm(DeleteRecordType::class, $record);
+
+        $form->handleRequest($request);
+
+        if (!$form->isValid()) {
+            $formMarkup = $this->renderView(
+                'Api/form/delete_record_form.html.twig',
+                [
+                    'form' => $form->createView(),
+                ]
+            );
+            return new JsonResponse(
+                [
+                    'success' => false,
+                    'formMarkup' => $formMarkup,
+                ], Response::HTTP_BAD_REQUEST
+            );
+        }
+
+        // delete report here
+        /** @var Record $record */
+        $record = $form->getData();
+        $this->entityManager->remove($record);
+        $this->entityManager->flush();
+
+        return new JsonResponse(
+            [
+                'success' => true,
+            ],
+            Response::HTTP_OK
+        );
+
+    }
+
+    /**
      * @Route("/{internalName}/{filterId}/remove-filter", name="remove_filter", methods={"POST"}, options={"expose" = true})
      * @param Portal $portal
      * @param CustomObject $customObject
@@ -709,5 +803,116 @@ class RecordController extends ApiController
             Response::HTTP_OK
         );
 
+    }
+
+    /**
+     * @Route("/{internalName}/import-form", name="record_import_form", methods={"GET", "POST"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param CustomObject $customObject
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function importFormAction(Portal $portal, CustomObject $customObject, Request $request) {
+        $form = $this->createForm(ImportRecordType::class, null, [
+            'customObject' => $customObject
+        ]);
+        $form->handleRequest($request);
+        $formMarkup = $this->renderView(
+            'Api/form/record_import_form.html.twig',
+            [
+                'form' => $form->createView(),
+                'columns' => []
+            ]
+        );
+        if ($form->isSubmitted() && $form->isValid()) {
+            /** @var UploadedFile $file */
+            $file = $form->get('file')->getData();
+            $columns = $this->phpSpreadsheetHelper->getColumnNames($file);
+            $columns = $this->phpSpreadsheetHelper->formFriendly($columns);
+            $formMarkup = $this->renderView(
+                'Api/form/record_import_form.html.twig',
+                [
+                    'form' => $form->createView(),
+                    'columns' => $columns
+                ]
+            );
+        } elseif ($form->isSubmitted() && !$form->isValid()) {
+            return new JsonResponse([
+                'success' => true,
+                'formMarkup' => $formMarkup,
+            ], Response::HTTP_BAD_REQUEST);
+        }
+        return new JsonResponse([
+            'success' => true,
+            'formMarkup' => $formMarkup,
+        ], Response::HTTP_OK);
+    }
+
+    /**
+     * @Route("/{internalName}/import", name="record_import", methods={"POST"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param CustomObject $customObject
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function importAction(Portal $portal, CustomObject $customObject, Request $request) {
+        $user = $this->getUser();
+        $form = $this->createForm(ImportRecordType::class, null, [
+            'customObject' => $customObject
+        ]);
+        $form->handleRequest($request);
+        $formMarkup = $this->renderView(
+            'Api/form/record_import_form.html.twig',
+            [
+                'form' => $form->createView(),
+                'columns' => []
+            ]
+        );
+        if($form->isSubmitted()) {
+            $importData = $form->getData();
+            // We don't need to pass the file object into the message
+            unset($importData['file']);
+            $duplicates = $this->arrayNotUnique($importData);
+            foreach($duplicates as $duplicate) {
+                if($duplicate !== 'unmapped') {
+                    $form->addError(new FormError('You can\'t map more than one column to the same property!'));
+                }
+                break;
+            }
+            $formMarkup = $this->renderView(
+                'Api/form/record_import_form.html.twig',
+                [
+                    'form' => $form->createView(),
+                    'columns' => []
+                ]
+            );
+        }
+        if($form->isSubmitted() && $form->isValid()) {
+            $importData = $form->getData();
+            /** @var UploadedFile $file */
+            $file = $form->get('file')->getData();
+            $mimeType = $file->getMimeType();
+            $newFilename = $this->uploadHelper->upload($file, UploaderHelper::SPREADSHEET);
+            $spreadsheet = new Spreadsheet();
+            $spreadsheet->setCustomObject($customObject);
+            $spreadsheet->setOriginalName($file->getClientOriginalName() ?? $newFilename);
+            $spreadsheet->setMimeType($mimeType ?? 'application/octet-stream');
+            $spreadsheet->setFileName($newFilename);
+            $this->entityManager->persist($spreadsheet);
+            $this->entityManager->flush();
+            // We don't need to pass the file object into the message
+            unset($importData['file']);
+            $this->bus->dispatch(new ImportSpreadsheet($spreadsheet->getId(), $importData));
+            return new JsonResponse([
+                'success' => true,
+                'formMarkup' => $formMarkup,
+            ], Response::HTTP_OK);
+        }
+        return new JsonResponse(
+            [
+                'success' => false,
+                'formMarkup' => $formMarkup,
+            ], Response::HTTP_BAD_REQUEST
+        );
     }
 }
