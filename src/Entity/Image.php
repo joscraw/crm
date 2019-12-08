@@ -29,6 +29,11 @@ class Image
     protected $id;
 
     /**
+     * @var UploadedFile
+     */
+    protected $file;
+
+    /**
      * @Groups({"COMPANY_RESOURCE"})
      * @ORM\Column(type="string", length=255)
      */
@@ -106,5 +111,21 @@ class Image
     public function setMimeType($mimeType): void
     {
         $this->mimeType = $mimeType;
+    }
+
+    /**
+     * @return UploadedFile
+     */
+    public function getFile(): UploadedFile
+    {
+        return $this->file;
+    }
+
+    /**
+     * @param UploadedFile $file
+     */
+    public function setFile(UploadedFile $file): void
+    {
+        $this->file = $file;
     }
 }

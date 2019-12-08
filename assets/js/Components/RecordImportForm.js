@@ -76,7 +76,7 @@ class RecordImportForm {
      * @param e
      */
     handleFormSubmit(e) {
-        debugger;
+        AjaxLoader.start(this.$wrapper);
         if(e.cancelable) {
             e.preventDefault();
         }
@@ -84,11 +84,11 @@ class RecordImportForm {
         let formData = new FormData($form.get(0));
         this._import(formData)
             .then((data) => {
-                debugger;
-                swal("Whoop whoop!", `Columns successfully updated!`, "success");
-                this.globalEventDispatcher.publish(Settings.Events.COLUMNS_UPDATED);
+                AjaxLoader.kill(this.$wrapper);
+                swal("Whoop whoop!", `Spreadsheet successfully queued for import!`, "success");
             }).catch((errorData) => {
-                debugger;
+            AjaxLoader.kill(this.$wrapper);
+            swal("Oh no!", `Error adding spreadsheet to queue for import. Contact customer support.`, "warning");
         });
     }
 

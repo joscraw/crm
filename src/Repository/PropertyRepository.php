@@ -8,7 +8,7 @@ use App\Entity\Property;
 use App\Entity\PropertyGroup;
 use App\Model\FieldCatalog;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Symfony\Bridge\Doctrine\RegistryInterface;
+use Doctrine\Common\Persistence\ManagerRegistry;
 
 /**
  * @method Property|null find($id, $lockMode = null, $lockVersion = null)
@@ -18,7 +18,7 @@ use Symfony\Bridge\Doctrine\RegistryInterface;
  */
 class PropertyRepository extends ServiceEntityRepository
 {
-    public function __construct(RegistryInterface $registry)
+    public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Property::class);
     }

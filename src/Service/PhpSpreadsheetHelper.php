@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 class PhpSpreadsheetHelper
@@ -55,12 +56,12 @@ class PhpSpreadsheetHelper
 
     /**
      * Return all the spreadsheet rows
-     * @param UploadedFile $uploadedFile
+     * @param File $uploadedFile
      * @return array|bool
      */
-    public function getAllRows(UploadedFile $uploadedFile) {
-        $tempPathName = $uploadedFile->getRealPath();
-        $fileExtension = $uploadedFile->getClientOriginalExtension();
+    public function getAllRows(File $uploadedFile) {
+        $fileExtension = $uploadedFile->guessExtension();
+        $path = $uploadedFile->getRealPath();
         $error = false;
         $reader = false;
         $spreadsheet = false;
@@ -78,7 +79,7 @@ class PhpSpreadsheetHelper
         }
         if($reader) {
             try {
-                $spreadsheet = $reader->load($tempPathName);
+                $spreadsheet = $reader->load($path);
             } catch(\PhpOffice\PhpSpreadsheet\Reader\Exception $exception) {
                 $error = 'Error reading in file: ' . $exception->getMessage();
             }

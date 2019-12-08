@@ -10,6 +10,7 @@ use App\Entity\Property;
 use App\Entity\PropertyGroup;
 use App\Entity\Record;
 use App\Entity\Role;
+use App\Entity\Spreadsheet;
 use App\Form\BulkEditType;
 use App\Form\CustomObjectType;
 use App\Form\DeleteRecordType;
@@ -18,6 +19,7 @@ use App\Form\PropertyGroupType;
 use App\Form\PropertyType;
 use App\Form\RecordType;
 use App\Form\SaveFilterType;
+use App\Message\ImportSpreadsheet;
 use App\Message\WorkflowMessage;
 use App\Model\FieldCatalog;
 use App\Repository\CustomObjectRepository;
@@ -27,6 +29,7 @@ use App\Repository\PropertyRepository;
 use App\Repository\RecordRepository;
 use App\Service\MessageGenerator;
 use App\Service\PhpSpreadsheetHelper;
+use App\Service\UploaderHelper;
 use App\Service\WorkflowProcessor;
 use App\Utils\ArrayHelper;
 use App\Utils\MultiDimensionalArrayExtractor;
@@ -117,6 +120,11 @@ class RecordController extends ApiController
     private $phpSpreadsheetHelper;
 
     /**
+     * @var UploaderHelper
+     */
+    private $uploadHelper;
+
+    /**
      * RecordController constructor.
      * @param EntityManagerInterface $entityManager
      * @param CustomObjectRepository $customObjectRepository
@@ -129,6 +137,7 @@ class RecordController extends ApiController
      * @param WorkflowProcessor $workflowProcessor
      * @param MessageBusInterface $bus
      * @param PhpSpreadsheetHelper $phpSpreadsheetHelper
+     * @param UploaderHelper $uploadHelper
      */
     public function __construct(
         EntityManagerInterface $entityManager,
@@ -141,7 +150,8 @@ class RecordController extends ApiController
         FilterRepository $filterRepository,
         WorkflowProcessor $workflowProcessor,
         MessageBusInterface $bus,
-        PhpSpreadsheetHelper $phpSpreadsheetHelper
+        PhpSpreadsheetHelper $phpSpreadsheetHelper,
+        UploaderHelper $uploadHelper
     ) {
         $this->entityManager = $entityManager;
         $this->customObjectRepository = $customObjectRepository;
@@ -154,6 +164,7 @@ class RecordController extends ApiController
         $this->workflowProcessor = $workflowProcessor;
         $this->bus = $bus;
         $this->phpSpreadsheetHelper = $phpSpreadsheetHelper;
+        $this->uploadHelper = $uploadHelper;
     }
 
     /**
@@ -860,9 +871,18 @@ class RecordController extends ApiController
             $importData = $form->getData();
             /** @var UploadedFile $file */
             $file = $form->get('file')->getData();
-            $rows = $this->phpSpreadsheetHelper->getAllRows($file);
-            $name = "Josh";
-            // let's go ahead and store the file and pass this off to a job to take care of
+            $mimeType = $file->getMimeType();
+            $newFilename = $this->uploadHelper->upload($file, UploaderHelper::SPREADSHEET);
+            $spreadsheet = new Spreadsheet();
+            $spreadsheet->setCustomObject($customObject);
+            $spreadsheet->setOriginalName($file->getClientOriginalName() ?? $newFilename);
+            $spreadsheet->setMimeType($mimeType ?? 'application/octet-stream');
+            $spreadsheet->setFileName($newFilename);
+            $this->entityManager->persist($spreadsheet);
+            $this->entityManager->flush();
+            // We don't need to pass the file object into the message
+            unset($importData['file']);
+            $this->bus->dispatch(new ImportSpreadsheet($spreadsheet->getId(), $importData));
             return new JsonResponse([
                 'success' => true,
                 'formMarkup' => $formMarkup,

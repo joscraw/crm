@@ -17,3 +17,8 @@
     when deploying look at the PHPinfo for your local. You 
     will need to copy that on staging/production. for example
     you will need to install GD and amqp
+    
+    
+    SETTING UP THE QUEUE(TRANSPORT) SYSTEM
+    
+    ./bin/console messenger:consume 
