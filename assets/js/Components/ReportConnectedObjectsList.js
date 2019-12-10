@@ -15,7 +15,6 @@ import FilterHelper from "../FilterHelper";
 class ReportConnectedObjectsList {
 
     constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, data = {}) {
-        debugger;
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
@@ -73,7 +72,6 @@ class ReportConnectedObjectsList {
     }
 
     refreshConnectedObjects(data = {}) {
-        debugger;
         this.$wrapper.find(ReportConnectedObjectsList._selectors.connectedObjects).html("");
         if(!_.has(data, 'joins') || _.isEmpty(data.joins) || Object.keys(data.joins).length === 1) {
             this.$wrapper.find(ReportConnectedObjectsList._selectors.noConnectionsExistMessage).show();
@@ -86,7 +84,6 @@ class ReportConnectedObjectsList {
             if(join.hasParentConnection || !_.has(join, 'connected_property') || !_.has(join, 'join_type')) {
                 continue;
             }
-            debugger;
             let connectedObject = join.connected_object,
                 connectedProperty = join.connected_property,
                 joinType = join.join_type,
@@ -96,7 +93,6 @@ class ReportConnectedObjectsList {
             const $listTemplate = $($.parseHTML(html));
             this.$wrapper.find(ReportConnectedObjectsList._selectors.connectedObjects).append($listTemplate);
             // render any child connections here
-            debugger;
             if(_.has(join, 'childConnections') && !_.isEmpty(join.childConnections)) {
                 debugger;
                 let childConnections = _.get(join, 'childConnections');
@@ -126,7 +122,6 @@ class ReportConnectedObjectsList {
     }
 
     handleConnectionRemoveItemButtonClick(e) {
-        debugger;
         if(e.cancelable) {
             e.preventDefault();
         }

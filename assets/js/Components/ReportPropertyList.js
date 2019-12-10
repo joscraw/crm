@@ -21,12 +21,6 @@ class ReportPropertyList {
         this.customObjectInternalName = data.selectedCustomObject.internalName;
         this.lists = [];
         this.data = data;
-        // setup the default connection for pulling in properties if no connections exist yet
-        // usually this is only when initially coming to the view
-        if(_.isEmpty(this.data.joins)) {
-            let uID = StringHelper.makeCharId();
-            _.set(this.data.joins, uID, {connected_object: data.selectedCustomObject});
-        }
         this.unbindEvents();
         this.bindEvents();
         this.globalEventDispatcher.subscribe(
@@ -120,7 +114,6 @@ class ReportPropertyList {
     }*/
 
     handleKeyupEvent(e) {
-        debugger;
         if(e.cancelable) {
             e.preventDefault();
         }
@@ -133,7 +126,6 @@ class ReportPropertyList {
      * @param searchValue
      */
     applySearch(searchValue) {
-        debugger;
         for(let i = 0; i < this.lists.length; i++) {
             this.lists[i].search(searchValue);
         }
@@ -172,7 +164,6 @@ class ReportPropertyList {
     }
 
     loadPropertiesForAllObjects(data) {
-        debugger;
         return new Promise((resolve, reject) => {
             const url = Routing.generate('get_properties_from_multiple_objects', {
                 internalIdentifier: this.portalInternalIdentifier,
@@ -195,7 +186,6 @@ class ReportPropertyList {
     }
 
     handlePropertyListItemClicked(e) {
-        debugger;
         if(e.cancelable) {
             e.preventDefault();
         }
@@ -214,7 +204,6 @@ class ReportPropertyList {
     }
 
     handlePropertyRemoveItemClicked(e) {
-        debugger;
         if(e.cancelable) {
             e.preventDefault();
         }
@@ -234,7 +223,6 @@ class ReportPropertyList {
     }
 
     handleFilterListItemClicked(e) {
-        debugger;
         if(e.cancelable) {
             e.preventDefault();
         }
@@ -246,7 +234,6 @@ class ReportPropertyList {
         let property = properties.filter(property => {
             return parseInt(property.id) === parseInt(propertyId);
         });
-        debugger;
         new ReportAddFilterFormModal(this.globalEventDispatcher, this.portalInternalIdentifier, this.customObjectInternalName, property[0]);
     }
 
@@ -269,7 +256,6 @@ class ReportPropertyList {
      * @private
      */
     _addList(propertyGroup, properties) {
-        debugger;
         let $propertyList = this.$wrapper.find(ReportPropertyList._selectors.propertyList);
         const html = listTemplate(propertyGroup);
         const $list = $($.parseHTML(html));

@@ -225,10 +225,15 @@ class RecordRepository extends ServiceEntityRepository
      * @param $data
      * @param CustomObject $customObject
      * @param bool $mysqlOnly
+     * @param bool $start
+     * @param bool $length
+     * @param bool $search
+     * @param bool $orders
+     * @param bool $columns
      * @return array
      * @throws \Doctrine\DBAL\DBALException
      */
-    public function newReportLogicBuilder($data, CustomObject $customObject, $mysqlOnly = false)
+    public function newReportLogicBuilder($data, CustomObject $customObject, $mysqlOnly = false, $start = false, $length = false, $search = false, $orders = false, $columns = false)
     {
         $this->data = $data;
         $root = sprintf("%s.%s", $this->generateRandomString(5), $customObject->getInternalName());
@@ -252,11 +257,47 @@ class RecordRepository extends ServiceEntityRepository
         $filterString = !empty($filters) ? sprintf("(\n%s)", implode(" OR \n", $filters)) : '';
         $filterString = empty($filters) ? '' : "AND $filterString";
 
+        // Setup Join "Where" Conditionals
+        $joinConditionals = [];
+        $joinConditionals = $this->newJoinConditionalBuilder($root, $data, $joinConditionals);
+        $joinConditionalString = !empty($joinConditionals) ? sprintf("(\n%s\n)", implode(" AND \n", $joinConditionals)) : '';
+
         // On joins that use the "Without" join type we add a WHERE clause in the query string already. So in that case add an AND clause instead
         if (strpos($joinString, 'WHERE') !== false) {
-            $query = sprintf("SELECT DISTINCT `%s`.id %s from record `%s` %s AND `%s`.custom_object_id='%s' \n %s", $root, $resultStr, $root, $joinString, $root, $customObject->getId(), $filterString);
+            $query = sprintf("SELECT DISTINCT `%s`.id %s from record `%s` %s AND %s \n %s", $root, $resultStr, $root, $joinString, $joinConditionalString, $filterString);
         } else {
-            $query = sprintf("SELECT DISTINCT `%s`.id %s from record `%s` %s WHERE `%s`.custom_object_id='%s' \n %s", $root, $resultStr, $root, $joinString, $root, $customObject->getId(), $filterString);
+            $query = sprintf("SELECT DISTINCT `%s`.id %s from record `%s` %s WHERE \n %s \n %s", $root, $resultStr, $root, $joinString, $joinConditionalString, $filterString);
+        }
+
+        // Search
+        if(!empty($search['value']) && !empty($data['properties'])) {
+            $searches = [];
+            $searchItem = $search['value'];
+            foreach($data['properties'] as $propertyId => $property) {
+                $alias = !empty($property['alias']) ? $property['alias'] : $root;
+                $searches[] = sprintf('LOWER(`%s`.properties->>\'$.%s\') LIKE \'%%%s%%\'', $alias, $property['internalName'], strtolower($searchItem));
+            }
+            $query .= !empty($searches) ? " AND \n" . sprintf("(\n%s\n)\n", implode("\n OR ", $searches)) : '';
+        }
+
+        // Order
+        if($orders !== false) {
+            foreach ($orders as $key => $order) {
+                // Orders does not contain the name of the column, but its number,
+                // so add the name so we can handle it just like the $columns array
+                $orders[$key]['name'] = $columns[$order['column']]['name'];
+            }
+            foreach ($orders as $key => $order) {
+                if(isset($order['name'])) {
+                    $query .= "\n ORDER BY LOWER(`{$order['name']}`)";
+                }
+                $query .= ' ' . $order['dir'];
+            }
+        }
+
+        // limit
+        if($start !== false && $length !== false) {
+            $query .= sprintf("\n LIMIT %s, %s", $start, $length);
         }
 
         if($mysqlOnly) {
@@ -336,6 +377,42 @@ class RecordRepository extends ServiceEntityRepository
                 }
             }
         }
+    }
+
+    /**
+     * This function loops through all the joins and creates the Where conditionals needed
+     * @param $root
+     * @param $data
+     * @param $joinConditionals
+     * @return array
+     */
+    private function newJoinConditionalBuilder($root, &$data, &$joinConditionals)
+    {
+        if(empty($data['joins'])) {
+            return;
+        }
+        // configure the aliases
+        foreach ($data['joins'] as &$joinData) {
+            if(empty($joinData['connected_object']) || empty($joinData['connected_property'])) {
+                $joinConditionals[] = sprintf("`%s`.custom_object_id = %s", $root, $joinData['connected_object']['id']);
+                continue;
+            }
+            $connectedObject = $joinData['connected_object'];
+            $connectedProperty = $joinData['connected_property'];
+            $joinDirection = $connectedObject['join_direction'];
+            $joinType = $joinData['join_type'];
+            $alias = $joinData['alias'];
+            if($joinType === 'With' && $joinDirection === 'normal_join' || $joinType === 'With/Without' && $joinDirection === 'normal_join') {
+                $joinConditionals[] = sprintf("`%s`.custom_object_id = %s", $alias, $connectedProperty['field']['customObject']['id']);
+            } elseif ($joinType === 'Without' && $joinDirection === 'normal_join') {
+                // do nothing
+            } elseif ($joinType === 'With' && $joinDirection === 'cross_join' ||
+                $joinType === 'With/Without' && $joinDirection === 'cross_join' ||
+                $joinType === 'Without' && $joinDirection === 'cross_join') {
+                $joinConditionals[] = sprintf("`%s`.custom_object_id = %s", $alias, $connectedObject['id']);
+            }
+        }
+        return $joinConditionals;
     }
 
     /**
@@ -679,7 +756,7 @@ class RecordRepository extends ServiceEntityRepository
                 }
 
                 $query .= ' ' . $order['dir'];
-            }
+        }
 
 
         // limit

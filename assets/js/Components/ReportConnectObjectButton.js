@@ -13,12 +13,10 @@ import ReportConnectObjectFormModal from "./ReportConnectObjectFormModal";
 class ReportConnectObjectButton {
 
     constructor($wrapper, globalEventDispatcher, portal, customObjectInternalName) {
-        debugger;
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
         this.portal = portal;
         this.customObjectInternalName = customObjectInternalName;
-        debugger;
 
         this.$wrapper.on(
             'click',

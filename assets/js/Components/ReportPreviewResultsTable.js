@@ -26,7 +26,10 @@ class ReportPreviewResultsTable {
         this.table = null;
         this.globalEventDispatcher.subscribe('TEST', this.refreshTable.bind(this));
         this.render();
-        this.refreshTable({}, this.data.properties);
+        // only render the table on instantiation if the properties aren't empty
+        if(!_.isEmpty(this.data.properties)) {
+            this.refreshTable({}, this.data.properties);
+        }
     }
 
     refreshTable(data, columns) {
@@ -36,23 +39,7 @@ class ReportPreviewResultsTable {
             $('#reportPreviewResultsTable thead').empty();
             $('#reportPreviewResultsTable tbody').empty();
         }
-        this.activatePlugins(data.data, columns);
-    }
-
-    loadReportPreview() {
-        return new Promise((resolve, reject) => {
-            const url = Routing.generate('get_report_preview', {internalIdentifier: this.portalInternalIdentifier, internalName: this.data.selectedCustomObject.internalName});
-            $.ajax({
-                url: url,
-                data: {data: this.data, columnOrder: this.columnOrder},
-                method: 'POST'
-            }).then(data => {
-                resolve(data);
-            }).catch(jqXHR => {
-                const errorData = JSON.parse(jqXHR.responseText);
-                reject(errorData);
-            });
-        });
+        this.activatePlugins(data, columns);
     }
 
     activatePlugins(data = {}, columns = {}) {
@@ -84,6 +71,8 @@ class ReportPreviewResultsTable {
             "paging": true,
             "destroy": true,
             "responsive": true,
+            "processing": true,
+            "serverSide": true,
             "searching":true,
             "language": {
                 "emptyTable": "No results found.",
@@ -106,8 +95,21 @@ class ReportPreviewResultsTable {
             */
             /*"dom": "rt",*/
             "columns": datatableColumns,
-            "data": data,
-            "initComplete": () => {}
+            "initComplete": () => {},
+            "pageLength": 10,
+            "ajax": {
+                url: Routing.generate('report_records_for_datatable', {internalIdentifier: this.portalInternalIdentifier, internalName: this.data.selectedCustomObject.internalName}),
+                type: "POST",
+                data: (d) => {
+                    // this is important as we send up a ton of data and
+                    // we must pass it up as raw json otherwise it gets truncated
+                    // as form data https://datatables.net/forums/discussion/26282/posting-json-with-built-in-ajax-functionality
+                    d.data = this.data;
+                    return JSON.stringify(d);
+                },
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+            },
         });
 
     }
