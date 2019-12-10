@@ -116,6 +116,11 @@ class EditReportWidget {
             this.reportAddFilterButtonPressedHandler.bind(this)
         );
 
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.REPORT_NAME_CHANGED,
+            this.handleReportNameChange.bind(this)
+        );
+
         this.loadReport().then((data) => {
             debugger;
             this.newData = data.data;
@@ -160,9 +165,15 @@ class EditReportWidget {
         });
     }
 
+
+    handleReportNameChange(reportName) {
+        this.newData.reportName = reportName;
+    }
+
     handleReportSaveButtonPressed(reportName) {
         this.newData.reportName = reportName;
         this._saveReport().then((data) => {
+            debugger;
             swal("Woohoo!!!", "Report successfully saved.", "success");
         }).catch((errorData) => {
             if(errorData.httpCode === 401) {
@@ -177,13 +188,33 @@ class EditReportWidget {
     }
 
     reportBackToSelectCustomObjectButtonHandler(e) {
-        // on the edit view we aren't going to allow them to change the custom object after
-        // the report has been created. Just go ahead and redirect to the reports lists view
         this.redirectToReportSettings();
+    }
+
+    reinitializeData() {
+        this.newData = {
+            properties: {},
+            filters: {},
+            joins: {},
+            selectedCustomObject: {},
+            allAvailableProperties: [],
+            reportName: ''
+        };
     }
 
     handleAdvanceToReportPropertiesViewButtonClicked(customObject) {
         debugger;
+        // reinitialize the data if a new object is being selected
+        // (if a user has gone back to the select object view and selected a new object)
+        if(this.newData.selectedCustomObject.id !== customObject.id) {
+            /*this.reinitializeData();*/
+        }
+        // setup the default connection for pulling in properties if no connections exist yet
+        // usually this is only when initially coming to the view
+        if(_.isEmpty(this.newData.joins)) {
+            let uID = StringHelper.makeCharId();
+            _.set(this.newData.joins, uID, {connected_object: customObject});
+        }
         this.newData.selectedCustomObject = customObject;
         this.$wrapper.find(EditReportWidget._selectors.reportSelectCustomObjectContainer).addClass('d-none');
         this.$wrapper.find(EditReportWidget._selectors.reportPropertiesContainer).removeClass('d-none');
@@ -201,18 +232,13 @@ class EditReportWidget {
     handlePropertyListItemClicked(property) {
         debugger;
         _.set(this.newData.properties, property.id, property);
-        this._getReportResults().then((data) => {
-            debugger;
-            this.globalEventDispatcher.publish('TEST', data, this.newData.properties);
-        });
+        this.globalEventDispatcher.publish('TEST', this.newData, this.newData.properties);
     }
 
     handleReportRemoveFilterButtonPressed(uid) {
         debugger;
         this._removeFilterByUid(uid);
-        this._getReportResults().then((data) => {
-            this.globalEventDispatcher.publish('TEST', data, this.newData.properties);
-        });
+        this.globalEventDispatcher.publish('TEST', this.newData, this.newData.properties);
         this.globalEventDispatcher.publish(Settings.Events.REPORT_FILTER_ITEM_REMOVED, this.newData);
     }
 
@@ -245,10 +271,8 @@ class EditReportWidget {
         debugger;
         // Last but not least finally remove the main connection
         _.unset(this.newData.joins, connectionUid);
-        this._getReportResults().then((data) => {
-            this.globalEventDispatcher.publish('TEST', data, this.newData.properties);
-            this.globalEventDispatcher.publish(Settings.Events.REPORT_CONNECTION_REMOVED, this.newData);
-        });
+        this.globalEventDispatcher.publish('TEST', this.newData, this.newData.properties);
+        this.globalEventDispatcher.publish(Settings.Events.REPORT_CONNECTION_REMOVED, this.newData);
     }
 
     /**
@@ -355,21 +379,15 @@ class EditReportWidget {
             }
             _.set(parentFilter.childFilters, uID, customFilter);
         }
-        this._getReportResults().then((data) => {
-            debugger;
-            this.globalEventDispatcher.publish('TEST', data, this.newData.properties);
-            swal("Yahoo!", `Filter successfully added!`, "success");
-        });
-        debugger;
+        swal("Yahoo!", `Filter successfully added!`, "success");
+        this.globalEventDispatcher.publish('TEST', this.newData, this.newData.properties);
         this.globalEventDispatcher.publish(Settings.Events.REPORT_FILTER_ITEM_ADDED, this.newData);
     }
 
     handleReportRemoveSelectedColumnIconClicked(property) {
         debugger;
         this._removeProperty(property);
-        this._getReportResults().then((data) => {
-            this.globalEventDispatcher.publish('TEST', data, this.newData.properties);
-        });
+        this.globalEventDispatcher.publish('TEST', data, this.newData.properties);
     }
 
     handleReportObjectConnected(connectedData) {
@@ -392,16 +410,18 @@ class EditReportWidget {
             }
             _.set(parentConnection.childConnections, uID, connectedData);
         }
-        this._getReportResults().then((data) => {
-            this.globalEventDispatcher.publish('TEST', data, this.newData.properties);
-            this.globalEventDispatcher.publish(Settings.Events.REPORT_OBJECT_CONNECTED_JSON_UPDATED, this.newData, true);
-            swal("Hooray!", `Object successfully connected!`, "success");
-        });
+        this.globalEventDispatcher.publish('TEST', this.newData, this.newData.properties);
+        this.globalEventDispatcher.publish(Settings.Events.REPORT_OBJECT_CONNECTED_JSON_UPDATED, this.newData, true);
+        swal("Hooray!", `Object successfully connected!`, "success");
     }
 
     handleReportPropertyListRefreshed(properties) {
         debugger;
         if(properties.length === 0) {
+            return;
+        }
+        this.newData.allAvailableProperties = properties;
+        if(!_.isEmpty(this.newData.properties)) {
             return;
         }
         // We need to set some initial properties so the table has some to show
@@ -415,11 +435,7 @@ class EditReportWidget {
                 _.set(this.newData.properties, property.id, property);
             }
         }
-        this.newData.allAvailableProperties = properties;
-        this._getReportResults().then((data) => {
-            debugger;
-            this.globalEventDispatcher.publish('TEST', data, this.newData.properties);
-        });
+        this.globalEventDispatcher.publish('TEST', this.newData, this.newData.properties);
     }
 
     render() {
@@ -430,13 +446,20 @@ class EditReportWidget {
         new ReportProperties($(EditReportWidget._selectors.reportPropertiesContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.newData);
     }
 
+    /**
+     * You have to pass the data up as JSON otherwise it will
+     * get sent up as form data and lots of it will get truncated
+     * @return {Promise<any>}
+     * @private
+     */
     _getReportResults() {
         return new Promise((resolve, reject) => {
             const url = Routing.generate('get_report_results', {internalIdentifier: this.portalInternalIdentifier, internalName: this.newData.selectedCustomObject.internalName});
             $.ajax({
                 url,
+                contentType: 'application/json',
                 method: 'POST',
-                data: {'data': this.newData, reportName: this.newData.reportName}
+                data: JSON.stringify({data : this.newData})
             }).then((data, textStatus, jqXHR) => {
                 resolve(data);
             }).catch((jqXHR) => {
@@ -448,14 +471,22 @@ class EditReportWidget {
         });
     }
 
+    /**
+     * You have to pass the data up as JSON otherwise it will
+     * get sent up as form data and lots of it will get truncated
+     *
+     * @return {Promise<any>}
+     * @private
+     */
     _saveReport() {
+        debugger;
         return new Promise((resolve, reject) => {
-            debugger;
-            const url = Routing.generate('api_edit_report', {reportId: this.newData.reportId, internalIdentifier: this.portalInternalIdentifier, internalName: this.newData.selectedCustomObject.internalName});
+            const url = Routing.generate('save_report', {internalIdentifier: this.portalInternalIdentifier, internalName: this.newData.selectedCustomObject.internalName});
             $.ajax({
                 url,
                 method: 'POST',
-                data: {'data': this.newData, reportName: this.newData.reportName}
+                contentType: 'application/json',
+                data: JSON.stringify({data : this.newData})
             }).then((data, textStatus, jqXHR) => {
                 resolve(data);
             }).catch((jqXHR) => {

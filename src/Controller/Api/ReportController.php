@@ -445,7 +445,6 @@ class ReportController extends ApiController
      * @throws \Doctrine\DBAL\DBALException
      */
     public function getRecordsForDatatableAction(Portal $portal, CustomObject $customObject, Request $request) {
-
         $draw = intval($request->request->get('draw'));
         $start = $request->request->get('start');
         $length = $request->request->get('length');
@@ -459,96 +458,18 @@ class ReportController extends ApiController
         $countQuery = $this->recordRepository->findCountByCustomObject($customObject);
         $totalRecordsCount = !empty($countQuery[0]['count']) ? $countQuery[0]['count'] : 0;
         $results = $results['results'];
-        $filteredRecordsCount = count($results);
+        $filteredRecordsCount = $this->recordRepository->newReportLogicBuilder(
+            $data, $customObject,  false, false, false, $search, $orders, $columns
+        );
+        $filteredRecordsCount = count($filteredRecordsCount['results']);
         $response = new JsonResponse([
             'success' => true,
             'data'  => $results,
             'draw'  => $draw,
-            'recordsFiltered' => !empty($search['value']) || !empty($data['filters']) ? $filteredRecordsCount : $totalRecordsCount,
+            'recordsFiltered' => $filteredRecordsCount,
             'recordsTotal'  => $totalRecordsCount,
         ], Response::HTTP_OK);
 
         return $response;
-
-        $propertiesForDatatable = $this->propertyRepository->findColumnsForTable($customObject);
-
-        $results = $this->recordRepository->getDataTableData($start, $length, $search, $orders, $columns, $propertiesForDatatable, $customFilters, $customObject);
-
-        $customObjectInternalNames = $this->propertyRepository->findAllInternalNamesByFieldTypeForCustomObject($customObject, FieldCatalog::CUSTOM_OBJECT);
-        $customObjectInternalNames = $this->getArrayValuesRecursive($customObjectInternalNames);
-
-        $properties = $customObject->getProperties()->toArray();
-
-        foreach($results['results'] as &$result) {
-
-            foreach($result as $key => $value) {
-
-                $customObjectProperty = array_filter($properties, function($property) use($key) {
-                    $isCustomObjectProperty = $property->getFieldType() === FieldCatalog::CUSTOM_OBJECT;
-                    $internalNameMatches = $property->getInternalName() === $key;
-
-                    return $isCustomObjectProperty && $internalNameMatches;
-                });
-
-                if(!empty($customObjectProperty)) {
-
-                    // We need to reset the array keys to start at 0 after using array_filter
-                    $customObjectProperty = array_values($customObjectProperty);
-
-                    $values = explode(";", $value);
-
-                    $urls = [];
-                    foreach($values as $v) {
-
-                        $record = $this->recordRepository->find($v);
-
-                        if(!$record) {
-                            continue;
-                        }
-
-                        $url = sprintf("%s/%s",
-                            $this->generateUrl('record_list', [
-                                'internalIdentifier' => $portal->getInternalIdentifier(),
-                                'internalName' => $customObjectProperty[0]->getField()->getCustomObject()->getInternalName()
-                            ]),
-                            $v
-                        );
-                        $urls[] = "<a href='$url'>$v</a>";
-                    }
-                    $result[$key] = implode(',', $urls);
-                }
-
-                $choiceFieldProperty = array_filter($properties, function($property) use($key) {
-                    $isChoiceFieldProperty = $property->getFieldType() === FieldCatalog::MULTIPLE_CHECKBOX;
-                    $internalNameMatches = $property->getInternalName() === $key;
-
-                    return $isChoiceFieldProperty && $internalNameMatches;
-                });
-
-                if(!empty($choiceFieldProperty)) {
-
-                    $values = explode(";", $value);
-
-                    $result[$key] = implode(',', $values);
-                }
-            }
-        }
-
-        $countQuery = $this->recordRepository->findCountByCustomObject($customObject);
-        $totalRecordsCount = !empty($countQuery[0]['count']) ? $countQuery[0]['count'] : 0;
-
-        $results = $results['results'];
-        $filteredRecordsCount = count($results);
-
-        $response = new JsonResponse([
-            'draw'  => $draw,
-            'recordsFiltered' => !empty($search['value']) || !empty($customFilters) ? $filteredRecordsCount : $totalRecordsCount,
-            'recordsTotal'  => $totalRecordsCount,
-            'data'  => $results
-        ],  Response::HTTP_OK);
-
-        return $response;
     }
-
-
 }

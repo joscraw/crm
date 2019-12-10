@@ -115,14 +115,16 @@ class ReportPreviewResultsTable {
     }
 
     render() {
-        this.$wrapper.html(ReportPreviewResultsTable.markup(this));
+        debugger;
+        let propertiesPageUrl = Routing.generate('property_settings', {internalIdentifier: this.portalInternalIdentifier, internalName: this.data.selectedCustomObject.internalName});
+        this.$wrapper.html(ReportPreviewResultsTable.markup(propertiesPageUrl));
     }
 
-    static markup() {
+    static markup(propertiesPageUrl) {
         return `
             <table id="reportPreviewResultsTable" class="table table-striped table-bordered c-table" style="width:100%">
                 <thead>
-                <tr><th></th></tr>
+                <tr><th>No properties exist for this custom object. Head to the <a href="${propertiesPageUrl}">properties page to create some.</a></th></tr>
                 </thead>
                 <tbody>
                 </tbody>

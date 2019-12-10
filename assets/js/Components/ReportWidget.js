@@ -164,9 +164,16 @@ class ReportWidget {
     };
 
     reportBackToSelectCustomObjectButtonHandler(e) {
-        this.$wrapper.find(ReportWidget._selectors.reportSelectCustomObjectContainer).removeClass('d-none');
+        // don't reshow the select custom object view for now. Just redirect back to the main reports view
+        this.redirectToReportSettings();
+        // todo refactor this in the future to possibly allow them to go back and reselect another custom object
+        //  this is buggy though now as it's remembering state from the previously selected custom objects. Need to make sure
+        //   we are unbinding and destroying all events or removing the tokens on the events and re-adding them
+        //   this.globalEventDispatcher.singleSubscribe();
+
+/*        this.$wrapper.find(ReportWidget._selectors.reportSelectCustomObjectContainer).removeClass('d-none');
         this.$wrapper.find(ReportWidget._selectors.reportPropertiesContainer).addClass('d-none');
-        new ReportSelectCustomObject($(ReportWidget._selectors.reportSelectCustomObjectContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.newData.selectedCustomObject);
+        new ReportSelectCustomObject($(ReportWidget._selectors.reportSelectCustomObjectContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.newData.selectedCustomObject);*/
     }
 
     reinitializeData() {
@@ -185,7 +192,7 @@ class ReportWidget {
         // reinitialize the data if a new object is being selected
         // (if a user has gone back to the select object view and selected a new object)
         if(this.newData.selectedCustomObject.id !== customObject.id) {
-            /*this.reinitializeData();*/
+            this.reinitializeData();
         }
         // setup the default connection for pulling in properties if no connections exist yet
         // usually this is only when initially coming to the view

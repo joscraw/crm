@@ -280,6 +280,13 @@ class RecordRepository extends ServiceEntityRepository
             $query .= !empty($searches) ? " AND \n" . sprintf("(\n%s\n)\n", implode("\n OR ", $searches)) : '';
         }
 
+        /**
+         * SET THE GROUP BY
+         * This ensures that duplicate rows don't get returned with the same root object ID
+         * https://stackoverflow.com/questions/23921117/disable-only-full-group-by/23921234
+         */
+        $query .= sprintf(" \nGROUP BY `%s`.id\n", $root);
+
         // Order
         if($orders !== false) {
             foreach ($orders as $key => $order) {
@@ -340,7 +347,7 @@ class RecordRepository extends ServiceEntityRepository
                 // add the alias to each property
                 if(!empty($data['properties'])) {
                     foreach($data['properties'] as $propertyId => &$property) {
-                        if($connectedProperty['field']['customObject']['id'] === $property['custom_object_id']) {
+                        if($connectedProperty['field']['customObject']['id'] == $property['custom_object_id']) {
                             $property['alias'] = $alias;
                         }
                     }
@@ -348,7 +355,7 @@ class RecordRepository extends ServiceEntityRepository
                 // add each alias to each filter
                 if(!empty($data['filters'])) {
                     foreach ($data['filters'] as &$filter) {
-                        if($connectedProperty['field']['customObject']['id'] === $filter['custom_object_id']) {
+                        if($connectedProperty['field']['customObject']['id'] == $filter['custom_object_id']) {
                             $filter['alias'] = $alias;
                         }
                     }
@@ -362,7 +369,7 @@ class RecordRepository extends ServiceEntityRepository
                 $joinData['alias'] = $alias;
                 if(!empty($data['properties'])) {
                     foreach($data['properties'] as $propertyId => &$property) {
-                        if($connectedObject['id'] === $property['custom_object_id']) {
+                        if($connectedObject['id'] == $property['custom_object_id']) {
                             $property['alias'] = $alias;
                         }
                     }
@@ -370,7 +377,7 @@ class RecordRepository extends ServiceEntityRepository
                 // add each alias to each filter
                 if(!empty($data['filters'])) {
                     foreach ($data['filters'] as &$filter) {
-                        if($connectedObject['id'] === $filter['custom_object_id']) {
+                        if($connectedObject['id'] == $filter['custom_object_id']) {
                             $filter['alias'] = $alias;
                         }
                     }
