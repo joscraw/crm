@@ -164,9 +164,16 @@ class ReportWidget {
     };
 
     reportBackToSelectCustomObjectButtonHandler(e) {
-        this.$wrapper.find(ReportWidget._selectors.reportSelectCustomObjectContainer).removeClass('d-none');
+        // don't reshow the select custom object view for now. Just redirect back to the main reports view
+        this.redirectToReportSettings();
+        // todo refactor this in the future to possibly allow them to go back and reselect another custom object
+        //  this is buggy though now as it's remembering state from the previously selected custom objects. Need to make sure
+        //   we are unbinding and destroying all events or removing the tokens on the events and re-adding them
+        //   this.globalEventDispatcher.singleSubscribe();
+
+/*        this.$wrapper.find(ReportWidget._selectors.reportSelectCustomObjectContainer).removeClass('d-none');
         this.$wrapper.find(ReportWidget._selectors.reportPropertiesContainer).addClass('d-none');
-        new ReportSelectCustomObject($(ReportWidget._selectors.reportSelectCustomObjectContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.newData.selectedCustomObject);
+        new ReportSelectCustomObject($(ReportWidget._selectors.reportSelectCustomObjectContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.newData.selectedCustomObject);*/
     }
 
     reinitializeData() {
@@ -185,7 +192,13 @@ class ReportWidget {
         // reinitialize the data if a new object is being selected
         // (if a user has gone back to the select object view and selected a new object)
         if(this.newData.selectedCustomObject.id !== customObject.id) {
-            /*this.reinitializeData();*/
+            this.reinitializeData();
+        }
+        // setup the default connection for pulling in properties if no connections exist yet
+        // usually this is only when initially coming to the view
+        if(_.isEmpty(this.newData.joins)) {
+            let uID = StringHelper.makeCharId();
+            _.set(this.newData.joins, uID, {connected_object: customObject});
         }
         this.newData.selectedCustomObject = customObject;
         this.$wrapper.find(ReportWidget._selectors.reportSelectCustomObjectContainer).addClass('d-none');
@@ -204,18 +217,13 @@ class ReportWidget {
     handlePropertyListItemClicked(property) {
         debugger;
         _.set(this.newData.properties, property.id, property);
-        this._getReportResults().then((data) => {
-            debugger;
-            this.globalEventDispatcher.publish('TEST', data, this.newData.properties);
-        });
+        this.globalEventDispatcher.publish('TEST', this.newData, this.newData.properties);
     }
 
     handleReportRemoveFilterButtonPressed(uid) {
         debugger;
         this._removeFilterByUid(uid);
-        this._getReportResults().then((data) => {
-            this.globalEventDispatcher.publish('TEST', data, this.newData.properties);
-        });
+        this.globalEventDispatcher.publish('TEST', this.newData, this.newData.properties);
         this.globalEventDispatcher.publish(Settings.Events.REPORT_FILTER_ITEM_REMOVED, this.newData);
     }
 
@@ -248,10 +256,8 @@ class ReportWidget {
         debugger;
         // Last but not least finally remove the main connection
         _.unset(this.newData.joins, connectionUid);
-        this._getReportResults().then((data) => {
-            this.globalEventDispatcher.publish('TEST', data, this.newData.properties);
-            this.globalEventDispatcher.publish(Settings.Events.REPORT_CONNECTION_REMOVED, this.newData);
-        });
+        this.globalEventDispatcher.publish('TEST', this.newData, this.newData.properties);
+        this.globalEventDispatcher.publish(Settings.Events.REPORT_CONNECTION_REMOVED, this.newData);
     }
 
     /**
@@ -358,21 +364,15 @@ class ReportWidget {
             }
             _.set(parentFilter.childFilters, uID, customFilter);
         }
-        this._getReportResults().then((data) => {
-            debugger;
-            this.globalEventDispatcher.publish('TEST', data, this.newData.properties);
-            swal("Yahoo!", `Filter successfully added!`, "success");
-        });
-        debugger;
+        swal("Yahoo!", `Filter successfully added!`, "success");
+        this.globalEventDispatcher.publish('TEST', this.newData, this.newData.properties);
         this.globalEventDispatcher.publish(Settings.Events.REPORT_FILTER_ITEM_ADDED, this.newData);
     }
 
     handleReportRemoveSelectedColumnIconClicked(property) {
         debugger;
         this._removeProperty(property);
-        this._getReportResults().then((data) => {
-            this.globalEventDispatcher.publish('TEST', data, this.newData.properties);
-        });
+        this.globalEventDispatcher.publish('TEST', data, this.newData.properties);
     }
 
     handleReportObjectConnected(connectedData) {
@@ -395,16 +395,18 @@ class ReportWidget {
             }
             _.set(parentConnection.childConnections, uID, connectedData);
         }
-        this._getReportResults().then((data) => {
-            this.globalEventDispatcher.publish('TEST', data, this.newData.properties);
-            this.globalEventDispatcher.publish(Settings.Events.REPORT_OBJECT_CONNECTED_JSON_UPDATED, this.newData, true);
-            swal("Hooray!", `Object successfully connected!`, "success");
-        });
+        this.globalEventDispatcher.publish('TEST', this.newData, this.newData.properties);
+        this.globalEventDispatcher.publish(Settings.Events.REPORT_OBJECT_CONNECTED_JSON_UPDATED, this.newData, true);
+        swal("Hooray!", `Object successfully connected!`, "success");
     }
 
     handleReportPropertyListRefreshed(properties) {
         debugger;
         if(properties.length === 0) {
+            return;
+        }
+        this.newData.allAvailableProperties = properties;
+        if(!_.isEmpty(this.newData.properties)) {
             return;
         }
         // We need to set some initial properties so the table has some to show
@@ -418,11 +420,7 @@ class ReportWidget {
                 _.set(this.newData.properties, property.id, property);
             }
         }
-        this.newData.allAvailableProperties = properties;
-        this._getReportResults().then((data) => {
-            debugger;
-            this.globalEventDispatcher.publish('TEST', data, this.newData.properties);
-        });
+        this.globalEventDispatcher.publish('TEST', this.newData, this.newData.properties);
     }
 
     render() {

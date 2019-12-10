@@ -19,7 +19,6 @@ class ReportConnectObjectFormModal {
      * @param parentConnectionUid
      */
     constructor(globalEventDispatcher, portal, customObjectInternalName, parentConnectionUid = null) {
-        debugger;
         this.globalEventDispatcher = globalEventDispatcher;
         this.portal = portal;
         this.customObjectInternalName = customObjectInternalName;

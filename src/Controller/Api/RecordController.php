@@ -872,13 +872,13 @@ class RecordController extends ApiController
             $importData = $form->getData();
             // We don't need to pass the file object into the message
             unset($importData['file']);
-            $duplicates = $this->arrayNotUnique($importData);
+          /*  $duplicates = $this->arrayNotUnique($importData);
             foreach($duplicates as $duplicate) {
                 if($duplicate !== 'unmapped') {
                     $form->addError(new FormError('You can\'t map more than one column to the same property!'));
                 }
                 break;
-            }
+            }*/
             $formMarkup = $this->renderView(
                 'Api/form/record_import_form.html.twig',
                 [

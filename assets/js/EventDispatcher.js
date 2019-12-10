@@ -168,7 +168,6 @@ class EventDispatcher {
         if (this.channels[channel]) {
             self.channels[channel] = [];
         }
-
     }
 }
 

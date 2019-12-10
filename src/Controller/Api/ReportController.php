@@ -433,4 +433,43 @@ class ReportController extends ApiController
 
     }
 
+    /**
+     * DataTables passes unique params in the Request and expects a specific response payload
+     * @see https://datatables.net/manual/server-side Documentation for ServerSide Implimentation for DataTables
+     *
+     * @Route("/{internalName}/datatable", name="report_records_for_datatable", methods={"POST"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param CustomObject $customObject
+     * @param Request $request
+     * @return Response
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    public function getRecordsForDatatableAction(Portal $portal, CustomObject $customObject, Request $request) {
+        $draw = intval($request->request->get('draw'));
+        $start = $request->request->get('start');
+        $length = $request->request->get('length');
+        $search = $request->request->get('search');
+        $orders = $request->request->get('order');
+        $columns = $request->request->get('columns');
+        $data = $request->request->get('data', []);
+        $results = $this->recordRepository->newReportLogicBuilder(
+            $data, $customObject,  false, $start, $length, $search, $orders, $columns
+        );
+        $countQuery = $this->recordRepository->findCountByCustomObject($customObject);
+        $totalRecordsCount = !empty($countQuery[0]['count']) ? $countQuery[0]['count'] : 0;
+        $results = $results['results'];
+        $filteredRecordsCount = $this->recordRepository->newReportLogicBuilder(
+            $data, $customObject,  false, false, false, $search, $orders, $columns
+        );
+        $filteredRecordsCount = count($filteredRecordsCount['results']);
+        $response = new JsonResponse([
+            'success' => true,
+            'data'  => $results,
+            'draw'  => $draw,
+            'recordsFiltered' => $filteredRecordsCount,
+            'recordsTotal'  => $totalRecordsCount,
+        ], Response::HTTP_OK);
+
+        return $response;
+    }
 }

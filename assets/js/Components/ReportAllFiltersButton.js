@@ -14,7 +14,6 @@ import ReportFilterNavigationModal from "./ReportFilterNavigationModal";
 class ReportAllFiltersButton {
 
     constructor($wrapper, globalEventDispatcher, portal, customObjectInternalName, data = {}) {
-        debugger;
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
         this.portal = portal;

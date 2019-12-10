@@ -20,7 +20,6 @@ class ReportAddFilterFormModal {
      * @param property
      */
     constructor(globalEventDispatcher, portal, customObjectInternalName, property) {
-        debugger;
         this.globalEventDispatcher = globalEventDispatcher;
         this.portal = portal;
         this.customObjectInternalName = customObjectInternalName;
