@@ -111,15 +111,22 @@ class ImportSpreadsheetHandler implements MessageHandlerInterface, LoggerAwareIn
         foreach($rows as $row) {
             $record = new Record();
             $properties = [];
-            foreach($row as $index => $column) {
+            foreach($row as $index => $value) {
                 $formFriendlyName = $this->phpSpreadsheetHelper->formFriendly($columns[$index])[0];
+                if(empty($formFriendlyName)) {
+                    continue;
+                }
                 $internalName = $importData[$formFriendlyName . '_properties'];
+                // if one of the values is null from the import then just set it to an empty string.
+                if($value === null) {
+                    $value = '';
+                }
                 // if the user chose unmapped for one of the columns
                 // go ahead and use the form friendly column name from the csv
                 if($internalName === 'unmapped') {
-                    $properties[$formFriendlyName] = $column;
+                    $properties[$formFriendlyName] = $value;
                 } else {
-                    $properties[$internalName] = $column;
+                    $properties[$internalName] = $value;
                 }
             }
             $record->setProperties($properties);
