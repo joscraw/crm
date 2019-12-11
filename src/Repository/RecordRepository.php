@@ -321,6 +321,78 @@ class RecordRepository extends ServiceEntityRepository
     }
 
     /**
+     * This function is the new and improved logic for the report builder and just returns the count.
+     * @param $data
+     * @param CustomObject $customObject
+     * @param bool $mysqlOnly
+     * @param bool $start
+     * @param bool $length
+     * @param bool $search
+     * @param bool $orders
+     * @param bool $columns
+     * @return array
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    public function newReportLogicBuilderCount($data, CustomObject $customObject, $mysqlOnly = false, $start = false, $length = false, $search = false, $orders = false, $columns = false)
+    {
+        $this->data = $data;
+        $root = sprintf("%s.%s", $this->generateRandomString(5), $customObject->getInternalName());
+
+        // setup the join aliases
+        $this->newJoinAliasBuilder($data);
+
+        // Setup fields for select
+        $resultStr = '';
+
+        // Setup Joins
+        $joins = [];
+        $joins = $this->newJoinLogicBuilder($root, $data, $joins);
+        $joinString = implode(" ", $joins);
+
+        // Setup Filters
+        $filters = [];
+        $filters = $this->newFilterLogicBuilder($root, $data, $filters);
+        $filterString = !empty($filters) ? sprintf("(\n%s)", implode(" OR \n", $filters)) : '';
+        $filterString = empty($filters) ? '' : "AND $filterString";
+
+        // Setup Join "Where" Conditionals
+        $joinConditionals = [];
+        $joinConditionals = $this->newJoinConditionalBuilder($root, $data, $joinConditionals);
+        $joinConditionalString = !empty($joinConditionals) ? sprintf("(\n%s\n)", implode(" AND \n", $joinConditionals)) : '';
+
+        // On joins that use the "Without" join type we add a WHERE clause in the query string already. So in that case add an AND clause instead
+        if (strpos($joinString, 'WHERE') !== false) {
+            $query = sprintf("SELECT DISTINCT `%s`.id %s from record `%s` %s AND %s \n %s", $root, $resultStr, $root, $joinString, $joinConditionalString, $filterString);
+        } else {
+            $query = sprintf("SELECT DISTINCT `%s`.id %s from record `%s` %s WHERE \n %s \n %s", $root, $resultStr, $root, $joinString, $joinConditionalString, $filterString);
+        }
+
+        // Search
+        if(!empty($search['value']) && !empty($data['properties'])) {
+            $searches = [];
+            $searchItem = $search['value'];
+            foreach($data['properties'] as $propertyId => $property) {
+                $alias = !empty($property['alias']) ? $property['alias'] : $root;
+                $searches[] = sprintf('LOWER(`%s`.properties->>\'$.%s\') LIKE \'%%%s%%\'', $alias, $property['internalName'], strtolower($searchItem));
+            }
+            $query .= !empty($searches) ? " AND \n" . sprintf("(\n%s\n)\n", implode("\n OR ", $searches)) : '';
+        }
+
+        /**
+         * SET THE GROUP BY
+         * This ensures that duplicate rows don't get returned with the same root object ID
+         * https://stackoverflow.com/questions/23921117/disable-only-full-group-by/23921234
+         */
+        $query .= sprintf(" \nGROUP BY `%s`.id\n", $root);
+
+        $em = $this->getEntityManager();
+        $stmt = $em->getConnection()->prepare($query);
+        $stmt->execute();
+        $results = $stmt->fetchAll();
+        return count($results);
+    }
+
+    /**
      * This function loops through all the joins and creates aliases for each join
      * and then attaches the properties and filters to their corresponding aliases.
      * @param $data

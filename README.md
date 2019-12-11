@@ -39,3 +39,6 @@
     
     This will disable ONLY_FULL_GROUP_BY for ALL users
     _______________________________________________
+    
+    Make sure to change the DNS in network settings to 8.8.8.8 and 8.8.4.4 for nscs portal
+    to use guzzle to talk to this server whtn both vagrant machines are running

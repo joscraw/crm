@@ -458,10 +458,9 @@ class ReportController extends ApiController
         $countQuery = $this->recordRepository->findCountByCustomObject($customObject);
         $totalRecordsCount = !empty($countQuery[0]['count']) ? $countQuery[0]['count'] : 0;
         $results = $results['results'];
-        $filteredRecordsCount = $this->recordRepository->newReportLogicBuilder(
+        $filteredRecordsCount = $this->recordRepository->newReportLogicBuilderCount(
             $data, $customObject,  false, false, false, $search, $orders, $columns
         );
-        $filteredRecordsCount = count($filteredRecordsCount['results']);
         $response = new JsonResponse([
             'success' => true,
             'data'  => $results,
