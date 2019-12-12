@@ -95,7 +95,6 @@ class RecordController extends AbstractController
      * @return \Symfony\Component\HttpFoundation\Response
      */
     public function listAction(Portal $portal, CustomObject $customObject) {
-        $records = $this->recordRepository->findAll();
         return $this->render('record/list.html.twig', array(
             'portal' => $portal,
             'customObject' => $customObject,

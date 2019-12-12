@@ -20,6 +20,7 @@ class DatatableSearch {
         this.portalInternalIdentifier = portalInternalIdentifier;
         this.customObjectInternalName = customObjectInternalName;
         this.placeholderText = placeholderText;
+        this.timeout = null;
 
         this.$wrapper.on(
             'keyup',
@@ -31,17 +32,21 @@ class DatatableSearch {
     }
 
     handleKeyupEvent(e) {
-
         if(e.cancelable) {
             e.preventDefault();
         }
-
+        // Clear the timeout if it has already been set.
+        // This will prevent the previous task from executing
+        // if it has been less than <MILLISECONDS>
+        clearTimeout(this.timeout);
         const searchValue = $(e.target).val();
         const searchObject = {
             searchValue: searchValue
         };
-
-        this.globalEventDispatcher.publish(Settings.Events.DATATABLE_SEARCH_KEY_UP, searchObject);
+        // Make a new timeout set to go off in 800ms
+        this.timeout = setTimeout( () => {
+            this.globalEventDispatcher.publish(Settings.Events.DATATABLE_SEARCH_KEY_UP, searchObject);
+        }, 500);
     }
 
     render() {
