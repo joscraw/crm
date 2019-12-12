@@ -387,7 +387,7 @@ class EditReportWidget {
     handleReportRemoveSelectedColumnIconClicked(property) {
         debugger;
         this._removeProperty(property);
-        this.globalEventDispatcher.publish('TEST', data, this.newData.properties);
+        this.globalEventDispatcher.publish('TEST', this.newData, this.newData.properties);
     }
 
     handleReportObjectConnected(connectedData) {
