@@ -83,6 +83,7 @@ class ListProperties {
 
 
     handleListBackToSelectCustomObjectButton(e) {
+        debugger;
         this.globalEventDispatcher.publish(Settings.Events.LIST_BACK_TO_SELECT_CUSTOM_OBJECT_BUTTON_PRESSED, this.data);
     }
 

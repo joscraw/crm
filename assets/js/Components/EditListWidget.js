@@ -93,6 +93,11 @@ class EditListWidget {
             this.listBackToSelectCustomObjectButtonHandler.bind(this)
         );
 
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.REPORT_REMOVE_CONNECTION_BUTTON_PRESSED,
+            this.handleReportRemoveConnectionButtonPressed.bind(this)
+        );
+
         this.loadReport().then((data) => {
             debugger;
             this.newData = data.data;
@@ -125,7 +130,7 @@ class EditListWidget {
     loadReport() {
         return new Promise((resolve, reject) => {
             debugger;
-            const url = Routing.generate('get_list', {internalIdentifier: this.portalInternalIdentifier, reportId: this.listId});
+            const url = Routing.generate('get_list', {internalIdentifier: this.portalInternalIdentifier, listId: this.listId});
 
             $.ajax({
                 url: url
@@ -140,14 +145,93 @@ class EditListWidget {
         });
     }
 
+    handleReportRemoveConnectionButtonPressed(connectionUid) {
+        debugger;
+        let connection = this.newData.joins[connectionUid];
+        // if a parent connection is being removed take note that child connections (joins)
+        // are dependent on their parent connection (join) so go ahead and remove any children
+        if(_.has(connection, 'childConnections')) {
+            let childConnections = connection.childConnections;
+            for(let uid in childConnections) {
+                let childConnection = childConnections[uid];
+                // since you are removing each child connection, don't forget to clean up
+                // and remove it's properties and filters
+                this._removePropertiesFromConnection(childConnection)
+                    ._removeFiltersFromConnection(childConnection);
+                _.unset(this.newData.joins, uid);
+            }
+        }
+        // if a child connection is being removed check to see if it has a parent connection
+        // if it does then remove the child connection from it's parent
+        if(_.has(connection, 'parentConnectionUid')) {
+            let parentConnectionId = _.get(connection, 'parentConnectionUid');
+            _.unset(this.newData.joins[parentConnectionId].childConnections, connectionUid);
+        }
+        // go ahead and remove any properties and filters that rely on this connection
+        this._removePropertiesFromConnection(connection)
+            ._removeFiltersFromConnection(connection);
+        // go ahead and remove any filters that rely on this connection
+        debugger;
+        // Last but not least finally remove the main connection
+        _.unset(this.newData.joins, connectionUid);
+        this.globalEventDispatcher.publish('TEST', this.newData, this.newData.properties);
+        this.globalEventDispatcher.publish(Settings.Events.REPORT_CONNECTION_REMOVED, this.newData);
+    }
+
+    /**
+     * This function takes a connection and removes any related properties for it
+     * @param connection
+     * @return {EditReportWidget}
+     * @private
+     */
+    _removePropertiesFromConnection(connection) {
+        if(!_.isEmpty(this.newData.properties)) {
+            for(let propertyId in this.newData.properties) {
+                let property = this.newData.properties[propertyId];
+                if(connection.connected_object.join_direction === 'cross_join') {
+                    if(connection.connected_object.id == property.custom_object_id) {
+                        this._removeProperty(property);
+                    }
+                } else if(connection.connected_object.join_direction === 'normal_join') {
+                    if(connection.connected_property.field.customObject.id == property.custom_object_id) {
+                        this._removeProperty(property);
+                    }
+                }
+            }
+        }
+        return this;
+    }
+
+    /**
+     * This function takes a connection and removes any related filters for it
+     * @param connection
+     * @return {EditReportWidget}
+     * @private
+     */
+    _removeFiltersFromConnection(connection) {
+        debugger;
+        if(!_.isEmpty(this.newData.filters)) {
+            for(let filterId in this.newData.filters) {
+                let filter = this.newData.filters[filterId];
+                if(connection.connected_object.join_direction === 'cross_join') {
+                    if(connection.connected_object.id == filter.custom_object_id) {
+                        this._removeFilterByUid(filterId);
+                    }
+                } else if(connection.connected_object.join_direction === 'normal_join') {
+                    if(connection.connected_property.field.customObject.id == filter.custom_object_id) {
+                        this._removeFilterByUid(filterId);
+                    }
+                }
+            }
+        }
+        return this;
+    }
+
     handleReportSaveButtonPressed(reportName) {
         this.newData.reportName = reportName;
         this._saveReport().then((data) => {
             debugger;
-            swal("Woohoo!!!", "List successfully saved. Redirecting to edit view...", "success");
-            setTimeout(() => {
-                this.redirectToEditView(data['listId']);
-            }, 3000);
+            swal("Woohoo!!!", "List successfully saved.", "success");
         }).catch((errorData) => {
             if(errorData.httpCode === 401) {
                 swal("Woah!", `You don't have proper permissions for this!`, "error");
@@ -166,7 +250,7 @@ class EditListWidget {
     _saveReport() {
         debugger;
         return new Promise((resolve, reject) => {
-            const url = Routing.generate('save_list', {internalIdentifier: this.portalInternalIdentifier, internalName: this.newData.selectedCustomObject.internalName});
+            const url = Routing.generate('api_edit_list', {internalIdentifier: this.portalInternalIdentifier, internalName: this.newData.selectedCustomObject.internalName, listId: this.listId});
             $.ajax({
                 url,
                 method: 'POST',
@@ -381,9 +465,9 @@ class EditListWidget {
     render() {
         debugger;
         this.$wrapper.html(EditListWidget.markup(this));
-        this.$wrapper.find(EditListWidget._selectors.reportSelectCustomObjectContainer).addClass('d-none');
-        this.$wrapper.find(EditListWidget._selectors.reportPropertiesContainer).removeClass('d-none');
-        new ReportProperties($(EditListWidget._selectors.reportPropertiesContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.newData);
+        this.$wrapper.find(EditListWidget._selectors.listSelectCustomObjectContainer).addClass('d-none');
+        this.$wrapper.find(EditListWidget._selectors.listPropertiesContainer).removeClass('d-none');
+        new ListProperties($(EditListWidget._selectors.listPropertiesContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.newData);
     }
 
     static markup() {

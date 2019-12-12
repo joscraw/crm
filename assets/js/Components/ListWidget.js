@@ -90,6 +90,11 @@ class ListWidget {
             this.listBackToSelectCustomObjectButtonHandler.bind(this)
         );
 
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.REPORT_REMOVE_CONNECTION_BUTTON_PRESSED,
+            this.handleReportRemoveConnectionButtonPressed.bind(this)
+        );
+
         this.render();
     }
 
@@ -272,6 +277,88 @@ class ListWidget {
         /* this.$wrapper.find(ReportWidget._selectors.reportSelectCustomObjectContainer).removeClass('d-none');
            this.$wrapper.find(ReportWidget._selectors.reportPropertiesContainer).addClass('d-none');
            new ReportSelectCustomObject($(ReportWidget._selectors.reportSelectCustomObjectContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.newData.selectedCustomObject);*/
+    }
+
+    handleReportRemoveConnectionButtonPressed(connectionUid) {
+        debugger;
+        let connection = this.newData.joins[connectionUid];
+        // if a parent connection is being removed take note that child connections (joins)
+        // are dependent on their parent connection (join) so go ahead and remove any children
+        if(_.has(connection, 'childConnections')) {
+            let childConnections = connection.childConnections;
+            for(let uid in childConnections) {
+                let childConnection = childConnections[uid];
+                // since you are removing each child connection, don't forget to clean up
+                // and remove it's properties and filters
+                this._removePropertiesFromConnection(childConnection)
+                    ._removeFiltersFromConnection(childConnection);
+                _.unset(this.newData.joins, uid);
+            }
+        }
+        // if a child connection is being removed check to see if it has a parent connection
+        // if it does then remove the child connection from it's parent
+        if(_.has(connection, 'parentConnectionUid')) {
+            let parentConnectionId = _.get(connection, 'parentConnectionUid');
+            _.unset(this.newData.joins[parentConnectionId].childConnections, connectionUid);
+        }
+        // go ahead and remove any properties and filters that rely on this connection
+        this._removePropertiesFromConnection(connection)
+            ._removeFiltersFromConnection(connection);
+        // go ahead and remove any filters that rely on this connection
+        debugger;
+        // Last but not least finally remove the main connection
+        _.unset(this.newData.joins, connectionUid);
+        this.globalEventDispatcher.publish('TEST', this.newData, this.newData.properties);
+        this.globalEventDispatcher.publish(Settings.Events.REPORT_CONNECTION_REMOVED, this.newData);
+    }
+
+    /**
+     * This function takes a connection and removes any related properties for it
+     * @param connection
+     * @return {EditReportWidget}
+     * @private
+     */
+    _removePropertiesFromConnection(connection) {
+        if(!_.isEmpty(this.newData.properties)) {
+            for(let propertyId in this.newData.properties) {
+                let property = this.newData.properties[propertyId];
+                if(connection.connected_object.join_direction === 'cross_join') {
+                    if(connection.connected_object.id == property.custom_object_id) {
+                        this._removeProperty(property);
+                    }
+                } else if(connection.connected_object.join_direction === 'normal_join') {
+                    if(connection.connected_property.field.customObject.id == property.custom_object_id) {
+                        this._removeProperty(property);
+                    }
+                }
+            }
+        }
+        return this;
+    }
+
+    /**
+     * This function takes a connection and removes any related filters for it
+     * @param connection
+     * @return {EditReportWidget}
+     * @private
+     */
+    _removeFiltersFromConnection(connection) {
+        debugger;
+        if(!_.isEmpty(this.newData.filters)) {
+            for(let filterId in this.newData.filters) {
+                let filter = this.newData.filters[filterId];
+                if(connection.connected_object.join_direction === 'cross_join') {
+                    if(connection.connected_object.id == filter.custom_object_id) {
+                        this._removeFilterByUid(filterId);
+                    }
+                } else if(connection.connected_object.join_direction === 'normal_join') {
+                    if(connection.connected_property.field.customObject.id == filter.custom_object_id) {
+                        this._removeFilterByUid(filterId);
+                    }
+                }
+            }
+        }
+        return this;
     }
 
     handlePropertyListItemClicked(property) {
