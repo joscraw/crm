@@ -328,7 +328,7 @@ class ListController extends ApiController
         $this->entityManager->flush();
         $response = new JsonResponse([
             'success' => true,
-            'reportId' => $list->getId()
+            'listId' => $list->getId()
         ], Response::HTTP_OK);
 
         return $response;
@@ -575,7 +575,7 @@ class ListController extends ApiController
 
         return new JsonResponse([
             'success' => true,
-            'data'  => $payload
+            'data'  => $payload['data']
         ], Response::HTTP_OK);
     }
 

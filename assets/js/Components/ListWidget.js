@@ -112,9 +112,9 @@ class ListWidget {
         this.newData.reportName = reportName;
         this._saveReport().then((data) => {
             debugger;
-            swal("Woohoo!!!", "Report successfully saved. Redirecting to edit view...", "success");
+            swal("Woohoo!!!", "List successfully saved. Redirecting to edit view...", "success");
             setTimeout(() => {
-                this.redirectToEditView(data['reportId']);
+                this.redirectToEditView(data['listId']);
             }, 3000);
         }).catch((errorData) => {
             if(errorData.httpCode === 401) {
@@ -155,8 +155,8 @@ class ListWidget {
         this.newData.listName = listName;
     }
 
-    redirectToEditView(reportId) {
-        window.location = Routing.generate('edit_report', {internalIdentifier: this.portalInternalIdentifier, 'reportId' : reportId});
+    redirectToEditView(listId) {
+        window.location = Routing.generate('edit_list', {internalIdentifier: this.portalInternalIdentifier, 'listId' : listId});
     };
 
     reportAddAndFilterButtonPressedHandler(parentFilterUid) {
