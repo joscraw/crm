@@ -15,6 +15,7 @@ import FilterHelper from "../FilterHelper";
 class ReportConnectedObjectsList {
 
     constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, data = {}) {
+        debugger;
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
@@ -72,6 +73,7 @@ class ReportConnectedObjectsList {
     }
 
     refreshConnectedObjects(data = {}) {
+        debugger;
         this.$wrapper.find(ReportConnectedObjectsList._selectors.connectedObjects).html("");
         if(!_.has(data, 'joins') || _.isEmpty(data.joins) || Object.keys(data.joins).length === 1) {
             this.$wrapper.find(ReportConnectedObjectsList._selectors.noConnectionsExistMessage).show();
