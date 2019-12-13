@@ -8,6 +8,7 @@ import List from "list.js";
 import SingleLineTextFieldFilterForm from "./SingleLineTextFieldFilterForm";
 import ColumnSearch from "./ColumnSearch";
 import ReportAddFilterFormModal from "./ReportAddFilterFormModal";
+import ListEditColumnNameFormModal from "./ListEditColumnNameFormModal";
 
 class ListPropertyList {
 
@@ -37,7 +38,8 @@ class ListPropertyList {
             propertyList: '.js-property-list',
             backButton: '.js-back-button',
             filterListItem: '.js-filter-list-item',
-            propertyRemoveItem: '.js-property-remove-item'
+            propertyRemoveItem: '.js-property-remove-item',
+            columnNameListItem: '.js-column-name-list-item'
 
         }
     }
@@ -72,6 +74,12 @@ class ListPropertyList {
             ListPropertyList._selectors.backButton,
             this.handleBackButtonClicked.bind(this)
         );
+
+        this.$wrapper.on(
+            'click',
+            ListPropertyList._selectors.columnNameListItem,
+            this.handleColumnNameListItemButtonClicked.bind(this)
+        );
     }
 
     /**
@@ -84,6 +92,7 @@ class ListPropertyList {
         this.$wrapper.off('click', ListPropertyList._selectors.filterListItem);
         this.$wrapper.off('click', ListPropertyList._selectors.backButton);
         this.$wrapper.off('click', ListPropertyList._selectors.propertyRemoveItem);
+        this.$wrapper.off('click', ListPropertyList._selectors.columnNameListItem);
     }
 
     handleKeyupEvent(e) {
@@ -163,12 +172,26 @@ class ListPropertyList {
     }
 
     handleBackButtonClicked(e) {
-
         debugger;
         e.stopPropagation();
-
         this.globalEventDispatcher.publish(Settings.Events.LIST_BACK_BUTTON_CLICKED);
+    }
 
+    handleColumnNameListItemButtonClicked(e) {
+        if(e.cancelable) {
+            e.preventDefault();
+        }
+        debugger;
+        const $listItem = $(e.currentTarget).parent('li');
+        let propertyGroupId = $listItem.closest(ListPropertyList._selectors.list).attr('data-property-group');
+        let propertyId = $listItem.attr('data-property-id');
+        let propertyGroup = this.propertyGroups[propertyGroupId];
+        let properties = propertyGroup.properties;
+        let property = properties.filter(property => {
+            return parseInt(property.id) === parseInt(propertyId);
+        });
+        debugger;
+        new ListEditColumnNameFormModal(this.globalEventDispatcher, this.portalInternalIdentifier, property[0]);
     }
 
     loadProperties() {
@@ -339,7 +362,7 @@ class ListPropertyList {
         var options = {
             valueNames: [ 'label' ],
             // Since there are no elements in the list, this will be used as template.
-            item: `<li class="c-report-widget__list-item"><span class="label"></span><i class="fa fa-trash-o js-property-remove-item" style="float: right; padding-left: 5px"></i> <i class="fa fa-plus js-property-list-item" style="float: right; padding-left: 5px"></i> <i class="fa fa-filter js-filter-list-item" style="float: right"></li>`
+            item: `<li class="c-report-widget__list-item"><span class="label"></span><i class="fa fa-trash-o js-property-remove-item" style="float: right; padding-left: 5px"></i> <i class="fa fa-plus js-property-list-item" style="float: right; padding-left: 5px"></i> <i class="fa fa-filter js-filter-list-item" style="float: right; padding-left: 5px"></i> <i class="fa fa-columns js-column-name-list-item" style="float: right; padding-left: 5px"></i></li>`
         };
         this.lists.push(new List(`list-property-${propertyGroup.id}`, options, properties));
         $( `#list-property-${propertyGroup.id} li` ).each((index, element) => {
