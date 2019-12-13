@@ -95,6 +95,11 @@ class ListWidget {
             this.handleReportRemoveConnectionButtonPressed.bind(this)
         );
 
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.LIST_COLUMN_NAME_CHANGED,
+            this.handleListColumnNameChanged.bind(this)
+        );
+
         this.render();
     }
 
@@ -232,6 +237,12 @@ class ListWidget {
         this._removeFilterByUid(uid);
         this.globalEventDispatcher.publish('TEST', this.newData, this.newData.properties);
         this.globalEventDispatcher.publish(Settings.Events.REPORT_FILTER_ITEM_REMOVED, this.newData);
+    }
+
+    handleListColumnNameChanged(property) {
+        _.set(this.newData.properties, property.id, property);
+        this.globalEventDispatcher.publish('TEST', this.newData, this.newData.properties);
+        swal("Yahoo!", `Column name successfully updated!`, "success");
     }
 
     handleListPropertyListRefreshed(properties) {

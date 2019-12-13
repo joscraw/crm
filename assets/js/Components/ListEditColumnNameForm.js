@@ -13,29 +13,12 @@ class ListEditColumnNameForm {
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
         this.property = property;
-
-       /* this.unbindEvents();
-
-        this.$wrapper.on(
-            'click',
-            SingleLineTextFieldFilterForm._selectors.radioButton,
-            this.handleOperatorRadioButtonClicked.bind(this)
-        );
-
+        this.unbindEvents();
         this.$wrapper.on(
             'submit',
-            SingleLineTextFieldFilterForm._selectors.applyFilterForm,
-            this.handleNewFilterFormSubmit.bind(this)
+            ListEditColumnNameForm._selectors.editColumnNameForm,
+            this.handleFormSubmit.bind(this)
         );
-
-        this.$wrapper.on(
-            'click',
-            SingleLineTextFieldFilterForm._selectors.backToListButton,
-            this.handleBackButtonClicked.bind(this)
-        );
-
-        this.setupFormAttributes();*/
-
         this.render();
     }
 
@@ -45,7 +28,7 @@ class ListEditColumnNameForm {
     static get _selectors() {
         return {
             backToListButton: '.js-back-to-list-button',
-            applyFilterForm: '#js-apply-filter-form',
+            editColumnNameForm: '#js-edit-column-name-form',
             radioButton: '.js-radio-button',
         }
     }
@@ -55,9 +38,7 @@ class ListEditColumnNameForm {
      * you need to remove the handlers otherwise they will keep stacking up
      */
     unbindEvents() {
-        this.$wrapper.off('submit', '#js-apply-filter-form');
-        this.$wrapper.off('click', '.js-radio-button');
-        this.$wrapper.off('click', SingleLineTextFieldFilterForm._selectors.backToListButton);
+        this.$wrapper.off('submit', ListEditColumnNameForm._selectors.editColumnNameForm);
     }
 
     handleBackButtonClicked() {
@@ -72,36 +53,19 @@ class ListEditColumnNameForm {
         }*/
     }
 
-    setupFormAttributes() {
-
-        this.operator1 = StringHelper.makeCharId();
-        this.operator2 = StringHelper.makeCharId();
-        this.operator3 = StringHelper.makeCharId();
-        this.operator4 = StringHelper.makeCharId();
-
-    }
-
-    handleNewFilterFormSubmit(e) {
-
+    handleFormSubmit(e) {
         debugger;
         if(e.cancelable) {
             e.preventDefault();
         }
-
         const $form = $(e.currentTarget);
         const formData = {};
-
         for (let fieldData of $form.serializeArray()) {
             formData[fieldData.name] = fieldData.value
         }
-
-        const customFilter = {...this.property, ...formData};
-
-        customFilter.property = this.property;
-
-        this.globalEventDispatcher.publish(Settings.Events.APPLY_CUSTOM_FILTER_BUTTON_PRESSED, customFilter);
-        console.log(`Event Dispatched: ${Settings.Events.APPLY_CUSTOM_FILTER_BUTTON_PRESSED}`);
-
+        const property = {...this.property, ...formData};
+        debugger;
+        this.globalEventDispatcher.publish(Settings.Events.LIST_COLUMN_NAME_CHANGED, property);
     }
 
     handleOperatorRadioButtonClicked(e) {
@@ -118,9 +82,9 @@ class ListEditColumnNameForm {
     static markup({property}) {
 
         return `
-        <form name="filter" id="js-apply-filter-form" novalidate="novalidate">
+        <form name="filter" id="js-edit-column-name-form" novalidate="novalidate">
           <div class="form-group js-operator-value">
-            <input type="text" value="${property.custom_object_label} ${property.label}" name="value" class="form-control" autocomplete="off">
+            <input type="text" value="${property.column_label}" name="column_label" class="form-control" autocomplete="off">
           </div>
             <button type="submit" class="js-apply-filter-button btn btn-light btn--full-width">Change Name</button>
         </form>

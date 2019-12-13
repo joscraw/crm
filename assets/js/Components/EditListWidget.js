@@ -98,6 +98,11 @@ class EditListWidget {
             this.handleReportRemoveConnectionButtonPressed.bind(this)
         );
 
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.LIST_COLUMN_NAME_CHANGED,
+            this.handleListColumnNameChanged.bind(this)
+        );
+
         this.loadReport().then((data) => {
             debugger;
             this.newData = data.data;
@@ -200,6 +205,12 @@ class EditListWidget {
             }
         }
         return this;
+    }
+
+    handleListColumnNameChanged(property) {
+        _.set(this.newData.properties, property.id, property);
+        this.globalEventDispatcher.publish('TEST', this.newData, this.newData.properties);
+        swal("Yahoo!", `Column name successfully updated!`, "success");
     }
 
     /**

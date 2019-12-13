@@ -76,9 +76,9 @@ class ListPreviewResultsTable {
             for(let key in columns) {
                 let column = columns[key];
                 datatableColumns.push({
-                    data: column.custom_object_label + ' ' + column.label,
-                    name: column.custom_object_label + ' ' + column.label,
-                    title: `${column.custom_object_label} ${column.label}`,
+                    data: column.column_label,
+                    name: column.column_label,
+                    title: column.column_label,
                 });
             }
         }

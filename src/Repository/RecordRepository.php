@@ -508,7 +508,7 @@ class RecordRepository extends ServiceEntityRepository
         $resultStr = [];
         foreach($data['properties'] as $propertyId => $property) {
             $alias = !empty($property['alias']) ? $property['alias'] : $root;
-            $columnName = sprintf("%s %s", $property['custom_object_label'], $property['label']);
+            $columnName = $property['column_label'];
             switch($property['fieldType']) {
                 case FieldCatalog::DATE_PICKER:
                     $jsonExtract = $this->getDatePickerQuery($alias);
