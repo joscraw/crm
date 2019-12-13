@@ -200,13 +200,13 @@ class RecordController extends ApiController
     }
 
     /**
-     * @Route("/{internalName}/bulk-edit", name="bulk_edit", methods={"GET", "POST"}, options = { "expose" = true })
+     * @Route("/{internalName}/bulk-edit-form", name="bulk_edit_form", methods={"GET", "POST"}, options = { "expose" = true })
      * @param Portal $portal
      * @param CustomObject $customObject
      * @param Request $request
      * @return JsonResponse
      */
-    public function bulkEditAction(Portal $portal, CustomObject $customObject, Request $request) {
+    public function bulkEditFormAction(Portal $portal, CustomObject $customObject, Request $request) {
 
         $form = $this->createForm(BulkEditType::class, null, [
             'customObject' => $customObject
@@ -255,6 +255,49 @@ class RecordController extends ApiController
         }
 
 
+        return new JsonResponse(
+            [
+                'success' => true,
+                'formMarkup' => $formMarkup
+            ],
+            Response::HTTP_OK
+        );
+    }
+
+    /**
+     * @Route("/{internalName}/bulk-edit", name="bulk_edit", methods={"GET", "POST"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param CustomObject $customObject
+     * @param Request $request
+     * @return JsonResponse
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    public function bulkEditAction(Portal $portal, CustomObject $customObject, Request $request) {
+        $form = $this->createForm(BulkEditType::class, null, [
+            'customObject' => $customObject
+        ]);
+        $form->submit($request->request->all());
+        $formMarkup = $this->renderView(
+            'Api/form/bulk_edit_form.html.twig',
+            [
+                'form' => $form->createView(),
+            ]
+        );
+        if ($form->isSubmitted() && !$form->isValid()) {
+            return new JsonResponse(
+                [
+                    'success' => false,
+                    'formMarkup' => $formMarkup,
+                ], Response::HTTP_BAD_REQUEST
+            );
+        }
+        if ($form->isSubmitted() && $form->isValid()) {
+            $propertyToUpdate = $form->get('propertyToUpdate')->getData();
+            $propertyToUpdate = $this->propertyRepository->find($propertyToUpdate);
+            $newPropertyValue = $form->get('propertyValue')->getData();
+            $data = $form->getExtraData()['data'];
+            $this->recordRepository->newUpdateLogicBuilder($data, $customObject,  $propertyToUpdate->getInternalName(), $newPropertyValue);
+        }
         return new JsonResponse(
             [
                 'success' => true,

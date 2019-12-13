@@ -11,25 +11,25 @@ class BulkEditFormModal {
      * @param globalEventDispatcher
      * @param portal
      * @param customObjectInternalName
-     * @param records
+     * @param data
      */
-    constructor(globalEventDispatcher, portal, customObjectInternalName, records) {
+    constructor(globalEventDispatcher, portal, customObjectInternalName, data) {
         this.globalEventDispatcher = globalEventDispatcher;
         this.portal = portal;
         this.customObjectInternalName = customObjectInternalName;
-        this.records = records;
+        this.data = data;
         this.render();
     }
 
     render() {
         swal({
-            title: `Bulk edit ${this.records.length} records`,
+            title: `Bulk Edit`,
             showConfirmButton: false,
             html: BulkEditFormModal.markup(),
             customClass: "swal2-modal--left-align"
         });
 
-        new BulkEditForm($('#js-bulk-edit-record-modal-container'), this.globalEventDispatcher, this.portal, this.customObjectInternalName, this.records);
+        new BulkEditForm($('#js-bulk-edit-record-modal-container'), this.globalEventDispatcher, this.portal, this.customObjectInternalName, this.data);
     }
 
     static markup() {

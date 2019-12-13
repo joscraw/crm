@@ -18,24 +18,22 @@ class BulkEditForm {
      * @param globalEventDispatcher
      * @param portalInternalIdentifier
      * @param customObjectInternalName
-     * @param records
+     * @param data
      */
-    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, records) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, data) {
 
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
         this.customObjectInternalName = customObjectInternalName;
-        this.records = records;
+        this.data = data;
 
         this.$wrapper.on(
             'submit',
             BulkEditForm._selectors.bulkEditForm,
             this.handleFormSubmit.bind(this)
         );
-
         this.loadBulkEditForm().then(() => { this.activatePlugins(); });
-
         this.activatePlugins();
     }
 
@@ -133,7 +131,7 @@ class BulkEditForm {
     _changeProperty(data) {
         return new Promise((resolve, reject) => {
 
-            const url = Routing.generate('bulk_edit', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
+            const url = Routing.generate('bulk_edit_form', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
 
             $.ajax({
                 url,
@@ -151,7 +149,7 @@ class BulkEditForm {
     loadBulkEditForm() {
         return new Promise((resolve, reject) => {
             $.ajax({
-                url: Routing.generate('bulk_edit', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName}),
+                url: Routing.generate('bulk_edit_form', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName}),
             }).then(data => {
                 this.$wrapper.html(data.formMarkup);
                 resolve(data);
@@ -166,16 +164,30 @@ class BulkEditForm {
      */
     handleFormSubmit(e) {
 
+        debugger;
         if(e.cancelable) {
             e.preventDefault();
         }
 
         const $form = $(e.currentTarget);
-        let formData = new FormData($form.get(0));
+        /*let formData = new FormData($form.get(0));
 
         for (let i = 0; i < this.records.length; i++) {
             formData.append('records[]', this.records[i]);
+        }*/
+        const formData = {};
+        for (let fieldData of $form.serializeArray()) {
+            formData[fieldData.name] = fieldData.value
         }
+        formData.data = this.data;
+
+
+        /**
+         * method: 'POST',
+         contentType: 'application/json',
+         data: JSON.stringify({data : this.newData})
+         *
+         */
 
         this._updateProperty(formData)
             .then((data) => {
@@ -199,15 +211,18 @@ class BulkEditForm {
      * @private
      */
     _updateProperty(data) {
+        debugger;
         return new Promise( (resolve, reject) => {
             const url = Routing.generate('bulk_edit', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
-
+            // todo this needs to post raw json as we are actually going to post the entire payload for the data object
+            //  cause those are going to be the records we are going to update. Let's make this a background job? Probably.
+            //   try to google how to use JSON to update a value. We can maybe knock this out with one query and not have to do any
+            //    background job. Hooray!
             $.ajax({
                 url,
                 method: 'POST',
-                data: data,
-                processData: false,
-                contentType: false
+                contentType: 'application/json',
+                data: JSON.stringify(data)
             }).then((data, textStatus, jqXHR) => {
                 resolve(data);
             }).catch((jqXHR) => {

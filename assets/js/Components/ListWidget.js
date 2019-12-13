@@ -100,6 +100,11 @@ class ListWidget {
             this.handleListColumnNameChanged.bind(this)
         );
 
+        this.globalEventDispatcher.subscribe(
+            Settings.Events.BULK_EDIT_SUCCESSFUL,
+            this.handleBulkEdit.bind(this)
+        );
+
         this.render();
     }
 
@@ -243,6 +248,10 @@ class ListWidget {
         _.set(this.newData.properties, property.id, property);
         this.globalEventDispatcher.publish('TEST', this.newData, this.newData.properties);
         swal("Yahoo!", `Column name successfully updated!`, "success");
+    }
+
+    handleBulkEdit() {
+        this.globalEventDispatcher.publish('TEST', this.newData, this.newData.properties);
     }
 
     handleListPropertyListRefreshed(properties) {

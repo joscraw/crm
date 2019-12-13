@@ -321,6 +321,46 @@ class RecordRepository extends ServiceEntityRepository
     }
 
     /**
+     * This function is the new and improved logic for the report builder.
+     * @param $data
+     * @param CustomObject $customObject
+     * @param $internalName
+     * @param $value
+     * @return array
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    public function newUpdateLogicBuilder($data, CustomObject $customObject, $internalName, $value)
+    {
+        $this->data = $data;
+        $root = sprintf("%s.%s", $this->generateRandomString(5), $customObject->getInternalName());
+
+        // setup the join aliases
+        $this->newJoinAliasBuilder($data);
+
+        // Setup Joins
+        $joins = [];
+        $joins = $this->newJoinLogicBuilder($root, $data, $joins);
+        $joinString = implode(" ", $joins);
+
+        // Setup Filters
+        $filters = [];
+        $filters = $this->newFilterLogicBuilder($root, $data, $filters);
+        $filterString = !empty($filters) ? sprintf("(\n%s)", implode(" OR \n", $filters)) : '';
+        $filterString = empty($filters) ? '' : "AND $filterString";
+
+        // Setup Join "Where" Conditionals
+        $joinConditionals = [];
+        $joinConditionals = $this->newJoinConditionalBuilder($root, $data, $joinConditionals);
+        $joinConditionalString = !empty($joinConditionals) ? sprintf("(\n%s\n)", implode(" AND \n", $joinConditionals)) : '';
+
+        $query = sprintf("UPDATE record `%s` %s SET `%s`.properties = JSON_SET(`%s`.properties, '$.%s', '%s') \n WHERE %s %s", $root, $joinString, $root, $root, $internalName, $value, $joinConditionalString, $filterString);
+        $em = $this->getEntityManager();
+        $stmt = $em->getConnection()->prepare($query);
+        $stmt->execute();
+    }
+
+
+    /**
      * This function is the new and improved logic for the report builder and just returns the count.
      * @param $data
      * @param CustomObject $customObject

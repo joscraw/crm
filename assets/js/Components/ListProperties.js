@@ -10,6 +10,7 @@ import ListPreviewResultsTable from "./ListPreviewResultsTable";
 import ReportConnectObjectButton from "./ReportConnectObjectButton";
 import ReportAllFiltersButton from "./ReportAllFiltersButton";
 import ReportConnectedObjectsList from "./ReportConnectedObjectsList";
+import BulkEditButton from "./BulkEditButton";
 
 class ListProperties {
 
@@ -36,7 +37,8 @@ class ListProperties {
             listConnectedObjectsListContainer: '.js-list-connected-objects-list-container',
             saveListButton: '.js-save-list-button',
             listName:  '.js-list-name',
-            listPropertyListContainer: '.js-list-property-list-container'
+            listPropertyListContainer: '.js-list-property-list-container',
+            listBulkEditContainer: '.js-list-bulk-edit-container'
         }
     }
 
@@ -95,6 +97,7 @@ class ListProperties {
         new ReportConnectObjectButton($(ListProperties._selectors.listConnectableObjectsContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.data.selectedCustomObject.internalName);
         new ReportAllFiltersButton($(ListProperties._selectors.listAllFiltersButtonContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.data.selectedCustomObject.internalName, this.data);
         new ReportConnectedObjectsList($(ListProperties._selectors.listConnectedObjectsListContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.data.selectedCustomObject.internalName, this.data);
+        new BulkEditButton($(ListProperties._selectors.listBulkEditContainer), this.globalEventDispatcher, this.portalInternalIdentifier, this.data.selectedCustomObject.internalName, this.data);
     }
 
     static markup({data: {listName, selectedCustomObject: {internalName}}}) {
@@ -125,6 +128,7 @@ class ListProperties {
                     <div class="col-md-12 js-list-property-list-container"></div>
                     <div class="col-md-12 js-list-connectable-objects"></div>
                     <div class="col-md-12 js-list-all-filters-button-container"></div>
+                    <div class="col-md-12 js-list-bulk-edit-container"></div>
                     <div class="col-md-12 js-list-connected-objects-list-container"></div>
                 </div>
                 <div class="col-md-8">
