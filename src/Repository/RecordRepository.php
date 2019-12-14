@@ -321,6 +321,49 @@ class RecordRepository extends ServiceEntityRepository
     }
 
     /**
+     * This function is the new and improved logic for the report builder.
+     * @param $data
+     * @param CustomObject $customObject
+     * @param Property $propertyToUpdate
+     * @param $internalName
+     * @param $value
+     * @return void
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    public function newUpdateLogicBuilder($data, CustomObject $customObject, Property $propertyToUpdate, $value)
+    {
+        $internalName = $propertyToUpdate->getInternalName();
+        $this->data = $data;
+        $root = sprintf("%s.%s", $this->generateRandomString(5), $customObject->getInternalName());
+
+        // setup the join aliases
+        $this->newJoinAliasBuilder($data);
+
+        // Setup Joins
+        $joins = [];
+        $joins = $this->newJoinLogicBuilder($root, $data, $joins);
+        $joinString = implode(" ", $joins);
+
+        // Setup Filters
+        $filters = [];
+        $filters = $this->newFilterLogicBuilder($root, $data, $filters);
+        $filterString = !empty($filters) ? sprintf("(\n%s)", implode(" OR \n", $filters)) : '';
+        $filterString = empty($filters) ? '' : "AND $filterString";
+
+        // Setup Join "Where" Conditionals
+        $joinConditionals = [];
+        $joinConditionals = $this->newJoinConditionalBuilder($root, $data, $joinConditionals);
+        $joinConditionalString = !empty($joinConditionals) ? sprintf("(\n%s\n)", implode(" AND \n", $joinConditionals)) : '';
+        
+        $query = sprintf("UPDATE record `%s` %s SET `%s`.properties = JSON_SET(`%s`.properties, '$.%s', '%s') \n WHERE %s %s", $root, $joinString, $root, $root, $internalName, $value, $joinConditionalString, $filterString);
+
+        $em = $this->getEntityManager();
+        $stmt = $em->getConnection()->prepare($query);
+        $stmt->execute();
+    }
+
+
+    /**
      * This function is the new and improved logic for the report builder and just returns the count.
      * @param $data
      * @param CustomObject $customObject
@@ -508,7 +551,7 @@ class RecordRepository extends ServiceEntityRepository
         $resultStr = [];
         foreach($data['properties'] as $propertyId => $property) {
             $alias = !empty($property['alias']) ? $property['alias'] : $root;
-            $columnName = sprintf("%s %s", $property['custom_object_label'], $property['label']);
+            $columnName = $property['column_label'];
             switch($property['fieldType']) {
                 case FieldCatalog::DATE_PICKER:
                     $jsonExtract = $this->getDatePickerQuery($alias);
@@ -1754,11 +1797,11 @@ class RecordRepository extends ServiceEntityRepository
                         } else {
                             $values = explode(',', $customFilter['value']);
                             if($values == ['0','1'] || $values == ['1','0']) {
-                                $andFilters[] = sprintf('(IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') = \'%s\' OR IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') = \'%s\')', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], 'true', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], 'false');
+                                $andFilters[] = sprintf('(IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') = \'%s\' OR IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') = \'%s\')', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], '1', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], '0');
                             } elseif ($values == ['0']) {
-                                $andFilters[] = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') = \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], 'false');
+                                $andFilters[] = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') = \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], '0');
                             } elseif ($values == ['1']) {
-                                $andFilters[] = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') = \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], 'true');
+                                $andFilters[] = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') = \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], '1');
                             }
                         }
                         break;
@@ -1768,11 +1811,11 @@ class RecordRepository extends ServiceEntityRepository
                         } else {
                             $values = explode(',', $customFilter['value']);
                             if($values == ['0','1'] || $values == ['1','0']) {
-                                $andFilters[] = sprintf('(IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') != \'%s\' AND IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') != \'%s\')', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], 'true', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], 'false');
+                                $andFilters[] = sprintf('(IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') != \'%s\' AND IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') != \'%s\')', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], '1', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], '0');
                             } elseif ($values == ['0']) {
-                                $andFilters[] = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') != \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], 'false');
+                                $andFilters[] = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') != \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], '0');
                             } elseif ($values == ['1']) {
-                                $andFilters[] = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') != \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], 'true');
+                                $andFilters[] = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') != \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], '1');
                             }
                         }
                         break;
@@ -1928,8 +1971,8 @@ HERE;
     CASE
         WHEN `${alias}`.properties->>'$.%s' IS NULL THEN "-" 
         WHEN `${alias}`.properties->>'$.%s' = '' THEN ""
-        WHEN `${alias}`.properties->>'$.%s' = 'true' THEN "yes"
-        WHEN `${alias}`.properties->>'$.%s' = 'false' THEN "no"
+        WHEN `${alias}`.properties->>'$.%s' = '1' THEN "yes"
+        WHEN `${alias}`.properties->>'$.%s' = '0' THEN "no"
         ELSE `${alias}`.properties->>'$.%s'
     END AS "%s"
 HERE;

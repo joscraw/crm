@@ -293,7 +293,6 @@ class ListController extends ApiController
         );
     }
 
-
     /**
      * @Route("/{internalName}/save-list", name="save_list", methods={"POST"}, options = { "expose" = true })
      * @param Portal $portal
@@ -303,7 +302,6 @@ class ListController extends ApiController
      * @throws \Doctrine\DBAL\DBALException
      */
     public function saveListAction(Portal $portal, CustomObject $customObject, Request $request) {
-
         $hasPermission = $this->permissionAuthorizationHandler->isAuthorized(
             $this->getUser(),
             Role::CREATE_LIST,
@@ -317,46 +315,20 @@ class ListController extends ApiController
                 ], Response::HTTP_UNAUTHORIZED
             );
         }
-
         $data = $request->request->get('data', []);
-
-        $listName = $request->request->get('listName');
-
-        $listType = $request->request->get('listType');
-
-        $columnOrder = $request->request->get('columnOrder', []);
-
-        $query = $this->recordRepository->getReportMysqlOnly($data, $customObject, $columnOrder);
-
+        $listName = $data['listName'];
+        $query = $this->recordRepository->newReportLogicBuilder($data, $customObject, true);
         $list = new MarketingList();
-
         $list->setQuery($query);
         $list->setCustomObject($customObject);
         $list->setData($data);
         $list->setName($listName);
         $list->setPortal($portal);
-        $list->setColumnOrder($columnOrder);
-        $list->setType($listType);
-
-
-        if($listType = MarketingList::STATIC_LIST) {
-
-            $results = $this->recordRepository->getReportRecordIds($data, $customObject);
-
-            $records = $results['results'];
-
-            $list->setRecords($records);
-
-
-        }
-
-
         $this->entityManager->persist($list);
         $this->entityManager->flush();
-
         $response = new JsonResponse([
-            'listId' => $list->getId(),
-            'success' => true
+            'success' => true,
+            'listId' => $list->getId()
         ], Response::HTTP_OK);
 
         return $response;
@@ -603,7 +575,7 @@ class ListController extends ApiController
 
         return new JsonResponse([
             'success' => true,
-            'data'  => $payload
+            'data'  => $payload['data']
         ], Response::HTTP_OK);
     }
 
@@ -620,7 +592,7 @@ class ListController extends ApiController
 
         $hasPermission = $this->permissionAuthorizationHandler->isAuthorized(
             $this->getUser(),
-            Role::EDIT_LIST,
+            Role::CREATE_LIST,
             Role::SYSTEM_PERMISSION
         );
 
@@ -631,40 +603,19 @@ class ListController extends ApiController
                 ], Response::HTTP_UNAUTHORIZED
             );
         }
-
         $data = $request->request->get('data', []);
-
-        $listName = $request->request->get('listName');
-
-        $listType = $request->request->get('listType');
-
-        $columnOrder = $request->request->get('columnOrder', []);
-
-        $query = $this->recordRepository->getReportMysqlOnly($data, $customObject, $columnOrder);
-
-        if($listType = MarketingList::STATIC_LIST) {
-
-            $results = $this->recordRepository->getReportRecordIds($data, $customObject);
-
-            $records = $results['results'];
-
-            $list->setRecords($records);
-
-        }
-
+        $listName = $data['listName'];
+        $query = $this->recordRepository->newReportLogicBuilder($data, $customObject, true);
         $list->setQuery($query);
         $list->setCustomObject($customObject);
         $list->setData($data);
         $list->setName($listName);
         $list->setPortal($portal);
-        $list->setColumnOrder($columnOrder);
-        $list->setType($listType);
-
         $this->entityManager->persist($list);
         $this->entityManager->flush();
-
         $response = new JsonResponse([
-            'success' => true
+            'success' => true,
+            'listId' => $list->getId()
         ], Response::HTTP_OK);
 
         return $response;

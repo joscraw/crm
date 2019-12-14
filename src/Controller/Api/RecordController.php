@@ -200,13 +200,13 @@ class RecordController extends ApiController
     }
 
     /**
-     * @Route("/{internalName}/bulk-edit", name="bulk_edit", methods={"GET", "POST"}, options = { "expose" = true })
+     * @Route("/{internalName}/bulk-edit-form", name="bulk_edit_form", methods={"GET", "POST"}, options = { "expose" = true })
      * @param Portal $portal
      * @param CustomObject $customObject
      * @param Request $request
      * @return JsonResponse
      */
-    public function bulkEditAction(Portal $portal, CustomObject $customObject, Request $request) {
+    public function bulkEditFormAction(Portal $portal, CustomObject $customObject, Request $request) {
 
         $form = $this->createForm(BulkEditType::class, null, [
             'customObject' => $customObject
@@ -221,44 +221,31 @@ class RecordController extends ApiController
             ]
         );
 
-        if ($form->isSubmitted() && !$form->isValid()) {
-
-            return new JsonResponse(
-                [
-                    'success' => false,
-                    'formMarkup' => $formMarkup,
-                ], Response::HTTP_BAD_REQUEST
-            );
-        }
-
-
-        if ($form->isSubmitted() && $form->isValid()) {
-
-            $propertyToUpdate = $form->get('propertyToUpdate')->getData();
-            $propertyToUpdate = $this->propertyRepository->find($propertyToUpdate);
-
-            $records = $request->request->get('records', []);
-
-            foreach($records as $record) {
-
-                $record = $this->recordRepository->find($record);
-
-                $properties = $record->getProperties();
-                $properties[$propertyToUpdate->getInternalName()] = $form->get('propertyValue')->getData();
-                $record->setProperties($properties);
-
-                $this->entityManager->persist($record);
-                $this->entityManager->flush();
-
-            }
-
-        }
-
-
         return new JsonResponse(
             [
                 'success' => true,
-                'formMarkup' => $formMarkup
+                'formMarkup' => $formMarkup,
+            ], Response::HTTP_OK
+        );
+    }
+
+    /**
+     * @Route("/{internalName}/bulk-edit", name="bulk_edit", methods={"GET", "POST"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param CustomObject $customObject
+     * @param Request $request
+     * @return JsonResponse
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    public function bulkEditAction(Portal $portal, CustomObject $customObject, Request $request) {
+        $propertyToUpdate = $request->request->get('propertyToUpdate');
+        $propertyToUpdate = $this->propertyRepository->find($propertyToUpdate);
+        $newPropertyValue = $request->request->get('propertyValue');
+        $data = $request->request->get('data');
+        $this->recordRepository->newUpdateLogicBuilder($data, $customObject,  $propertyToUpdate, $newPropertyValue);
+        return new JsonResponse(
+            [
+                'success' => true,
             ],
             Response::HTTP_OK
         );

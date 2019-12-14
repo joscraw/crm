@@ -481,7 +481,7 @@ class EditReportWidget {
     _saveReport() {
         debugger;
         return new Promise((resolve, reject) => {
-            const url = Routing.generate('save_report', {internalIdentifier: this.portalInternalIdentifier, internalName: this.newData.selectedCustomObject.internalName});
+            const url = Routing.generate('api_edit_report', {internalIdentifier: this.portalInternalIdentifier, internalName: this.newData.selectedCustomObject.internalName, reportId: this.reportId});
             $.ajax({
                 url,
                 method: 'POST',

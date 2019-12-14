@@ -18,24 +18,22 @@ class BulkEditForm {
      * @param globalEventDispatcher
      * @param portalInternalIdentifier
      * @param customObjectInternalName
-     * @param records
+     * @param data
      */
-    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, records) {
+    constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, data) {
 
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
         this.customObjectInternalName = customObjectInternalName;
-        this.records = records;
+        this.data = data;
 
         this.$wrapper.on(
             'submit',
             BulkEditForm._selectors.bulkEditForm,
             this.handleFormSubmit.bind(this)
         );
-
         this.loadBulkEditForm().then(() => { this.activatePlugins(); });
-
         this.activatePlugins();
     }
 
@@ -67,7 +65,7 @@ class BulkEditForm {
         });
 
         $('.js-datepicker').datepicker({
-            format: 'mm-dd-yyyy'
+            format: 'mm/dd/yyyy'
         });
 
         const url = Routing.generate('records_for_selectize', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
@@ -121,19 +119,16 @@ class BulkEditForm {
 
         formData[$(e.target).attr('name')] = $(e.target).val();
 
-        this._changeProperty(formData).then((data) => {}).catch((errorData) => {
-
-            this.$wrapper.html(errorData.formMarkup);
-
+        this._changeProperty(formData).then((data) => {
+            this.$wrapper.html(data.formMarkup);
             this.activatePlugins();
-
-        });
+        }).catch((errorData) => {});
     }
 
     _changeProperty(data) {
         return new Promise((resolve, reject) => {
 
-            const url = Routing.generate('bulk_edit', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
+            const url = Routing.generate('bulk_edit_form', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
 
             $.ajax({
                 url,
@@ -151,7 +146,7 @@ class BulkEditForm {
     loadBulkEditForm() {
         return new Promise((resolve, reject) => {
             $.ajax({
-                url: Routing.generate('bulk_edit', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName}),
+                url: Routing.generate('bulk_edit_form', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName}),
             }).then(data => {
                 this.$wrapper.html(data.formMarkup);
                 resolve(data);
@@ -165,29 +160,33 @@ class BulkEditForm {
      * @param e
      */
     handleFormSubmit(e) {
-
         if(e.cancelable) {
             e.preventDefault();
         }
-
-        const $form = $(e.currentTarget);
-        let formData = new FormData($form.get(0));
-
-        for (let i = 0; i < this.records.length; i++) {
-            formData.append('records[]', this.records[i]);
+        const formData = {};
+        let propertyValue = document.getElementById("propertyValue");
+        if(propertyValue.tagName === 'SELECT') {
+            let options = propertyValue.getElementsByTagName('option'),
+                values  = [];
+            for (var i=options.length; i--;) {
+                if (options[i].selected) values.push(options[i].value)
+            }
+            formData.propertyValue = values.join(";");
+        } else if(propertyValue.tagName === 'INPUT' || propertyValue.tagName === 'TEXTAREA') {
+            formData.propertyValue = propertyValue.value;
         }
-
+        let propertyToUpdate = document.getElementById("propertyToUpdate");
+        formData.propertyToUpdate = propertyToUpdate.value;
+        formData.data = this.data;
         this._updateProperty(formData)
             .then((data) => {
                 swal("Hooray!", "Hooray!, record(s) successfully updated!", "success");
                 this.globalEventDispatcher.publish(Settings.Events.BULK_EDIT_SUCCESSFUL);
             }).catch((errorData) => {
-
             if(errorData.httpCode === 401) {
                 swal("Woah!", `You don't have proper permissions for this!`, "error");
                 return;
             }
-
             this.$wrapper.html(errorData.formMarkup);
             this.activatePlugins();
         });
@@ -199,15 +198,18 @@ class BulkEditForm {
      * @private
      */
     _updateProperty(data) {
+        debugger;
         return new Promise( (resolve, reject) => {
             const url = Routing.generate('bulk_edit', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
-
+            // todo this needs to post raw json as we are actually going to post the entire payload for the data object
+            //  cause those are going to be the records we are going to update. Let's make this a background job? Probably.
+            //   try to google how to use JSON to update a value. We can maybe knock this out with one query and not have to do any
+            //    background job. Hooray!
             $.ajax({
                 url,
                 method: 'POST',
-                data: data,
-                processData: false,
-                contentType: false
+                contentType: 'application/json',
+                data: JSON.stringify(data)
             }).then((data, textStatus, jqXHR) => {
                 resolve(data);
             }).catch((jqXHR) => {

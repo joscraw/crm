@@ -88,7 +88,7 @@ class MarketingList
      * @Assert\Choice({"DYNAMIC_LIST", "STATIC_LIST"})
      * @ORM\Column(type="string", length=255)
      */
-    private $type;
+    private $type = self::DYNAMIC_LIST;
 
     /**
      * @ORM\Column(type="json", nullable=true)

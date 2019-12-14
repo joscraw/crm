@@ -75,27 +75,18 @@ class BulkEditType extends AbstractType
      */
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
-
         $choices = [];
-
         $customObject = $options['customObject'];
-
         $propertyGroups = $this->propertyGroupRepository->getPropertyGroupsAndProperties($customObject);
-
         foreach($propertyGroups as $propertyGroup) {
             // We don't show Custom Objects on lists because lists are only for one object type
             foreach($propertyGroup->getProperties() as $property) {
-
-
                 /*if($property->getFieldType() === FieldCatalog::CUSTOM_OBJECT) {
                     continue;
                 }*/
-
                 $choices[$propertyGroup->getName()][$property->getLabel()] = $property->getId();
-
             }
         }
-
         $builder->add('propertyToUpdate', ChoiceType::class, [
             'choices' => $choices,
             'label' => '',
@@ -106,27 +97,29 @@ class BulkEditType extends AbstractType
                 'class' => 'js-selectize-single-select-bulk-edit-property js-property'
             ]
         ]);
-
-        $builder->get('propertyToUpdate')->addEventListener(FormEvents::POST_SUBMIT, [$this, 'fieldModifier']);
+        $builder->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event) {
+            $data = $event->getData();
+            if(!$data) {
+                return;
+            }
+            $this->modifyForm($event->getForm(), $data->getCustomObject());
+        });
+        $builder->get('propertyToUpdate')->addEventListener(FormEvents::POST_SUBMIT, function (FormEvent $event) {
+            $propertyId = $event->getForm()->getData();
+            if(!$propertyId) {
+                return;
+            }
+            $this->modifyForm($event->getForm()->getParent(), $propertyId);
+        });
     }
 
-    /**
-     * @see * @see https://stackoverflow.com/questions/25354806/how-to-add-an-event-listener-to-a-dynamically-added-field-using-symfony-forms#answer-29735470
-     * @param FormEvent $event
-     */
-    public function fieldModifier(FormEvent $event) {
-
-        // since we've added the listener to the child, we'll have
-        // to grab the parent
-        $form = $event->getForm()->getParent();
-
-        $data = $event->getData();
-
+    private function modifyForm(FormInterface $form, $propertyId = null) {
+        if(!$propertyId) {
+            return;
+        }
+        $property = $this->propertyRepository->find($propertyId);
         $fieldClass = null;
-        $property = $this->propertyRepository->find($data);
-
         $builderData = null;
-
         $options = [
             'required' => false,
             'auto_initialize' => false,
@@ -137,7 +130,6 @@ class BulkEditType extends AbstractType
                 'autocomplete' => 'off'
             ],
         ];
-
         switch($property->getFieldType()) {
             case FieldCatalog::SINGLE_LINE_TEXT:
                 $fieldClass = BulkEditSingleLineTextFieldType::class;
@@ -238,29 +230,21 @@ class BulkEditType extends AbstractType
                 }
 
                 break;
-
         }
-
-        // This is a really important thing to NOTE!
-        // event listeners can only be attached to a builder (FormBuilderInterface)
-        // and NOT to a form (FormInterface). This is why we have to create our own builder
-        // the builder is nothing more then a form field
-        $builder = $form->getConfig()->getFormFactory()->createNamedBuilder(
-            'propertyValue',
-            $fieldClass,
-            $builderData,
-            $options
-        );
-
         // last but not least, let's add the builder (form field) to the main form
-        $form->add($builder->getForm());
-
+        $form->add('propertyValue', $fieldClass, $options);
     }
 
     public function configureOptions(OptionsResolver $resolver)
     {
+        $resolver->setDefaults(['allow_extra_fields' => true, 'csrf_protection' => false]);
         $resolver->setRequired([
             'customObject'
         ]);
+    }
+
+    public function getBlockPrefix()
+    {
+        return '';
     }
 }
