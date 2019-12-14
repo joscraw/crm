@@ -65,7 +65,7 @@ class BulkEditForm {
         });
 
         $('.js-datepicker').datepicker({
-            format: 'mm-dd-yyyy'
+            format: 'mm/dd/yyyy'
         });
 
         const url = Routing.generate('records_for_selectize', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
@@ -119,13 +119,10 @@ class BulkEditForm {
 
         formData[$(e.target).attr('name')] = $(e.target).val();
 
-        this._changeProperty(formData).then((data) => {}).catch((errorData) => {
-
-            this.$wrapper.html(errorData.formMarkup);
-
+        this._changeProperty(formData).then((data) => {
+            this.$wrapper.html(data.formMarkup);
             this.activatePlugins();
-
-        });
+        }).catch((errorData) => {});
     }
 
     _changeProperty(data) {
@@ -163,43 +160,33 @@ class BulkEditForm {
      * @param e
      */
     handleFormSubmit(e) {
-
-        debugger;
         if(e.cancelable) {
             e.preventDefault();
         }
-
-        const $form = $(e.currentTarget);
-        /*let formData = new FormData($form.get(0));
-
-        for (let i = 0; i < this.records.length; i++) {
-            formData.append('records[]', this.records[i]);
-        }*/
         const formData = {};
-        for (let fieldData of $form.serializeArray()) {
-            formData[fieldData.name] = fieldData.value
+        let propertyValue = document.getElementById("propertyValue");
+        if(propertyValue.tagName === 'SELECT') {
+            let options = propertyValue.getElementsByTagName('option'),
+                values  = [];
+            for (var i=options.length; i--;) {
+                if (options[i].selected) values.push(options[i].value)
+            }
+            formData.propertyValue = values.join(";");
+        } else if(propertyValue.tagName === 'INPUT' || propertyValue.tagName === 'TEXTAREA') {
+            formData.propertyValue = propertyValue.value;
         }
+        let propertyToUpdate = document.getElementById("propertyToUpdate");
+        formData.propertyToUpdate = propertyToUpdate.value;
         formData.data = this.data;
-
-
-        /**
-         * method: 'POST',
-         contentType: 'application/json',
-         data: JSON.stringify({data : this.newData})
-         *
-         */
-
         this._updateProperty(formData)
             .then((data) => {
                 swal("Hooray!", "Hooray!, record(s) successfully updated!", "success");
                 this.globalEventDispatcher.publish(Settings.Events.BULK_EDIT_SUCCESSFUL);
             }).catch((errorData) => {
-
             if(errorData.httpCode === 401) {
                 swal("Woah!", `You don't have proper permissions for this!`, "error");
                 return;
             }
-
             this.$wrapper.html(errorData.formMarkup);
             this.activatePlugins();
         });

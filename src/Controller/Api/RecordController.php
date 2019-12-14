@@ -221,46 +221,11 @@ class RecordController extends ApiController
             ]
         );
 
-        if ($form->isSubmitted() && !$form->isValid()) {
-
-            return new JsonResponse(
-                [
-                    'success' => false,
-                    'formMarkup' => $formMarkup,
-                ], Response::HTTP_BAD_REQUEST
-            );
-        }
-
-
-        if ($form->isSubmitted() && $form->isValid()) {
-
-            $propertyToUpdate = $form->get('propertyToUpdate')->getData();
-            $propertyToUpdate = $this->propertyRepository->find($propertyToUpdate);
-
-            $records = $request->request->get('records', []);
-
-            foreach($records as $record) {
-
-                $record = $this->recordRepository->find($record);
-
-                $properties = $record->getProperties();
-                $properties[$propertyToUpdate->getInternalName()] = $form->get('propertyValue')->getData();
-                $record->setProperties($properties);
-
-                $this->entityManager->persist($record);
-                $this->entityManager->flush();
-
-            }
-
-        }
-
-
         return new JsonResponse(
             [
                 'success' => true,
-                'formMarkup' => $formMarkup
-            ],
-            Response::HTTP_OK
+                'formMarkup' => $formMarkup,
+            ], Response::HTTP_OK
         );
     }
 
@@ -273,35 +238,14 @@ class RecordController extends ApiController
      * @throws \Doctrine\DBAL\DBALException
      */
     public function bulkEditAction(Portal $portal, CustomObject $customObject, Request $request) {
-        $form = $this->createForm(BulkEditType::class, null, [
-            'customObject' => $customObject
-        ]);
-        $form->submit($request->request->all());
-        $formMarkup = $this->renderView(
-            'Api/form/bulk_edit_form.html.twig',
-            [
-                'form' => $form->createView(),
-            ]
-        );
-        if ($form->isSubmitted() && !$form->isValid()) {
-            return new JsonResponse(
-                [
-                    'success' => false,
-                    'formMarkup' => $formMarkup,
-                ], Response::HTTP_BAD_REQUEST
-            );
-        }
-        if ($form->isSubmitted() && $form->isValid()) {
-            $propertyToUpdate = $form->get('propertyToUpdate')->getData();
-            $propertyToUpdate = $this->propertyRepository->find($propertyToUpdate);
-            $newPropertyValue = $form->get('propertyValue')->getData();
-            $data = $form->getExtraData()['data'];
-            $this->recordRepository->newUpdateLogicBuilder($data, $customObject,  $propertyToUpdate->getInternalName(), $newPropertyValue);
-        }
+        $propertyToUpdate = $request->request->get('propertyToUpdate');
+        $propertyToUpdate = $this->propertyRepository->find($propertyToUpdate);
+        $newPropertyValue = $request->request->get('propertyValue');
+        $data = $request->request->get('data');
+        $this->recordRepository->newUpdateLogicBuilder($data, $customObject,  $propertyToUpdate, $newPropertyValue);
         return new JsonResponse(
             [
                 'success' => true,
-                'formMarkup' => $formMarkup
             ],
             Response::HTTP_OK
         );

@@ -54,6 +54,10 @@ class RecordNumberCurrencyTransformer implements DataTransformerInterface
             return '';
         }
 
+        if(!is_numeric($number)) {
+            return '';
+        }
+
         $formattedNumber = number_format((float)$number, 2, '.', '');
         return $formattedNumber;
 

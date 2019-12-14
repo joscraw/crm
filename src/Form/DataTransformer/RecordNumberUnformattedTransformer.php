@@ -53,7 +53,10 @@ class RecordNumberUnformattedTransformer implements DataTransformerInterface
             return '';
         }
 
-        return $number;
+        if(!is_numeric($number)) {
+            return '';
+        }
 
+        return $number;
     }
 }

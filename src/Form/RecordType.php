@@ -208,8 +208,8 @@ class RecordType extends AbstractType
 
                     $options = array_merge([
                         'choices'  => array(
-                            'Yes' => true,
-                            'No' => false,
+                            'Yes' => '1',
+                            'No' => '0',
                         ),
                         'label' => $property->getLabel(),
                         'expanded' => false,
