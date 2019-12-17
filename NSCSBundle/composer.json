@@ -1,0 +1,19 @@
+{
+    "name": "nscs/nscs-bundle",
+    "description": "nscs bundle for connecting to crm",
+    "type": "symfony-bundle",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Josh Crawmer",
+            "email": "joshcrawmer4@yahoo.com"
+        }
+    ],
+    "require": {
+    },
+    "autoload": {
+      "psr-4": {
+        "NSCSBundle\\": "src/"
+      }
+    }
+}

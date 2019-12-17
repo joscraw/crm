@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<routes xmlns="http://symfony.com/schema/routing"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://symfony.com/schema/routing
+        http://symfony.com/schema/routing/routing-1.0.xsd">
+    <route id="nscs_api_authorization_check" controller="nscs_controller_api.nscs_api_controller:authorizationCheck" path="/authorization-check" >
+    </route>
+    <route id="nscs_api_email_check" controller="nscs_controller_api.nscs_api_controller:emailCheck" path="/email-check" >
+    </route>
+    <route id="nscs_api_invitation_code_check" controller="nscs_controller_api.nscs_api_controller:invitationCheck" path="/invitation-check" >
+    </route>
+    <route id="nscs_api_cengage_scholarships" controller="nscs_controller_api.nscs_api_controller:getCengageScholarships" path="/cengage-scholarships" >
+    </route>
+    <route id="nscs_api_cengage_scholarships_count" controller="nscs_controller_api.nscs_api_controller:getCengageScholarshipsCount" path="/cengage-scholarships-count" >
+    </route>
+</routes>
