@@ -7,6 +7,7 @@
 7. install messenger component https://symfony.com/doc/current/messenger.html
 
 
+
     Make sure you setup nscs/nscs-bundle as a private repo 
     https://getcomposer.org/doc/05-repositories.md#using-private-repositories
     before you deploy
