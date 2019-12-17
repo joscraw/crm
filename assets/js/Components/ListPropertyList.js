@@ -161,7 +161,8 @@ class ListPropertyList {
             $.ajax({
                 url: url,
                 method: 'POST',
-                data: {'data': data}
+                contentType: 'application/json',
+                data: JSON.stringify({data : data})
             }).then(data => {
                 resolve(data);
             }).catch(jqXHR => {
