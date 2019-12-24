@@ -96,7 +96,8 @@ class NSCSApiController extends  AbstractController
             $limit = $request->query->get('limit', 10);
             $offset = $request->query->get('offset', 0);
             $search = $request->query->get('search', '');
-            $results = $this->recordRepository->getCengageScholarships($limit, $offset, $search);
+            $tag = $request->query->get('tag', '');
+            $results = $this->recordRepository->getCengageScholarships($limit, $offset, $search, $tag);
         } catch (\Exception $exception) {
             if(empty($results['results'])) {
                 return $this->json([
@@ -110,13 +111,15 @@ class NSCSApiController extends  AbstractController
         return $this->json([
             'success' => true,
             'data' => $results['results'],
-            'total_count' => $this->recordRepository->getCengageScholarshipCount(),
+            'total_count' => $this->recordRepository->getCengageScholarshipCount($search, $tag),
         ]);
     }
 
     public function getCengageScholarshipsCount(Request $request) {
         try {
-            $results = $this->recordRepository->getCengageScholarshipCount();
+            $search = $request->query->get('search', '');
+            $tag = $request->query->get('tag', '');
+            $results = $this->recordRepository->getCengageScholarshipCount($search, $tag);
         } catch (\Exception $exception) {
             if(empty($results['results'])) {
                 return $this->json([
@@ -127,6 +130,22 @@ class NSCSApiController extends  AbstractController
         return $this->json([
             'success' => true,
             'total_count' => $results['results'][0]['count']
+        ]);
+    }
+
+    public function getCengageScholarshipTags(Request $request) {
+        try {
+            $results = $this->recordRepository->getCengageScholarshipTags();
+        } catch (\Exception $exception) {
+            if(empty($results['results'])) {
+                return $this->json([
+                    'success' => false
+                ]);
+            }
+        }
+        return $this->json([
+            'success' => true,
+            'data' => $results['results']
         ]);
     }
 

@@ -120,11 +120,32 @@ class RecordRepository extends ServiceEntityRepository
      * @return array
      * @throws \Doctrine\DBAL\DBALException
      */
-    public function getCengageScholarships($limit, $offset, $search) {
+    public function getCengageScholarships($limit, $offset, $search, $tag) {
         $query = "SELECT DISTINCT root.id, root.properties from record root INNER JOIN custom_object co on root.custom_object_id = co.id 
                                 WHERE co.internal_name = 'cengage_scholarships'";
         $query .= !empty($search) ? sprintf(" AND LOWER(root.properties) LIKE \"%%%s%%\"", strtolower($search)) : '';
+        $query .= !empty($tag) ? sprintf(" AND LOWER(root.properties->\"$.subject\") LIKE \"%%%s%%\"", strtolower($tag)) : '';
         $query .= sprintf(" LIMIT %s OFFSET %s", $limit, $offset);
+        $em = $this->getEntityManager();
+        $stmt = $em->getConnection()->prepare($query);
+        $stmt->execute();
+        $results = $stmt->fetchAll();
+        return array(
+            "results"  => $results
+        );
+    }
+
+    /**
+     * @param $search
+     * @param $tag
+     * @return array
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    public function getCengageScholarshipCount($search, $tag) {
+        $query = "SELECT count(root.id) as count from record root INNER JOIN custom_object co on root.custom_object_id = co.id
+WHERE co.internal_name = 'cengage_scholarships'";
+        $query .= !empty($search) ? sprintf(" AND LOWER(root.properties) LIKE \"%%%s%%\"", strtolower($search)) : '';
+        $query .= !empty($tag) ? sprintf(" AND LOWER(root.properties->\"$.subject\") LIKE \"%%%s%%\"", strtolower($tag)) : '';
         $em = $this->getEntityManager();
         $stmt = $em->getConnection()->prepare($query);
         $stmt->execute();
@@ -138,9 +159,9 @@ class RecordRepository extends ServiceEntityRepository
      * @return array
      * @throws \Doctrine\DBAL\DBALException
      */
-    public function getCengageScholarshipCount() {
-        $query = "SELECT count(root.id) as count from record root INNER JOIN custom_object co on root.custom_object_id = co.id
-WHERE co.internal_name = 'cengage_scholarships'";
+    public function getCengageScholarshipTags() {
+        $query = "SELECT DISTINCT root.properties->\"$.subject\" as subject from record root INNER JOIN custom_object co on root.custom_object_id = co.id 
+                                WHERE co.internal_name = 'cengage_scholarships' and root.properties->\"$.subject\" != \"\" GROUP BY subject";
         $em = $this->getEntityManager();
         $stmt = $em->getConnection()->prepare($query);
         $stmt->execute();
@@ -149,4 +170,5 @@ WHERE co.internal_name = 'cengage_scholarships'";
             "results"  => $results
         );
     }
+
 }

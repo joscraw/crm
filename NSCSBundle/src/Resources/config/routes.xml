@@ -13,4 +13,6 @@
     </route>
     <route id="nscs_api_cengage_scholarships_count" controller="nscs_controller_api.nscs_api_controller:getCengageScholarshipsCount" path="/cengage-scholarships-count" >
     </route>
+    <route id="nscs_api_cengage_scholarship_tags" controller="nscs_controller_api.nscs_api_controller:getCengageScholarshipTags" path="/cengage-scholarship-tags" >
+    </route>
 </routes>
