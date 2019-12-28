@@ -1,0 +1,15 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Conversations{% endblock %}
+
+{% block pageClass %}js-conversations{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link href="{{ asset('build/conversations.css') }}" rel="stylesheet" />
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('build/conversations.js') }}"></script>
+{% endblock %}

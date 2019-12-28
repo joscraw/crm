@@ -10,6 +10,7 @@
         "excelwebzone/recaptcha-bundle": "^1.5",
         "friendsofsymfony/ckeditor-bundle": "^2.1",
         "friendsofsymfony/jsrouting-bundle": "^2.2",
+        "google/apiclient": "^2.0",
         "lexik/form-filter-bundle": "^5.0",
         "nscs/nscs-bundle": "*@dev",
         "phpoffice/phpspreadsheet": "^1.10",
