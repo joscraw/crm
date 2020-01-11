@@ -6,6 +6,7 @@ use App\Entity\CustomObject;
 use App\Entity\Portal;
 use App\Entity\Property;
 use App\Entity\PropertyGroup;
+use App\Entity\User;
 use App\Form\CustomObjectType;
 use App\Form\PropertyGroupType;
 use App\Form\PropertyType;
@@ -14,7 +15,7 @@ use App\Repository\CustomObjectRepository;
 use App\Repository\PropertyGroupRepository;
 use App\Repository\PropertyRepository;
 use App\Repository\RecordRepository;
-use App\Service\GoogleOauth;
+use App\Service\GmailProvider;
 use App\Service\MessageGenerator;
 use App\Utils\ServiceHelper;
 use Doctrine\ORM\EntityManager;
@@ -45,18 +46,26 @@ use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 class ConversationController extends AbstractController
 {
     /**
-     * @var GoogleOauth
+     * @var GmailProvider
      */
-    private $googleOauth;
+    private $gmailProvider;
 
     /**
-     * OauthController constructor.
-     * @param GoogleOauth $googleOauth
+     * @var EntityManagerInterface
      */
-    public function __construct(GoogleOauth $googleOauth)
+    private $entityManager;
+
+    /**
+     * ConversationController constructor.
+     * @param GmailProvider $gmailProvider
+     * @param EntityManagerInterface $entityManager
+     */
+    public function __construct(GmailProvider $gmailProvider, EntityManagerInterface $entityManager)
     {
-        $this->googleOauth = $googleOauth;
+        $this->gmailProvider = $gmailProvider;
+        $this->entityManager = $entityManager;
     }
+
 
     /**
      * @Route("/{routing}", name="conversation_index", requirements={"routing"=".+"}, defaults={"routing": null}, methods={"GET"}, options = { "expose" = true })
@@ -65,21 +74,13 @@ class ConversationController extends AbstractController
      * @return \Symfony\Component\HttpFoundation\Response
      */
     public function indexAction(Portal $portal, CustomObject $customObject, SessionInterface $session) {
-        // after the entire oauth process has happened we want to redirect to a page back on our site
-        $session->set('after_oauth_redirect_url', $this->generateUrl('conversation_index', [
-            'internalIdentifier' => $portal->getInternalIdentifier()
-        ], UrlGeneratorInterface::ABSOLUTE_URL));
 
-        $googleProfile = null;
-        if($session->has('access_token')) {
-            $messages = $this->googleOauth->getMessages($session->get('access_token'));
-            foreach($messages as $message) {
-                $raw = $message->getRaw();
-                $payload = $message->getPayload();
-                $name = "Josh";
-            }
+        /** @var User $user */
+        $user = $this->getUser();
+        // if the user does not have a google token then redirect to the google oauth view
+        if(!$portal->getGmailAccount() || !$portal->getGmailAccount()->getGoogleToken()) {
+           return $this->redirectToRoute('oauth_google_authorization');
         }
-
         return $this->render('conversation/index.html.twig', array(
             'portal' => $portal
         ));

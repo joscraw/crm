@@ -240,6 +240,7 @@ php:
             - zip
             - amqp
             - gd
+            - mailparse
         pear: {  }
         pecl: {  }
     ini:

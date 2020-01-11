@@ -3,14 +3,19 @@
 namespace App\Utils;
 
 use App\Repository\CustomObjectRepository;
+use App\Repository\GmailMessageRepository;
+use App\Repository\GmailAccountRepository;
+use App\Repository\GmailThreadRepository;
 use App\Repository\PropertyGroupRepository;
 use App\Repository\PropertyRepository;
 use App\Repository\RecordRepository;
 use App\Repository\UserRepository;
 use App\Security\LoginFormAuthenticator;
+use App\Service\GmailProvider;
 use App\Service\UploaderHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Asset\Packages;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
@@ -108,6 +113,35 @@ trait ServiceHelper
     private $propertyGroupRepository;
 
     /**
+     * @var GmailProvider
+     */
+    private $gmailProvider;
+    /**
+     * @var SessionInterface
+     */
+    private $session;
+
+    /**
+     * @var string
+     */
+    private $uploadsPath;
+
+    /**
+     * @var GmailAccountRepository
+     */
+    private $gmailRepository;
+
+    /**
+     * @var GmailThreadRepository
+     */
+    private $gmailThreadRepository;
+
+    /**
+     * @var GmailMessageRepository
+     */
+    private $gmailMessageRepository;
+
+    /**
      * ServiceHelper constructor.
      * @param EntityManagerInterface $entityManager
      * @param Packages $assetsManager
@@ -126,6 +160,12 @@ trait ServiceHelper
      * @param CustomObjectRepository $customObjectRepository
      * @param PropertyRepository $propertyRepository
      * @param PropertyGroupRepository $propertyGroupRepository
+     * @param GmailProvider $gmailProvider
+     * @param SessionInterface $session
+     * @param string $uploadsPath
+     * @param GmailAccountRepository $gmailRepository
+     * @param GmailThreadRepository $gmailThreadRepository
+     * @param GmailMessageRepository $gmailMessageRepository
      */
     public function __construct(
         EntityManagerInterface $entityManager,
@@ -144,7 +184,13 @@ trait ServiceHelper
         KernelInterface $appKernel,
         CustomObjectRepository $customObjectRepository,
         PropertyRepository $propertyRepository,
-        PropertyGroupRepository $propertyGroupRepository
+        PropertyGroupRepository $propertyGroupRepository,
+        GmailProvider $gmailProvider,
+        SessionInterface $session,
+        string $uploadsPath,
+        GmailAccountRepository $gmailRepository,
+        GmailThreadRepository $gmailThreadRepository,
+        GmailMessageRepository $gmailMessageRepository
     ) {
         $this->entityManager = $entityManager;
         $this->assetsManager = $assetsManager;
@@ -163,6 +209,12 @@ trait ServiceHelper
         $this->customObjectRepository = $customObjectRepository;
         $this->propertyRepository = $propertyRepository;
         $this->propertyGroupRepository = $propertyGroupRepository;
+        $this->gmailProvider = $gmailProvider;
+        $this->session = $session;
+        $this->uploadsPath = $uploadsPath;
+        $this->gmailRepository = $gmailRepository;
+        $this->gmailThreadRepository = $gmailThreadRepository;
+        $this->gmailMessageRepository = $gmailMessageRepository;
     }
 
 

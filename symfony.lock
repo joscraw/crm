@@ -197,6 +197,9 @@
     "php": {
         "version": "7.2"
     },
+    "php-mime-mail-parser/php-mime-mail-parser": {
+        "version": "5.0.5"
+    },
     "phpdocumentor/reflection-common": {
         "version": "1.0.1"
     },

@@ -32,21 +32,6 @@ class Portal
     private $internalIdentifier;
 
     /**
-     * @ORM\PrePersist
-     */
-    public function setInternalIdentifierValue()
-    {
-        if(!$this->internalIdentifier) {
-            $this->internalIdentifier = $this->generateRandomNumber(10);
-        }
-    }
-
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
-
-    /**
      * @ORM\OneToMany(targetEntity="App\Entity\CustomObject", mappedBy="portal", cascade={"remove"})
      */
     private $customObjects;
@@ -90,6 +75,26 @@ class Portal
      * @ORM\OneToMany(targetEntity="App\Entity\Workflow", mappedBy="portal", orphanRemoval=true)
      */
     private $workflows;
+
+    /**
+     * @ORM\OneToOne(targetEntity="GmailAccount", mappedBy="portal", cascade={"persist", "remove"})
+     */
+    private $gmailAccount;
+
+    /**
+     * @ORM\PrePersist
+     */
+    public function setInternalIdentifierValue()
+    {
+        if(!$this->internalIdentifier) {
+            $this->internalIdentifier = $this->generateRandomNumber(10);
+        }
+    }
+
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
 
 
     public function __construct()
@@ -398,6 +403,23 @@ class Portal
             if ($workflow->getPortal() === $this) {
                 $workflow->setPortal(null);
             }
+        }
+
+        return $this;
+    }
+
+    public function getGmailAccount(): ?GmailAccount
+    {
+        return $this->gmailAccount;
+    }
+
+    public function setGmailAccount(GmailAccount $gmailAccount): self
+    {
+        $this->gmailAccount = $gmailAccount;
+
+        // set the owning side of the relation if necessary
+        if ($gmailAccount->getPortal() !== $this) {
+            $gmailAccount->setPortal($this);
         }
 
         return $this;

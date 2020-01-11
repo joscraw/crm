@@ -10,6 +10,7 @@ use Gedmo\Sluggable\Util\Urlizer;
 class UploaderHelper
 {
     const SPREADSHEET = 'spreadsheet';
+    const ATTACHMENT = 'attachment';
 
     private $uploadsPath;
     private $requestStackContext;

@@ -1,0 +1,5 @@
+{% extends 'base.html.twig' %}
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('build/googleRedirect.js') }}"></script>
+{% endblock %}

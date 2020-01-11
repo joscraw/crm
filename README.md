@@ -1,9 +1,6 @@
 1. Login to Laravel Forge and spin up a server. 
 2. Run the packages recipie
-3. Follow this tutorial to install redis https://www.digitalocean.com/community/tutorials/how-to-install-redis-from-source-on-ubuntu-18-04
 4. Make sure you are runing php 7.2. 7.3 has some issues "Notice: unserialize(): Error at offset 3273 of 4376 bytes at /home/forge/default/vendor/symfony/security-core/Authentication/Token/AbstractToken.php:154)"
-5. install php-amqp. You should be able to do an apt-cache search amqp
-6. install rabbit mq https://tecadmin.net/install-rabbitmq-server-on-ubuntu/
 7. install messenger component https://symfony.com/doc/current/messenger.html
 
 
@@ -43,3 +40,11 @@
     
     Make sure to change the DNS in network settings to 8.8.8.8 and 8.8.4.4 for nscs portal
     to use guzzle to talk to this server whtn both vagrant machines are running
+    
+    _______________________________________________
+    
+    run this on production and staging
+    
+    sudo apt install php-cli php-mailparse and gd
+    
+    _______________________________________________
