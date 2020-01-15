@@ -878,8 +878,15 @@ class RecordController extends ApiController
             $importData = $form->getData();
             /** @var UploadedFile $file */
             $file = $form->get('file')->getData();
-            $mimeType = $file->getMimeType();
-            $newFilename = $this->uploadHelper->upload($file, UploaderHelper::SPREADSHEET);
+            $newFilename = $this->uploadHelper->uploadSpreadsheet($file);
+            // For security reasons symfony uses the following method to determine file extension
+            // https://www.tutorialfor.com/questions-41236.htm
+            // This can cause issues guessing whether or not it's a csv file
+            if(pathinfo (basename ($newFilename)) ['extension'] === 'csv') {
+                $mimeType = 'text/csv';
+            } else {
+                $mimeType = $file->getMimeType();
+            }
             $spreadsheet = new Spreadsheet();
             $spreadsheet->setCustomObject($customObject);
             $spreadsheet->setOriginalName($file->getClientOriginalName() ?? $newFilename);

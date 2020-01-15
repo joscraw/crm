@@ -69,7 +69,7 @@ class ImportRecordType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder->add('file', FileType::class, [
-            'label' => 'CSV File',
+            'label' => 'Import file',
             'required' => true,
             'multiple' => false,
             'constraints' => [

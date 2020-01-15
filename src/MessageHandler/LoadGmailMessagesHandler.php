@@ -3,6 +3,7 @@
 namespace App\MessageHandler;
 
 use App\Entity\GmailAccount;
+use App\Entity\GmailAttachment;
 use App\Entity\GmailMessage;
 use App\Entity\GmailThread;
 use App\Message\LoadGmailMessages;
@@ -10,11 +11,15 @@ use App\Repository\GmailMessageRepository;
 use App\Repository\GmailAccountRepository;
 use App\Repository\GmailThreadRepository;
 use App\Service\GmailProvider;
+use App\Service\UploaderHelper;
+use App\Utils\RandomStringGenerator;
 use Doctrine\ORM\EntityManagerInterface;
 use PhpMimeMailParser\Parser;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
+use Symfony\Component\HttpFoundation\File\File as FileObject;
+use Symfony\Component\Routing\RouterInterface;
 
 /**
  * @see https://symfony.com/doc/4.2/messenger.html
@@ -25,6 +30,7 @@ class LoadGmailMessagesHandler implements MessageHandlerInterface, LoggerAwareIn
 {
 
     use LoggerAwareTrait;
+    use RandomStringGenerator;
 
     /**
      * @var EntityManagerInterface
@@ -52,25 +58,49 @@ class LoadGmailMessagesHandler implements MessageHandlerInterface, LoggerAwareIn
     private $gmailProvider;
 
     /**
+     * @var string
+     */
+    private $uploadsPath;
+
+    /**
+     * @var UploaderHelper
+     */
+    private $uploaderHelper;
+
+    /**
+     * @var RouterInterface
+     */
+    private $router;
+
+    /**
      * LoadGmailMessagesHandler constructor.
      * @param EntityManagerInterface $entityManager
      * @param GmailAccountRepository $gmailRepository
      * @param GmailThreadRepository $gmailThreadRepository
      * @param GmailMessageRepository $gmailMessageRepository
      * @param GmailProvider $gmailProvider
+     * @param string $uploadsPath
+     * @param UploaderHelper $uploaderHelper
+     * @param RouterInterface $router
      */
     public function __construct(
         EntityManagerInterface $entityManager,
         GmailAccountRepository $gmailRepository,
         GmailThreadRepository $gmailThreadRepository,
         GmailMessageRepository $gmailMessageRepository,
-        GmailProvider $gmailProvider
+        GmailProvider $gmailProvider,
+        string $uploadsPath,
+        UploaderHelper $uploaderHelper,
+        RouterInterface $router
     ) {
         $this->entityManager = $entityManager;
         $this->gmailRepository = $gmailRepository;
         $this->gmailThreadRepository = $gmailThreadRepository;
         $this->gmailMessageRepository = $gmailMessageRepository;
         $this->gmailProvider = $gmailProvider;
+        $this->uploadsPath = $uploadsPath;
+        $this->uploaderHelper = $uploaderHelper;
+        $this->router = $router;
     }
 
     /**
@@ -186,6 +216,37 @@ class LoadGmailMessagesHandler implements MessageHandlerInterface, LoggerAwareIn
                 $gmailMessage->setSubject($subject);
                 $gmailMessage->setMessageBody($messageBody);
                 $gmailMessage->setInternalDate($message->getInternalDate());
+                $gmailMessage->setThreadId($message->getThreadId());
+                $gmailMessage->setHistoryId($message->getHistoryId());
+
+                // handle saving attachments
+                // let's go ahead and store each attachment in the /tmp directory
+                /*$attachments = $parser->saveAttachments(sys_get_temp_dir(), true, Parser::ATTACHMENT_DUPLICATE_SUFFIX);*/
+
+                $attachments = $parser->getAttachments();
+                foreach ($attachments as $attachment) {
+                    $originalFilename = $attachment->getFilename();
+                    $fileType = $attachment->getContentType();
+                    $tmpSavedFilePath = $attachment->save(sys_get_temp_dir(), Parser::ATTACHMENT_DUPLICATE_SUFFIX);
+                    $fileSize = filesize($tmpSavedFilePath);
+                    $uploadedFile = new FileObject($tmpSavedFilePath);
+                    $filename = $this->uploaderHelper->uploadAttachment($uploadedFile);
+                    $mimeType = $uploadedFile->getMimeType();
+                    $gmailAttachment = new GmailAttachment();
+                    $gmailAttachment->setFileName($filename);
+                    $gmailAttachment->setOriginalFileName($originalFilename);
+                    $gmailAttachment->setMimeType($mimeType);
+                    $gmailAttachment->setGmailMessage($gmailMessage);
+                    $gmailAttachment->setFileType($fileType);
+                    $gmailAttachment->setFileSize($fileSize);
+                    $downloadUrl = $this->router->generate('gmail_download_message_attachment', [
+                        'internalIdentifier' => $gmailAccount->getPortal()->getInternalIdentifier(),
+                        'fileName' => $filename
+                    ]);
+                    $gmailAttachment->setDownloadUrl($downloadUrl);
+                    $this->entityManager->persist($gmailAttachment);
+                }
+
                 $this->entityManager->persist($gmailMessage);
                 $this->entityManager->flush();
             }

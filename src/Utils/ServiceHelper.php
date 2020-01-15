@@ -3,6 +3,7 @@
 namespace App\Utils;
 
 use App\Repository\CustomObjectRepository;
+use App\Repository\GmailAttachmentRepository;
 use App\Repository\GmailMessageRepository;
 use App\Repository\GmailAccountRepository;
 use App\Repository\GmailThreadRepository;
@@ -142,6 +143,11 @@ trait ServiceHelper
     private $gmailMessageRepository;
 
     /**
+     * @var GmailAttachmentRepository
+     */
+    private $gmailAttachmentRepository;
+
+    /**
      * ServiceHelper constructor.
      * @param EntityManagerInterface $entityManager
      * @param Packages $assetsManager
@@ -166,6 +172,7 @@ trait ServiceHelper
      * @param GmailAccountRepository $gmailRepository
      * @param GmailThreadRepository $gmailThreadRepository
      * @param GmailMessageRepository $gmailMessageRepository
+     * @param GmailAttachmentRepository $gmailAttachmentRepository
      */
     public function __construct(
         EntityManagerInterface $entityManager,
@@ -190,7 +197,8 @@ trait ServiceHelper
         string $uploadsPath,
         GmailAccountRepository $gmailRepository,
         GmailThreadRepository $gmailThreadRepository,
-        GmailMessageRepository $gmailMessageRepository
+        GmailMessageRepository $gmailMessageRepository,
+        GmailAttachmentRepository $gmailAttachmentRepository
     ) {
         $this->entityManager = $entityManager;
         $this->assetsManager = $assetsManager;
@@ -215,8 +223,8 @@ trait ServiceHelper
         $this->gmailRepository = $gmailRepository;
         $this->gmailThreadRepository = $gmailThreadRepository;
         $this->gmailMessageRepository = $gmailMessageRepository;
+        $this->gmailAttachmentRepository = $gmailAttachmentRepository;
     }
-
 
     /**
      * Returns the site url

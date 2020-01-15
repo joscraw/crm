@@ -5,11 +5,12 @@
     {{ form_errors(form) }}
 </div>
 <div class="js-import-file">
-    <label for="import_record_file" class="required">CSV File</label>
+    <label for="import_record_file" class="required">Import File</label>
     <div class="js-import-file-error">
         {{ form_errors(form.file) }}
     </div>
     {{ form_widget(form.file, {'attr': {novalidate: 'novalidate', class: 'js-import-file-field'}}) }}
+    <small>Supported file types are csv, xl, and xlsx.</small>
 </div>
 <br>
 <div class="js-column-mapper">

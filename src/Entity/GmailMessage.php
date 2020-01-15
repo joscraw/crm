@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 
@@ -62,6 +64,26 @@ class GmailMessage
      * @ORM\Column(type="boolean")
      */
     private $isRead = false;
+
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private $threadId;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\GmailAttachment", mappedBy="gmailMessage")
+     */
+    private $gmailAttachments;
+
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private $historyId;
+
+    public function __construct()
+    {
+        $this->gmailAttachments = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -160,6 +182,61 @@ class GmailMessage
     public function setIsRead(bool $isRead): self
     {
         $this->isRead = $isRead;
+
+        return $this;
+    }
+
+    public function getThreadId(): ?string
+    {
+        return $this->threadId;
+    }
+
+    public function setThreadId(string $threadId): self
+    {
+        $this->threadId = $threadId;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|GmailAttachment[]
+     */
+    public function getGmailAttachments(): Collection
+    {
+        return $this->gmailAttachments;
+    }
+
+    public function addGmailAttachment(GmailAttachment $gmailAttachment): self
+    {
+        if (!$this->gmailAttachments->contains($gmailAttachment)) {
+            $this->gmailAttachments[] = $gmailAttachment;
+            $gmailAttachment->setGmailMessage($this);
+        }
+
+        return $this;
+    }
+
+    public function removeGmailAttachment(GmailAttachment $gmailAttachment): self
+    {
+        if ($this->gmailAttachments->contains($gmailAttachment)) {
+            $this->gmailAttachments->removeElement($gmailAttachment);
+            // set the owning side to null (unless already changed)
+            if ($gmailAttachment->getGmailMessage() === $this) {
+                $gmailAttachment->setGmailMessage(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getHistoryId(): ?string
+    {
+        return $this->historyId;
+    }
+
+    public function setHistoryId(string $historyId): self
+    {
+        $this->historyId = $historyId;
 
         return $this;
     }

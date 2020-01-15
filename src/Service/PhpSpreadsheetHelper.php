@@ -2,11 +2,26 @@
 
 namespace App\Service;
 
+use App\Entity\Spreadsheet;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 class PhpSpreadsheetHelper
 {
+    /**
+     * @var UploaderHelper
+     */
+    private $uploadHelper;
+
+    /**
+     * PhpSpreadsheetHelper constructor.
+     * @param UploaderHelper $uploadHelper
+     */
+    public function __construct(UploaderHelper $uploadHelper)
+    {
+        $this->uploadHelper = $uploadHelper;
+    }
+
     /**
      * Return the column names from the CSV
      * @param UploadedFile $uploadedFile
@@ -60,7 +75,7 @@ class PhpSpreadsheetHelper
      * @return array|bool
      */
     public function getAllRows(File $uploadedFile) {
-        $fileExtension = $uploadedFile->guessExtension();
+        $fileExtension = $this->uploadHelper->guessExtension($uploadedFile);
         $path = $uploadedFile->getRealPath();
         $error = false;
         $reader = false;
