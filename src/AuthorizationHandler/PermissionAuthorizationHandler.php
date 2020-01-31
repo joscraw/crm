@@ -45,6 +45,10 @@ class PermissionAuthorizationHandler
      */
     public function isAuthorized(User $user, $permission, $permissionType = Role::OBJECT_PERMISSION)
     {
+        // todo we are going to need to fix permissions at some point. For now just grant all admin users access
+        if($user->isAdminUser()) {
+            return true;
+        }
 
         if($user->hasPermission($permission, $permissionType)) {
             return true;

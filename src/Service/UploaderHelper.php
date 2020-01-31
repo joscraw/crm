@@ -111,7 +111,8 @@ class UploaderHelper
         // For security reasons symfony uses the following method to determine file extension
         // https://www.tutorialfor.com/questions-41236.htm
         // This can cause issues guessing whether or not it's a csv file
-        if(pathinfo (basename ($originalFilename)) ['extension'] === 'csv') {
+        if(!empty(pathinfo (basename ($originalFilename)) ['extension']) &&
+            pathinfo (basename ($originalFilename)) ['extension'] === 'csv') {
             $extension = 'csv';
         } else {
             $extension = $file->guessExtension();

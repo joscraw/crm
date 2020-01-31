@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\GmailMessage;
+use App\Entity\Portal;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Common\Persistence\ManagerRegistry;
 
@@ -47,4 +48,65 @@ class GmailMessageRepository extends ServiceEntityRepository
         ;
     }
     */
+
+
+    /**
+     * @param Portal $portal
+     * @return mixed[]
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    public function getNewestForThreads(Portal $portal) {
+        $query = sprintf("SELECT gm.thread_id, gm.message_id, gm.created_at, gm.sent_to, 
+        gm.sent_from, gm.subject, gm.message_body, gm.internal_date, gm.is_read
+        FROM gmail_message gm
+        INNER JOIN gmail_thread gt on gm.gmail_thread_id = gt.id
+        INNER JOIN gmail_account ga on ga.id = gt.gmail_account_id
+        WHERE gm.internal_date IN (SELECT MAX(internal_date) FROM gmail_message GROUP BY thread_id) 
+        AND ga.portal_id = '%s'", $portal->getId());
+
+        $em = $this->getEntityManager();
+        $stmt = $em->getConnection()->prepare($query);
+        $stmt->execute();
+        $results = $stmt->fetchAll();
+        if(empty($results)) {
+            return [];
+        }
+        return $results;
+    }
+
+    /**
+     * @param Portal $portal
+     * @param $threadId
+     * @return mixed[]
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    public function getMessagesForThread(Portal $portal, $threadId) {
+        $query = sprintf("SELECT gm.thread_id, gm.message_id, gm.created_at, gm.sent_to, 
+        gm.sent_from, gm.subject, gm.message_body, gm.internal_date, gm.is_read
+        FROM gmail_message gm
+        INNER JOIN gmail_thread gt on gm.gmail_thread_id = gt.id
+        INNER JOIN gmail_account ga on ga.id = gt.gmail_account_id
+        WHERE gm.thread_id = '%s'
+        AND ga.portal_id = '%s'", $threadId, $portal->getId());
+
+        $em = $this->getEntityManager();
+        $stmt = $em->getConnection()->prepare($query);
+        $stmt->execute();
+        $results = $stmt->fetchAll();
+        if(empty($results)) {
+            return [];
+        }
+        return $results;
+    }
+
+
+    /*
+     * SELECT gm.thread_id, gm.message_id, gm.created_at, gm.sent_to,
+        gm.sent_from, gm.subject, gm.message_body, gm.internal_date, gm.is_read
+        FROM gmail_message gm
+        INNER JOIN gmail_thread gt on gm.gmail_thread_id = gt.id
+        INNER JOIN gmail_account ga on ga.id = gt.gmail_account_id
+        WHERE gm.thread_id = '16f92cf8ed9db35d'
+        AND ga.portal_id = '1'
+     */
 }

@@ -2,6 +2,7 @@
 
 namespace App\Utils;
 
+use App\Repository\ApiTokenRepository;
 use App\Repository\CustomObjectRepository;
 use App\Repository\GmailAttachmentRepository;
 use App\Repository\GmailMessageRepository;
@@ -148,6 +149,11 @@ trait ServiceHelper
     private $gmailAttachmentRepository;
 
     /**
+     * @var ApiTokenRepository
+     */
+    private $apiTokenRepo;
+
+    /**
      * ServiceHelper constructor.
      * @param EntityManagerInterface $entityManager
      * @param Packages $assetsManager
@@ -173,6 +179,7 @@ trait ServiceHelper
      * @param GmailThreadRepository $gmailThreadRepository
      * @param GmailMessageRepository $gmailMessageRepository
      * @param GmailAttachmentRepository $gmailAttachmentRepository
+     * @param ApiTokenRepository $apiTokenRepo
      */
     public function __construct(
         EntityManagerInterface $entityManager,
@@ -198,7 +205,8 @@ trait ServiceHelper
         GmailAccountRepository $gmailRepository,
         GmailThreadRepository $gmailThreadRepository,
         GmailMessageRepository $gmailMessageRepository,
-        GmailAttachmentRepository $gmailAttachmentRepository
+        GmailAttachmentRepository $gmailAttachmentRepository,
+        ApiTokenRepository $apiTokenRepo
     ) {
         $this->entityManager = $entityManager;
         $this->assetsManager = $assetsManager;
@@ -224,6 +232,7 @@ trait ServiceHelper
         $this->gmailThreadRepository = $gmailThreadRepository;
         $this->gmailMessageRepository = $gmailMessageRepository;
         $this->gmailAttachmentRepository = $gmailAttachmentRepository;
+        $this->apiTokenRepo = $apiTokenRepo;
     }
 
     /**

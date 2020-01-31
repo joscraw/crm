@@ -5,6 +5,7 @@ namespace App\Controller\Api;
 use App\Entity\CustomObject;
 use App\Entity\GmailAttachment;
 use App\Entity\GmailMessage;
+use App\Entity\GmailThread;
 use App\Entity\Portal;
 use App\Entity\Property;
 use App\Entity\PropertyGroup;
@@ -85,5 +86,104 @@ class GmailController extends AbstractController
         );
         $response->headers->set('Content-Disposition', $disposition);
         return $response;
+    }
+
+    /**
+     * This endpoint is used to return the newest message for each thread. This is especially useful
+     * for a sidebar/sidenav of the messages to see most recent and to then highlight the unread messages
+     *
+     * @Route("/newest-message-for-threads", name="gmail_newest_message_for_threads", methods={"GET"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param Request $request
+     * @return JsonResponse
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    public function getNewestMessageForThreads(Portal $portal, Request $request)
+    {
+        $data = $this->gmailMessageRepository->getNewestForThreads($portal);
+
+        return new JsonResponse([
+            'data' => $data,
+            'success' => true
+        ]);
+    }
+
+    /**
+     * This endpoint returns all the messages for a given thread
+     *
+     *
+     * @Route("/threads/{threadId}/messages", name="gmail_messages_for_thread", methods={"GET"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param $threadId
+     * @param Request $request
+     * @return JsonResponse
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    public function getMessagesForThread(Portal $portal, $threadId, Request $request)
+    {
+        $data = $this->gmailMessageRepository->getMessagesForThread($portal, $threadId);
+
+        return new JsonResponse([
+            'data' => $data,
+            'success' => true
+        ]);
+    }
+
+    /**
+     * This endpoint returns all the messages for a given thread
+     *
+     *
+     * @Route("/send-message", name="gmail_send_message", methods={"POST"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param Request $request
+     * @return JsonResponse
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    public function sendMessage(Portal $portal, Request $request)
+    {
+        // TODO consider how you are going to handle attachments
+        $message = $this->gmailProvider->sendMessage($portal, $portal->getGmailAccount()->getGoogleToken());
+        $message = $this->gmailProvider->getMessage($portal->getGmailAccount()->getPortal(), $portal->getGmailAccount()->getGoogleToken(), $message->getId());
+
+        $parser = new Parser();
+        $raw = $message->getRaw();
+        $switched = str_replace(['-', '_'], ['+', '/'], $raw);
+        $raw = base64_decode($switched);
+        $parser->setText($raw);
+        $sentTo = $parser->getHeader('to');
+        $sentFrom = $parser->getHeader('from');
+        $subject = $parser->getHeader('subject');
+        $messageBody = $parser->getMessageBody('text');
+        $arrayHeaders = $parser->getHeaders();
+
+        $existingGmailThread = $this->gmailThreadRepository->findOneBy([
+            'threadId' => $message->getThreadId()
+        ]);
+        if(!$existingGmailThread) {
+            $thread = new GmailThread();
+            $thread->setGmailAccount($portal->getGmailAccount());
+            $thread->setThreadId($message->getThreadId());
+            $this->entityManager->persist($thread);
+        } else {
+            $thread = $existingGmailThread;
+        }
+
+        // Create the message in the database
+        $gmailMessage = new GmailMessage();
+        $gmailMessage->setGmailThread($thread);
+        $gmailMessage->setMessageId($message->getId());
+        $gmailMessage->setSentTo($sentTo);
+        $gmailMessage->setSentFrom($sentFrom);
+        $gmailMessage->setSubject($subject);
+        $gmailMessage->setMessageBody($messageBody);
+        $gmailMessage->setInternalDate($message->getInternalDate());
+        $gmailMessage->setThreadId($message->getThreadId());
+        $gmailMessage->setHistoryId($message->getHistoryId());
+        $this->entityManager->persist($gmailMessage);
+        $this->entityManager->flush();
+
+        return new JsonResponse([
+            'success' => true
+        ]);
     }
 }

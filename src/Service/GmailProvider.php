@@ -6,6 +6,7 @@ use App\Entity\Portal;
 use Doctrine\ORM\EntityManagerInterface;
 use Google_Client;
 use Google_Service_Gmail;
+use Google_Service_Gmail_Message;
 use Google_Service_Gmail_Profile;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\HttpKernel\KernelInterface;
@@ -178,5 +179,34 @@ class GmailProvider
         $this->googleServiceGmail = new Google_Service_Gmail($googleClient);
         $historyList = $this->googleServiceGmail->users_history->listUsersHistory('me', ['labelId' => 'INBOX', 'historyTypes' => ['messageAdded', 'messageDeleted'], 'startHistoryId' => $startHistoryId]);
         return $historyList;
+    }
+
+    /**
+     * @param Portal $portal
+     * @param $accessToken
+     * @return \Google_Service_Gmail_Message
+     */
+    public function sendMessage(Portal $portal, $accessToken) {
+        $googleClient = $this->getGoogleClient($portal, $accessToken);
+        $this->googleServiceGmail = new Google_Service_Gmail($googleClient);
+
+        $message = (new \Swift_Message('Here is my subject'))
+            ->setFrom('cultured44@gmail.com')
+            ->setTo(['joshcrawmer4@yahoo.com' => 'Test Name'])
+            ->setContentType('text/plain')
+            ->setCharset('utf-8')
+            ->setBody('Here is my body');
+
+        $mime = $this->base64url_encode($message->toString());
+
+
+        $msg = new Google_Service_Gmail_Message();
+        $msg->setRaw($mime);
+        //The special value **me** can be used to indicate the authenticated user.
+        return $this->googleServiceGmail->users_messages->send("me", $msg);
+    }
+
+    private function base64url_encode($mime) {
+        return rtrim(strtr(base64_encode($mime), '+/', '-_'), '=');
     }
 }

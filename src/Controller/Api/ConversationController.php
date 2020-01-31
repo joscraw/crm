@@ -93,8 +93,6 @@ class ConversationController extends AbstractController
      */
     public function setupAction(Portal $portal) {
 
-
-
         return $this->render('conversation/index.html.twig', array(
             'portal' => $portal
         ));
