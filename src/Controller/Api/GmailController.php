@@ -141,6 +141,7 @@ class GmailController extends AbstractController
      */
     public function sendMessage(Portal $portal, Request $request)
     {
+        // TODO Consider how you are going to need to be able to pass up a threadId so you can just send to a single thread
         // TODO consider how you are going to handle attachments
         $message = $this->gmailProvider->sendMessage($portal, $portal->getGmailAccount()->getGoogleToken());
         $message = $this->gmailProvider->getMessage($portal->getGmailAccount()->getPortal(), $portal->getGmailAccount()->getGoogleToken(), $message->getId());
