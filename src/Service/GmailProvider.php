@@ -7,11 +7,19 @@ use Doctrine\ORM\EntityManagerInterface;
 use Google_Client;
 use Google_Service_Gmail;
 use Google_Service_Gmail_Message;
+use Google_Service_Gmail_MessagePart;
+use Google_Service_Gmail_MessagePartBody;
+use Google_Service_Gmail_MessagePartHeader;
 use Google_Service_Gmail_Profile;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\HttpKernel\KernelInterface;
+use Symfony\Component\Mime\Address;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
+use Symfony\Component\Mime\Header\Headers;
+use Symfony\Component\Mime\Message;
+use Symfony\Component\Mime\Part\Multipart\AlternativePart;
+use Symfony\Component\Mime\Part\TextPart;
 
 class GmailProvider
 {
@@ -46,17 +54,26 @@ class GmailProvider
     private $entityManager;
 
     /**
+     * @var \Twig\Environment $templating
+     */
+    private $templating;
+
+    /**
      * GoogleOauth constructor.
      * @param KernelInterface $appKernel
      * @param RouterInterface $router
+     * @param SessionInterface $session
+     * @param EntityManagerInterface $entityManager
+     * @param \Twig\Environment $templating
      * @throws \Google_Exception
      */
-    public function __construct(KernelInterface $appKernel, RouterInterface $router, SessionInterface $session, EntityManagerInterface $entityManager)
+    public function __construct(KernelInterface $appKernel, RouterInterface $router, SessionInterface $session, EntityManagerInterface $entityManager, \Twig\Environment $templating)
     {
         $this->appKernel = $appKernel;
         $this->router = $router;
         $this->session = $session;
         $this->entityManager = $entityManager;
+        $this->templating = $templating;
         $projectDirectory = $this->appKernel->getProjectDir();
         $oauthCredentials = $projectDirectory . '/client_secret_google.json';
         $redirectUri = $this->router->generate('oauth_google_redirect_code', [], UrlGeneratorInterface::ABSOLUTE_URL);
@@ -162,9 +179,11 @@ class GmailProvider
     public function getThread(Portal $portal, $accessToken, $threadId) {
         $googleClient = $this->getGoogleClient($portal, $accessToken);
         $this->googleServiceGmail = new Google_Service_Gmail($googleClient);
-        /*$optParams['format'] = 'full';*/
-        /*$optParams['format'] = 'raw';*/
-        $thread = $this->googleServiceGmail->users_threads->get('me', $threadId);
+       /* $optParams['format'] = 'full';
+        $optParams['format'] = 'raw';*/
+
+        $optParams['format'] = 'metadata';
+        $thread = $this->googleServiceGmail->users_threads->get('me', $threadId, $optParams);
         return $thread;
     }
 
@@ -206,7 +225,96 @@ class GmailProvider
         return $this->googleServiceGmail->users_messages->send("me", $msg);
     }
 
+    /**
+     * 1. For email clients to collapse the threads you need to format the response like so: https://cl.ly/66dad418dcdd
+     *
+     * 2. If you send the same exact message as before some email clients such as yahoo
+     *  won't pull it in and display it in the client since it was the exact same as the last message.
+     *
+     *
+     *
+     * @see https://wesmorgan.blogspot.com/2012/07/understanding-email-headers-part-ii.html
+     * @see https://symfony.com/doc/current/mailer.html
+     * @see https://symfony.com/blog/new-in-symfony-4-3-mime-component
+     * @see https://symfony.com/doc/current/components/mime.html
+     *
+     * TODO Study the below link so you can see how to append thread messages to reply
+     * @see https://stackoverflow.com/questions/57377694/how-to-append-thread-messages-while-reply-so-that-new-user-can-see-previous-conv
+     * Also note that the clients look for a line break. So make sure to put the original message body in a <div> or precede it with a <br> for html
+     * emails or a \n for text/plain emails for the original thread message to be collapsed
+     *
+     * @param Portal $portal
+     * @param $accessToken
+     * @param $subject
+     * @param $threadId
+     * @param $arrayHeaders
+     * @param $messageBody
+     * @param $parsedMessageBody
+     * @return \Google_Service_Gmail_Message
+     * @throws \Twig\Error\LoaderError
+     * @throws \Twig\Error\RuntimeError
+     * @throws \Twig\Error\SyntaxError
+     */
+    public function sendMessage2(Portal $portal, $accessToken, $subject, $threadId, $arrayHeaders, $messageBody, $parsedTextMessageBody, $parsedHtmlMessageBody) {
+        $googleClient = $this->getGoogleClient($portal, $accessToken);
+        $this->googleServiceGmail = new Google_Service_Gmail($googleClient);
+
+        $references = !empty($arrayHeaders['references']) ? $arrayHeaders['references'] . ' ' . $arrayHeaders['message-id'] : $arrayHeaders['message-id'];
+        $references = explode(' ', $references);
+        foreach ($references as $key => $reference){
+            $references[$key]  = str_replace(['>', '<'], '', $reference);
+        }
+
+        $headers = (new Headers())
+            ->addMailboxListHeader('From', [new Address('cultured44@gmail.com', 'Joshua Citler')])
+            ->addMailboxListHeader('To', [new Address('joshcrawmer4@yahoo.com', 'Josh Crawmer')])
+            ->addTextHeader('Subject', $subject)  //'Re: ' .
+            ->addIdHeader('In-Reply-To', str_replace(['>', '<'], '', $arrayHeaders['message-id']))
+            ->addIdHeader('References', $references);
+
+        $dateTime = new \DateTime(
+            'now'
+        );
+        $date = sprintf("On %s, %s wrote:", $dateTime->format('l, F j, Y, h:i:s A T'), $arrayHeaders['from']);
+
+        $textContent = new TextPart($this->templating->render('email/gmailMessage.txt.twig', ['messageBody' => $messageBody, 'parsedMessageBody' => $parsedTextMessageBody, 'date' => $date ] ), 'utf-8', 'plain', '8bit');
+        $htmlContent = new TextPart($this->templating->render('email/gmailMessage.html.twig', ['messageBody' => $messageBody, 'parsedMessageBody' => $parsedHtmlMessageBody, 'date' => $date ] ), 'utf-8', 'html', 'quoted-printable');
+        $body = new AlternativePart($textContent, $htmlContent);
+        $email = new Message($headers, $body);
+        $mime = $this->base64url_encode($email->toString());
+        $msg = new Google_Service_Gmail_Message();
+        $msg->setThreadId('17002dd641c28726');
+        $msg->setRaw($mime);
+        //The special value **me** can be used to indicate the authenticated user.
+        return $this->googleServiceGmail->users_messages->send("me", $msg);
+    }
+
+
+    /**
+     * @see https://wesmorgan.blogspot.com/2012/07/understanding-email-headers-part-ii.html
+     * @see https://symfony.com/doc/current/mailer.html
+     * @see https://symfony.com/blog/new-in-symfony-4-3-mime-component
+     * @see https://symfony.com/doc/current/components/mime.html
+     *
+     * TODO Study the below link so you can see how to append thread messages to reply
+     * @see https://stackoverflow.com/questions/57377694/how-to-append-thread-messages-while-reply-so-that-new-user-can-see-previous-conv
+     *
+     * @param Portal $portal
+     * @param $accessToken
+     * @param $subject
+     * @param $threadId
+     * @param $arrayHeaders
+     * @return \Google_Service_Gmail_Message
+     */
+    public function sendMessage3(Portal $portal, $accessToken, $msg) {
+        $googleClient = $this->getGoogleClient($portal, $accessToken);
+        $this->googleServiceGmail = new Google_Service_Gmail($googleClient);
+
+        return $this->googleServiceGmail->users_messages->send("me", $msg);
+    }
+
     private function base64url_encode($mime) {
         return rtrim(strtr(base64_encode($mime), '+/', '-_'), '=');
     }
+
 }
