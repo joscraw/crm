@@ -142,9 +142,17 @@ class GmailController extends AbstractController
      */
     public function sendMessage(Portal $portal, Request $request)
     {
-        // TODO Consider how you are going to need to be able to pass up a threadId so you can just send to a single thread
+
+        $messageBody = $request->request->get('messageBody');
+        $subject = $request->request->get('subject');
+
+        /**
+         * @var array ['joshcrawmer4@yahoo.com' => 'Test Name']
+         */
+        $recipients = $request->request->get('to');
+
         // TODO consider how you are going to handle attachments
-        $message = $this->gmailProvider->sendMessage($portal, $portal->getGmailAccount()->getGoogleToken());
+        $message = $this->gmailProvider->sendMessage($portal, $portal->getGmailAccount()->getGoogleToken(), $messageBody, $subject, $recipients);
         $message = $this->gmailProvider->getMessage($portal->getGmailAccount()->getPortal(), $portal->getGmailAccount()->getGoogleToken(), $message->getId());
 
         $parser = new Parser();
@@ -241,37 +249,7 @@ class GmailController extends AbstractController
         $parsedHtmlMessageBody = $parser->getMessageBody('html');
         $arrayHeaders = $parser->getHeaders();
 
-        $message = $this->gmailProvider->sendMessage2($portal, $portal->getGmailAccount()->getGoogleToken(), $threadId, $arrayHeaders, $messageBody, $parsedTextMessageBody, $parsedHtmlMessageBody);
-
-        return new JsonResponse([
-            'success' => true
-        ]);
-
-        $existingGmailThread = $this->gmailThreadRepository->findOneBy([
-            'threadId' => $message->getThreadId()
-        ]);
-        if(!$existingGmailThread) {
-            $thread = new GmailThread();
-            $thread->setGmailAccount($portal->getGmailAccount());
-            $thread->setThreadId($message->getThreadId());
-            $this->entityManager->persist($thread);
-        } else {
-            $thread = $existingGmailThread;
-        }
-
-        // Create the message in the database
-        $gmailMessage = new GmailMessage();
-        $gmailMessage->setGmailThread($thread);
-        $gmailMessage->setMessageId($message->getId());
-        $gmailMessage->setSentTo($sentTo);
-        $gmailMessage->setSentFrom($sentFrom);
-        $gmailMessage->setSubject($subject);
-        $gmailMessage->setMessageBody($messageBody);
-        $gmailMessage->setInternalDate($message->getInternalDate());
-        $gmailMessage->setThreadId($message->getThreadId());
-        $gmailMessage->setHistoryId($message->getHistoryId());
-        $this->entityManager->persist($gmailMessage);
-        $this->entityManager->flush();
+        $message = $this->gmailProvider->sendMessageToThread($portal, $portal->getGmailAccount()->getGoogleToken(), $threadId, $arrayHeaders, $messageBody, $parsedTextMessageBody, $parsedHtmlMessageBody);
 
         return new JsonResponse([
             'success' => true

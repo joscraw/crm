@@ -203,21 +203,23 @@ class GmailProvider
     /**
      * @param Portal $portal
      * @param $accessToken
+     * @param $messageBody
+     * @param $subject
+     * @param $recipients ['joshcrawmer4@yahoo.com' => 'Test Name']
      * @return \Google_Service_Gmail_Message
      */
-    public function sendMessage(Portal $portal, $accessToken) {
+    public function sendMessage(Portal $portal, $accessToken, $messageBody, $subject, $recipients) {
         $googleClient = $this->getGoogleClient($portal, $accessToken);
         $this->googleServiceGmail = new Google_Service_Gmail($googleClient);
-
-        $message = (new \Swift_Message('Here is my subject'))
-            ->setFrom('cultured44@gmail.com')
-            ->setTo(['joshcrawmer4@yahoo.com' => 'Test Name'])
+        $profile = $this->getProfile($portal, $accessToken);
+        $message = (new \Swift_Message($subject))
+            ->setFrom($profile->getEmailAddress())
+            ->setTo($recipients)
             ->setContentType('text/plain')
             ->setCharset('utf-8')
-            ->setBody('Here is my body');
+            ->setBody($messageBody);
 
         $mime = $this->base64url_encode($message->toString());
-
 
         $msg = new Google_Service_Gmail_Message();
         $msg->setRaw($mime);
@@ -230,6 +232,8 @@ class GmailProvider
      *
      * 2. If you send the same exact message as before some email clients such as yahoo
      *  won't pull it in and display it in the client since it was the exact same as the last message.
+     *
+     * 3. Gmail will also collapse a thread if it is completely the same message or very similar to the last message in the thread
      *
      *
      * @see https://wesmorgan.blogspot.com/2012/07/understanding-email-headers-part-ii.html
@@ -254,7 +258,7 @@ class GmailProvider
      * @throws \Twig\Error\RuntimeError
      * @throws \Twig\Error\SyntaxError
      */
-    public function sendMessage2(Portal $portal, $accessToken, $threadId, $arrayHeaders, $messageBody, $parsedTextMessageBody, $parsedHtmlMessageBody) {
+    public function sendMessageToThread(Portal $portal, $accessToken, $threadId, $arrayHeaders, $messageBody, $parsedTextMessageBody, $parsedHtmlMessageBody) {
         $googleClient = $this->getGoogleClient($portal, $accessToken);
         $this->googleServiceGmail = new Google_Service_Gmail($googleClient);
 
@@ -265,6 +269,7 @@ class GmailProvider
         }
 
         $potentialRecipients = $arrayHeaders['to'] . ', ' . $arrayHeaders['from'];
+        $potentialRecipients .= !empty($arrayHeaders['cc']) ? ', ' . $arrayHeaders['cc'] : '';
         $potentialRecipients = mailparse_rfc822_parse_addresses($potentialRecipients);
         $profile = $this->getProfile($portal, $accessToken);
 
