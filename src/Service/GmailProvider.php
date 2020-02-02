@@ -232,7 +232,6 @@ class GmailProvider
      *  won't pull it in and display it in the client since it was the exact same as the last message.
      *
      *
-     *
      * @see https://wesmorgan.blogspot.com/2012/07/understanding-email-headers-part-ii.html
      * @see https://symfony.com/doc/current/mailer.html
      * @see https://symfony.com/blog/new-in-symfony-4-3-mime-component
@@ -255,7 +254,7 @@ class GmailProvider
      * @throws \Twig\Error\RuntimeError
      * @throws \Twig\Error\SyntaxError
      */
-    public function sendMessage2(Portal $portal, $accessToken, $subject, $threadId, $arrayHeaders, $messageBody, $parsedTextMessageBody, $parsedHtmlMessageBody) {
+    public function sendMessage2(Portal $portal, $accessToken, $threadId, $arrayHeaders, $messageBody, $parsedTextMessageBody, $parsedHtmlMessageBody) {
         $googleClient = $this->getGoogleClient($portal, $accessToken);
         $this->googleServiceGmail = new Google_Service_Gmail($googleClient);
 
@@ -265,10 +264,26 @@ class GmailProvider
             $references[$key]  = str_replace(['>', '<'], '', $reference);
         }
 
+        $potentialRecipients = $arrayHeaders['to'] . ', ' . $arrayHeaders['from'];
+        $potentialRecipients = mailparse_rfc822_parse_addresses($potentialRecipients);
+        $profile = $this->getProfile($portal, $accessToken);
+
+        $addresses = [];
+        foreach($potentialRecipients as $key => $potentialRecipient) {
+            // We don't want to send to our own address so skip that email!
+            if($potentialRecipient['address'] === $profile->getEmailAddress()) {
+                continue;
+            }
+            $addresses[] = new Address($potentialRecipient['address'], $potentialRecipient['display']);
+        }
+
         $headers = (new Headers())
-            ->addMailboxListHeader('From', [new Address('cultured44@gmail.com', 'Joshua Citler')])
-            ->addMailboxListHeader('To', [new Address('joshcrawmer4@yahoo.com', 'Josh Crawmer')])
-            ->addTextHeader('Subject', $subject)  //'Re: ' .
+            // Gmail is going to automatically use the from address of the authenticated account
+            // so you can just throw whatever here for the From address. But you can't omit it as
+            // it's necessary to send an email
+            ->addMailboxListHeader('From', [new Address('test@example.com', 'Test Example')])
+            ->addMailboxListHeader('To', $addresses)
+            ->addTextHeader('Subject', $arrayHeaders['subject'])  //'Re: ' .
             ->addIdHeader('In-Reply-To', str_replace(['>', '<'], '', $arrayHeaders['message-id']))
             ->addIdHeader('References', $references);
 
@@ -283,33 +298,9 @@ class GmailProvider
         $email = new Message($headers, $body);
         $mime = $this->base64url_encode($email->toString());
         $msg = new Google_Service_Gmail_Message();
-        $msg->setThreadId('17002dd641c28726');
+        $msg->setThreadId($threadId);
         $msg->setRaw($mime);
         //The special value **me** can be used to indicate the authenticated user.
-        return $this->googleServiceGmail->users_messages->send("me", $msg);
-    }
-
-
-    /**
-     * @see https://wesmorgan.blogspot.com/2012/07/understanding-email-headers-part-ii.html
-     * @see https://symfony.com/doc/current/mailer.html
-     * @see https://symfony.com/blog/new-in-symfony-4-3-mime-component
-     * @see https://symfony.com/doc/current/components/mime.html
-     *
-     * TODO Study the below link so you can see how to append thread messages to reply
-     * @see https://stackoverflow.com/questions/57377694/how-to-append-thread-messages-while-reply-so-that-new-user-can-see-previous-conv
-     *
-     * @param Portal $portal
-     * @param $accessToken
-     * @param $subject
-     * @param $threadId
-     * @param $arrayHeaders
-     * @return \Google_Service_Gmail_Message
-     */
-    public function sendMessage3(Portal $portal, $accessToken, $msg) {
-        $googleClient = $this->getGoogleClient($portal, $accessToken);
-        $this->googleServiceGmail = new Google_Service_Gmail($googleClient);
-
         return $this->googleServiceGmail->users_messages->send("me", $msg);
     }
 

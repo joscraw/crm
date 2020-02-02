@@ -190,38 +190,44 @@ class GmailController extends AbstractController
     }
 
     /**
-     * TODO we need to pass up the subject, message body, from, to and more
-     * TODO DO we really need to send a subject, from, to and more? I feel like if we are just responding to a thread
-     * TODO we shouldnt' need this right?
-     * TODO try use the normal TO: and CC: and BCC: multiple email addresses and make sure it appears in both people's threads.
-     * TODO WHAT happens if you respond to an individual message in a thread?
-     *
-     * TODO Content-Transfer-Encoding: 7bit for yahoo. Why?? What does this mean?
-     *
-     * TODO the history ID in the gmail_account could get deleted, if it does you need to grab the current one.
-     *  This needs to be built into the gmail orchestrator command
+     *  TODO try use the normal TO: and CC: and BCC: multiple email addresses and make sure it appears in both people's threads.
+     *  TODO the history ID in the gmail_account could get deleted, if it does you need to grab the current one.
+     *   This needs to be built into the gmail orchestrator command
      *
      * This endpoint sends a message to an already existing thread
      *
      *
-     * @Route("/threads/{threadId}/send-message", name="gmail_send_message_to_thread", methods={"POST"}, options = { "expose" = true })
+     * @Route("/send-message-to-thread", name="gmail_send_message_to_thread", methods={"POST"}, options = { "expose" = true })
      * @param Portal $portal
-     * @param $threadId
      * @param Request $request
      * @return JsonResponse
      * @throws \Twig\Error\LoaderError
      * @throws \Twig\Error\RuntimeError
      * @throws \Twig\Error\SyntaxError
      */
-    public function sendMessageToThread(Portal $portal, $threadId, Request $request)
+    public function sendMessageToThread(Portal $portal, Request $request)
     {
         $messageBody = $request->request->get('messageBody');
 
+        /**
+         * This is the id of the message you are responding to
+         * This could be the same value as the threadId if there is only
+         * 1 message in the thread so far
+         * @var string
+         */
+        $messageId = $request->request->get('messageId');
+
+        /**
+         * This is the id of the thread you want to send the message to
+         * This could be the same value as the messageId if there is only
+         * 1 message in the thread so far
+         * @var string
+         */
+        $threadId = $request->request->get('threadId');
+
         // let's go ahead and grab the message that actually owns that thread_id
         // this would be equivalent to the first message sent in that thread
-        $message = $this->gmailProvider->getMessage($portal->getGmailAccount()->getPortal(), $portal->getGmailAccount()->getGoogleToken(), $threadId);
-
-        /*$message = $this->gmailProvider->sendMessage3($portal->getGmailAccount()->getPortal(), $portal->getGmailAccount()->getGoogleToken(), $message);*/
+        $message = $this->gmailProvider->getMessage($portal->getGmailAccount()->getPortal(), $portal->getGmailAccount()->getGoogleToken(), $messageId);
 
         $parser = new Parser();
         $raw = $message->getRaw();
@@ -235,7 +241,7 @@ class GmailController extends AbstractController
         $parsedHtmlMessageBody = $parser->getMessageBody('html');
         $arrayHeaders = $parser->getHeaders();
 
-        $message = $this->gmailProvider->sendMessage2($portal, $portal->getGmailAccount()->getGoogleToken(), $subject, $threadId, $arrayHeaders, $messageBody, $parsedTextMessageBody, $parsedHtmlMessageBody);
+        $message = $this->gmailProvider->sendMessage2($portal, $portal->getGmailAccount()->getGoogleToken(), $threadId, $arrayHeaders, $messageBody, $parsedTextMessageBody, $parsedHtmlMessageBody);
 
         return new JsonResponse([
             'success' => true
