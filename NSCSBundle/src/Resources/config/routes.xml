@@ -15,4 +15,8 @@
     </route>
     <route id="nscs_api_cengage_scholarship_tags" controller="nscs_controller_api.nscs_api_controller:getCengageScholarshipTags" path="/cengage-scholarship-tags" >
     </route>
+    <route id="nscs_api_chapters" controller="nscs_controller_api.nscs_api_controller:getChapters" path="/chapters" >
+    </route>
+    <route id="nscs_api_chapter_contacts" controller="nscs_controller_api.nscs_api_controller:getChapterContacts" path="/chapter-contacts" >
+    </route>
 </routes>

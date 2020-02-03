@@ -3,6 +3,7 @@
 namespace NSCSBundle\Controller\Api;
 
 use App\Entity\Portal;
+use App\Entity\Record;
 use Doctrine\ORM\EntityManagerInterface;
 use NSCSBundle\Repository\RecordRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -146,6 +147,59 @@ class NSCSApiController extends  AbstractController
         return $this->json([
             'success' => true,
             'data' => $results['results']
+        ]);
+    }
+
+    public function getChapters(Request $request) {
+        try {
+            $limit = $request->query->get('limit', 10);
+            $offset = $request->query->get('offset', 0);
+            $search = $request->query->get('search', '');
+            $results = $this->recordRepository->getChapters($limit, $offset, $search);
+        } catch (\Exception $exception) {
+            if(empty($results['results'])) {
+                return $this->json([
+                    'success' => false
+                ]);
+            }
+        }
+        foreach($results["results"] as &$result) {
+            $result['properties'] = json_decode($result['properties'], true);
+        }
+        return $this->json([
+            'success' => true,
+            'data' => $results['results'],
+        ]);
+    }
+
+    public function getChapterContacts(Request $request) {
+
+        $chapterRecordId = $request->query->get('chapterRecordId', false);
+        if(!$chapterRecordId) {
+            return $this->json([
+                'success' => false,
+                'message' => 'A chapter record Id must be passed up'
+            ]);
+        }
+
+        try {
+            $limit = $request->query->get('limit', 10);
+            $offset = $request->query->get('offset', 0);
+            $search = $request->query->get('search', '');
+            $results = $this->recordRepository->getChapterContacts($limit, $offset, $search, $chapterRecordId);
+        } catch (\Exception $exception) {
+            if(empty($results['results'])) {
+                return $this->json([
+                    'success' => false
+                ]);
+            }
+        }
+        foreach($results["results"] as &$result) {
+            $result['properties'] = json_decode($result['properties'], true);
+        }
+        return $this->json([
+            'success' => true,
+            'data' => $results['results'],
         ]);
     }
 

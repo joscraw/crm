@@ -171,4 +171,48 @@ WHERE co.internal_name = 'cengage_scholarships'";
         );
     }
 
+    /**
+     * @param $limit
+     * @param $offset
+     * @param $search
+     * @return array
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    public function getChapters($limit, $offset, $search) {
+        $query = "SELECT DISTINCT root.id, root.properties from record root INNER JOIN custom_object co on root.custom_object_id = co.id 
+                                WHERE co.internal_name = 'account'";
+        $query .= !empty($search) ? sprintf(" AND LOWER(root.properties) LIKE \"%%%s%%\"", strtolower($search)) : '';
+        $query .= sprintf(" LIMIT %s OFFSET %s", $limit, $offset);
+        $em = $this->getEntityManager();
+        $stmt = $em->getConnection()->prepare($query);
+        $stmt->execute();
+        $results = $stmt->fetchAll();
+        return array(
+            "results"  => $results
+        );
+    }
+
+    /**
+     * @param $limit
+     * @param $offset
+     * @param $search
+     * @param $chapterRecordId
+     * @return array
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    public function getChapterContacts($limit, $offset, $search, $chapterRecordId) {
+        $query = sprintf("SELECT root.id, root.properties from record root INNER JOIN custom_object co on root.custom_object_id = co.id 
+WHERE co.internal_name = 'contacts' AND root.properties->\"$.account_name\" = \"%s\"", $chapterRecordId);
+
+        $query .= !empty($search) ? sprintf(" AND LOWER(root.properties) LIKE \"%%%s%%\"", strtolower($search)) : '';
+        $query .= sprintf(" LIMIT %s OFFSET %s", $limit, $offset);
+        $em = $this->getEntityManager();
+        $stmt = $em->getConnection()->prepare($query);
+        $stmt->execute();
+        $results = $stmt->fetchAll();
+        return array(
+            "results"  => $results
+        );
+    }
+
 }
