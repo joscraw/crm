@@ -145,7 +145,7 @@ class GmailController extends AbstractController
 
         $messageBody = $request->request->get('messageBody');
         $subject = $request->request->get('subject');
-
+        
         /**
          * @var array ['joshcrawmer4@yahoo.com' => 'Test Name']
          */
