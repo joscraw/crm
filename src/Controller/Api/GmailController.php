@@ -130,7 +130,8 @@ class GmailController extends AbstractController
     }
 
     /**
-     * This endpoint returns all the messages for a given thread
+     * TODO we need to pass up the subject, message body, from, to and more
+     * This endpoint sends a message (In turn creating a new thread)
      *
      *
      * @Route("/send-message", name="gmail_send_message", methods={"POST"}, options = { "expose" = true })
@@ -141,9 +142,17 @@ class GmailController extends AbstractController
      */
     public function sendMessage(Portal $portal, Request $request)
     {
-        // TODO Consider how you are going to need to be able to pass up a threadId so you can just send to a single thread
+
+        $messageBody = $request->request->get('messageBody');
+        $subject = $request->request->get('subject');
+        
+        /**
+         * @var array ['joshcrawmer4@yahoo.com' => 'Test Name']
+         */
+        $recipients = $request->request->get('to');
+
         // TODO consider how you are going to handle attachments
-        $message = $this->gmailProvider->sendMessage($portal, $portal->getGmailAccount()->getGoogleToken());
+        $message = $this->gmailProvider->sendMessage($portal, $portal->getGmailAccount()->getGoogleToken(), $messageBody, $subject, $recipients);
         $message = $this->gmailProvider->getMessage($portal->getGmailAccount()->getPortal(), $portal->getGmailAccount()->getGoogleToken(), $message->getId());
 
         $parser = new Parser();
@@ -182,6 +191,65 @@ class GmailController extends AbstractController
         $gmailMessage->setHistoryId($message->getHistoryId());
         $this->entityManager->persist($gmailMessage);
         $this->entityManager->flush();
+
+        return new JsonResponse([
+            'success' => true
+        ]);
+    }
+
+    /**
+     *  TODO try use the normal TO: and CC: and BCC: multiple email addresses and make sure it appears in both people's threads.
+     *  TODO the history ID in the gmail_account could get deleted, if it does you need to grab the current one.
+     *   This needs to be built into the gmail orchestrator command
+     *
+     * This endpoint sends a message to an already existing thread
+     *
+     *
+     * @Route("/send-message-to-thread", name="gmail_send_message_to_thread", methods={"POST"}, options = { "expose" = true })
+     * @param Portal $portal
+     * @param Request $request
+     * @return JsonResponse
+     * @throws \Twig\Error\LoaderError
+     * @throws \Twig\Error\RuntimeError
+     * @throws \Twig\Error\SyntaxError
+     */
+    public function sendMessageToThread(Portal $portal, Request $request)
+    {
+        $messageBody = $request->request->get('messageBody');
+
+        /**
+         * This is the id of the message you are responding to
+         * This could be the same value as the threadId if there is only
+         * 1 message in the thread so far
+         * @var string
+         */
+        $messageId = $request->request->get('messageId');
+
+        /**
+         * This is the id of the thread you want to send the message to
+         * This could be the same value as the messageId if there is only
+         * 1 message in the thread so far
+         * @var string
+         */
+        $threadId = $request->request->get('threadId');
+
+        // let's go ahead and grab the message that actually owns that thread_id
+        // this would be equivalent to the first message sent in that thread
+        $message = $this->gmailProvider->getMessage($portal->getGmailAccount()->getPortal(), $portal->getGmailAccount()->getGoogleToken(), $messageId);
+
+        $parser = new Parser();
+        $raw = $message->getRaw();
+        $switched = str_replace(['-', '_'], ['+', '/'], $raw);
+        $raw = base64_decode($switched);
+        $parser->setText($raw);
+        $sentTo = $parser->getHeader('to');
+        $sentFrom = $parser->getHeader('from');
+        $subject = $parser->getHeader('subject');
+        $parsedTextMessageBody = $parser->getMessageBody('text');
+        $parsedHtmlMessageBody = $parser->getMessageBody('html');
+        $arrayHeaders = $parser->getHeaders();
+
+        $message = $this->gmailProvider->sendMessageToThread($portal, $portal->getGmailAccount()->getGoogleToken(), $threadId, $arrayHeaders, $messageBody, $parsedTextMessageBody, $parsedHtmlMessageBody);
 
         return new JsonResponse([
             'success' => true
