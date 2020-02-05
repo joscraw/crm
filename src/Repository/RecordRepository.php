@@ -1929,9 +1929,9 @@ class RecordRepository extends ServiceEntityRepository
     private function getDatePickerQuery($alias = 'r1') {
         return <<<HERE
     CASE 
-        WHEN `${alias}`.properties->>'$.%s' IS NULL THEN "-" 
-        WHEN `${alias}`.properties->>'$.%s' = '' THEN ""
-        ELSE `${alias}`.properties->>'$.%s'
+        WHEN `${alias}`.properties->>'$."%s"' IS NULL THEN "-" 
+        WHEN `${alias}`.properties->>'$."%s"' = '' THEN ""
+        ELSE `${alias}`.properties->>'$."%s"'
     END AS "%s"
 HERE;
     }
@@ -1939,9 +1939,9 @@ HERE;
     private function getNumberIsCurrencyQuery($alias = 'r1') {
         return <<<HERE
     CASE 
-        WHEN `${alias}`.properties->>'$.%s' IS NULL THEN "-" 
-        WHEN `${alias}`.properties->>'$.%s' = '' THEN ""
-        ELSE CAST( `${alias}`.properties->>'$.%s' AS DECIMAL(15,2) ) 
+        WHEN `${alias}`.properties->>'$."%s"' IS NULL THEN "-" 
+        WHEN `${alias}`.properties->>'$."%s"' = '' THEN ""
+        ELSE CAST( `${alias}`.properties->>'$."%s"' AS DECIMAL(15,2) ) 
     END AS "%s"
 HERE;
     }
@@ -1949,9 +1949,9 @@ HERE;
     private function getNumberIsUnformattedQuery($alias = 'r1') {
         return <<<HERE
     CASE
-        WHEN `${alias}`.properties->>'$.%s' IS NULL THEN "-" 
-        WHEN `${alias}`.properties->>'$.%s' = '' THEN ""
-        ELSE `${alias}`.properties->>'$.%s'
+        WHEN `${alias}`.properties->>'$."%s"' IS NULL THEN "-" 
+        WHEN `${alias}`.properties->>'$."%s"' = '' THEN ""
+        ELSE `${alias}`.properties->>'$."%s"'
     END AS "%s"
 HERE;
     }
@@ -1959,9 +1959,9 @@ HERE;
     private function getDefaultQuery($alias = 'r1') {
         return <<<HERE
     CASE
-        WHEN `${alias}`.properties->>'$.%s' IS NULL THEN "-" 
-        WHEN `${alias}`.properties->>'$.%s' = '' THEN ""
-        ELSE `${alias}`.properties->>'$.%s'
+        WHEN `${alias}`.properties->>'$."%s"' IS NULL THEN "-" 
+        WHEN `${alias}`.properties->>'$."%s"' = '' THEN ""
+        ELSE `${alias}`.properties->>'$."%s"'
     END AS "%s"
 HERE;
     }
@@ -1969,11 +1969,11 @@ HERE;
     private function getSingleCheckboxQuery($alias = 'r1') {
         return <<<HERE
     CASE
-        WHEN `${alias}`.properties->>'$.%s' IS NULL THEN "-" 
-        WHEN `${alias}`.properties->>'$.%s' = '' THEN ""
-        WHEN `${alias}`.properties->>'$.%s' = '1' THEN "yes"
-        WHEN `${alias}`.properties->>'$.%s' = '0' THEN "no"
-        ELSE `${alias}`.properties->>'$.%s'
+        WHEN `${alias}`.properties->>'$."%s"' IS NULL THEN "-" 
+        WHEN `${alias}`.properties->>'$."%s"' = '' THEN ""
+        WHEN `${alias}`.properties->>'$."%s"' = '1' THEN "yes"
+        WHEN `${alias}`.properties->>'$."%s"' = '0' THEN "no"
+        ELSE `${alias}`.properties->>'$."%s"'
     END AS "%s"
 HERE;
     }
@@ -1989,13 +1989,13 @@ HERE;
         return <<<HERE
 
     /* Given the id "11" This first statement matches: {"property_name": "11"} */
-    %s record `%s` on `%s`.properties->>'$.%s' REGEXP concat('^', `%s`.id, '$') 
+    %s record `%s` on `%s`.properties->>'$."%s"' REGEXP concat('^', `%s`.id, '$') 
      /* Given the id "11" This second statement matches: {"property_name": "12;11"} */
-     OR `%s`.properties->>'$.%s' REGEXP concat(';', `%s`.id, '$') 
+     OR `%s`.properties->>'$."%s"' REGEXP concat(';', `%s`.id, '$') 
      /* Given the id "11" This second statement matches: {"property_name": "12;11;13"} */
-     OR `%s`.properties->>'$.%s' REGEXP concat(';', `%s`.id, ';') 
+     OR `%s`.properties->>'$."%s"' REGEXP concat(';', `%s`.id, ';') 
      /* Given the id "11" This second statement matches: {"property_name": "11;12;13"} */
-     OR `%s`.properties->>'$.%s' REGEXP concat('^', `%s`.id, ';')
+     OR `%s`.properties->>'$."%s"' REGEXP concat('^', `%s`.id, ';')
 
 HERE;
     }
@@ -2006,7 +2006,7 @@ HERE;
      */
     private function getWithoutJoinQuery() {
         return <<<HERE
-    WHERE (`%s`.properties->>'$.%s' IS NULL OR `%s`.properties->>'$.%s' = '')
+    WHERE (`%s`.properties->>'$."%s"' IS NULL OR `%s`.properties->>'$."%s"' = '')
 HERE;
     }
 
@@ -2017,14 +2017,14 @@ HERE;
     private function getWithoutCrossJoinQuery() {
         return <<<HERE
     /* Given the id "11" This first statement matches: {"property_name": "11"} */
-    LEFT JOIN record `%s` on `%s`.properties->>'$.%s' REGEXP concat('^', `%s`.id, '$')
+    LEFT JOIN record `%s` on `%s`.properties->>'$."%s"' REGEXP concat('^', `%s`.id, '$')
     /* Given the id "11" This second statement matches: {"property_name": "12;11"} */
-     OR `%s`.properties->>'$.%s' REGEXP concat(';', `%s`.id, '$') 
+     OR `%s`.properties->>'$."%s"' REGEXP concat(';', `%s`.id, '$') 
      /* Given the id "11" This second statement matches: {"property_name": "12;11;13"} */
-     OR `%s`.properties->>'$.%s' REGEXP concat(';', `%s`.id, ';') 
+     OR `%s`.properties->>'$."%s"' REGEXP concat(';', `%s`.id, ';') 
      /* Given the id "11" This second statement matches: {"property_name": "11;12;13"} */
-     OR `%s`.properties->>'$.%s' REGEXP concat('^', `%s`.id, ';')
-    WHERE (`%s`.properties->>'$.%s' IS NULL OR `%s`.properties->>'$.%s' = '')
+     OR `%s`.properties->>'$."%s"' REGEXP concat('^', `%s`.id, ';')
+    WHERE (`%s`.properties->>'$."%s"' IS NULL OR `%s`.properties->>'$."%s"' = '')
 HERE;
     }
 
@@ -2038,13 +2038,13 @@ HERE;
     private function getCrossJoinQuery() {
         return <<<HERE
     /* Given the id "11" This first statement matches: {"property_name": "11"} */
-    %s record `%s` on `%s`.properties->>'$.%s' REGEXP concat('^', `%s`.id, '$')
+    %s record `%s` on `%s`.properties->>'$."%s"' REGEXP concat('^', `%s`.id, '$')
     /* Given the id "11" This second statement matches: {"property_name": "12;11"} */
-     OR `%s`.properties->>'$.%s' REGEXP concat(';', `%s`.id, '$') 
+     OR `%s`.properties->>'$."%s"' REGEXP concat(';', `%s`.id, '$') 
      /* Given the id "11" This second statement matches: {"property_name": "12;11;13"} */
-     OR `%s`.properties->>'$.%s' REGEXP concat(';', `%s`.id, ';') 
+     OR `%s`.properties->>'$."%s"' REGEXP concat(';', `%s`.id, ';') 
      /* Given the id "11" This second statement matches: {"property_name": "11;12;13"} */
-     OR `%s`.properties->>'$.%s' REGEXP concat('^', `%s`.id, ';')
+     OR `%s`.properties->>'$."%s"' REGEXP concat('^', `%s`.id, ';')
 HERE;
     }
 }
