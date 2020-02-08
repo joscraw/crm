@@ -332,27 +332,11 @@ class RecordRepository extends ServiceEntityRepository
     public function filterRecords(FilterData $filterData)
     {
 
-/*        $alias = $filterData->generateAlias();
-
-        foreach($filterData->getColumns() as $column) {
-            $column->setAlias($alias);
-        }
-
-        foreach($filterData->getOrFilters() as $orFilter) {
-            $orFilter->setAlias($alias);
-        }*/
-
-        //$filterData->setupJoinAliases($filterData->getJoins(), $filterData->getBaseObject());
-
-        $filterData->generateAliases();
-
-        $filterData->generateColumnQueries();
-
-        $filterData->generateFilterQueries();
-
-        $filterData->generateJoinQueries();
-
-        $filterData->generateJoinConditionalQueries();
+        $filterData->generateAliases()
+            ->generateColumnQueries()
+            ->generateFilterQueries()
+            ->generateJoinQueries()
+            ->generateJoinConditionalQueries();
 
         $query = $filterData->getQuery();
 

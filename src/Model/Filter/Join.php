@@ -187,13 +187,17 @@ class Join extends AbstractFilter
         $this->parentAlias = $filterObject->getAlias();
         $this->parent = $filterObject;
 
+        /**
+         * The logic here should never really be touched. This determines whether or not we will
+         * be performing a cross join or a normal join. See JoinQueries below for more details
+         */
         if($previousObject->getId() === $this->getRelationshipPropertyToJoinOn()->getCustomObject()->getId()) {
-            // the property we are joining on actually lives on the previous object
+            // If the property we are joining on actually lives on the same object
             $this->joinDirection = 'normal_join';
             $customObject = $this->getRelationshipPropertyToJoinOn()->getField()->getCustomObject();
             $alias = $this->generateAlias($customObject);
         } else {
-            // the property we are joining on does not live on the previous object but rather on another object
+            // If the property we are joining on does not live on a different object
             $this->joinDirection = 'cross_join';
             $customObject = $this->getRelationshipPropertyToJoinOn()->getCustomObject();
             $alias = $this->generateAlias($customObject);
@@ -217,8 +221,9 @@ class Join extends AbstractFilter
 
     public function generateColumnQueries(FilterData $filterData) {
 
+        /** @var Column $column */
         foreach($this->getColumns() as $column) {
-            $filterData->columnQueries[] = $filterData->columnQuery($column);
+            $filterData->columnQueries[] = $column->getQuery();
         }
 
         /** @var Join $join */
@@ -229,8 +234,9 @@ class Join extends AbstractFilter
 
     public function generateFilterQueries(FilterData $filterData) {
 
+        /** @var Filter $orFilter */
         foreach($this->getOrFilters() as $orFilter) {
-            $filterData->filterQueries[] = $filterData->filterQuery($orFilter);
+            $filterData->filterQueries[] = $orFilter->getQuery();
         }
 
         /** @var Join $join */
@@ -241,7 +247,7 @@ class Join extends AbstractFilter
 
     public function generateJoinQueries(FilterData $filterData) {
 
-        $filterData->joinQueries[] = $filterData->joinQuery($this);
+        $filterData->joinQueries[] = $this->getQuery();
 
         /** @var Join $join */
         foreach($this->joins as $join) {
@@ -252,5 +258,124 @@ class Join extends AbstractFilter
     public function generateJoinConditionalQueries(FilterData $filterData) {
 
         $filterData->joinConditionalQueries[] = sprintf("`%s`.custom_object_id = %s", $this->getAlias(), $this->joinObject->getId());
+    }
+
+    private function getQuery() {
+
+        $connectedProperty = $this->getRelationshipPropertyToJoinOn();
+        $joinDirection = $this->getJoinDirection();
+        $joinType = $this->getJoinType();
+        $alias = $this->getAlias();
+        $parentAlias = $this->getParentAlias();
+        $query = '';
+        if($joinType === 'With' && $joinDirection === 'normal_join') {
+            $query = sprintf($this->getJoinQuery(),
+                'INNER JOIN', $alias, $parentAlias, $connectedProperty->getInternalName(), $alias,
+                $parentAlias, $connectedProperty->getInternalName(), $alias,
+                $parentAlias, $connectedProperty->getInternalName(), $alias,
+                $parentAlias, $connectedProperty->getInternalName(), $alias
+            );
+        } elseif ($joinType === 'With/Without' && $joinDirection === 'normal_join') {
+            $query = sprintf($this->getJoinQuery(),
+                'LEFT JOIN', $alias, $parentAlias, $connectedProperty->getInternalName(), $alias,
+                $parentAlias, $connectedProperty->getInternalName(), $alias,
+                $parentAlias, $connectedProperty->getInternalName(), $alias,
+                $parentAlias, $connectedProperty->getInternalName(), $alias
+            );
+        } elseif ($joinType === 'Without' && $joinDirection === 'normal_join') {
+            $query = sprintf($this->getWithoutJoinQuery(), $parentAlias, $connectedProperty->getInternalName(), $parentAlias, $connectedProperty->getInternalName());
+        } elseif ($joinType === 'With' && $joinDirection === 'cross_join') {
+            $query = sprintf($this->getCrossJoinQuery(),
+                'INNER JOIN', $alias, $alias, $connectedProperty->getInternalName(), $parentAlias,
+                $alias, $connectedProperty->getInternalName(), $parentAlias,
+                $alias, $connectedProperty->getInternalName(), $parentAlias,
+                $alias, $connectedProperty->getInternalName(), $parentAlias
+            );
+        } elseif ($joinType === 'With/Without' && $joinDirection === 'cross_join') {
+            $query = sprintf($this->getCrossJoinQuery(),
+                'LEFT JOIN', $alias, $alias, $connectedProperty->getInternalName(), $parentAlias,
+                $alias, $connectedProperty->getInternalName(), $parentAlias,
+                $alias, $connectedProperty->getInternalName(), $parentAlias,
+                $alias, $connectedProperty->getInternalName(), $parentAlias
+            );
+        } elseif ($joinType === 'Without' && $joinDirection === 'cross_join') {
+            $query = sprintf($this->getWithoutCrossJoinQuery(),
+                $alias, $alias, $connectedProperty->getInternalName(), $parentAlias,
+                $alias, $connectedProperty->getInternalName(), $parentAlias,
+                $alias, $connectedProperty->getInternalName(), $parentAlias,
+                $alias, $connectedProperty->getInternalName(), $parentAlias,
+                $alias, $connectedProperty->getInternalName(), $alias, $connectedProperty->getInternalName());
+        }
+        return $query;
+    }
+
+    /**
+     * We store relations to a single object as a string.
+     * We store relations to multiple objects as a semicolon delimited string
+     * Single object example: {chapter: "11"}
+     * Multiple object example: {chapter: "11;12;13"}
+     * @return string
+     */
+    private function getJoinQuery() {
+        return <<<HERE
+
+    /* Given the id "11" This first statement matches: {"property_name": "11"} */
+    %s record `%s` on `%s`.properties->>'$."%s"' REGEXP concat('^', `%s`.id, '$') 
+     /* Given the id "11" This second statement matches: {"property_name": "12;11"} */
+     OR `%s`.properties->>'$."%s"' REGEXP concat(';', `%s`.id, '$') 
+     /* Given the id "11" This second statement matches: {"property_name": "12;11;13"} */
+     OR `%s`.properties->>'$."%s"' REGEXP concat(';', `%s`.id, ';') 
+     /* Given the id "11" This second statement matches: {"property_name": "11;12;13"} */
+     OR `%s`.properties->>'$."%s"' REGEXP concat('^', `%s`.id, ';')
+
+HERE;
+    }
+
+    /**
+     * Normal Join Looking for records without a match
+     * @return string
+     */
+    private function getWithoutJoinQuery() {
+        return <<<HERE
+    WHERE (`%s`.properties->>'$."%s"' IS NULL OR `%s`.properties->>'$."%s"' = '')
+HERE;
+    }
+
+    /**
+     * Normal Join Looking for records without a match
+     * @return string
+     */
+    private function getWithoutCrossJoinQuery() {
+        return <<<HERE
+    /* Given the id "11" This first statement matches: {"property_name": "11"} */
+    LEFT JOIN record `%s` on `%s`.properties->>'$."%s"' REGEXP concat('^', `%s`.id, '$')
+    /* Given the id "11" This second statement matches: {"property_name": "12;11"} */
+     OR `%s`.properties->>'$."%s"' REGEXP concat(';', `%s`.id, '$') 
+     /* Given the id "11" This second statement matches: {"property_name": "12;11;13"} */
+     OR `%s`.properties->>'$."%s"' REGEXP concat(';', `%s`.id, ';') 
+     /* Given the id "11" This second statement matches: {"property_name": "11;12;13"} */
+     OR `%s`.properties->>'$."%s"' REGEXP concat('^', `%s`.id, ';')
+    WHERE (`%s`.properties->>'$."%s"' IS NULL OR `%s`.properties->>'$."%s"' = '')
+HERE;
+    }
+
+    /**
+     * We store relations to a single object as a string.
+     * We store relations to multiple objects as a semicolon delimited string
+     * Single object example: {chapter: "11"}
+     * Multiple object example: {chapter: "11;12;13"}
+     * @return string
+     */
+    private function getCrossJoinQuery() {
+        return <<<HERE
+    /* Given the id "11" This first statement matches: {"property_name": "11"} */
+    %s record `%s` on `%s`.properties->>'$."%s"' REGEXP concat('^', `%s`.id, '$')
+    /* Given the id "11" This second statement matches: {"property_name": "12;11"} */
+     OR `%s`.properties->>'$."%s"' REGEXP concat(';', `%s`.id, '$') 
+     /* Given the id "11" This second statement matches: {"property_name": "12;11;13"} */
+     OR `%s`.properties->>'$."%s"' REGEXP concat(';', `%s`.id, ';') 
+     /* Given the id "11" This second statement matches: {"property_name": "11;12;13"} */
+     OR `%s`.properties->>'$."%s"' REGEXP concat('^', `%s`.id, ';')
+HERE;
     }
 }
