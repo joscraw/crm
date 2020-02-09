@@ -183,10 +183,10 @@ class NSCSApiController extends  AbstractController
         }
 
         try {
-            $limit = $request->query->get('limit', 10);
-            $offset = $request->query->get('offset', 0);
-            $search = $request->query->get('search', '');
-            $results = $this->recordRepository->getChapterContacts($limit, $offset, $search, $chapterRecordId);
+            $limit = $request->query->get('limit', null);
+            $offset = $request->query->get('offset', null);
+            $search = $request->query->get('search', null);
+            $results = $this->recordRepository->getChapterContacts($chapterRecordId, $limit, $offset, $search);
         } catch (\Exception $exception) {
             if(empty($results['results'])) {
                 return $this->json([
