@@ -58,3 +58,9 @@ services:
     Symfony\Component\Asset\Context\RequestStackContext:
       alias: 'assets.context'
       public: true
+
+    api_exception_subscriber:
+      class: App\EventListener\ApiExceptionSubscriber
+      arguments: []
+      tags:
+        - { name: kernel.event_subscriber }

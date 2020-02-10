@@ -12,6 +12,7 @@ use App\Model\DropdownSelectField;
 use App\Model\FieldCatalog;
 use App\Model\Filter\FilterData;
 use App\Model\Filter\Join;
+use App\Model\Filter\Order;
 use App\Model\MultiLineTextField;
 use App\Model\MultipleCheckboxField;
 use App\Model\NumberField;
@@ -115,30 +116,69 @@ class FilterDataDenormalizer implements DenormalizerInterface, DenormalizerAware
         $baseObject = $this->customObjectRepository->find($data['baseObject']);
         $filterData->setBaseObject($baseObject);
 
+        // SEARCH
+        if(isset($data['search'])) {
+            $filterData->setSearch($data['search']);
+        }
+
+        // LIMIT
+        if(isset($data['limit'])) {
+            $filterData->setLimit($data['limit']);
+        }
+
+        // OFFSET
+        if(isset($data['offset'])) {
+            $filterData->setOffset($data['offset']);
+        }
+
         // COLUMNS TO RETURN
-        foreach($data['columns'] as $columnData) {
-            $column = new Column();
-            $property = $this->propertyRepository->find($columnData['property']);
-            $column->setProperty($property);
-            $filterData->addColumn($column);
+        if(isset($data['columns'])) {
+            foreach($data['columns'] as $columnData) {
+                $column = new Column();
+                $property = $this->propertyRepository->find($columnData['property']);
+                if(isset($columnData['renameTo'])) {
+                    $column->setRenameTo($columnData['renameTo']);
+                }
+                $column->setProperty($property);
+                $filterData->addColumn($column);
+            }
         }
 
         // OR FILTERS
-        foreach($data['orFilters'] as $orFilter) {
-            $property = $this->propertyRepository->find($orFilter['property']);
-            /** @var Filter $filter */
-            $filter = $this->denormalizer->denormalize(
-                $orFilter,
-                Filter::class,
-                $format,
-                $context
-            );
-            $filter->setProperty($property);
-            $filterData->addOrFilter($filter);
+        if(isset($data['orFilters'])) {
+            foreach($data['orFilters'] as $orFilter) {
+                $property = $this->propertyRepository->find($orFilter['property']);
+                /** @var Filter $filter */
+                $filter = $this->denormalizer->denormalize(
+                    $orFilter,
+                    Filter::class,
+                    $format,
+                    $context
+                );
+                $filter->setProperty($property);
+                $filterData->addOrFilter($filter);
+            }
+        }
+
+        if(isset($data['order'])) {
+            foreach($data['order'] as $order) {
+                $property = $this->propertyRepository->find($order['property']);
+                /** @var Order $orderObject */
+                $orderObject = $this->denormalizer->denormalize(
+                    $order,
+                    Order::class,
+                    $format,
+                    $context
+                );
+                $orderObject->setProperty($property);
+                $filterData->addOrder($orderObject);
+            }
         }
 
         // JOINS
-        $filterData->setJoins($this->joins($data['joins']));
+        if(isset($data['joins'])) {
+            $filterData->setJoins($this->joins($data['joins']));
+        }
 
         return $filterData;
     }
@@ -153,30 +193,52 @@ class FilterDataDenormalizer implements DenormalizerInterface, DenormalizerAware
             $relationshipPropertyToJoinOn = $this->propertyRepository->find($join['relationshipPropertyToJoinOn']);
             $joinObject->setRelationshipPropertyToJoinOn($relationshipPropertyToJoinOn);
             $joinObject->setJoinType($join['joinType']);
-            $joinObject->setJoinDirection($join['joinDirection']);
 
-            foreach($join['columns'] as $columnData) {
-                $column = new Column();
-                $property = $this->propertyRepository->find($columnData['property']);
-                $column->setProperty($property);
-                $joinObject->addColumn($column);
+            // COLUMNS
+            if(isset($join['columns'])) {
+                foreach($join['columns'] as $columnData) {
+                    $column = new Column();
+                    $property = $this->propertyRepository->find($columnData['property']);
+                    if(isset($columnData['renameTo'])) {
+                        $column->setRenameTo($columnData['renameTo']);
+                    }
+                    $column->setProperty($property);
+                    $joinObject->addColumn($column);
+                }
             }
 
             // OR FILTERS
-            foreach($join['orFilters'] as $orFilter) {
-                $property = $this->propertyRepository->find($orFilter['property']);
-                /** @var Filter $filter */
-                $filter = $this->denormalizer->denormalize(
-                    $orFilter,
-                    Filter::class,
-                    'json',
-                   []
-                );
-                $filter->setProperty($property);
-                $joinObject->addOrFilter($filter);
+            if(isset($join['orFilters'])) {
+                foreach($join['orFilters'] as $orFilter) {
+                    $property = $this->propertyRepository->find($orFilter['property']);
+                    /** @var Filter $filter */
+                    $filter = $this->denormalizer->denormalize(
+                        $orFilter,
+                        Filter::class,
+                        'json',
+                        []
+                    );
+                    $filter->setProperty($property);
+                    $joinObject->addOrFilter($filter);
+                }
             }
 
-            if(count($join['joins']) > 0) {
+            if(isset($join['order'])) {
+                foreach($join['order'] as $order) {
+                    $property = $this->propertyRepository->find($order['property']);
+                    /** @var Order $orderObject */
+                    $orderObject = $this->denormalizer->denormalize(
+                        $order,
+                        Order::class,
+                        'json',
+                        []
+                    );
+                    $orderObject->setProperty($property);
+                    $joinObject->addOrder($orderObject);
+                }
+            }
+
+            if(isset($join['joins']) && count($join['joins']) > 0) {
                 $joinObject->setJoins($this->joins($join['joins']));
             }
 

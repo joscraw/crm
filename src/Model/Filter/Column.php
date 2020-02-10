@@ -19,6 +19,11 @@ class Column
     protected $alias;
 
     /**
+     * @var string
+     */
+    protected $renameTo;
+
+    /**
      * @return Property
      */
     public function getProperty(): Property
@@ -51,13 +56,29 @@ class Column
     }
 
     /**
+     * @return string
+     */
+    public function getRenameTo(): string
+    {
+        return $this->renameTo;
+    }
+
+    /**
+     * @param string $renameTo
+     */
+    public function setRenameTo(string $renameTo): void
+    {
+        $this->renameTo = $renameTo;
+    }
+
+    /**
      * This function sets up the property fields we are querying
      * @return array
      */
     public function getQuery()
     {
         $internalName = $this->getProperty()->getInternalName();
-        $label = $this->getProperty()->getLabel();
+        $label = !empty($this->renameTo) ? $this->renameTo : $this->getProperty()->getLabel();
         $alias = $this->getAlias();
         $resultStr = '';
 
@@ -86,6 +107,14 @@ class Column
 
         }
         return $resultStr;
+    }
+
+    public function getSearchQuery($search) {
+
+        $searchQuery = <<<HERE
+    LOWER(`%s`.properties->>'$."%s"') LIKE '%%%s%%'
+HERE;
+        return sprintf($searchQuery, $this->alias, $this->getProperty()->getInternalName(), strtolower($search));
     }
 
     private function getDatePickerQuery($alias = 'r1') {

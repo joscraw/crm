@@ -936,6 +936,15 @@ class RecordController extends ApiController
 
         $results = $this->recordRepository->filterRecords($filterData);
 
+        $results = $results['results'];
+
+        $response = new JsonResponse([
+            'success' => true,
+            'data'  => $results
+        ], Response::HTTP_OK);
+
+        return $response;
+
         $draw = intval($request->request->get('draw'));
         $start = $request->request->get('start');
         $length = $request->request->get('length');

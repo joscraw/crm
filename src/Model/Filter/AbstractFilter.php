@@ -24,6 +24,11 @@ class AbstractFilter
     protected $joins;
 
     /**
+     * @var Order[]
+     */
+    protected $orders;
+
+    /**
      * @var string
      */
     protected $alias;
@@ -33,6 +38,7 @@ class AbstractFilter
         $this->columns = new ArrayCollection();
         $this->orFilters = new ArrayCollection();
         $this->joins = new ArrayCollection();
+        $this->orders = new ArrayCollection();
     }
 
     /**
@@ -110,6 +116,29 @@ class AbstractFilter
     {
         if ($this->joins->contains($join)) {
             $this->joins->removeElement($join);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Order[]
+     */
+    public function getOrders(): Collection
+    {
+        return $this->orders;
+    }
+
+    public function addOrder(Order $order): self
+    {
+        $this->orders[] = $order;
+        return $this;
+    }
+
+    public function removeOrder(Order $order): self
+    {
+        if ($this->orders->contains($order)) {
+            $this->orders->removeElement($order);
         }
 
         return $this;

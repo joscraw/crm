@@ -2,6 +2,7 @@
 
 namespace App\Model\Filter;
 
+use App\Api\ApiProblemException;
 use App\Entity\CustomObject;
 use App\Entity\Property;
 use App\Utils\RandomStringGenerator;
@@ -213,9 +214,13 @@ class Join extends AbstractFilter
             $orFilter->setAlias($alias);
         }
 
+        foreach($this->getOrders() as $order) {
+            $order->setAlias($alias);
+        }
+
         /** @var Join $join */
         foreach($this->joins as $join) {
-            $join->generateAliases($customObject, $join);
+            $join->generateAliases($customObject, $this);
         }
     }
 
@@ -245,9 +250,33 @@ class Join extends AbstractFilter
         }
     }
 
+    public function generateSearchQueries(FilterData $filterData) {
+
+        foreach($this->getColumns() as $column) {
+            $filterData->searchQueries[] = $column->getSearchQuery($filterData->getSearch());
+        }
+
+        /** @var Join $join */
+        foreach($this->joins as $join) {
+            $join->generateSearchQueries($filterData);
+        }
+    }
+
+    public function generateOrderQueries(FilterData $filterData) {
+
+        foreach($this->getOrders() as $order) {
+            $filterData->orderQueries[$order->getPriority()] = $order->getQuery();
+        }
+
+        /** @var Join $join */
+        foreach($this->joins as $join) {
+            $join->generateOrderQueries($filterData);
+        }
+    }
+
     public function generateJoinQueries(FilterData $filterData) {
 
-        $filterData->joinQueries[] = $this->getQuery();
+        $this->getQuery($filterData);
 
         /** @var Join $join */
         foreach($this->joins as $join) {
@@ -257,10 +286,46 @@ class Join extends AbstractFilter
 
     public function generateJoinConditionalQueries(FilterData $filterData) {
 
-        $filterData->joinConditionalQueries[] = sprintf("`%s`.custom_object_id = %s", $this->getAlias(), $this->joinObject->getId());
+        $skipJoinCondition = ($this->joinType === 'Without' && $this->joinDirection === 'normal_join') ||
+            ($this->joinType === 'With/Without');
+
+        if(!$skipJoinCondition) {
+            $filterData->joinConditionalQueries[] = sprintf("`%s`.custom_object_id = %s", $this->getAlias(), $this->joinObject->getId());
+        }
+
+        foreach($this->joins as $join) {
+            $join->generateJoinConditionalQueries($filterData);
+        }
     }
 
-    private function getQuery() {
+    public function hasColumns() {
+        return $this->columns->count() > 0;
+    }
+
+    public function hasFilters() {
+        return $this->orFilters->count() > 0;
+    }
+
+    public function validate() {
+
+        if($this->joinType === 'Without' && ($this->hasColumns() || $this->hasFilters())) {
+            throw new ApiProblemException(400,
+                sprintf('"Without" joinTypes cannot have "columns" or "orFilters" as you are 
+                requesting all records that do NOT have a relationship with property %s (%s). 
+                Please set both "columns" and "orFilters" to any empty array [].',
+                    $this->relationshipPropertyToJoinOn->getId(),
+                    $this->relationshipPropertyToJoinOn->getInternalName()
+                ));
+        }
+
+        /** @var Join $join */
+        foreach($this->joins as $join) {
+            $join->validate();
+        }
+
+    }
+
+    private function getQuery(FilterData $filterData) {
 
         $connectedProperty = $this->getRelationshipPropertyToJoinOn();
         $joinDirection = $this->getJoinDirection();
@@ -269,42 +334,44 @@ class Join extends AbstractFilter
         $parentAlias = $this->getParentAlias();
         $query = '';
         if($joinType === 'With' && $joinDirection === 'normal_join') {
-            $query = sprintf($this->getJoinQuery(),
+            $filterData->joinQueries[] = sprintf($this->getJoinQuery(),
                 'INNER JOIN', $alias, $parentAlias, $connectedProperty->getInternalName(), $alias,
                 $parentAlias, $connectedProperty->getInternalName(), $alias,
                 $parentAlias, $connectedProperty->getInternalName(), $alias,
                 $parentAlias, $connectedProperty->getInternalName(), $alias
             );
         } elseif ($joinType === 'With/Without' && $joinDirection === 'normal_join') {
-            $query = sprintf($this->getJoinQuery(),
-                'LEFT JOIN', $alias, $parentAlias, $connectedProperty->getInternalName(), $alias,
-                $parentAlias, $connectedProperty->getInternalName(), $alias,
-                $parentAlias, $connectedProperty->getInternalName(), $alias,
-                $parentAlias, $connectedProperty->getInternalName(), $alias
+            $filterData->joinQueries[] = sprintf($this->getWithOrWithoutJoinQuery(),
+                $alias, $parentAlias, $connectedProperty->getInternalName(), $alias, $alias, $this->joinObject->getId(),
+                $parentAlias, $connectedProperty->getInternalName(), $alias, $alias, $this->joinObject->getId(),
+                $parentAlias, $connectedProperty->getInternalName(), $alias, $alias, $this->joinObject->getId(),
+                $parentAlias, $connectedProperty->getInternalName(), $alias, $alias, $this->joinObject->getId()
             );
         } elseif ($joinType === 'Without' && $joinDirection === 'normal_join') {
-            $query = sprintf($this->getWithoutJoinQuery(), $parentAlias, $connectedProperty->getInternalName(), $parentAlias, $connectedProperty->getInternalName());
-        } elseif ($joinType === 'With' && $joinDirection === 'cross_join') {
-            $query = sprintf($this->getCrossJoinQuery(),
+            // You actually aren't performing a join here but rather checking for null.
+            $filterData->joinConditionalQueries[] = sprintf($this->getWithoutJoinQuery(), $parentAlias, $connectedProperty->getInternalName(), $parentAlias, $connectedProperty->getInternalName());
+        } elseif ($joinType === 'Without' && $joinDirection === 'cross_join') {
+            $filterData->joinQueries[] = sprintf($this->getWithoutCrossJoinQuery(),
+                $alias, $alias, $connectedProperty->getInternalName(), $parentAlias,
+                $alias, $connectedProperty->getInternalName(), $parentAlias,
+                $alias, $connectedProperty->getInternalName(), $parentAlias,
+                $alias, $connectedProperty->getInternalName(), $parentAlias,
+                $alias, $connectedProperty->getInternalName(), $alias, $connectedProperty->getInternalName());
+        }
+        elseif ($joinType === 'With' && $joinDirection === 'cross_join') {
+            $filterData->joinQueries[] = sprintf($this->getCrossJoinQuery(),
                 'INNER JOIN', $alias, $alias, $connectedProperty->getInternalName(), $parentAlias,
                 $alias, $connectedProperty->getInternalName(), $parentAlias,
                 $alias, $connectedProperty->getInternalName(), $parentAlias,
                 $alias, $connectedProperty->getInternalName(), $parentAlias
             );
         } elseif ($joinType === 'With/Without' && $joinDirection === 'cross_join') {
-            $query = sprintf($this->getCrossJoinQuery(),
-                'LEFT JOIN', $alias, $alias, $connectedProperty->getInternalName(), $parentAlias,
-                $alias, $connectedProperty->getInternalName(), $parentAlias,
-                $alias, $connectedProperty->getInternalName(), $parentAlias,
-                $alias, $connectedProperty->getInternalName(), $parentAlias
+            $filterData->joinQueries[] = sprintf($this->getWithOrWithoutCrossJoinQuery(),
+                $alias, $alias, $connectedProperty->getInternalName(), $parentAlias, $alias, $this->joinObject->getId(),
+                $alias, $connectedProperty->getInternalName(), $parentAlias, $alias, $this->joinObject->getId(),
+                $alias, $connectedProperty->getInternalName(), $parentAlias, $alias, $this->joinObject->getId(),
+                $alias, $connectedProperty->getInternalName(), $parentAlias, $alias, $this->joinObject->getId()
             );
-        } elseif ($joinType === 'Without' && $joinDirection === 'cross_join') {
-            $query = sprintf($this->getWithoutCrossJoinQuery(),
-                $alias, $alias, $connectedProperty->getInternalName(), $parentAlias,
-                $alias, $connectedProperty->getInternalName(), $parentAlias,
-                $alias, $connectedProperty->getInternalName(), $parentAlias,
-                $alias, $connectedProperty->getInternalName(), $parentAlias,
-                $alias, $connectedProperty->getInternalName(), $alias, $connectedProperty->getInternalName());
         }
         return $query;
     }
@@ -332,12 +399,35 @@ HERE;
     }
 
     /**
+     * We store relations to a single object as a string.
+     * We store relations to multiple objects as a semicolon delimited string
+     * Single object example: {chapter: "11"}
+     * Multiple object example: {chapter: "11;12;13"}
+     * @return string
+     */
+    private function getWithOrWithoutJoinQuery() {
+        return <<<HERE
+
+    /* Given the id "11" This first statement matches: {"property_name": "11"} */
+     LEFT JOIN record `%s` on 
+     (`%s`.properties->>'$."%s"' REGEXP concat('^', `%s`.id, '$') AND `%s`.custom_object_id = '%s')
+     /* Given the id "11" This second statement matches: {"property_name": "12;11"} */
+     OR (`%s`.properties->>'$."%s"' REGEXP concat(';', `%s`.id, '$') AND `%s`.custom_object_id = '%s')
+     /* Given the id "11" This second statement matches: {"property_name": "12;11;13"} */
+     OR (`%s`.properties->>'$."%s"' REGEXP concat(';', `%s`.id, ';') AND `%s`.custom_object_id = '%s')
+     /* Given the id "11" This second statement matches: {"property_name": "11;12;13"} */
+     OR (`%s`.properties->>'$."%s"' REGEXP concat('^', `%s`.id, ';')AND `%s`.custom_object_id = '%s')
+
+HERE;
+    }
+
+    /**
      * Normal Join Looking for records without a match
      * @return string
      */
     private function getWithoutJoinQuery() {
         return <<<HERE
-    WHERE (`%s`.properties->>'$."%s"' IS NULL OR `%s`.properties->>'$."%s"' = '')
+     (`%s`.properties->>'$."%s"' IS NULL OR `%s`.properties->>'$."%s"' = '')
 HERE;
     }
 
@@ -348,14 +438,13 @@ HERE;
     private function getWithoutCrossJoinQuery() {
         return <<<HERE
     /* Given the id "11" This first statement matches: {"property_name": "11"} */
-    LEFT JOIN record `%s` on `%s`.properties->>'$."%s"' REGEXP concat('^', `%s`.id, '$')
+    LEFT JOIN record `%s` on `%s`.properties->>'$."%s"' NOT REGEXP concat('^', `%s`.id, '$')
     /* Given the id "11" This second statement matches: {"property_name": "12;11"} */
-     OR `%s`.properties->>'$."%s"' REGEXP concat(';', `%s`.id, '$') 
+     AND `%s`.properties->>'$."%s"' NOT REGEXP concat(';', `%s`.id, '$') 
      /* Given the id "11" This second statement matches: {"property_name": "12;11;13"} */
-     OR `%s`.properties->>'$."%s"' REGEXP concat(';', `%s`.id, ';') 
+     AND `%s`.properties->>'$."%s"' NOT REGEXP concat(';', `%s`.id, ';') 
      /* Given the id "11" This second statement matches: {"property_name": "11;12;13"} */
-     OR `%s`.properties->>'$."%s"' REGEXP concat('^', `%s`.id, ';')
-    WHERE (`%s`.properties->>'$."%s"' IS NULL OR `%s`.properties->>'$."%s"' = '')
+     AND `%s`.properties->>'$."%s"' NOT REGEXP concat('^', `%s`.id, ';')
 HERE;
     }
 
@@ -376,6 +465,27 @@ HERE;
      OR `%s`.properties->>'$."%s"' REGEXP concat(';', `%s`.id, ';') 
      /* Given the id "11" This second statement matches: {"property_name": "11;12;13"} */
      OR `%s`.properties->>'$."%s"' REGEXP concat('^', `%s`.id, ';')
+HERE;
+    }
+
+    /**
+     * We store relations to a single object as a string.
+     * We store relations to multiple objects as a semicolon delimited string
+     * Single object example: {chapter: "11"}
+     * Multiple object example: {chapter: "11;12;13"}
+     * @return string
+     */
+    private function getWithOrWithoutCrossJoinQuery() {
+        return <<<HERE
+    /* Given the id "11" This first statement matches: {"property_name": "11"} */
+     LEFT JOIN record `%s` on 
+     (`%s`.properties->>'$."%s"' REGEXP concat('^', `%s`.id, '$') AND `%s`.custom_object_id = '%s')
+    /* Given the id "11" This second statement matches: {"property_name": "12;11"} */
+     OR (`%s`.properties->>'$."%s"' REGEXP concat(';', `%s`.id, '$') AND `%s`.custom_object_id = '%s')
+     /* Given the id "11" This second statement matches: {"property_name": "12;11;13"} */
+     OR (`%s`.properties->>'$."%s"' REGEXP concat(';', `%s`.id, ';') AND `%s`.custom_object_id = '%s')
+     /* Given the id "11" This second statement matches: {"property_name": "11;12;13"} */
+     OR (`%s`.properties->>'$."%s"' REGEXP concat('^', `%s`.id, ';') AND `%s`.custom_object_id = '%s')
 HERE;
     }
 }

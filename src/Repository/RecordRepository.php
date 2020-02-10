@@ -336,9 +336,20 @@ class RecordRepository extends ServiceEntityRepository
             ->generateColumnQueries()
             ->generateFilterQueries()
             ->generateJoinQueries()
-            ->generateJoinConditionalQueries();
+            ->generateJoinConditionalQueries()
+            ->generateSearchQueries()
+            ->generateOrderQueries()
+            ->validate();
 
         $query = $filterData->getQuery();
+
+        $em = $this->getEntityManager();
+        $stmt = $em->getConnection()->prepare($query);
+        $stmt->execute();
+        $results = $stmt->fetchAll();
+        return array(
+            "results"  => $results,
+        );
 
         // Setup fields for select
         $resultStr = $this->newFieldLogicBuilder($data,  $root);

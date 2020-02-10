@@ -20,6 +20,21 @@ class FilterData extends AbstractFilter
     protected $baseObject;
 
     /**
+     * @var string
+     */
+    protected $search;
+
+    /**
+     * @var int
+     */
+    protected $limit;
+
+    /**
+     * @var int
+     */
+    protected $offset;
+
+    /**
      * @var array
      */
     public $columnQueries = [];
@@ -40,6 +55,16 @@ class FilterData extends AbstractFilter
     public $joinConditionalQueries = [];
 
     /**
+     * @var array
+     */
+    public $searchQueries = [];
+
+    /**
+     * @var array
+     */
+    public $orderQueries = [];
+
+    /**
      * @return CustomObject
      */
     public function getBaseObject(): CustomObject
@@ -53,6 +78,54 @@ class FilterData extends AbstractFilter
     public function setBaseObject(CustomObject $baseObject): void
     {
         $this->baseObject = $baseObject;
+    }
+
+    /**
+     * @return string
+     */
+    public function getSearch(): string
+    {
+        return $this->search;
+    }
+
+    /**
+     * @param string $search
+     */
+    public function setSearch(string $search): void
+    {
+        $this->search = $search;
+    }
+
+    /**
+     * @return int
+     */
+    public function getLimit(): int
+    {
+        return $this->limit;
+    }
+
+    /**
+     * @param int $limit
+     */
+    public function setLimit(int $limit): void
+    {
+        $this->limit = $limit;
+    }
+
+    /**
+     * @return int
+     */
+    public function getOffset(): int
+    {
+        return $this->offset;
+    }
+
+    /**
+     * @param int $offset
+     */
+    public function setOffset(int $offset): void
+    {
+        $this->offset = $offset;
     }
 
     /**
@@ -75,12 +148,29 @@ class FilterData extends AbstractFilter
         foreach($this->getOrFilters() as $orFilter) {
             $orFilter->setAlias($alias);
         }
+        foreach($this->getOrders() as $order) {
+            $order->setAlias($alias);
+        }
 
         /** @var Join $join */
         foreach($this->joins as $join) {
             $join->generateAliases($this->baseObject, $this);
         }
 
+        return $this;
+    }
+
+    /**
+     * Run validation of the query. This should be run prior to calling getQuery()
+     * To check to make sure your query is formatted properly
+     *
+     * @return $this
+     */
+    public function validate() {
+        /** @var Join $join */
+        foreach($this->joins as $join) {
+            $join->validate();
+        }
         return $this;
     }
 
@@ -107,6 +197,38 @@ class FilterData extends AbstractFilter
         /** @var Join $join */
         foreach($this->joins as $join) {
             $join->generateFilterQueries($this);
+        }
+
+        return $this;
+    }
+
+    public function generateSearchQueries() {
+
+        if(empty($this->search)) {
+            return $this;
+        }
+
+        foreach($this->getColumns() as $column) {
+            $this->searchQueries[] = $column->getSearchQuery($this->search);
+        }
+
+        /** @var Join $join */
+        foreach($this->joins as $join) {
+            $join->generateSearchQueries($this);
+        }
+
+        return $this;
+    }
+
+    public function generateOrderQueries() {
+
+        foreach($this->getOrders() as $order) {
+            $this->orderQueries[$order->getPriority()] = $order->getQuery();
+        }
+
+        /** @var Join $join */
+        foreach($this->joins as $join) {
+            $join->generateOrderQueries($this);
         }
 
         return $this;
@@ -142,10 +264,30 @@ class FilterData extends AbstractFilter
 
         $joinConditionalString = !empty($this->joinConditionalQueries) ? sprintf("(\n%s\n)", implode(" AND \n", $this->joinConditionalQueries)) : '';
 
-        $filterString = !empty($this->filterQueries) ? sprintf("(\n%s)", implode(" OR \n", $this->filterQueries)) : '';
+        $filterString = !empty($this->filterQueries) ? sprintf("(\n%s\n)", implode(" OR \n", $this->filterQueries)) : '';
         $filterString = empty($this->filterQueries) ? '' : "AND $filterString";
 
-        $query = sprintf("SELECT DISTINCT `%s`.id %s from record `%s` %s WHERE \n %s \n %s", $this->getAlias(), $columnStr, $this->getAlias(), $joinString, $joinConditionalString, $filterString);
+        $searchString = !empty($this->searchQueries) ? sprintf("(\n%s\n)", implode(" OR \n", $this->searchQueries)) : '';
+        $searchString = empty($this->searchQueries) ? '' : "AND $searchString";
+
+        ksort($this->orderQueries);
+        $orderString = !empty($this->orderQueries) ? sprintf("ORDER BY %s", implode(", \n", $this->orderQueries)) : '';
+
+        $limitString = $this->limit !== null ? sprintf("LIMIT %s \n", $this->limit) : '';
+        $offsetString = $this->offset !== null ? sprintf("OFFSET %s \n", $this->offset) : '';
+
+        $query = sprintf("SELECT DISTINCT `%s`.id %s from record `%s` %s WHERE \n %s \n %s \n %s %s %s %s",
+            $this->getAlias(),
+            $columnStr,
+            $this->getAlias(),
+            $joinString,
+            $joinConditionalString,
+            $filterString,
+            $searchString,
+            $orderString,
+            $limitString,
+            $offsetString
+        );
 
         return $query;
     }
