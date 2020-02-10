@@ -3,6 +3,8 @@
 namespace App\Model\Filter;
 
 use App\Entity\Property;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 
 class Filter
 {
@@ -35,6 +37,16 @@ class Filter
      * @var string
      */
     protected $highValue;
+
+    /**
+     * @var Filter[]
+     */
+    protected $andFilters;
+
+    public function __construct()
+    {
+        $this->andFilters = new ArrayCollection();
+    }
 
     /**
      * @return Property
@@ -130,6 +142,29 @@ class Filter
     public function setHighValue(string $highValue): void
     {
         $this->highValue = $highValue;
+    }
+
+    /**
+     * @return Collection|Filter[]
+     */
+    public function getAndFilters(): Collection
+    {
+        return $this->andFilters;
+    }
+
+    public function addAndFilter(Filter $andFilter): self
+    {
+        $this->andFilters[] = $andFilter;
+        return $this;
+    }
+
+    public function removeAndFilter(Filter $andFilter): self
+    {
+        if ($this->andFilters->contains($andFilter)) {
+            $this->andFilters->removeElement($andFilter);
+        }
+
+        return $this;
     }
 
     /**

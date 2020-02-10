@@ -148,15 +148,30 @@ class FilterDataDenormalizer implements DenormalizerInterface, DenormalizerAware
         if(isset($data['orFilters'])) {
             foreach($data['orFilters'] as $orFilter) {
                 $property = $this->propertyRepository->find($orFilter['property']);
-                /** @var Filter $filter */
-                $filter = $this->denormalizer->denormalize(
+                /** @var Filter $orFilterObject */
+                $orFilterObject = $this->denormalizer->denormalize(
                     $orFilter,
                     Filter::class,
                     $format,
                     $context
                 );
-                $filter->setProperty($property);
-                $filterData->addOrFilter($filter);
+                $orFilterObject->setProperty($property);
+                $filterData->addOrFilter($orFilterObject);
+
+                if(isset($orFilter['andFilters'])) {
+                    foreach($orFilter['andFilters'] as $andFilter) {
+                        $property = $this->propertyRepository->find($andFilter['property']);
+                        /** @var Filter $andFilterObject */
+                        $andFilterObject = $this->denormalizer->denormalize(
+                            $orFilter,
+                            Filter::class,
+                            $format,
+                            $context
+                        );
+                        $andFilterObject->setProperty($property);
+                        $orFilterObject->addAndFilter($andFilterObject);
+                    }
+                }
             }
         }
 
