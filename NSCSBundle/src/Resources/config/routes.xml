@@ -19,4 +19,6 @@
     </route>
     <route id="nscs_api_chapter_contacts" controller="nscs_controller_api.nscs_api_controller:getChapterContacts" path="/chapter-contacts" >
     </route>
+    <route id="nscs_api_chapter_events" controller="nscs_controller_api.nscs_api_controller:getChapterEvents" path="/chapter-events" >
+    </route>
 </routes>

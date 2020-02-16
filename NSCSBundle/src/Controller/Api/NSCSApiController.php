@@ -203,4 +203,35 @@ class NSCSApiController extends  AbstractController
         ]);
     }
 
+    public function getChapterEvents(Request $request) {
+
+        $chapterRecordId = $request->query->get('chapterRecordId', false);
+        if(!$chapterRecordId) {
+            return $this->json([
+                'success' => false,
+                'message' => 'A chapter record Id must be passed up'
+            ]);
+        }
+
+        try {
+            $limit = $request->query->get('limit', null);
+            $offset = $request->query->get('offset', null);
+            $search = $request->query->get('search', null);
+            $results = $this->recordRepository->getChapterEvents($chapterRecordId, $limit, $offset, $search);
+        } catch (\Exception $exception) {
+            if(empty($results['results'])) {
+                return $this->json([
+                    'success' => false
+                ]);
+            }
+        }
+        foreach($results["results"] as &$result) {
+            $result['properties'] = json_decode($result['properties'], true);
+        }
+        return $this->json([
+            'success' => true,
+            'data' => $results['results'],
+        ]);
+    }
+
 }

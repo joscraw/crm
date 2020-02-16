@@ -221,4 +221,33 @@ WHERE co.internal_name = 'contacts' AND root.properties->\"$.account_name\" = \"
         );
     }
 
+    /**
+     * @param $limit
+     * @param $offset
+     * @param $search
+     * @param $chapterRecordId
+     * @return array
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    public function getChapterEvents($chapterRecordId, $limit = null, $offset = null, $search = null) {
+        $query = sprintf("SELECT root.id, root.properties from record root INNER JOIN custom_object co on root.custom_object_id = co.id 
+WHERE co.internal_name = 'event' AND root.properties->\"$.chapter\" = \"%s\"", $chapterRecordId);
+
+        if($search) {
+            $query .= !empty($search) ? sprintf(" AND LOWER(root.properties) LIKE \"%%%s%%\"", strtolower($search)) : '';
+        }
+
+        if($limit && $offset) {
+            $query .= sprintf(" LIMIT %s OFFSET %s", $limit, $offset);
+        }
+
+        $em = $this->getEntityManager();
+        $stmt = $em->getConnection()->prepare($query);
+        $stmt->execute();
+        $results = $stmt->fetchAll();
+        return array(
+            "results"  => $results
+        );
+    }
+
 }
