@@ -156,6 +156,10 @@ class EditPropertyType extends AbstractType
                         $form = $event->getForm();
                         $form->add('field', NumberFieldType::class, []);
                         break;
+                    case FieldCatalog::DATE_PICKER:
+                        $form = $event->getForm();
+                        $form->add('field', DatePickerFieldType::class, []);
+                        break;
                 }
             }
         );

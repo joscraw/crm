@@ -14,6 +14,7 @@ use App\Form\DataTransformer\RecordGenericTransformer;
 use App\Form\DataTransformer\RecordMultipleCheckboxTransformer;
 use App\Form\DataTransformer\RecordNumberCurrencyTransformer;
 use App\Form\DataTransformer\RecordNumberUnformattedTransformer;
+use App\Form\DataTransformer\RecordTimeTransformer;
 use App\Model\DatePickerField;
 use App\Model\FieldCatalog;
 use App\Repository\RecordRepository;
@@ -29,6 +30,7 @@ use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\Extension\Core\Type\TimeType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
@@ -89,6 +91,11 @@ class RecordType extends AbstractType
     private $recordMultipleCheckboxTransformer;
 
     /**
+     * @var RecordTimeTransformer
+     */
+    private $recordTimeTransformer;
+
+    /**
      * RecordType constructor.
      * @param IdToRecordTransformer $transformer
      * @param IdArrayToRecordArrayTransformer $idArrayToRecordArrayTransformer
@@ -99,6 +106,7 @@ class RecordType extends AbstractType
      * @param RecordNumberUnformattedTransformer $recordNumberUnformattedTransformer
      * @param RecordRepository $recordRepository
      * @param RecordMultipleCheckboxTransformer $recordMultipleCheckboxTransformer
+     * @param RecordTimeTransformer $recordTimeTransformer
      */
     public function __construct(
         IdToRecordTransformer $transformer,
@@ -109,7 +117,8 @@ class RecordType extends AbstractType
         RecordCheckboxTransformer $recordCheckboxTranformer,
         RecordNumberUnformattedTransformer $recordNumberUnformattedTransformer,
         RecordRepository $recordRepository,
-        RecordMultipleCheckboxTransformer $recordMultipleCheckboxTransformer
+        RecordMultipleCheckboxTransformer $recordMultipleCheckboxTransformer,
+        RecordTimeTransformer $recordTimeTransformer
     ) {
         $this->transformer = $transformer;
         $this->idArrayToRecordArrayTransformer = $idArrayToRecordArrayTransformer;
@@ -120,8 +129,8 @@ class RecordType extends AbstractType
         $this->recordNumberUnformattedTransformer = $recordNumberUnformattedTransformer;
         $this->recordRepository = $recordRepository;
         $this->recordMultipleCheckboxTransformer = $recordMultipleCheckboxTransformer;
+        $this->recordTimeTransformer = $recordTimeTransformer;
     }
-
 
     /**
      * @param FormBuilderInterface $builder
@@ -286,24 +295,41 @@ class RecordType extends AbstractType
                     }
                     break;
                 case FieldCatalog::DATE_PICKER:
-                    $options = array_merge([
-                        'required' => false,
-                        'label' => $property->getLabel(),
-                        'widget' => 'single_text',
-                        'format' => 'MM/dd/yyyy',
-                        // prevents rendering it as type="date", to avoid HTML5 date pickers
-                        'html5' => false,
-                        // adds a class that can be selected in JavaScript
-                        'attr' => [
-                            'class' => 'js-datepicker',
-                            'data-property-id' => $property->getId(),
-                            'autocomplete' => 'off'
-                        ],
-                    ], $options);
-                    $builder->add($property->getInternalName(), DateType::class, $options);
-
-                    $builder->get($property->getInternalName())
-                        ->addModelTransformer($this->recordDateTimeTransformer);
+                    if($property->getField()->getType() === DatePickerField::DATETIME) {
+                        $options = array_merge([
+                            'required' => false,
+                            'label' => $property->getLabel(),
+                            'widget' => 'single_text',
+                            'format' => 'MM/dd/yyyy',
+                            // prevents rendering it as type="date", to avoid HTML5 date pickers
+                            'html5' => false,
+                            // adds a class that can be selected in JavaScript
+                            'attr' => [
+                                'class' => 'js-datepicker',
+                                'data-property-id' => $property->getId(),
+                                'autocomplete' => 'off'
+                            ],
+                        ], $options);
+                        $builder->add($property->getInternalName(), DateType::class, $options);
+                        $builder->get($property->getInternalName())
+                            ->addModelTransformer($this->recordDateTimeTransformer);
+                    } elseif ($property->getField()->getType() === DatePickerField::TIME) {
+                        $options = array_merge([
+                            'required' => false,
+                            'label' => $property->getLabel(),
+                            'attr' => [
+                                'data-property-id' => $property->getId(),
+                                'autocomplete' => 'off'
+                            ],
+                            /*'input' => 'string',
+                            'input_format' => 'h:i:s',
+                            'html5' => false,*/
+                            'widget' => 'single_text'
+                        ], $options);
+                        $builder->add($property->getInternalName(), TimeType::class, $options);
+                        $builder->get($property->getInternalName())
+                            ->addModelTransformer($this->recordTimeTransformer);
+                    }
                     break;
                 case FieldCatalog::CUSTOM_OBJECT:
 

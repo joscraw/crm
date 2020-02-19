@@ -3,6 +3,7 @@
 namespace App\Form;
 
 use App\Entity\CustomObject;
+use App\Form\Type\DateFormatType;
 use App\Model\DatePickerField;
 use App\Model\DropdownSelectField;
 use App\Model\SingleLineTextField;
@@ -12,6 +13,9 @@ use Symfony\Component\Form\Extension\Core\Type\CollectionType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Form\FormEvent;
+use Symfony\Component\Form\FormEvents;
+use Symfony\Component\Form\FormInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 /**
@@ -26,7 +30,20 @@ class DatePickerFieldType extends AbstractType
      */
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
-        // noop
+        $builder->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event) {
+            $data = $event->getData();
+            $this->modifyForm($event->getForm());
+        });
+    }
+
+    private function modifyForm(FormInterface $form) {
+
+        $form->add('type', DateFormatType::class, array(
+            'choices' => DatePickerField::$types,
+            'expanded' => true,
+            'empty_data' => DatePickerField::DATETIME
+        ));
+
     }
 
     /**
