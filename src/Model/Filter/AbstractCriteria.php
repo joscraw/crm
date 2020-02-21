@@ -18,6 +18,11 @@ class AbstractCriteria
      */
     protected $or;
 
+    /**
+     * @var string
+     */
+    protected $uid;
+
     public function __construct()
     {
         $this->and = new ArrayCollection();
@@ -88,5 +93,73 @@ class AbstractCriteria
         }
 
         return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getUid(): string
+    {
+        return $this->uid;
+    }
+
+    /**
+     * @param string $uid
+     */
+    public function setUid(string $uid): void
+    {
+        $this->uid = $uid;
+    }
+
+    public function generateFilterCriteria(FilterData $filterData) {
+
+        $filterData->filterCriteriaParts[] = $this->getQuery();
+
+        if($this->or->count() > 0) {
+            $filterData->filterCriteriaParts[] = ' OR ';
+            $filterData->filterCriteriaParts[] = ' ( ';
+        }
+
+        $i = 1;
+        foreach($this->or as $orCriteria) {
+            $orCriteria->generateFilterCriteria($filterData);
+
+            if($i !== $this->or->count()) {
+                $filterData->filterCriteriaParts[] = ' OR ';
+            }
+            $i++;
+        }
+
+        if($this->or->count() > 0) {
+            $filterData->filterCriteriaParts[] = ' ) ';
+        }
+
+        if($this->and->count() > 0) {
+            $filterData->filterCriteriaParts[] = ' AND ';
+            $filterData->filterCriteriaParts[] = ' ( ';
+        }
+
+        $i = 1;
+        foreach($this->and as $andCriteria) {
+            $andCriteria->generateFilterCriteria($filterData);
+
+            if($i !== $this->and->count()) {
+                $filterData->filterCriteriaParts[] = ' AND ';
+            }
+            $i++;
+        }
+
+        if($this->and->count() > 0) {
+            $filterData->filterCriteriaParts[] = ' ) ';
+        }
+    }
+
+    /**
+     * @return string
+     */
+    public function getQuery() {
+
+        return $this->getUid();
+
     }
 }

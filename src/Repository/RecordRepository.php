@@ -332,12 +332,9 @@ class RecordRepository extends ServiceEntityRepository
     public function filterRecords(FilterData $filterData)
     {
 
-        $parts = $filterData->getFilterCriteria()->generateFilterCriteria($filterData);
-
-        $queryCriteria = implode(" ", $parts);
-
         $filterData->generateAliases()
             ->generateColumnQueries()
+            ->generateFilterCriteria()
             ->generateFilterQueries()
             ->generateJoinQueries()
             ->generateJoinConditionalQueries()

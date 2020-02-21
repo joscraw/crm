@@ -18,29 +18,25 @@ class FilterCriteria extends AbstractCriteria
      */
     public function generateFilterCriteria(FilterData $filterData) {
 
-        $parts = [];
-
         if($this->or->count() > 0) {
-            $parts[] = ' ( ';
+            $filterData->filterCriteriaParts[] = ' ( ';
         }
 
         /** @var OrCriteria $orCriteria */
         $i = 1;
         foreach($this->or as $orCriteria) {
-            $parts[] = ' ( ';
-            $orCriteria->generateFilterCriteria($filterData, $parts);
-            $parts[] = ' ) ';
+            $filterData->filterCriteriaParts[] = ' ( ';
+            $orCriteria->generateFilterCriteria($filterData);
+            $filterData->filterCriteriaParts[] = ' ) ';
 
             if($i !== $this->or->count()) {
-                $parts[] = ' OR ';
+                $filterData->filterCriteriaParts[] = ' OR ';
             }
             $i++;
         }
 
         if($this->or->count() > 0) {
-            $parts[] = ' ) ';
+            $filterData->filterCriteriaParts[] = ' ) ';
         }
-
-        return $parts;
     }
 }

@@ -228,6 +228,13 @@ class FilterData extends AbstractFilter
         return $this;
     }
 
+    public function generateFilterCriteria() {
+
+        $this->filterCriteria->generateFilterCriteria($this);
+
+        return $this;
+    }
+
     public function generateSearchQueries() {
 
         if(empty($this->search)) {
