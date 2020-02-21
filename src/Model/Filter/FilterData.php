@@ -20,6 +20,11 @@ class FilterData extends AbstractFilter
     protected $baseObject;
 
     /**
+     * @var FilterCriteria
+     */
+    protected $filterCriteria;
+
+    /**
      * @var string
      */
     protected $search;
@@ -63,6 +68,11 @@ class FilterData extends AbstractFilter
      * @var array
      */
     public $orderQueries = [];
+
+    /**
+     * @var array
+     */
+    public $filterCriteriaParts = [];
 
     /**
      * @return CustomObject
@@ -129,6 +139,22 @@ class FilterData extends AbstractFilter
     }
 
     /**
+     * @return FilterCriteria
+     */
+    public function getFilterCriteria(): FilterCriteria
+    {
+        return $this->filterCriteria;
+    }
+
+    /**
+     * @param FilterCriteria $filterCriteria
+     */
+    public function setFilterCriteria(FilterCriteria $filterCriteria): void
+    {
+        $this->filterCriteria = $filterCriteria;
+    }
+
+    /**
      * This function needs to be called to generate an alias for each Join and then
      * that alias needs to be added to each column and filter being applied to the query
      */
@@ -145,8 +171,8 @@ class FilterData extends AbstractFilter
         foreach($this->getColumns() as $column) {
             $column->setAlias($alias);
         }
-        foreach($this->getOrFilters() as $orFilter) {
-            $orFilter->setAlias($alias);
+        foreach($this->getFilters() as $filter) {
+            $filter->setAlias($alias);
         }
         foreach($this->getOrders() as $order) {
             $order->setAlias($alias);
@@ -190,8 +216,8 @@ class FilterData extends AbstractFilter
 
     public function generateFilterQueries() {
 
-        foreach($this->getOrFilters() as $orFilter) {
-            $this->filterQueries[] = $orFilter->getQuery();
+        foreach($this->getFilters() as $filter) {
+            $this->filterQueries[] = $filter->getQuery($this);
         }
 
         /** @var Join $join */

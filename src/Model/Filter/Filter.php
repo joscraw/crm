@@ -39,14 +39,9 @@ class Filter
     protected $highValue;
 
     /**
-     * @var Filter[]
+     * @var string
      */
-    protected $andFilters;
-
-    public function __construct()
-    {
-        $this->andFilters = new ArrayCollection();
-    }
+    protected $uid;
 
     /**
      * @return Property
@@ -145,32 +140,33 @@ class Filter
     }
 
     /**
-     * @return Collection|Filter[]
+     * @return string
      */
-    public function getAndFilters(): Collection
+    public function getUid(): string
     {
-        return $this->andFilters;
-    }
-
-    public function addAndFilter(Filter $andFilter): self
-    {
-        $this->andFilters[] = $andFilter;
-        return $this;
-    }
-
-    public function removeAndFilter(Filter $andFilter): self
-    {
-        if ($this->andFilters->contains($andFilter)) {
-            $this->andFilters->removeElement($andFilter);
-        }
-
-        return $this;
+        return $this->uid;
     }
 
     /**
+     * @param string $uid
+     */
+    public function setUid(string $uid): void
+    {
+        $this->uid = $uid;
+    }
+
+    /**
+     * @param FilterData $filterData
      * @return string
      */
-    public function getQuery() {
+    public function getQuery(FilterData $filterData) {
+
+        /** @var OrCriteria $orCriteria */
+        foreach($filterData->getFilterCriteria()->getOrCriteria() as $orCriteria) {
+
+        }
+
+
 
         $query = '';
         $andFilters = [];

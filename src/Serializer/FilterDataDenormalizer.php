@@ -2,6 +2,9 @@
 
 namespace App\Serializer;
 
+use App\Api\ApiProblemException;
+use App\Model\Filter\AbstractCriteria;
+use App\Model\Filter\AndCriteria;
 use App\Model\Filter\Column;
 use App\Model\Filter\Filter;
 use App\Entity\Property;
@@ -10,8 +13,10 @@ use App\Model\CustomObjectField;
 use App\Model\DatePickerField;
 use App\Model\DropdownSelectField;
 use App\Model\FieldCatalog;
+use App\Model\Filter\FilterCriteria;
 use App\Model\Filter\FilterData;
 use App\Model\Filter\Join;
+use App\Model\Filter\OrCriteria;
 use App\Model\Filter\Order;
 use App\Model\MultiLineTextField;
 use App\Model\MultipleCheckboxField;
@@ -89,7 +94,6 @@ class FilterDataDenormalizer implements DenormalizerInterface, DenormalizerAware
         $this->denormalizer = $denormalizer;
     }
 
-
     /**
      * Denormalizes data back into an object of the given class.
      *
@@ -131,11 +135,23 @@ class FilterDataDenormalizer implements DenormalizerInterface, DenormalizerAware
             $filterData->setOffset($data['offset']);
         }
 
+        if(isset($data['filterCriteria'])) {
+            /** @var FilterCriteria $filterCriteria */
+            $filterCriteria = $this->filterCriteria($data['filterCriteria'], new FilterCriteria());
+            $filterData->setFilterCriteria($filterCriteria);
+        }
+
         // COLUMNS TO RETURN
         if(isset($data['columns'])) {
             foreach($data['columns'] as $columnData) {
+                if(!isset($columnData['property'])) {
+                    throw new ApiProblemException(400, 'Each column object must have a property. Example: "property": 1');
+                }
                 $column = new Column();
                 $property = $this->propertyRepository->find($columnData['property']);
+                if(!$property) {
+                    throw new ApiProblemException(400, sprintf("property: %s not not found", $columnData['property']));
+                }
                 if(isset($columnData['renameTo'])) {
                     $column->setRenameTo($columnData['renameTo']);
                 }
@@ -144,40 +160,37 @@ class FilterDataDenormalizer implements DenormalizerInterface, DenormalizerAware
             }
         }
 
-        // OR FILTERS
-        if(isset($data['orFilters'])) {
-            foreach($data['orFilters'] as $orFilter) {
-                $property = $this->propertyRepository->find($orFilter['property']);
-                /** @var Filter $orFilterObject */
-                $orFilterObject = $this->denormalizer->denormalize(
-                    $orFilter,
+        // FILTERS
+        if(isset($data['filters'])) {
+            foreach($data['filters'] as $filter) {
+                if(!isset($filter['property'])) {
+                    throw new ApiProblemException(400, 'Each filter object must have a property. Example: "property": 1');
+                }
+                $property = $this->propertyRepository->find($filter['property']);
+                if(!$property) {
+                    throw new ApiProblemException(400, sprintf("property: %s not not found", $filter['property']));
+                }
+                /** @var Filter $filterObject */
+                $filterObject = $this->denormalizer->denormalize(
+                    $filter,
                     Filter::class,
                     $format,
                     $context
                 );
-                $orFilterObject->setProperty($property);
-                $filterData->addOrFilter($orFilterObject);
-
-                if(isset($orFilter['andFilters'])) {
-                    foreach($orFilter['andFilters'] as $andFilter) {
-                        $property = $this->propertyRepository->find($andFilter['property']);
-                        /** @var Filter $andFilterObject */
-                        $andFilterObject = $this->denormalizer->denormalize(
-                            $orFilter,
-                            Filter::class,
-                            $format,
-                            $context
-                        );
-                        $andFilterObject->setProperty($property);
-                        $orFilterObject->addAndFilter($andFilterObject);
-                    }
-                }
+                $filterObject->setProperty($property);
+                $filterData->addFilter($filterObject);
             }
         }
 
         if(isset($data['order'])) {
             foreach($data['order'] as $order) {
+                if(!isset($order['property'])) {
+                    throw new ApiProblemException(400, 'Each order object must have a property. Example: "property": 1');
+                }
                 $property = $this->propertyRepository->find($order['property']);
+                if(!$property) {
+                    throw new ApiProblemException(400, sprintf("property: %s not not found", $order['property']));
+                }
                 /** @var Order $orderObject */
                 $orderObject = $this->denormalizer->denormalize(
                     $order,
@@ -198,22 +211,82 @@ class FilterDataDenormalizer implements DenormalizerInterface, DenormalizerAware
         return $filterData;
     }
 
+    /**
+     * @param $data
+     * @param AbstractCriteria $filterCriteria
+     * @return AbstractCriteria
+     * @throws \Symfony\Component\Serializer\Exception\ExceptionInterface
+     */
+    private function filterCriteria($data, AbstractCriteria $filterCriteria) {
+
+        $andCollection = new ArrayCollection();
+        $orCollection = new ArrayCollection();
+
+        if(isset($data['and'])) {
+            foreach($data['and'] as $and) {
+                if(!isset($and['uid'])) {
+                    throw new ApiProblemException(400, 'Each and criteria must have a uid. Example: "uid": 1');
+                }
+                $andCriteriaObject = new AndCriteria();
+                $andCriteriaObject->setUid($and['uid']);
+                $andCollection->add($andCriteriaObject);
+                $this->filterCriteria($and, $andCriteriaObject);
+            }
+        }
+
+        if(isset($data['or'])) {
+            foreach($data['or'] as $or) {
+                if(!isset($or['uid'])) {
+                    throw new ApiProblemException(400, 'Each or criteria must have a uid. Example: "uid": 1');
+                }
+                $orCriteriaObject = new OrCriteria();
+                $orCriteriaObject->setUid($or['uid']);
+                $orCollection->add($orCriteriaObject);
+                $this->filterCriteria($or, $orCriteriaObject);
+            }
+        }
+
+        $filterCriteria->setAndCriteria($andCollection);
+        $filterCriteria->setOrCriteria($orCollection);
+
+        return $filterCriteria;
+    }
+
     private function joins($joins) {
 
         $joinCollection = new ArrayCollection();
         /** @var Join $join */
         foreach($joins as $join) {
 
+            if(!isset($join['relationshipPropertyToJoinOn'])) {
+                throw new ApiProblemException(400, 'Each join object must have a relationshipPropertyToJoinOn. Example: "relationshipPropertyToJoinOn": 11');
+            }
+
+            if(!isset($join['joinType'])) {
+                throw new ApiProblemException(400, 'Each join object must have a joinType. Example: "joinType": "With"');
+            }
+
             $joinObject = new Join();
             $relationshipPropertyToJoinOn = $this->propertyRepository->find($join['relationshipPropertyToJoinOn']);
+
+            if(!$relationshipPropertyToJoinOn) {
+                throw new ApiProblemException(400, sprintf("relationshipPropertyToJoinOn: %s not not found", $join['relationshipPropertyToJoinOn']));
+            }
+
             $joinObject->setRelationshipPropertyToJoinOn($relationshipPropertyToJoinOn);
             $joinObject->setJoinType($join['joinType']);
 
             // COLUMNS
             if(isset($join['columns'])) {
                 foreach($join['columns'] as $columnData) {
+                    if(!isset($columnData['property'])) {
+                        throw new ApiProblemException(400, 'Each column object must have a property. Example: "property": 1');
+                    }
                     $column = new Column();
                     $property = $this->propertyRepository->find($columnData['property']);
+                    if(!$property) {
+                        throw new ApiProblemException(400, sprintf("property: %s not not found", $columnData['property']));
+                    }
                     if(isset($columnData['renameTo'])) {
                         $column->setRenameTo($columnData['renameTo']);
                     }
@@ -223,24 +296,36 @@ class FilterDataDenormalizer implements DenormalizerInterface, DenormalizerAware
             }
 
             // OR FILTERS
-            if(isset($join['orFilters'])) {
-                foreach($join['orFilters'] as $orFilter) {
-                    $property = $this->propertyRepository->find($orFilter['property']);
-                    /** @var Filter $filter */
-                    $filter = $this->denormalizer->denormalize(
-                        $orFilter,
+            if(isset($join['filters'])) {
+                foreach($join['filters'] as $filter) {
+                    if(!isset($filter['property'])) {
+                        throw new ApiProblemException(400, 'Each filter object must have a property. Example: "property": 1');
+                    }
+                    $property = $this->propertyRepository->find($filter['property']);
+                    if(!$property) {
+                        throw new ApiProblemException(400, sprintf("property: %s not not found", $filter['property']));
+                    }
+                    /** @var Filter $filterObject */
+                    $filterObject = $this->denormalizer->denormalize(
+                        $filter,
                         Filter::class,
                         'json',
                         []
                     );
-                    $filter->setProperty($property);
-                    $joinObject->addOrFilter($filter);
+                    $filterObject->setProperty($property);
+                    $joinObject->addFilter($filterObject);
                 }
             }
 
             if(isset($join['order'])) {
                 foreach($join['order'] as $order) {
+                    if(!isset($order['property'])) {
+                        throw new ApiProblemException(400, 'Each order object must have a property. Example: "property": 1');
+                    }
                     $property = $this->propertyRepository->find($order['property']);
+                    if(!$property) {
+                        throw new ApiProblemException(400, sprintf("property: %s not not found", $order['property']));
+                    }
                     /** @var Order $orderObject */
                     $orderObject = $this->denormalizer->denormalize(
                         $order,

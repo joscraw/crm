@@ -210,8 +210,8 @@ class Join extends AbstractFilter
             $column->setAlias($alias);
         }
 
-        foreach($this->getOrFilters() as $orFilter) {
-            $orFilter->setAlias($alias);
+        foreach($this->getFilters() as $filter) {
+            $filter->setAlias($alias);
         }
 
         foreach($this->getOrders() as $order) {
@@ -239,9 +239,9 @@ class Join extends AbstractFilter
 
     public function generateFilterQueries(FilterData $filterData) {
 
-        /** @var Filter $orFilter */
-        foreach($this->getOrFilters() as $orFilter) {
-            $filterData->filterQueries[] = $orFilter->getQuery();
+        /** @var Filter $filter */
+        foreach($this->getFilters() as $filter) {
+            $filterData->filterQueries[] = $filter->getQuery($filterData);
         }
 
         /** @var Join $join */
@@ -303,16 +303,16 @@ class Join extends AbstractFilter
     }
 
     public function hasFilters() {
-        return $this->orFilters->count() > 0;
+        return $this->filters->count() > 0;
     }
 
     public function validate() {
 
         if($this->joinType === 'Without' && ($this->hasColumns() || $this->hasFilters())) {
             throw new ApiProblemException(400,
-                sprintf('"Without" joinTypes cannot have "columns" or "orFilters" as you are 
+                sprintf('"Without" joinTypes cannot have "columns" or "filters" as you are 
                 requesting all records that do NOT have a relationship with property %s (%s). 
-                Please set both "columns" and "orFilters" to any empty array [].',
+                Please set both "columns" and "filters" to any empty array [].',
                     $this->relationshipPropertyToJoinOn->getId(),
                     $this->relationshipPropertyToJoinOn->getInternalName()
                 ));

@@ -11,7 +11,7 @@ class AbstractFilter
     /**
      * @var Filter[]
      */
-    protected $orFilters;
+    protected $filters;
 
     /**
      * @var Column[]
@@ -36,7 +36,7 @@ class AbstractFilter
     public function __construct()
     {
         $this->columns = new ArrayCollection();
-        $this->orFilters = new ArrayCollection();
+        $this->filters = new ArrayCollection();
         $this->joins = new ArrayCollection();
         $this->orders = new ArrayCollection();
     }
@@ -67,21 +67,21 @@ class AbstractFilter
     /**
      * @return Collection|Filter[]
      */
-    public function getOrFilters(): Collection
+    public function getFilters(): Collection
     {
-        return $this->orFilters;
+        return $this->filters;
     }
 
-    public function addOrFilter(Filter $orFilter): self
+    public function addFilter(Filter $filter): self
     {
-        $this->orFilters[] = $orFilter;
+        $this->filters[] = $filter;
         return $this;
     }
 
-    public function removeOrFilter(Filter $orFilter): self
+    public function removeFilter(Filter $filter): self
     {
-        if ($this->orFilters->contains($orFilter)) {
-            $this->orFilters->removeElement($orFilter);
+        if ($this->filters->contains($filter)) {
+            $this->filters->removeElement($filter);
         }
 
         return $this;
