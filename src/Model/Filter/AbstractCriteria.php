@@ -113,10 +113,12 @@ class AbstractCriteria
 
     public function generateFilterCriteria(FilterData $filterData) {
 
+        $filterData->filterCriteriaUids[] = $this->getUid();
+
         $filterData->filterCriteriaParts[] = $this->getQuery();
 
         if($this->or->count() > 0) {
-            $filterData->filterCriteriaParts[] = ' OR ';
+            $filterData->filterCriteriaParts[] = " OR \n";
             $filterData->filterCriteriaParts[] = ' ( ';
         }
 
@@ -125,7 +127,7 @@ class AbstractCriteria
             $orCriteria->generateFilterCriteria($filterData);
 
             if($i !== $this->or->count()) {
-                $filterData->filterCriteriaParts[] = ' OR ';
+                $filterData->filterCriteriaParts[] = " OR \n";
             }
             $i++;
         }
@@ -135,7 +137,7 @@ class AbstractCriteria
         }
 
         if($this->and->count() > 0) {
-            $filterData->filterCriteriaParts[] = ' AND ';
+            $filterData->filterCriteriaParts[] = " AND \n";
             $filterData->filterCriteriaParts[] = ' ( ';
         }
 
@@ -144,7 +146,7 @@ class AbstractCriteria
             $andCriteria->generateFilterCriteria($filterData);
 
             if($i !== $this->and->count()) {
-                $filterData->filterCriteriaParts[] = ' AND ';
+                $filterData->filterCriteriaParts[] = " AND \n";
             }
             $i++;
         }

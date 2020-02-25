@@ -2,6 +2,7 @@
 
 namespace App\Model\Filter;
 
+use App\Api\ApiProblemException;
 use App\Entity\Property;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -161,36 +162,28 @@ class Filter
      */
     public function getQuery(FilterData $filterData) {
 
-        /** @var OrCriteria $orCriteria */
-        foreach($filterData->getFilterCriteria()->getOrCriteria() as $orCriteria) {
-
-        }
-
-        // TODO NEED TO CREATE THE QUERY FILTER THEN DO A SEARCH AND REPLACE ON THE
-        //  FILTER CRITERIA DATA EITHER AS AN ARRAY OR AS A STRING TO REPLACE THE FILTER UID
-        //  WITH THE UID IN THE FILTER CRITERIA
-
+        $filterData->filterUids[] = $this->getUid();
 
         $query = '';
-        $andFilters = [];
+        $query = [];
         switch($this->getProperty()->getFieldType()) {
             case 'number_field':
                 switch($this->getOperator()) {
                     case 'EQ':
                         $value = str_replace(',', '', $this->getValue());
                         if(trim($this->getValue()) === '') {
-                            $andFilters[] = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, `%s`.properties->>\'$.%s\', \'\') = \'\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName());
+                            $query = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, `%s`.properties->>\'$.%s\', \'\') = \'\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName());
                         } else {
-                            $andFilters[] = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, `%s`.properties->>\'$.%s\', \'\') = \'%s\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName(), $value);
+                            $query = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, `%s`.properties->>\'$.%s\', \'\') = \'%s\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName(), $value);
                         }
 
                         break;
                     case 'NEQ':
                         $value = str_replace(',', '', $this->getValue());
                         if(trim($this->getValue()) === '') {
-                            $andFilters[] = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, `%s`.properties->>\'$.%s\', \'\') != \'\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName());
+                            $query = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, `%s`.properties->>\'$.%s\', \'\') != \'\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName());
                         } else {
-                            $andFilters[] = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, `%s`.properties->>\'$.%s\', \'\') != \'%s\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName(), $value);
+                            $query = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, `%s`.properties->>\'$.%s\', \'\') != \'%s\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName(), $value);
                         }
 
                         break;
@@ -198,9 +191,9 @@ class Filter
                         $value = str_replace(',', '', $this->getValue());
                         if(trim($this->getValue()) === '') {
                             // TODO revisit this one. how do you compare less than to an empty string? What should we do? Right now this is just returning 0 results
-                            $andFilters[] = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, `%s`.properties->>\'$.%s\', \'\') < \'\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName());
+                            $query = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, `%s`.properties->>\'$.%s\', \'\') < \'\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName());
                         } else {
-                            $andFilters[] = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, `%s`.properties->>\'$.%s\', null) < \'%s\' AND `%s`.properties->>\'$.%s\' != \'\' AND `%s`.properties->>\'$.%s\' IS NOT NULL', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName(), $value, $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName());
+                            $query = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, `%s`.properties->>\'$.%s\', null) < \'%s\' AND `%s`.properties->>\'$.%s\' != \'\' AND `%s`.properties->>\'$.%s\' IS NOT NULL', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName(), $value, $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName());
                         }
 
                         break;
@@ -208,9 +201,9 @@ class Filter
                         $value = str_replace(',', '', $this->getValue());
                         if(trim($this->getValue()) === '') {
                             // TODO revisit this one. how do you compare greater than to an empty string? What should we do? Right now this is just returning 0 results
-                            $andFilters[] = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, `%s`.properties->>\'$.%s\', \'\') > \'\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName());
+                            $query = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, `%s`.properties->>\'$.%s\', \'\') > \'\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName());
                         } else {
-                            $andFilters[] = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, `%s`.properties->>\'$.%s\', \'\') > \'%s\' AND `%s`.properties->>\'$.%s\' != \'\' AND `%s`.properties->>\'$.%s\' IS NOT NULL', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName(), $value, $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName());
+                            $query = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, `%s`.properties->>\'$.%s\', \'\') > \'%s\' AND `%s`.properties->>\'$.%s\' != \'\' AND `%s`.properties->>\'$.%s\' IS NOT NULL', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName(), $value, $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName());
                         }
                         break;
                     case 'BETWEEN':
@@ -218,16 +211,16 @@ class Filter
                         $highValue = str_replace(',', '', $this->getHighValue());
                         if(trim($this->getLowValue()) === '' || trim($this->getHighValue()) === '') {
                             // TODO revisit this one. IF the low value or high value is empty, what should we do? Right now this is just returning 0 results
-                            $andFilters[] = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, `%s`.properties->>\'$.%s\', \'\') BETWEEN \'%s\' AND \'%s\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName(), '', '');
+                            $query = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, `%s`.properties->>\'$.%s\', \'\') BETWEEN \'%s\' AND \'%s\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName(), '', '');
                         } else {
-                            $andFilters[] = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, `%s`.properties->>\'$.%s\', \'\') BETWEEN \'%s\' AND \'%s\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName(), $lowValue, $highValue);
+                            $query = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, `%s`.properties->>\'$.%s\', \'\') BETWEEN \'%s\' AND \'%s\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName(), $lowValue, $highValue);
                         }
                         break;
                     case 'HAS_PROPERTY':
-                        $andFilters[] = sprintf('`%s`.properties->>\'$.%s\' is not null AND `%s`.properties->>\'$.%s\' != \'\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName());
+                        $query = sprintf('`%s`.properties->>\'$.%s\' is not null AND `%s`.properties->>\'$.%s\' != \'\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName());
                         break;
                     case 'NOT_HAS_PROPERTY':
-                        $andFilters[] = sprintf('`%s`.properties->>\'$.%s\' is null OR `%s`.properties->>\'$.%s\' = \'\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName());
+                        $query = sprintf('`%s`.properties->>\'$.%s\' is null OR `%s`.properties->>\'$.%s\' = \'\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName());
                         break;
                 }
                 break;
@@ -236,23 +229,23 @@ class Filter
                 switch($this->getOperator()) {
                     case 'EQ':
                         if(trim($this->getValue()) === '') {
-                            $andFilters[] = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') = \'\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName());
+                            $query = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') = \'\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName());
                         } else {
-                            $andFilters[] = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') LIKE \'%%%s%%\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName(), strtolower($this->getValue()));
+                            $query = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') LIKE \'%%%s%%\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName(), strtolower($this->getValue()));
                         }
                         break;
                     case 'NEQ':
                         if(trim($this->getValue()) === '') {
-                            $andFilters[] = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') != \'\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName());
+                            $query = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') != \'\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName());
                         } else {
-                            $andFilters[] = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') NOT LIKE \'%%%s%%\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName(), strtolower($this->getValue()));
+                            $query = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') NOT LIKE \'%%%s%%\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName(), strtolower($this->getValue()));
                         }
                         break;
                     case 'HAS_PROPERTY':
-                        $andFilters[] = sprintf('`%s`.properties->>\'$.%s\' is not null AND `%s`.properties->>\'$.%s\' != \'\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName());
+                        $query = sprintf('`%s`.properties->>\'$.%s\' is not null AND `%s`.properties->>\'$.%s\' != \'\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName());
                         break;
                     case 'NOT_HAS_PROPERTY':
-                        $andFilters[] = sprintf('`%s`.properties->>\'$.%s\' is null OR `%s`.properties->>\'$.%s\' = \'\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName());
+                        $query = sprintf('`%s`.properties->>\'$.%s\' is null OR `%s`.properties->>\'$.%s\' = \'\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName());
                         break;
                 }
                 break;
@@ -260,47 +253,47 @@ class Filter
                 switch($this->getOperator()) {
                     case 'EQ':
                         if(trim($this->getValue()) === '') {
-                            $andFilters[] = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), null) = \'\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName());
+                            $query = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), null) = \'\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName());
                         } else {
-                            $andFilters[] = sprintf('STR_TO_DATE(`%s`.properties->>\'$.%s\', \'%%m/%%d/%%Y\') = STR_TO_DATE(\'%s\', \'%%m/%%d/%%Y\')', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getValue());
+                            $query = sprintf('STR_TO_DATE(`%s`.properties->>\'$.%s\', \'%%m/%%d/%%Y\') = STR_TO_DATE(\'%s\', \'%%m/%%d/%%Y\')', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getValue());
                         }
                         break;
                     case 'NEQ':
                         if(trim($this->getValue()) === '') {
-                            $andFilters[] = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), null) != \'\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName());
+                            $query = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), null) != \'\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName());
                         } else {
-                            $andFilters[] = sprintf('STR_TO_DATE(`%s`.properties->>\'$.%s\', \'%%m/%%d/%%Y\') != STR_TO_DATE(\'%s\', \'%%m/%%d/%%Y\')', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getValue());
+                            $query = sprintf('STR_TO_DATE(`%s`.properties->>\'$.%s\', \'%%m/%%d/%%Y\') != STR_TO_DATE(\'%s\', \'%%m/%%d/%%Y\')', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getValue());
                         }
                         break;
                     case 'LT':
                         if(trim($this->getValue()) === '') {
                             // TODO revisit this one. how do you compare less than to an empty string? What should we do? Right now this is just returning 0 results
-                            $andFilters[] = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') < \'\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName());
+                            $query = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') < \'\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName());
                         } else {
-                            $andFilters[] = sprintf('STR_TO_DATE(`%s`.properties->>\'$.%s\', \'%%m/%%d/%%Y\') < STR_TO_DATE(\'%s\', \'%%m/%%d/%%Y\')', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getValue());
+                            $query = sprintf('STR_TO_DATE(`%s`.properties->>\'$.%s\', \'%%m/%%d/%%Y\') < STR_TO_DATE(\'%s\', \'%%m/%%d/%%Y\')', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getValue());
                         }
                         break;
                     case 'GT':
                         if(trim($this->getValue()) === '') {
                             // TODO revisit this one. how do you compare greater than to an empty string? What should we do? Right now this is just returning 0 results
-                            $andFilters[] = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') > \'\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName());
+                            $query = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') > \'\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName());
                         } else {
-                            $andFilters[] = sprintf('STR_TO_DATE(`%s`.properties->>\'$.%s\', \'%%m/%%d/%%Y\') > STR_TO_DATE(\'%s\', \'%%m/%%d/%%Y\')', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getValue());
+                            $query = sprintf('STR_TO_DATE(`%s`.properties->>\'$.%s\', \'%%m/%%d/%%Y\') > STR_TO_DATE(\'%s\', \'%%m/%%d/%%Y\')', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getValue());
                         }
                         break;
                     case 'BETWEEN':
                         if(trim($this->getLowValue()) === '' || trim($this->getHighValue()) === '') {
                             // TODO revisit this one. IF the low value or high value is empty, what should we do? Right now this is just returning 0 results
-                            $andFilters[] = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, `%s`.properties->>\'$.%s\', \'\') BETWEEN \'%s\' AND \'%s\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName(), '', '');
+                            $query = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, `%s`.properties->>\'$.%s\', \'\') BETWEEN \'%s\' AND \'%s\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName(), '', '');
                         } else {
-                            $andFilters[] = sprintf('STR_TO_DATE(`%s`.properties->>\'$.%s\', \'%%m/%%d/%%Y\') BETWEEN STR_TO_DATE(\'%s\', \'%%m/%%d/%%Y\') AND STR_TO_DATE(\'%s\', \'%%m/%%d/%%Y\')', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getLowValue(), $this->getHighValue());
+                            $query = sprintf('STR_TO_DATE(`%s`.properties->>\'$.%s\', \'%%m/%%d/%%Y\') BETWEEN STR_TO_DATE(\'%s\', \'%%m/%%d/%%Y\') AND STR_TO_DATE(\'%s\', \'%%m/%%d/%%Y\')', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getLowValue(), $this->getHighValue());
                         }
                         break;
                     case 'HAS_PROPERTY':
-                        $andFilters[] = sprintf('`%s`.properties->>\'$.%s\' is not null AND `%s`.properties->>\'$.%s\' != \'\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName());
+                        $query = sprintf('`%s`.properties->>\'$.%s\' is not null AND `%s`.properties->>\'$.%s\' != \'\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName());
                         break;
                     case 'NOT_HAS_PROPERTY':
-                        $andFilters[] = sprintf('`%s`.properties->>\'$.%s\' is null OR `%s`.properties->>\'$.%s\' = \'\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName());
+                        $query = sprintf('`%s`.properties->>\'$.%s\' is null OR `%s`.properties->>\'$.%s\' = \'\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName());
                         break;
                 }
                 break;
@@ -310,37 +303,37 @@ class Filter
                     case 'IN':
 
                         if(trim($this->getValue()) === '') {
-                            $andFilters[] = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), null) = \'\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName());
+                            $query = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), null) = \'\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName());
                         } else {
                             $values = explode(',', $this->getValue());
                             if($values == ['0','1'] || $values == ['1','0']) {
-                                $andFilters[] = sprintf('(IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') = \'%s\' OR IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') = \'%s\')', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName(), '1', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName(), '0');
+                                $query = sprintf('(IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') = \'%s\' OR IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') = \'%s\')', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName(), '1', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName(), '0');
                             } elseif ($values == ['0']) {
-                                $andFilters[] = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') = \'%s\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName(), '0');
+                                $query = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') = \'%s\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName(), '0');
                             } elseif ($values == ['1']) {
-                                $andFilters[] = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') = \'%s\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName(), '1');
+                                $query = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') = \'%s\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName(), '1');
                             }
                         }
                         break;
                     case 'NOT_IN':
                         if(trim($this->getValue()) === '') {
-                            $andFilters[] = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), null) != \'\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName());
+                            $query = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), null) != \'\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName());
                         } else {
                             $values = explode(',', $this->getValue());
                             if($values == ['0','1'] || $values == ['1','0']) {
-                                $andFilters[] = sprintf('(IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') != \'%s\' AND IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') != \'%s\')', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName(), '1', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName(), '0');
+                                $query = sprintf('(IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') != \'%s\' AND IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') != \'%s\')', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName(), '1', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName(), '0');
                             } elseif ($values == ['0']) {
-                                $andFilters[] = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') != \'%s\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName(), '0');
+                                $query = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') != \'%s\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName(), '0');
                             } elseif ($values == ['1']) {
-                                $andFilters[] = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') != \'%s\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName(), '1');
+                                $query = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') != \'%s\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName(), '1');
                             }
                         }
                         break;
                     case 'HAS_PROPERTY':
-                        $andFilters[] = sprintf('`%s`.properties->>\'$.%s\' is not null AND `%s`.properties->>\'$.%s\' != \'\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName());
+                        $query = sprintf('`%s`.properties->>\'$.%s\' is not null AND `%s`.properties->>\'$.%s\' != \'\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName());
                         break;
                     case 'NOT_HAS_PROPERTY':
-                        $andFilters[] = sprintf('`%s`.properties->>\'$.%s\' is null OR `%s`.properties->>\'$.%s\' = \'\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName());
+                        $query = sprintf('`%s`.properties->>\'$.%s\' is null OR `%s`.properties->>\'$.%s\' = \'\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName());
                         break;
                 }
                 break;
@@ -349,33 +342,33 @@ class Filter
                 switch($this->getOperator()) {
                     case 'IN':
                         if(trim($this->getValue()) === '') {
-                            $andFilters[] = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), null) = \'\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName());
+                            $query = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), null) = \'\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName());
                         } else {
                             $values = explode(',', $this->getValue());
                             $conditions = [];
                             foreach($values as $value) {
                                 $conditions[] = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') = \'%s\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName(), strtolower($value));
                             }
-                            $andFilters[] = sprintf("(%s)", implode(" OR ", $conditions));
+                            $query = sprintf("(%s)", implode(" OR ", $conditions));
                         }
                         break;
                     case 'NOT_IN':
                         if(trim($this->getValue()) === '') {
-                            $andFilters[] = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), null) != \'\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName());
+                            $query = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), null) != \'\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName());
                         } else {
                             $values = explode(',', $this->getValue());
                             $conditions = [];
                             foreach($values as $value) {
                                 $conditions[] = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') != \'%s\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName(), strtolower($value));
                             }
-                            $andFilters[] = sprintf("(%s)",implode(" AND ", $conditions));
+                            $query = sprintf("(%s)",implode(" AND ", $conditions));
                         }
                         break;
                     case 'HAS_PROPERTY':
-                        $andFilters[] = sprintf('`%s`.properties->>\'$.%s\' is not null AND `%s`.properties->>\'$.%s\' != \'\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName());
+                        $query = sprintf('`%s`.properties->>\'$.%s\' is not null AND `%s`.properties->>\'$.%s\' != \'\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName());
                         break;
                     case 'NOT_HAS_PROPERTY':
-                        $andFilters[] = sprintf('`%s`.properties->>\'$.%s\' is null OR `%s`.properties->>\'$.%s\' = \'\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName());
+                        $query = sprintf('`%s`.properties->>\'$.%s\' is null OR `%s`.properties->>\'$.%s\' = \'\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName());
                         break;
                 }
                 break;
@@ -383,53 +376,44 @@ class Filter
                 switch($this->getOperator()) {
                     case 'IN':
                         if(trim($this->getValue()) === '') {
-                            $andFilters[] = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), null) = \'\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName());
+                            $query = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), null) = \'\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName());
                         } else {
                             $values = explode(',', $this->getValue());
                             $conditions = [];
                             foreach($values as $value) {
                                 $conditions[] = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') LIKE \'%%%s%%\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName(), strtolower($value));
                             }
-                            $andFilters[] = sprintf("(%s)", implode(" OR ", $conditions));
+                            $query = sprintf("(%s)", implode(" OR ", $conditions));
                         }
                         break;
                     case 'NOT_IN':
                         if(trim($this->getValue()) === '') {
-                            $andFilters[] = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), null) != \'\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName());
+                            $query = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), null) != \'\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName());
                         } else {
                             $values = explode(',', $this->getValue());
                             $conditions = [];
                             foreach($values as $value) {
                                 $conditions[] = sprintf('IF(`%s`.properties->>\'$.%s\' IS NOT NULL, LOWER(`%s`.properties->>\'$.%s\'), \'\') NOT LIKE \'%%%s%%\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName(), strtolower($value));
                             }
-                            $andFilters[] = sprintf("(%s)", implode(" AND ", $conditions));
+                            $query = sprintf("(%s)", implode(" AND ", $conditions));
                         }
                         break;
                     case 'HAS_PROPERTY':
-                        $andFilters[] = sprintf('`%s`.properties->>\'$.%s\' is not null AND `%s`.properties->>\'$.%s\' != \'\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName());
+                        $query = sprintf('`%s`.properties->>\'$.%s\' is not null AND `%s`.properties->>\'$.%s\' != \'\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName());
                         break;
                     case 'NOT_HAS_PROPERTY':
-                        $andFilters[] = sprintf('`%s`.properties->>\'$.%s\' is null OR `%s`.properties->>\'$.%s\' = \'\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName());
+                        $query = sprintf('`%s`.properties->>\'$.%s\' is null OR `%s`.properties->>\'$.%s\' = \'\'', $this->getAlias(), $this->getProperty()->getInternalName(), $this->getAlias(), $this->getProperty()->getInternalName());
                         break;
                 }
                 break;
         }
 
-        // add the child filters (AND conditionals)
-        /*    if(!empty($customFilter['childFilters'])) {
-                foreach($customFilter['childFilters'] as $uid => $childFilter) {
-                    $this->getAlias() = !empty($data['filters'][$uid]['alias']) ? $data['filters'][$uid]['alias'] : $this->getAlias();
-                    $andFilters[] = $this->getConditionForReport($childFilter, $this->getAlias(), $data, true);
-                }
-            }
-            $query .= !empty($andFilters) ? implode(" AND ", $andFilters) : '';
-            if(!$isChildFilter) {
-                $query = sprintf("(\n%s\n)", $query) . PHP_EOL;
-            }*/
-
-        if(count($andFilters) > 0) {
-            $query .= !empty($andFilters) ? implode(" AND ", $andFilters) : '';
-            return $query;
+        /** @var OrCriteria $orCriteria */
+        if(!empty($filterData->filterCriteriaParts)) {
+            $pattern = '/'.$this->getUid().'/';
+            $filterData->filterCriteriaString = preg_replace($pattern, $query, $filterData->filterCriteriaString);
         }
+
+        return $query;
     }
 }

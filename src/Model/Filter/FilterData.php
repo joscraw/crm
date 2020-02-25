@@ -2,6 +2,7 @@
 
 namespace App\Model\Filter;
 
+use App\Api\ApiProblemException;
 use App\Entity\CustomObject;
 use App\Entity\Property;
 use App\Model\FieldCatalog;
@@ -73,6 +74,21 @@ class FilterData extends AbstractFilter
      * @var array
      */
     public $filterCriteriaParts = [];
+
+    /**
+     * @var string
+     */
+    public $filterCriteriaString = '';
+
+    /**
+     * @var array
+     */
+    public $filterUids = [];
+
+    /**
+     * @var array
+     */
+    public $filterCriteriaUids = [];
 
     /**
      * @return CustomObject
@@ -193,6 +209,13 @@ class FilterData extends AbstractFilter
      * @return $this
      */
     public function validate() {
+
+        // make sure each of the provided filter criteria have a matching filter
+        if(!empty(array_diff($this->filterCriteriaUids, $this->filterUids))) {
+            throw new ApiProblemException(400, sprintf('Each filter criteria uid must match a provided filter uid. Filter Criteria UIDS that don\'t match are: %s',
+            implode(",", array_diff($this->filterCriteriaUids, $this->filterUids))));
+        }
+
         /** @var Join $join */
         foreach($this->joins as $join) {
             $join->validate();
@@ -231,6 +254,8 @@ class FilterData extends AbstractFilter
     public function generateFilterCriteria() {
 
         $this->filterCriteria->generateFilterCriteria($this);
+
+        $this->filterCriteriaString = implode(" ", $this->filterCriteriaParts);
 
         return $this;
     }
@@ -297,8 +322,7 @@ class FilterData extends AbstractFilter
 
         $joinConditionalString = !empty($this->joinConditionalQueries) ? sprintf("(\n%s\n)", implode(" AND \n", $this->joinConditionalQueries)) : '';
 
-        $filterString = !empty($this->filterQueries) ? sprintf("(\n%s\n)", implode(" OR \n", $this->filterQueries)) : '';
-        $filterString = empty($this->filterQueries) ? '' : "AND $filterString";
+        $filterString = empty($this->filterCriteriaParts) || empty($this->filterCriteriaString) ? '' : "AND {$this->filterCriteriaString}";
 
         $searchString = !empty($this->searchQueries) ? sprintf("(\n%s\n)", implode(" OR \n", $this->searchQueries)) : '';
         $searchString = empty($this->searchQueries) ? '' : "AND $searchString";

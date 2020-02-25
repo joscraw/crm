@@ -30,7 +30,7 @@ class FilterCriteria extends AbstractCriteria
             $filterData->filterCriteriaParts[] = ' ) ';
 
             if($i !== $this->or->count()) {
-                $filterData->filterCriteriaParts[] = ' OR ';
+                $filterData->filterCriteriaParts[] = " OR \n";
             }
             $i++;
         }
@@ -38,5 +38,32 @@ class FilterCriteria extends AbstractCriteria
         if($this->or->count() > 0) {
             $filterData->filterCriteriaParts[] = ' ) ';
         }
+
+        if($this->and->count() > 0) {
+            $filterData->filterCriteriaParts[] = " AND \n";
+        }
+
+        if($this->and->count() > 0) {
+            $filterData->filterCriteriaParts[] = ' ( ';
+        }
+
+        /** @var AndCriteria $andCriteria */
+        $i = 1;
+        foreach($this->and as $andCriteria) {
+            $filterData->filterCriteriaParts[] = ' ( ';
+            $andCriteria->generateFilterCriteria($filterData);
+            $filterData->filterCriteriaParts[] = ' ) ';
+
+            if($i !== $this->and->count()) {
+                $filterData->filterCriteriaParts[] = " AND \n";
+            }
+            $i++;
+        }
+
+        if($this->and->count() > 0) {
+            $filterData->filterCriteriaParts[] = ' ) ';
+        }
+
+        //todo account for AND criteria here
     }
 }
