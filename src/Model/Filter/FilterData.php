@@ -175,7 +175,9 @@ class FilterData extends AbstractFilter
      * that alias needs to be added to each column and filter being applied to the query
      */
     public function generateAlias() {
-        $randomString = $this->generateRandomString(5);
+        // MAKE SURE TO ONLY LETTERS HERE AND NOT NUMBERS AS NUMBERS
+        // CAN CAUSE WEIRD MYSQL ISSUES WITH ALIASES
+        $randomString = $this->generateRandomCharacters(5);
         $this->alias = sprintf("%s.%s", $randomString, $this->getBaseObject()->getInternalName());
         return $this->alias;
     }
@@ -326,6 +328,13 @@ class FilterData extends AbstractFilter
 
         $searchString = !empty($this->searchQueries) ? sprintf("(\n%s\n)", implode(" OR \n", $this->searchQueries)) : '';
         $searchString = empty($this->searchQueries) ? '' : "AND $searchString";
+        
+        /**
+         * SET THE GROUP BY
+         * This ensures that duplicate rows don't get returned with the same root object ID
+         * https://stackoverflow.com/questions/23921117/disable-only-full-group-by/23921234
+         */
+        $groupString = sprintf(" \nGROUP BY `%s`.id\n", $this->getAlias());
 
         ksort($this->orderQueries);
         $orderString = !empty($this->orderQueries) ? sprintf("ORDER BY %s", implode(", \n", $this->orderQueries)) : '';
@@ -333,7 +342,7 @@ class FilterData extends AbstractFilter
         $limitString = $this->limit !== null ? sprintf("LIMIT %s \n", $this->limit) : '';
         $offsetString = $this->offset !== null ? sprintf("OFFSET %s \n", $this->offset) : '';
 
-        $query = sprintf("SELECT DISTINCT `%s`.id %s from record `%s` %s WHERE \n %s \n %s \n %s %s %s %s",
+        $query = sprintf("SELECT DISTINCT `%s`.id %s from record `%s` %s WHERE \n %s \n %s \n %s \n %s %s %s %s",
             $this->getAlias(),
             $columnStr,
             $this->getAlias(),
@@ -341,6 +350,7 @@ class FilterData extends AbstractFilter
             $joinConditionalString,
             $filterString,
             $searchString,
+            $groupString,
             $orderString,
             $limitString,
             $offsetString

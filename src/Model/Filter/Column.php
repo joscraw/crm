@@ -120,7 +120,7 @@ HERE;
     private function getDatePickerQuery($alias = 'r1') {
         return <<<HERE
     CASE 
-        WHEN `${alias}`.properties->>'$."%s"' IS NULL THEN "-" 
+        WHEN `${alias}`.properties->>'$."%s"' IS NULL THEN "" 
         WHEN `${alias}`.properties->>'$."%s"' = '' THEN ""
         ELSE `${alias}`.properties->>'$."%s"'
     END AS "%s"
@@ -130,7 +130,7 @@ HERE;
     private function getNumberIsCurrencyQuery($alias = 'r1') {
         return <<<HERE
     CASE 
-        WHEN `${alias}`.properties->>'$."%s"' IS NULL THEN "-" 
+        WHEN `${alias}`.properties->>'$."%s"' IS NULL THEN "" 
         WHEN `${alias}`.properties->>'$."%s"' = '' THEN ""
         ELSE CAST( `${alias}`.properties->>'$."%s"' AS DECIMAL(15,2) ) 
     END AS "%s"
@@ -140,7 +140,7 @@ HERE;
     private function getNumberIsUnformattedQuery($alias = 'r1') {
         return <<<HERE
     CASE
-        WHEN `${alias}`.properties->>'$."%s"' IS NULL THEN "-" 
+        WHEN `${alias}`.properties->>'$."%s"' IS NULL THEN "" 
         WHEN `${alias}`.properties->>'$."%s"' = '' THEN ""
         ELSE `${alias}`.properties->>'$."%s"'
     END AS "%s"
@@ -150,7 +150,7 @@ HERE;
     private function getDefaultQuery($alias = 'r1') {
         return <<<HERE
     CASE
-        WHEN `${alias}`.properties->>'$."%s"' IS NULL THEN "-" 
+        WHEN `${alias}`.properties->>'$."%s"' IS NULL THEN "" 
         WHEN `${alias}`.properties->>'$."%s"' = '' THEN ""
         ELSE `${alias}`.properties->>'$."%s"'
     END AS "%s"
@@ -160,7 +160,7 @@ HERE;
     private function getSingleCheckboxQuery($alias = 'r1') {
         return <<<HERE
     CASE
-        WHEN `${alias}`.properties->>'$."%s"' IS NULL THEN "-" 
+        WHEN `${alias}`.properties->>'$."%s"' IS NULL THEN "" 
         WHEN `${alias}`.properties->>'$."%s"' = '' THEN ""
         WHEN `${alias}`.properties->>'$."%s"' = '1' THEN "yes"
         WHEN `${alias}`.properties->>'$."%s"' = '0' THEN "no"

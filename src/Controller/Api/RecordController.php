@@ -940,6 +940,7 @@ class RecordController extends ApiController
 
         $response = new JsonResponse([
             'success' => true,
+            'count' => count($results),
             'data'  => $results
         ], Response::HTTP_OK);
 

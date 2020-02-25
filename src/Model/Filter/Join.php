@@ -173,7 +173,9 @@ class Join extends AbstractFilter
      */
     public function generateAlias(CustomObject $previousObject) {
 
-        $randomString = $this->generateRandomString(5);
+        // MAKE SURE TO ONLY LETTERS HERE AND NOT NUMBERS AS NUMBERS
+        // CAN CAUSE WEIRD MYSQL ISSUES WITH ALIASES
+        $randomString = $this->generateRandomCharacters(5);
         $this->alias = sprintf("%s.%s", $randomString, $previousObject->getInternalName());
 
         return $this->alias;

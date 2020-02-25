@@ -411,6 +411,7 @@ class Filter
         /** @var OrCriteria $orCriteria */
         if(!empty($filterData->filterCriteriaParts)) {
             $pattern = '/'.$this->getUid().'/';
+            /*$filterData->filterCriteriaString = str_replace($this->getUid(), $query, $filterData->filterCriteriaString);*/
             $filterData->filterCriteriaString = preg_replace($pattern, $query, $filterData->filterCriteriaString);
         }
 
