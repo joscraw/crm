@@ -926,48 +926,10 @@ class RecordController extends ApiController
         $data = $request->request->get('filterData', []);
         /** @var FilterData $filterData */
         $filterData = $this->serializer->deserialize(json_encode($data, true), FilterData::class, 'json');
-        /*$json = $this->serializer->serialize($filterData, 'json');
-        $payload = json_decode($json, true);
-
-        return new JsonResponse([
-            'success' => true,
-            'data'  => $payload
-        ], Response::HTTP_OK);*/
-
         $results = $this->recordRepository->filterRecords($filterData);
-
-        $results = $results['results'];
-
         $response = new JsonResponse([
             'success' => true,
-            'count' => count($results),
             'data'  => $results
-        ], Response::HTTP_OK);
-
-        return $response;
-
-        $draw = intval($request->request->get('draw'));
-        $start = $request->request->get('start');
-        $length = $request->request->get('length');
-        $search = $request->request->get('search');
-        $orders = $request->request->get('order');
-        $columns = $request->request->get('columns');
-        $data = $request->request->get('data', []);
-        $results = $this->recordRepository->newReportLogicBuilder(
-            $data, $customObject,  false, $start, $length, $search, $orders, $columns
-        );
-        $countQuery = $this->recordRepository->findCountByCustomObject($customObject);
-        $totalRecordsCount = !empty($countQuery[0]['count']) ? $countQuery[0]['count'] : 0;
-        $results = $results['results'];
-        $filteredRecordsCount = $this->recordRepository->newReportLogicBuilderCount(
-            $data, $customObject,  false, false, false, $search, $orders, $columns
-        );
-        $response = new JsonResponse([
-            'success' => true,
-            'data'  => $results,
-            'draw'  => $draw,
-            'recordsFiltered' => $filteredRecordsCount,
-            'recordsTotal'  => $totalRecordsCount,
         ], Response::HTTP_OK);
 
         return $response;

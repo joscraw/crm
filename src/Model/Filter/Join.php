@@ -230,7 +230,7 @@ class Join extends AbstractFilter
 
         /** @var Column $column */
         foreach($this->getColumns() as $column) {
-            $filterData->columnQueries[] = $column->getQuery();
+            $filterData->columnQueries[] = $column->getQuery($filterData);
         }
 
         /** @var Join $join */

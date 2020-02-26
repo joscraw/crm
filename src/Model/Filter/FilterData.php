@@ -41,6 +41,16 @@ class FilterData extends AbstractFilter
     protected $offset;
 
     /**
+     * @var string
+     */
+    protected $statement = 'SELECT';
+
+    /**
+     * @var array
+     */
+    public $supportedStatements = ['SELECT', 'UPDATE'];
+
+    /**
      * @var array
      */
     public $columnQueries = [];
@@ -155,6 +165,22 @@ class FilterData extends AbstractFilter
     }
 
     /**
+     * @return string
+     */
+    public function getStatement(): string
+    {
+        return $this->statement;
+    }
+
+    /**
+     * @param string $statement
+     */
+    public function setStatement(string $statement): void
+    {
+        $this->statement = $statement;
+    }
+
+    /**
      * @return FilterCriteria
      */
     public function getFilterCriteria(): FilterCriteria
@@ -228,7 +254,7 @@ class FilterData extends AbstractFilter
     public function generateColumnQueries() {
 
         foreach($this->getColumns() as $column) {
-            $this->columnQueries[] = $column->getQuery();
+            $this->columnQueries[] = $column->getQuery($this);
         }
 
         /** @var Join $join */
@@ -318,7 +344,12 @@ class FilterData extends AbstractFilter
 
     public function getQuery() {
         $columnStr = implode(",",$this->columnQueries);
-        $columnStr  = !empty($columnStr) ? ', ' . $columnStr : '';
+
+        if($this->statement === 'SELECT') {
+            $columnStr  = !empty($columnStr) ? ', ' . $columnStr : '';
+        } elseif ($this->statement === 'UPDATE') {
+            $columnStr  = !empty($columnStr) ? $columnStr : '';
+        }
 
         $joinString = implode(" ", $this->joinQueries);
 
@@ -328,7 +359,7 @@ class FilterData extends AbstractFilter
 
         $searchString = !empty($this->searchQueries) ? sprintf("(\n%s\n)", implode(" OR \n", $this->searchQueries)) : '';
         $searchString = empty($this->searchQueries) ? '' : "AND $searchString";
-        
+
         /**
          * SET THE GROUP BY
          * This ensures that duplicate rows don't get returned with the same root object ID
@@ -342,19 +373,35 @@ class FilterData extends AbstractFilter
         $limitString = $this->limit !== null ? sprintf("LIMIT %s \n", $this->limit) : '';
         $offsetString = $this->offset !== null ? sprintf("OFFSET %s \n", $this->offset) : '';
 
-        $query = sprintf("SELECT DISTINCT `%s`.id %s from record `%s` %s WHERE \n %s \n %s \n %s \n %s %s %s %s",
-            $this->getAlias(),
-            $columnStr,
-            $this->getAlias(),
-            $joinString,
-            $joinConditionalString,
-            $filterString,
-            $searchString,
-            $groupString,
-            $orderString,
-            $limitString,
-            $offsetString
-        );
+        if($this->statement === 'SELECT') {
+            $query = sprintf("SELECT DISTINCT `%s`.id %s from record `%s` %s WHERE \n %s \n %s \n %s \n %s %s %s %s",
+                $this->getAlias(),
+                $columnStr,
+                $this->getAlias(),
+                $joinString,
+                $joinConditionalString,
+                $filterString,
+                $searchString,
+                $groupString,
+                $orderString,
+                $limitString,
+                $offsetString
+            );
+        } elseif ($this->statement === 'UPDATE') {
+            $query = sprintf("UPDATE record `%s` %s SET %s WHERE \n %s \n %s \n %s",
+                $this->getAlias(),
+                $joinString,
+                $columnStr,
+                $joinConditionalString,
+                $filterString,
+                $searchString
+            );
+        } else {
+            throw new ApiProblemException(400, sprintf('Statement %s not supported. Supported statements are: %s',
+                $this->statement,
+                implode(",", $this->supportedStatements)
+            ));
+        }
 
         return $query;
     }

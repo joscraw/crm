@@ -62,11 +62,15 @@ class FilterDataDenormalizer implements DenormalizerInterface, DenormalizerAware
      */
     private $propertyRepository;
 
-
     /**
      * @var DenormalizerInterface
      */
     private $denormalizer;
+
+    /**
+     * @var string
+     */
+    public $statement;
 
     /**
      * PropertyFieldDenormalizer constructor.
@@ -135,6 +139,18 @@ class FilterDataDenormalizer implements DenormalizerInterface, DenormalizerAware
             $filterData->setOffset($data['offset']);
         }
 
+        // STATEMENT (SELECT, UPDATE, ETC)
+        if(isset($data['statement'])) {
+            if(!in_array($data['statement'], $filterData->supportedStatements)) {
+                throw new ApiProblemException(400, sprintf('Statement %s not supported. Supported statements are: %s',
+                    $data['statement'],
+                    implode(",", $filterData->supportedStatements)
+                ));
+            }
+            $this->statement = $data['statement'];
+            $filterData->setStatement($data['statement']);
+        }
+
         if(isset($data['filterCriteria'])) {
             /** @var FilterCriteria $filterCriteria */
             $filterCriteria = $this->filterCriteria($data['filterCriteria'], new FilterCriteria());
@@ -154,6 +170,12 @@ class FilterDataDenormalizer implements DenormalizerInterface, DenormalizerAware
                 }
                 if(isset($columnData['renameTo'])) {
                     $column->setRenameTo($columnData['renameTo']);
+                }
+                if(isset($columnData['newValue'])) {
+                    $column->setNewValue($columnData['newValue']);
+                }
+                if($this->statement === 'UPDATE' && !isset($columnData['newValue'])) {
+                    throw new ApiProblemException(400, sprintf('All columns must have a newValue property when using the UPDATE Statement. Example: newValue: "super cool new value here"'));
                 }
                 $column->setProperty($property);
                 $filterData->addColumn($column);
@@ -289,6 +311,12 @@ class FilterDataDenormalizer implements DenormalizerInterface, DenormalizerAware
                     }
                     if(isset($columnData['renameTo'])) {
                         $column->setRenameTo($columnData['renameTo']);
+                    }
+                    if(isset($columnData['newValue'])) {
+                        $column->setNewValue($columnData['newValue']);
+                    }
+                    if($this->statement === 'UPDATE' && !isset($columnData['newValue'])) {
+                        throw new ApiProblemException(400, sprintf('All columns must have a newValue property when using the UPDATE Statement. Example: newValue: "super cool new value here"'));
                     }
                     $column->setProperty($property);
                     $joinObject->addColumn($column);

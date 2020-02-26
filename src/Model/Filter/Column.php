@@ -2,6 +2,7 @@
 
 namespace App\Model\Filter;
 
+use App\Api\ApiProblemException;
 use App\Entity\Property;
 use App\Model\FieldCatalog;
 use App\Model\NumberField;
@@ -22,6 +23,11 @@ class Column
      * @var string
      */
     protected $renameTo;
+
+    /**
+     * @var string
+     */
+    protected $newValue;
 
     /**
      * @return Property
@@ -72,15 +78,38 @@ class Column
     }
 
     /**
+     * @return string
+     */
+    public function getNewValue(): string
+    {
+        return $this->newValue;
+    }
+
+    /**
+     * @param string $newValue
+     */
+    public function setNewValue(string $newValue): void
+    {
+        $this->newValue = $newValue;
+    }
+
+    /**
      * This function sets up the property fields we are querying
+     * @param FilterData $filterData
      * @return array
      */
-    public function getQuery()
+    public function getQuery(FilterData $filterData)
     {
         $internalName = $this->getProperty()->getInternalName();
         $label = !empty($this->renameTo) ? $this->renameTo : $this->getProperty()->getLabel();
         $alias = $this->getAlias();
         $resultStr = '';
+
+        if($filterData->getStatement() === 'UPDATE') {
+            $jsonExtract = $this->getUpdateQuery($alias);
+            $resultStr = sprintf($jsonExtract, $internalName, $this->newValue);
+            return $resultStr;
+        }
 
         switch($this->getProperty()->getFieldType()) {
             case FieldCatalog::DATE_PICKER:
@@ -168,4 +197,12 @@ HERE;
     END AS "%s"
 HERE;
     }
+
+    private function getUpdateQuery($alias = 'r1') {
+        return <<<HERE
+    `${alias}`.properties = JSON_SET(`${alias}`.properties, '$."%s"', "%s") \n
+HERE;
+    }
+
+    //SET `%s`.properties = JSON_SET(`%s`.properties, '$.%s', '%s') \n
 }

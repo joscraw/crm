@@ -4,6 +4,7 @@ namespace App\Repository;
 
 ini_set('xdebug.max_nesting_level', 100000);
 
+use App\Api\ApiProblemException;
 use App\Entity\CustomObject;
 use App\Entity\Property;
 use App\Entity\Record;
@@ -345,11 +346,21 @@ class RecordRepository extends ServiceEntityRepository
 
         $em = $this->getEntityManager();
         $stmt = $em->getConnection()->prepare($query);
-        $stmt->execute();
-        $results = $stmt->fetchAll();
-        return array(
-            "results"  => $results,
-        );
+        if(!$stmt->execute()) {
+            throw new ApiProblemException(400, 'Error running query. Contact system administrator');
+        }
+
+        if($filterData->getStatement() === 'SELECT') {
+            $results = $stmt->fetchAll();
+            return array(
+                'count' => count($results),
+                "results"  => $results,
+            );
+        } elseif ($filterData->getStatement() === 'UPDATE') {
+            return array("results"  => 'Records successfully updated.');
+        } else {
+            throw new ApiProblemException(400, 'Statement not supported');
+        }
     }
 
     /**
