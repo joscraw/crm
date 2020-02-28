@@ -234,4 +234,59 @@ class NSCSApiController extends  AbstractController
         ]);
     }
 
+    public function eventRegister(Request $request) {
+
+        $eventRecordId = $request->request->get('eventRecordId', false);
+        $contactRecordId = $request->request->get('contactRecordId', false);
+        if(!$eventRecordId) {
+            return $this->json([
+                'success' => false,
+                'message' => 'An event record Id must be passed up'
+            ]);
+        }
+
+        if(!$contactRecordId) {
+            return $this->json([
+                'success' => false,
+                'message' => 'A contact record Id must be passed up'
+            ]);
+        }
+
+        $event = $this->recordRepository->find($eventRecordId);
+
+        if(!$event) {
+            return $this->json([
+                'success' => false,
+                'message' => sprintf('Event not found for record id %s', $eventRecordId)
+            ]);
+        }
+
+        $contact = $this->recordRepository->find($contactRecordId);
+        if(!$contact) {
+            return $this->json([
+                'success' => false,
+                'message' => sprintf('Contact not found for record id %s', $contactRecordId)
+            ]);
+        }
+
+        $properties = $event->getProperties();
+        if(isset($properties['registrations'])) {
+            $registrations = explode(";", $properties['registrations']);
+        } else {
+            $registrations = [];
+        }
+
+
+        $registrations[] = $contactRecordId;
+        $registrations = implode(";", $registrations);
+        $properties['registrations'] = $registrations;
+        $event->setProperties($properties);
+        $this->entityManager->persist($event);
+        $this->entityManager->flush();
+        return $this->json([
+            'success' => true,
+            'message' => 'User registered for event'
+        ]);
+    }
+
 }

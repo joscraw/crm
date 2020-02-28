@@ -21,4 +21,6 @@
     </route>
     <route id="nscs_api_chapter_events" controller="nscs_controller_api.nscs_api_controller:getChapterEvents" path="/chapter-events" >
     </route>
+    <route id="nscs_api_event_register" controller="nscs_controller_api.nscs_api_controller:eventRegister" path="/event-register" methods="POST">
+    </route>
 </routes>
