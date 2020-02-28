@@ -577,14 +577,15 @@ class RecordController extends ApiController
         $totalRecordsCount = !empty($countQuery[0]['count']) ? $countQuery[0]['count'] : 0;
 
         $results = $results['results'];
-        $filteredRecordsCount = count($results);
+        $filteredRecordsCount = $this->recordRepository->getDataTableDataCount($start, $length, $search, $orders, $columns, $propertiesForDatatable, $customFilters, $customObject);
 
         $response = new JsonResponse([
+            'success' => true,
+            'data'  => $results,
             'draw'  => $draw,
-            'recordsFiltered' => !empty($search['value']) || !empty($customFilters) ? $filteredRecordsCount : $totalRecordsCount,
+            'recordsFiltered' => $filteredRecordsCount,
             'recordsTotal'  => $totalRecordsCount,
-            'data'  => $results
-        ],  Response::HTTP_OK);
+        ], Response::HTTP_OK);
 
         return $response;
     }
