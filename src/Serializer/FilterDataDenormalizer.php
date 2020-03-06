@@ -155,6 +155,8 @@ class FilterDataDenormalizer implements DenormalizerInterface, DenormalizerAware
             /** @var FilterCriteria $filterCriteria */
             $filterCriteria = $this->filterCriteria($data['filterCriteria'], new FilterCriteria());
             $filterData->setFilterCriteria($filterCriteria);
+        } else {
+            $filterData->setFilterCriteria(new FilterCriteria());
         }
 
         // COLUMNS TO RETURN

@@ -200,7 +200,7 @@ class Join extends AbstractFilter
             $customObject = $this->getRelationshipPropertyToJoinOn()->getField()->getCustomObject();
             $alias = $this->generateAlias($customObject);
         } else {
-            // If the property we are joining on does not live on a different object
+            // If the property we are joining on lives on a different object
             $this->joinDirection = 'cross_join';
             $customObject = $this->getRelationshipPropertyToJoinOn()->getCustomObject();
             $alias = $this->generateAlias($customObject);
