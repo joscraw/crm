@@ -164,7 +164,8 @@ class NSCSApiController extends  AbstractController
             }
         }
         foreach($results["results"] as &$result) {
-            $result['properties'] = json_decode($result['properties'], true);
+            $result['account_properties'] = json_decode($result['account_properties'], true);
+            $result['event_properties'] = json_decode($result['event_properties'], true);
         }
         return $this->json([
             'success' => true,
@@ -195,7 +196,9 @@ class NSCSApiController extends  AbstractController
             }
         }
         foreach($results["results"] as &$result) {
-            $result['properties'] = json_decode($result['properties'], true);
+            $result['contact_properties'] = json_decode($result['contact_properties'], true);
+            $result['chapter_properties'] = json_decode($result['chapter_properties'], true);
+            $result['chapter_leadership_properties'] = json_decode($result['chapter_leadership_properties'], true);
         }
         return $this->json([
             'success' => true,

@@ -179,9 +179,25 @@ WHERE co.internal_name = 'cengage_scholarships'";
      * @throws \Doctrine\DBAL\DBALException
      */
     public function getChapters($limit, $offset, $search) {
-        $query = "SELECT DISTINCT root.id, root.properties from record root INNER JOIN custom_object co on root.custom_object_id = co.id 
-                                WHERE co.internal_name = 'account'";
-        $query .= !empty($search) ? sprintf(" AND LOWER(root.properties) LIKE \"%%%s%%\"", strtolower($search)) : '';
+        $query = "SELECT DISTINCT `AZ0WM.account`.id as chapter_record_id, 
+    `AZ0WM.account`.properties as account_properties,
+    `I4LB1.event`.id as event_record_id,
+    `I4LB1.event`.properties as event_properties
+    from record `AZ0WM.account`     
+    /* Given the id \"11\" This first statement matches: {\"property_name\": \"11\"} */
+     LEFT JOIN record `I4LB1.event` on 
+     (`I4LB1.event`.properties->>'$.\"chapter\"' REGEXP concat('^', `AZ0WM.account`.id, '$') AND `I4LB1.event`.custom_object_id = '24')
+    /* Given the id \"11\" This second statement matches: {\"property_name\": \"12;11\"} */
+     OR (`I4LB1.event`.properties->>'$.\"chapter\"' REGEXP concat(';', `AZ0WM.account`.id, '$') AND `I4LB1.event`.custom_object_id = '24')
+     /* Given the id \"11\" This second statement matches: {\"property_name\": \"12;11;13\"} */
+     OR (`I4LB1.event`.properties->>'$.\"chapter\"' REGEXP concat(';', `AZ0WM.account`.id, ';') AND `I4LB1.event`.custom_object_id = '24')
+     /* Given the id \"11\" This second statement matches: {\"property_name\": \"11;12;13\"} */
+     OR (`I4LB1.event`.properties->>'$.\"chapter\"' REGEXP concat('^', `AZ0WM.account`.id, ';') AND `I4LB1.event`.custom_object_id = '24') WHERE 
+     (
+    `AZ0WM.account`.custom_object_id = 2
+    )";
+
+        $query .= !empty($search) ? sprintf(" AND LOWER(`AZ0WM.account`.properties) LIKE \"%%%s%%\"", strtolower($search)) : '';
         $query .= sprintf(" LIMIT %s OFFSET %s", $limit, $offset);
         $em = $this->getEntityManager();
         $stmt = $em->getConnection()->prepare($query);
@@ -193,6 +209,10 @@ WHERE co.internal_name = 'cengage_scholarships'";
     }
 
     /**
+     * This query does a few things.
+     * 1. Pulls all the contacts for a given chapter
+     * 2. Grabs their associated chapter leadership if it exists
+     * 3. Grabs their associated chapter to the chapter leadership as well
      * @param $limit
      * @param $offset
      * @param $search
@@ -201,11 +221,36 @@ WHERE co.internal_name = 'cengage_scholarships'";
      * @throws \Doctrine\DBAL\DBALException
      */
     public function getChapterContacts($chapterRecordId, $limit = null, $offset = null, $search = null) {
-        $query = sprintf("SELECT root.id, root.properties from record root INNER JOIN custom_object co on root.custom_object_id = co.id 
-WHERE co.internal_name = 'contacts' AND root.properties->\"$.account_name\" = \"%s\"", $chapterRecordId);
+        $query = sprintf("SELECT DISTINCT `5A2IB.contacts`.id as contact_record_id, 
+    `5A2IB.contacts`.properties as contact_properties, 
+    `NiVW9.account`.id as chapter_record_id,
+    `NiVW9.account`.properties as chapter_properties, 
+    `PJ8cu.chapter_leadership`.id as chapter_leadership_record_id,
+    `PJ8cu.chapter_leadership`.properties as chapter_leadership_properties 
+    from record `5A2IB.contacts` 
+    /* Given the id \"11\" This first statement matches: {\"property_name\": \"11\"} */
+     LEFT JOIN record `PJ8cu.chapter_leadership` on 
+     (`5A2IB.contacts`.properties->>'$.\"chapter_leadership\"' REGEXP concat('^', `PJ8cu.chapter_leadership`.id, '$') AND `PJ8cu.chapter_leadership`.custom_object_id = '5')
+     /* Given the id \"11\" This second statement matches: {\"property_name\": \"12;11\"} */
+     OR (`5A2IB.contacts`.properties->>'$.\"chapter_leadership\"' REGEXP concat(';', `PJ8cu.chapter_leadership`.id, '$') AND `PJ8cu.chapter_leadership`.custom_object_id = '5')
+     /* Given the id \"11\" This second statement matches: {\"property_name\": \"12;11;13\"} */
+     OR (`5A2IB.contacts`.properties->>'$.\"chapter_leadership\"' REGEXP concat(';', `PJ8cu.chapter_leadership`.id, ';') AND `PJ8cu.chapter_leadership`.custom_object_id = '5')
+     /* Given the id \"11\" This second statement matches: {\"property_name\": \"11;12;13\"} */
+     OR (`5A2IB.contacts`.properties->>'$.\"chapter_leadership\"' REGEXP concat('^', `PJ8cu.chapter_leadership`.id, ';')AND `PJ8cu.chapter_leadership`.custom_object_id = '5')
+ 
+    /* Given the id \"11\" This first statement matches: {\"property_name\": \"11\"} */
+     LEFT JOIN record `NiVW9.account` on 
+     (`PJ8cu.chapter_leadership`.properties->>'$.\"chapter\"' REGEXP concat('^', `NiVW9.account`.id, '$') AND `NiVW9.account`.custom_object_id = '2')
+     /* Given the id \"11\" This second statement matches: {\"property_name\": \"12;11\"} */
+     OR (`PJ8cu.chapter_leadership`.properties->>'$.\"chapter\"' REGEXP concat(';', `NiVW9.account`.id, '$') AND `NiVW9.account`.custom_object_id = '2')
+     /* Given the id \"11\" This second statement matches: {\"property_name\": \"12;11;13\"} */
+     OR (`PJ8cu.chapter_leadership`.properties->>'$.\"chapter\"' REGEXP concat(';', `NiVW9.account`.id, ';') AND `NiVW9.account`.custom_object_id = '2')
+     /* Given the id \"11\" This second statement matches: {\"property_name\": \"11;12;13\"} */
+     OR (`PJ8cu.chapter_leadership`.properties->>'$.\"chapter\"' REGEXP concat('^', `NiVW9.account`.id, ';')AND `NiVW9.account`.custom_object_id = '2')
+    WHERE `5A2IB.contacts`.custom_object_id = 1 AND `5A2IB.contacts`.properties->\"$.account_name\" = \"%s\"", $chapterRecordId);
 
         if($search) {
-            $query .= !empty($search) ? sprintf(" AND LOWER(root.properties) LIKE \"%%%s%%\"", strtolower($search)) : '';
+            $query .= !empty($search) ? sprintf(" AND LOWER(`5A2IB.contacts`.properties) LIKE \"%%%s%%\"", strtolower($search)) : '';
         }
 
         if($limit && $offset) {

@@ -513,6 +513,15 @@ class RecordRepository extends ServiceEntityRepository
         if(empty($data['joins'])) {
             return;
         }
+
+
+        /*
+         * $skipJoinCondition = ($this->joinType === 'Without' && $this->joinDirection === 'normal_join') ||
+            ($this->joinType === 'With/Without');
+         *
+         */
+
+
         // configure the aliases
         foreach ($data['joins'] as &$joinData) {
             if(empty($joinData['connected_object']) || empty($joinData['connected_property'])) {
@@ -524,6 +533,14 @@ class RecordRepository extends ServiceEntityRepository
             $joinDirection = $connectedObject['join_direction'];
             $joinType = $joinData['join_type'];
             $alias = $joinData['alias'];
+
+            $skipJoinCondition = ($joinType === 'Without' && $joinDirection === 'normal_join') ||
+                ($joinType === 'With/Without');
+
+            if($skipJoinCondition) {
+                continue;
+            }
+
             if($joinType === 'With' && $joinDirection === 'normal_join' || $joinType === 'With/Without' && $joinDirection === 'normal_join') {
                 $joinConditionals[] = sprintf("`%s`.custom_object_id = %s", $alias, $connectedProperty['field']['customObject']['id']);
             } elseif ($joinType === 'Without' && $joinDirection === 'normal_join') {
@@ -635,11 +652,11 @@ class RecordRepository extends ServiceEntityRepository
                 $root, $connectedProperty['internalName'], $alias
             );
         } elseif ($joinType === 'With/Without' && $joinDirection === 'normal_join') {
-            $query = sprintf($this->getJoinQuery(),
-                'LEFT JOIN', $alias, $root, $connectedProperty['internalName'], $alias,
-                $root, $connectedProperty['internalName'], $alias,
-                $root, $connectedProperty['internalName'], $alias,
-                $root, $connectedProperty['internalName'], $alias
+            $query = sprintf($this->getWithOrWithoutJoinQuery(),
+                $alias, $root, $connectedProperty['internalName'], $alias, $alias, $connectedProperty['field']['customObject']['id'],
+                $root, $connectedProperty['internalName'], $alias, $alias, $connectedProperty['field']['customObject']['id'],
+                $root, $connectedProperty['internalName'], $alias, $alias, $connectedProperty['field']['customObject']['id'],
+                $root, $connectedProperty['internalName'], $alias, $alias, $connectedProperty['field']['customObject']['id']
             );
         } elseif ($joinType === 'Without' && $joinDirection === 'normal_join') {
             $query = sprintf($this->getWithoutJoinQuery(), $root, $connectedProperty['internalName'], $root, $connectedProperty['internalName']);
@@ -651,12 +668,29 @@ class RecordRepository extends ServiceEntityRepository
                 $alias, $connectedProperty['internalName'], $root
             );
         } elseif ($joinType === 'With/Without' && $joinDirection === 'cross_join') {
+
+            $query = sprintf($this->getWithOrWithoutCrossJoinQuery(),
+                $alias, $alias, $connectedProperty['internalName'], $root, $alias, $connectedObject['id'],
+                $alias, $connectedProperty['internalName'], $root, $alias, $connectedObject['id'],
+                $alias, $connectedProperty['internalName'], $root, $alias, $connectedObject['id'],
+                $alias, $connectedProperty['internalName'], $root, $alias, $connectedObject['id']
+            );
+
+            $name = "josh";
+
+/*            $query = sprintf($this->getWithOrWithoutJoinQuery(),
+                $alias, $root, $connectedProperty['internalName'], $alias, $alias, $connectedProperty['field']['customObject']['id'],
+                $root, $connectedProperty['internalName'], $alias, $alias, $connectedProperty['field']['customObject']['id'],
+                $root, $connectedProperty['internalName'], $alias, $alias, $connectedProperty['field']['customObject']['id'],
+                $root, $connectedProperty['internalName'], $alias, $alias, $connectedProperty['field']['customObject']['id']
+            );
+
             $query = sprintf($this->getCrossJoinQuery(),
                 'LEFT JOIN', $alias, $alias, $connectedProperty['internalName'], $root,
                 $alias, $connectedProperty['internalName'], $root,
                 $alias, $connectedProperty['internalName'], $root,
                 $alias, $connectedProperty['internalName'], $root
-            );
+            );*/
         } elseif ($joinType === 'Without' && $joinDirection === 'cross_join') {
             $query = sprintf($this->getWithoutCrossJoinQuery(),
                 $alias, $alias, $connectedProperty['internalName'], $root,
@@ -2092,14 +2126,57 @@ HERE;
     private function getWithoutCrossJoinQuery() {
         return <<<HERE
     /* Given the id "11" This first statement matches: {"property_name": "11"} */
-    LEFT JOIN record `%s` on `%s`.properties->>'$."%s"' REGEXP concat('^', `%s`.id, '$')
+    LEFT JOIN record `%s` on `%s`.properties->>'$."%s"' NOT REGEXP concat('^', `%s`.id, '$')
     /* Given the id "11" This second statement matches: {"property_name": "12;11"} */
-     OR `%s`.properties->>'$."%s"' REGEXP concat(';', `%s`.id, '$') 
+     AND `%s`.properties->>'$."%s"' NOT REGEXP concat(';', `%s`.id, '$') 
      /* Given the id "11" This second statement matches: {"property_name": "12;11;13"} */
-     OR `%s`.properties->>'$."%s"' REGEXP concat(';', `%s`.id, ';') 
+     AND `%s`.properties->>'$."%s"' NOT REGEXP concat(';', `%s`.id, ';') 
      /* Given the id "11" This second statement matches: {"property_name": "11;12;13"} */
-     OR `%s`.properties->>'$."%s"' REGEXP concat('^', `%s`.id, ';')
-    WHERE (`%s`.properties->>'$."%s"' IS NULL OR `%s`.properties->>'$."%s"' = '')
+     AND `%s`.properties->>'$."%s"' NOT REGEXP concat('^', `%s`.id, ';')
+HERE;
+    }
+
+    /**
+     * We store relations to a single object as a string.
+     * We store relations to multiple objects as a semicolon delimited string
+     * Single object example: {chapter: "11"}
+     * Multiple object example: {chapter: "11;12;13"}
+     * @return string
+     */
+    private function getWithOrWithoutJoinQuery() {
+        return <<<HERE
+
+    /* Given the id "11" This first statement matches: {"property_name": "11"} */
+     LEFT JOIN record `%s` on 
+     (`%s`.properties->>'$."%s"' REGEXP concat('^', `%s`.id, '$') AND `%s`.custom_object_id = '%s')
+     /* Given the id "11" This second statement matches: {"property_name": "12;11"} */
+     OR (`%s`.properties->>'$."%s"' REGEXP concat(';', `%s`.id, '$') AND `%s`.custom_object_id = '%s')
+     /* Given the id "11" This second statement matches: {"property_name": "12;11;13"} */
+     OR (`%s`.properties->>'$."%s"' REGEXP concat(';', `%s`.id, ';') AND `%s`.custom_object_id = '%s')
+     /* Given the id "11" This second statement matches: {"property_name": "11;12;13"} */
+     OR (`%s`.properties->>'$."%s"' REGEXP concat('^', `%s`.id, ';')AND `%s`.custom_object_id = '%s')
+
+HERE;
+    }
+
+    /**
+     * We store relations to a single object as a string.
+     * We store relations to multiple objects as a semicolon delimited string
+     * Single object example: {chapter: "11"}
+     * Multiple object example: {chapter: "11;12;13"}
+     * @return string
+     */
+    private function getWithOrWithoutCrossJoinQuery() {
+        return <<<HERE
+    /* Given the id "11" This first statement matches: {"property_name": "11"} */
+     LEFT JOIN record `%s` on 
+     (`%s`.properties->>'$."%s"' REGEXP concat('^', `%s`.id, '$') AND `%s`.custom_object_id = '%s')
+    /* Given the id "11" This second statement matches: {"property_name": "12;11"} */
+     OR (`%s`.properties->>'$."%s"' REGEXP concat(';', `%s`.id, '$') AND `%s`.custom_object_id = '%s')
+     /* Given the id "11" This second statement matches: {"property_name": "12;11;13"} */
+     OR (`%s`.properties->>'$."%s"' REGEXP concat(';', `%s`.id, ';') AND `%s`.custom_object_id = '%s')
+     /* Given the id "11" This second statement matches: {"property_name": "11;12;13"} */
+     OR (`%s`.properties->>'$."%s"' REGEXP concat('^', `%s`.id, ';') AND `%s`.custom_object_id = '%s')
 HERE;
     }
 
