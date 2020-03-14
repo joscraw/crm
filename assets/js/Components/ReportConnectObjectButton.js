@@ -37,7 +37,7 @@ class ReportConnectObjectButton {
 
     static markup() {
         return `
-      <button type="button" class="js-connect-object-btn btn btn-link">Connect an Object</button>
+      <button type="button" class="js-connect-object-btn btn btn-link">Create Join</button>
     `;
     }
 }

@@ -22,13 +22,13 @@ class ConnectObjectForm {
      */
     constructor($wrapper, globalEventDispatcher, portalInternalIdentifier, customObjectInternalName, parentConnectionUid) {
 
+        debugger;
         this.$wrapper = $wrapper;
         this.globalEventDispatcher = globalEventDispatcher;
         this.portalInternalIdentifier = portalInternalIdentifier;
         this.customObjectInternalName = customObjectInternalName;
         this.parentConnectionUid = parentConnectionUid;
-        this.connectedObjects = [];
-        this.connectedProperties = [];
+        this.relationshipProperties = [];
         this.propertySelect = null;
 
         this.$wrapper.on(
@@ -39,19 +39,20 @@ class ConnectObjectForm {
 
         this.$wrapper.html(ConnectObjectForm.markup());
 
-        this.loadConnectedObjects().then((data) => {
-            this.connectedObjects = data.data.custom_objects;
+        this.loadRelationshipProperties().then((data) => {
+            debugger;
+            this.relationshipProperties = data.data.relationship_properties;
             let options = [];
-            for(let i = 0; i < this.connectedObjects.length; i++) {
-                let option = this.connectedObjects[i];
-                options.push({value: option.id, name: option.label});
+            for(let i = 0; i < this.relationshipProperties.length; i++) {
+                let option = this.relationshipProperties[i];
+                options.push({value: option.id, name: option.relationship_friendly_name});
             }
             $('#js-select-connected-object').selectize({
                 valueField: 'value',
                 labelField: 'name',
                 searchField: ['name'],
                 options: options,
-                placeholder: 'Select an object to connect'
+                placeholder: 'Select a relationship property to join on.'
             }).on('change', this.handleConnectableObjectChange.bind(this));
         });
 
@@ -68,9 +69,10 @@ class ConnectObjectForm {
         }
     }
 
-    loadConnectedObjects() {
+    loadRelationshipProperties() {
+        debugger;
         return new Promise((resolve, reject) => {
-            const url = Routing.generate('get_connectable_objects', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
+            const url = Routing.generate('get_relationship_properties', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
             $.ajax({
                 url: url,
                 method: 'GET'
@@ -126,6 +128,7 @@ class ConnectObjectForm {
 
 
     getConnectableProperties(data) {
+        debugger;
         return new Promise((resolve, reject) => {
 
             const url = Routing.generate('get_connectable_properties', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
@@ -146,6 +149,7 @@ class ConnectObjectForm {
     }
 
     handleApplyConnectedObjectButtonClick(e) {
+        debugger;
         if(e.cancelable) {
             e.preventDefault();
         }
@@ -162,12 +166,10 @@ class ConnectObjectForm {
             }
             object[key].push(value);
         });
-        object.connected_property = this.connectedProperties.filter(property => {
-            return parseInt(property.id) === parseInt(object.connected_property);
+        object.relationship_property = this.relationshipProperties.filter(property => {
+            return parseInt(property.id) === parseInt(object.relationship_property);
         })[0];
-        object.connected_object = this.connectedObjects.filter(connectedObject => {
-            return parseInt(connectedObject.id) === parseInt(object.connected_object);
-        })[0];
+        debugger;
         if(this.parentConnectionUid) {
             object.parentConnectionUid = this.parentConnectionUid;
             object.hasParentConnection = true;
@@ -178,7 +180,6 @@ class ConnectObjectForm {
     static markup() {
         return `
         <form id="js-connect-object-form">
-        <select name="connected_object" id="js-select-connected-object"></select>
         <br>
         <select name="join_type" id="js-select-join-type">
             <option>With</option>
@@ -186,9 +187,10 @@ class ConnectObjectForm {
             <option>With/Without</option>
         </select>
         <br>
-        <select style="display:none" name="connected_property" id="js-select-property"></select>
+        <select name="relationship_property" id="js-select-connected-object"></select>
+        <!--<select style="display:none" name="connected_property" id="js-select-property"></select>-->
         <br>
-        <button type="button" class="btn-primary btn w-100 js-apply-connected-object-button">Connect Object</button>
+        <button type="button" class="btn-primary btn w-100 js-apply-connected-object-button">Join</button>
         </form>
         
     `;

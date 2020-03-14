@@ -415,12 +415,12 @@ class PropertyController extends ApiController
         $uids = [];
         if(!empty($data['joins'])) {
             foreach($data['joins'] as $join) {
-                if(!empty($join['connected_object']['join_direction']) &&  $join['connected_object']['join_direction'] === 'normal_join') {
-                    $uids[] = $join['connected_object']['id'];
-                    $uids[] = $join['connected_property']['field']['customObject']['id'];
-                } else if(!empty($join['connected_object']['join_direction']) &&  $join['connected_object']['join_direction'] === 'cross_join') {
+                if(!empty($join['relationship_property']['join_direction']) &&  $join['relationship_property']['join_direction'] === 'normal_join') {
+                    $uids[] = $join['relationship_property']['custom_object_id'];
+                    $uids[] = $join['relationship_property']['field']['customObject']['id'];
+                } else if(!empty($join['relationship_property']['join_direction']) &&  $join['relationship_property']['join_direction'] === 'cross_join') {
                     $uids[] = $customObject->getId();
-                    $uids[] = $join['connected_object']['id'];
+                    $uids[] = $join['relationship_property']['custom_object_id'];
                 } else {
                     $uids[] = $customObject->getId();
                 }

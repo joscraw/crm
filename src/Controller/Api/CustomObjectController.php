@@ -137,6 +137,31 @@ class CustomObjectController extends ApiController
         return $response;
     }
 
+    /**
+     * @Route("/{internalName}/relationship-properties", name="get_relationship_properties", methods={"GET"}, options = { "expose" = true })
+     * @param CustomObject $customObject
+     * @param Portal $portal
+     * @param Request $request
+     * @return Response
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    public function getRelationshipPropertiesAction(CustomObject $customObject, Portal $portal, Request $request) {
+
+        $relationshipProperties = $this->propertyRepository->getRelationshipProperties($customObject);
+
+        // decode the nested JSON FIELD
+        for($i = 0; $i < count($relationshipProperties); $i++) {
+            $relationshipProperties[$i]['field'] = json_decode($relationshipProperties[$i]['field'], true);
+        }
+
+        $payload = [];
+        $payload['relationship_properties'] = $relationshipProperties;
+        $response = new JsonResponse([
+            'success' => true,
+            'data'  => $payload,
+        ],  Response::HTTP_OK);
+        return $response;
+    }
 
     /**
      * This doesn't return a list of all possible merge tags. Just 1 level deep.

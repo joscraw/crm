@@ -236,7 +236,7 @@ class RecordRepository extends ServiceEntityRepository
     public function newReportLogicBuilder($data, CustomObject $customObject, $mysqlOnly = false, $start = false, $length = false, $search = false, $orders = false, $columns = false)
     {
         $this->data = $data;
-        $root = sprintf("%s.%s", $this->generateRandomString(5), $customObject->getInternalName());
+        $root = sprintf("%s.%s", $this->generateRandomCharacters(5), $customObject->getInternalName());
 
         // setup the join aliases
         $this->newJoinAliasBuilder($data);
@@ -269,6 +269,13 @@ class RecordRepository extends ServiceEntityRepository
             $query = sprintf("SELECT DISTINCT `%s`.id %s from record `%s` %s WHERE \n %s \n %s", $root, $resultStr, $root, $joinString, $joinConditionalString, $filterString);
         }
 
+        //  todo possibly remove this and use the above. All I'm doing here is removing the distinct from the query
+        if (strpos($joinString, 'WHERE') !== false) {
+            $query = sprintf("SELECT `%s`.id %s from record `%s` %s AND %s \n %s", $root, $resultStr, $root, $joinString, $joinConditionalString, $filterString);
+        } else {
+            $query = sprintf("SELECT `%s`.id %s from record `%s` %s WHERE \n %s \n %s", $root, $resultStr, $root, $joinString, $joinConditionalString, $filterString);
+        }
+
         // Search
         if(!empty($search['value']) && !empty($data['properties'])) {
             $searches = [];
@@ -285,7 +292,17 @@ class RecordRepository extends ServiceEntityRepository
          * This ensures that duplicate rows don't get returned with the same root object ID
          * https://stackoverflow.com/questions/23921117/disable-only-full-group-by/23921234
          */
-        $query .= sprintf(" \nGROUP BY `%s`.id\n", $root);
+        /*$query .= sprintf(" \nGROUP BY `%s`.id\n", $root);*/
+        // todo possibly re-add this. All I'm doing here is removing the group by
+        //  When you’re joining you need to think about the distinct option or group by option.
+        //  Do we actually want to be adding this in the query?
+        //  Like if you write a report where you grab all Events
+        //  With Registrations you want to return the same event ID multiple times.
+        //  Maybe we make an option to pass up distinct?
+        //  Or group by? Or do away with it completely. This would ensure you had something like this:
+        //  Event ID 1 Registration 2
+        //  Event ID 1 Registration 3
+        //  Event ID 1 Registration 4
 
         // Order
         if($orders !== false) {
@@ -334,7 +351,7 @@ class RecordRepository extends ServiceEntityRepository
     {
         $internalName = $propertyToUpdate->getInternalName();
         $this->data = $data;
-        $root = sprintf("%s.%s", $this->generateRandomString(5), $customObject->getInternalName());
+        $root = sprintf("%s.%s", $this->generateRandomCharacters(5), $customObject->getInternalName());
 
         // setup the join aliases
         $this->newJoinAliasBuilder($data);
@@ -379,7 +396,7 @@ class RecordRepository extends ServiceEntityRepository
     public function newReportLogicBuilderCount($data, CustomObject $customObject, $mysqlOnly = false, $start = false, $length = false, $search = false, $orders = false, $columns = false)
     {
         $this->data = $data;
-        $root = sprintf("%s.%s", $this->generateRandomString(5), $customObject->getInternalName());
+        $root = sprintf("%s.%s", $this->generateRandomCharacters(5), $customObject->getInternalName());
 
         // setup the join aliases
         $this->newJoinAliasBuilder($data);
@@ -404,10 +421,17 @@ class RecordRepository extends ServiceEntityRepository
         $joinConditionalString = !empty($joinConditionals) ? sprintf("(\n%s\n)", implode(" AND \n", $joinConditionals)) : '';
 
         // On joins that use the "Without" join type we add a WHERE clause in the query string already. So in that case add an AND clause instead
-        if (strpos($joinString, 'WHERE') !== false) {
+/*        if (strpos($joinString, 'WHERE') !== false) {
             $query = sprintf("SELECT DISTINCT `%s`.id %s from record `%s` %s AND %s \n %s", $root, $resultStr, $root, $joinString, $joinConditionalString, $filterString);
         } else {
             $query = sprintf("SELECT DISTINCT `%s`.id %s from record `%s` %s WHERE \n %s \n %s", $root, $resultStr, $root, $joinString, $joinConditionalString, $filterString);
+        }*/
+
+        //  todo possibly remove this and use the above. All I'm doing here is removing the distinct from the query
+        if (strpos($joinString, 'WHERE') !== false) {
+            $query = sprintf("SELECT `%s`.id %s from record `%s` %s AND %s \n %s", $root, $resultStr, $root, $joinString, $joinConditionalString, $filterString);
+        } else {
+            $query = sprintf("SELECT `%s`.id %s from record `%s` %s WHERE \n %s \n %s", $root, $resultStr, $root, $joinString, $joinConditionalString, $filterString);
         }
 
         // Search
@@ -426,7 +450,17 @@ class RecordRepository extends ServiceEntityRepository
          * This ensures that duplicate rows don't get returned with the same root object ID
          * https://stackoverflow.com/questions/23921117/disable-only-full-group-by/23921234
          */
-        $query .= sprintf(" \nGROUP BY `%s`.id\n", $root);
+        /*$query .= sprintf(" \nGROUP BY `%s`.id\n", $root);*/
+        // todo possibly re-add this. All I'm doing here is removing the group by
+        //  When you’re joining you need to think about the distinct option or group by option.
+        //  Do we actually want to be adding this in the query?
+        //  Like if you write a report where you grab all Events
+        //  With Registrations you want to return the same event ID multiple times.
+        //  Maybe we make an option to pass up distinct?
+        //  Or group by? Or do away with it completely. This would ensure you had something like this:
+        //  Event ID 1 Registration 2
+        //  Event ID 1 Registration 3
+        //  Event ID 1 Registration 4
 
         $em = $this->getEntityManager();
         $stmt = $em->getConnection()->prepare($query);
@@ -448,21 +482,19 @@ class RecordRepository extends ServiceEntityRepository
         }
         // configure the aliases
         foreach ($data['joins'] as &$joinData) {
-            if(empty($joinData['connected_object']) || empty($joinData['connected_property'])) {
+            if(empty($joinData['relationship_property'])) {
                 continue;
             }
-            $connectedObject = $joinData['connected_object'];
-            $connectedProperty = $joinData['connected_property'];
-            $joinDirection = $connectedObject['join_direction'];
+            $joinDirection = $joinData['relationship_property']['join_direction'];
             $joinType = $joinData['join_type'];
-            $randomString = $this->generateRandomString(5);
+            $randomString = $this->generateRandomCharacters(5);
             if($joinType === 'With' && $joinDirection === 'normal_join' || $joinType === 'With/Without' && $joinDirection === 'normal_join') {
-                $alias = sprintf("%s.%s", $randomString, $connectedProperty['field']['customObject']['internalName']);
+                $alias = sprintf("%s.%s", $randomString, $joinData['relationship_property']['field']['customObject']['internalName']);
                 $joinData['alias'] = $alias;
                 // add the alias to each property
                 if(!empty($data['properties'])) {
                     foreach($data['properties'] as $propertyId => &$property) {
-                        if($connectedProperty['field']['customObject']['id'] == $property['custom_object_id']) {
+                        if($joinData['relationship_property']['field']['customObject']['id'] == $property['custom_object_id']) {
                             $property['alias'] = $alias;
                         }
                     }
@@ -470,7 +502,7 @@ class RecordRepository extends ServiceEntityRepository
                 // add each alias to each filter
                 if(!empty($data['filters'])) {
                     foreach ($data['filters'] as &$filter) {
-                        if($connectedProperty['field']['customObject']['id'] == $filter['custom_object_id']) {
+                        if($joinData['relationship_property']['field']['customObject']['id'] == $filter['custom_object_id']) {
                             $filter['alias'] = $alias;
                         }
                     }
@@ -480,11 +512,11 @@ class RecordRepository extends ServiceEntityRepository
             } elseif ($joinType === 'With' && $joinDirection === 'cross_join' ||
                 $joinType === 'With/Without' && $joinDirection === 'cross_join' ||
                 $joinType === 'Without' && $joinDirection === 'cross_join') {
-                $alias = sprintf("%s.%s", $randomString, $connectedObject['internal_name']);
+                $alias = sprintf("%s.%s", $randomString, $joinData['relationship_property']['custom_object_internal_name']);
                 $joinData['alias'] = $alias;
                 if(!empty($data['properties'])) {
                     foreach($data['properties'] as $propertyId => &$property) {
-                        if($connectedObject['id'] == $property['custom_object_id']) {
+                        if($joinData['relationship_property']['custom_object_id'] == $property['custom_object_id']) {
                             $property['alias'] = $alias;
                         }
                     }
@@ -492,7 +524,7 @@ class RecordRepository extends ServiceEntityRepository
                 // add each alias to each filter
                 if(!empty($data['filters'])) {
                     foreach ($data['filters'] as &$filter) {
-                        if($connectedObject['id'] == $filter['custom_object_id']) {
+                        if($joinData['relationship_property']['custom_object_id'] == $filter['custom_object_id']) {
                             $filter['alias'] = $alias;
                         }
                     }
@@ -514,23 +546,14 @@ class RecordRepository extends ServiceEntityRepository
             return;
         }
 
-
-        /*
-         * $skipJoinCondition = ($this->joinType === 'Without' && $this->joinDirection === 'normal_join') ||
-            ($this->joinType === 'With/Without');
-         *
-         */
-
-
         // configure the aliases
         foreach ($data['joins'] as &$joinData) {
-            if(empty($joinData['connected_object']) || empty($joinData['connected_property'])) {
-                $joinConditionals[] = sprintf("`%s`.custom_object_id = %s", $root, $joinData['connected_object']['id']);
+
+            if(empty($joinData['relationship_property']) || empty($joinData['relationship_property'])) {
+                $joinConditionals[] = sprintf("`%s`.custom_object_id = %s", $root, $data['selectedCustomObject']['id']);
                 continue;
             }
-            $connectedObject = $joinData['connected_object'];
-            $connectedProperty = $joinData['connected_property'];
-            $joinDirection = $connectedObject['join_direction'];
+            $joinDirection = $joinData['relationship_property']['join_direction'];
             $joinType = $joinData['join_type'];
             $alias = $joinData['alias'];
 
@@ -542,13 +565,13 @@ class RecordRepository extends ServiceEntityRepository
             }
 
             if($joinType === 'With' && $joinDirection === 'normal_join' || $joinType === 'With/Without' && $joinDirection === 'normal_join') {
-                $joinConditionals[] = sprintf("`%s`.custom_object_id = %s", $alias, $connectedProperty['field']['customObject']['id']);
+                $joinConditionals[] = sprintf("`%s`.custom_object_id = %s", $alias, $joinData['relationship_property']['field']['customObject']['id']);
             } elseif ($joinType === 'Without' && $joinDirection === 'normal_join') {
                 // do nothing
             } elseif ($joinType === 'With' && $joinDirection === 'cross_join' ||
                 $joinType === 'With/Without' && $joinDirection === 'cross_join' ||
                 $joinType === 'Without' && $joinDirection === 'cross_join') {
-                $joinConditionals[] = sprintf("`%s`.custom_object_id = %s", $alias, $connectedObject['id']);
+                $joinConditionals[] = sprintf("`%s`.custom_object_id = %s", $alias, $joinData['relationship_property']['custom_object_id']);
             }
         }
         return $joinConditionals;
@@ -613,9 +636,12 @@ class RecordRepository extends ServiceEntityRepository
             return [];
         }
         foreach ($data['joins'] as $joinData) {
-            if(empty($joinData['connected_object']) || empty($joinData['connected_property'])) {
+            if(empty($joinData['relationship_property'])) {
                 continue;
             }
+            /*if(empty($joinData['connected_object']) || empty($joinData['connected_property'])) {
+                continue;
+            }*/
 
             // if the join has a parent connection don't add the join here. It will be added below as a nested join
             if(!empty($joinData['hasParentConnection'])) {
@@ -624,80 +650,73 @@ class RecordRepository extends ServiceEntityRepository
             // add the main connections (joins)
             $joins[] = $this->calculateJoin($joinData, $root);
             // add the child connections (joins)
-            if(!empty($joinData['childConnections'])) {
-                foreach($joinData['childConnections'] as $uid => $childConnection) {
-                    $childConnection['alias'] = $data['joins'][$uid]['alias'];
-                    // set the new root equal to the parent alias so the next join references the correct alias
-                    $root = $joinData['alias'];
-                    $joins[] = $this->calculateJoin($childConnection, $root);
-                }
-            }
+
+            $this->childConnections($joinData, $data, $joins);
 
         }
         return $joins;
     }
 
+    private function childConnections($joinData, $data, &$joins) {
+        if(!empty($joinData['childConnections'])) {
+            foreach($joinData['childConnections'] as $uid => $childConnection) {
+                $childConnection['alias'] = $data['joins'][$uid]['alias'];
+                // set the new root equal to the parent alias so the next join references the correct alias
+                $root = $joinData['alias'];
+                $joins[] = $this->calculateJoin($childConnection, $root);
+
+                if(!empty($childConnection['childConnections'])) {
+                    $this->childConnections($childConnection, $data, $joins);
+                }
+            }
+        }
+    }
+
     private function calculateJoin($joinData, $root) {
-        $connectedObject = $joinData['connected_object'];
-        $connectedProperty = $joinData['connected_property'];
-        $joinDirection = $connectedObject['join_direction'];
+        $relationshipProperty = $joinData['relationship_property'];
+        $joinDirection = $joinData['relationship_property']['join_direction'];
         $joinType = $joinData['join_type'];
         $alias = !empty($joinData['alias']) ? $joinData['alias'] : $root;
         $query = '';
         if($joinType === 'With' && $joinDirection === 'normal_join') {
             $query = sprintf($this->getJoinQuery(),
-                'INNER JOIN', $alias, $root, $connectedProperty['internalName'], $alias,
-                $root, $connectedProperty['internalName'], $alias,
-                $root, $connectedProperty['internalName'], $alias,
-                $root, $connectedProperty['internalName'], $alias
+                'INNER JOIN', $alias, $root, $joinData['relationship_property']['internalName'], $alias,
+                $root, $joinData['relationship_property']['internalName'], $alias,
+                $root, $joinData['relationship_property']['internalName'], $alias,
+                $root, $joinData['relationship_property']['internalName'], $alias
             );
         } elseif ($joinType === 'With/Without' && $joinDirection === 'normal_join') {
             $query = sprintf($this->getWithOrWithoutJoinQuery(),
-                $alias, $root, $connectedProperty['internalName'], $alias, $alias, $connectedProperty['field']['customObject']['id'],
-                $root, $connectedProperty['internalName'], $alias, $alias, $connectedProperty['field']['customObject']['id'],
-                $root, $connectedProperty['internalName'], $alias, $alias, $connectedProperty['field']['customObject']['id'],
-                $root, $connectedProperty['internalName'], $alias, $alias, $connectedProperty['field']['customObject']['id']
+                $alias, $root, $joinData['relationship_property']['internalName'], $alias, $alias, $joinData['relationship_property']['field']['customObject']['id'],
+                $root, $joinData['relationship_property']['internalName'], $alias, $alias, $joinData['relationship_property']['field']['customObject']['id'],
+                $root, $joinData['relationship_property']['internalName'], $alias, $alias, $joinData['relationship_property']['field']['customObject']['id'],
+                $root, $joinData['relationship_property']['internalName'], $alias, $alias, $joinData['relationship_property']['field']['customObject']['id']
             );
         } elseif ($joinType === 'Without' && $joinDirection === 'normal_join') {
-            $query = sprintf($this->getWithoutJoinQuery(), $root, $connectedProperty['internalName'], $root, $connectedProperty['internalName']);
+            $query = sprintf($this->getWithoutJoinQuery(), $root, $joinData['relationship_property']['internalName'], $root, $joinData['relationship_property']['internalName']);
         } elseif ($joinType === 'With' && $joinDirection === 'cross_join') {
             $query = sprintf($this->getCrossJoinQuery(),
-                'INNER JOIN', $alias, $alias, $connectedProperty['internalName'], $root,
-                $alias, $connectedProperty['internalName'], $root,
-                $alias, $connectedProperty['internalName'], $root,
-                $alias, $connectedProperty['internalName'], $root
+                'INNER JOIN', $alias, $alias, $joinData['relationship_property']['internalName'], $root,
+                $alias, $joinData['relationship_property']['internalName'], $root,
+                $alias, $joinData['relationship_property']['internalName'], $root,
+                $alias, $joinData['relationship_property']['internalName'], $root
             );
         } elseif ($joinType === 'With/Without' && $joinDirection === 'cross_join') {
 
             $query = sprintf($this->getWithOrWithoutCrossJoinQuery(),
-                $alias, $alias, $connectedProperty['internalName'], $root, $alias, $connectedObject['id'],
-                $alias, $connectedProperty['internalName'], $root, $alias, $connectedObject['id'],
-                $alias, $connectedProperty['internalName'], $root, $alias, $connectedObject['id'],
-                $alias, $connectedProperty['internalName'], $root, $alias, $connectedObject['id']
+                $alias, $alias, $joinData['relationship_property']['internalName'], $root, $alias, $joinData['relationship_property']['custom_object_id'],
+                $alias, $joinData['relationship_property']['internalName'], $root, $alias, $joinData['relationship_property']['custom_object_id'],
+                $alias, $joinData['relationship_property']['internalName'], $root, $alias, $joinData['relationship_property']['custom_object_id'],
+                $alias, $joinData['relationship_property']['internalName'], $root, $alias, $joinData['relationship_property']['custom_object_id']
             );
 
-            $name = "josh";
-
-/*            $query = sprintf($this->getWithOrWithoutJoinQuery(),
-                $alias, $root, $connectedProperty['internalName'], $alias, $alias, $connectedProperty['field']['customObject']['id'],
-                $root, $connectedProperty['internalName'], $alias, $alias, $connectedProperty['field']['customObject']['id'],
-                $root, $connectedProperty['internalName'], $alias, $alias, $connectedProperty['field']['customObject']['id'],
-                $root, $connectedProperty['internalName'], $alias, $alias, $connectedProperty['field']['customObject']['id']
-            );
-
-            $query = sprintf($this->getCrossJoinQuery(),
-                'LEFT JOIN', $alias, $alias, $connectedProperty['internalName'], $root,
-                $alias, $connectedProperty['internalName'], $root,
-                $alias, $connectedProperty['internalName'], $root,
-                $alias, $connectedProperty['internalName'], $root
-            );*/
         } elseif ($joinType === 'Without' && $joinDirection === 'cross_join') {
             $query = sprintf($this->getWithoutCrossJoinQuery(),
-                $alias, $alias, $connectedProperty['internalName'], $root,
-                $alias, $connectedProperty['internalName'], $root,
-                $alias, $connectedProperty['internalName'], $root,
-                $alias, $connectedProperty['internalName'], $root,
-                $alias, $connectedProperty['internalName'], $alias, $connectedProperty['internalName']);
+                $alias, $alias, $joinData['relationship_property']['internalName'], $root,
+                $alias, $joinData['relationship_property']['internalName'], $root,
+                $alias, $joinData['relationship_property']['internalName'], $root,
+                $alias, $joinData['relationship_property']['internalName'], $root,
+                $alias, $joinData['relationship_property']['internalName'], $alias, $joinData['relationship_property']['internalName']);
         }
         return $query;
     }

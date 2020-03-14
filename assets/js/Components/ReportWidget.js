@@ -267,15 +267,16 @@ class ReportWidget {
      * @private
      */
     _removePropertiesFromConnection(connection) {
+        debugger;
         if(!_.isEmpty(this.newData.properties)) {
             for(let propertyId in this.newData.properties) {
                 let property = this.newData.properties[propertyId];
-                if(connection.connected_object.join_direction === 'cross_join') {
-                    if(connection.connected_object.id == property.custom_object_id) {
+                if(connection.relationship_property.join_direction === 'cross_join') {
+                    if(connection.relationship_property.custom_object_id == property.custom_object_id) {
                         this._removeProperty(property);
                     }
-                } else if(connection.connected_object.join_direction === 'normal_join') {
-                    if(connection.connected_property.field.customObject.id == property.custom_object_id) {
+                } else if(connection.relationship_property.join_direction === 'normal_join') {
+                    if(connection.relationship_property.field.customObject.id == property.custom_object_id) {
                         this._removeProperty(property);
                     }
                 }
@@ -295,12 +296,12 @@ class ReportWidget {
         if(!_.isEmpty(this.newData.filters)) {
             for(let filterId in this.newData.filters) {
                 let filter = this.newData.filters[filterId];
-                if(connection.connected_object.join_direction === 'cross_join') {
-                    if(connection.connected_object.id == filter.custom_object_id) {
+                if(connection.relationship_property.join_direction === 'cross_join') {
+                    if(connection.relationship_property.custom_object_id == filter.custom_object_id) {
                         this._removeFilterByUid(filterId);
                     }
                 } else if(connection.connected_object.join_direction === 'normal_join') {
-                    if(connection.connected_property.field.customObject.id == filter.custom_object_id) {
+                    if(connection.relationship_property.field.customObject.id == filter.custom_object_id) {
                         this._removeFilterByUid(filterId);
                     }
                 }

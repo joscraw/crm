@@ -83,32 +83,48 @@ class ReportConnectedObjectsList {
         }
         for(let uid in data.joins) {
             let join = data.joins[uid];
-            if(join.hasParentConnection || !_.has(join, 'connected_property') || !_.has(join, 'join_type')) {
+            if(join.hasParentConnection || !_.has(join, 'join_type')) {
                 continue;
             }
-            let connectedObject = join.connected_object,
-                connectedProperty = join.connected_property,
+            let relationshipProperty = join.relationship_property,
                 joinType = join.join_type,
-                customObjectInternalName = connectedProperty.field.customObject.internalName;
-            let text = `${connectedObject.label} ${joinType} ${connectedProperty.label}`;
+                customObjectInternalName;
+
+            if(relationshipProperty.join_direction === 'normal_join') {
+                customObjectInternalName = relationshipProperty.field.customObject.internalName;
+            } else if (relationshipProperty.join_direction === 'cross_join') {
+                customObjectInternalName = relationshipProperty.custom_object_internal_name;
+            }
+
+            let text = `${joinType} ${relationshipProperty.relationship_friendly_name}`;
             const html = connectionTemplate(text, customObjectInternalName, uid);
             const $listTemplate = $($.parseHTML(html));
             this.$wrapper.find(ReportConnectedObjectsList._selectors.connectedObjects).append($listTemplate);
             // render any child connections here
-            if(_.has(join, 'childConnections') && !_.isEmpty(join.childConnections)) {
-                debugger;
-                let childConnections = _.get(join, 'childConnections');
-                for(let uid in childConnections) {
-                    let childConnection = childConnections[uid];
-                    let connectedObject = childConnection.connected_object,
-                        connectedProperty = childConnection.connected_property,
-                        joinType = childConnection.join_type,
-                        customObjectInternalName = connectedProperty.field.customObject.internalName;
-                    let text = `${connectedObject.label} ${joinType} ${connectedProperty.label}`;
-                    const html = childConnectionTemplate(text, customObjectInternalName, uid);
-                    const $listTemplate = $($.parseHTML(html));
-                    this.$wrapper.find(ReportConnectedObjectsList._selectors.connectedObjects).find('.js-child-connections').append($listTemplate);
+            this.childConnections(join, $listTemplate);
+        }
+    }
+
+    childConnections(join, $parentListTemplate) {
+        if(_.has(join, 'childConnections') && !_.isEmpty(join.childConnections)) {
+            let childConnections = _.get(join, 'childConnections');
+            for(let uid in childConnections) {
+                let childConnection = childConnections[uid];
+                let relationshipProperty = childConnection.relationship_property,
+                    joinType = childConnection.join_type,
+                    customObjectInternalName;
+
+                if(relationshipProperty.join_direction === 'normal_join') {
+                    customObjectInternalName = relationshipProperty.field.customObject.internalName;
+                } else if (relationshipProperty.join_direction === 'cross_join') {
+                    customObjectInternalName = relationshipProperty.custom_object_internal_name;
                 }
+
+                let text = `${joinType} ${relationshipProperty.relationship_friendly_name}`;
+                const html = connectionTemplate(text, customObjectInternalName, uid);
+                const $listTemplate = $($.parseHTML(html));
+                $parentListTemplate.find('.js-child-connections').append($listTemplate);
+                this.childConnections(childConnection, $listTemplate);
             }
         }
     }

@@ -148,6 +148,7 @@ class ReportPropertyList {
     }
 
     refreshPropertyList(data) {
+        debugger;
         this.loadPropertiesForAllObjects(data).then((data) => {
             this.propertyGroups = data.data.property_groups;
             this.renderProperties(this.propertyGroups).then(() => {

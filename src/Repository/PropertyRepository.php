@@ -358,6 +358,39 @@ class PropertyRepository extends ServiceEntityRepository
     }
 
     /**
+     * @param CustomObject $customObject
+     * @return mixed[]
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    public function getRelationshipProperties(CustomObject $customObject) {
+        $query = sprintf("Select p.id, p.field_type as fieldType, p.internal_name as internalName, 
+                    p.label, p.field, p.required, 'normal_join' as join_direction, co.internal_name as custom_object_internal_name, co.id as custom_object_id,
+                    CONCAT(co.label, ' > ', p.label) as relationship_friendly_name
+                    from property p inner join 
+                    custom_object co on p.custom_object_id = co.id where p.field_type = 'custom_object_field' and 
+                    p.custom_object_id = '%s' 
+                    
+                    UNION
+
+Select p.id, p.field_type as fieldType, p.internal_name as internalName, 
+                    p.label, p.field, p.required, 'cross_join' as join_direction, co.internal_name as custom_object_internal_name, co.id as custom_object_id,
+                    CONCAT(co.label, ' > ', p.label) as relationship_friendly_name
+                    from property p inner join 
+                    custom_object co on p.custom_object_id = co.id where p.field_type = 'custom_object_field' and 
+                    p.field->'$.customObject.id' = %d", $customObject->getId(), $customObject->getId());
+
+
+        $em = $this->getEntityManager();
+        $stmt = $em->getConnection()->prepare($query);
+        $stmt->execute();
+        $results = $stmt->fetchAll();
+        if(empty($results)) {
+            return [];
+        }
+        return $results;
+    }
+
+    /**
      * @param $customObjectIds
      * @return mixed[]
      * @throws \Doctrine\DBAL\DBALException
