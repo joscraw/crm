@@ -23,4 +23,10 @@
     </route>
     <route id="nscs_api_event_register" controller="nscs_controller_api.nscs_api_controller:eventRegister" path="/event-register" methods="POST">
     </route>
+    <route id="nscs_api_event_registration_checkin" controller="nscs_controller_api.nscs_api_controller:eventRegistrationCheckIn" path="/event-registration-checkin" methods="POST">
+    </route>
+    <route id="nscs_api_event_registration_cancel_checkin" controller="nscs_controller_api.nscs_api_controller:eventRegistrationCancelCheckIn" path="/event-registration-cancel-checkin" methods="POST">
+    </route>
+    <route id="nscs_api_event_unregister" controller="nscs_controller_api.nscs_api_controller:eventUnregister" path="/event-unregister" methods="POST">
+    </route>
 </routes>

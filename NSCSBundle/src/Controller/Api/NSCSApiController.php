@@ -5,6 +5,8 @@ namespace NSCSBundle\Controller\Api;
 use App\Entity\Portal;
 use App\Entity\Record;
 use Doctrine\ORM\EntityManagerInterface;
+use NSCSBundle\Repository\CustomObjectRepository;
+use NSCSBundle\Repository\PortalRepository;
 use NSCSBundle\Repository\RecordRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -31,20 +33,37 @@ class NSCSApiController extends  AbstractController
     private $recordRepository;
 
     /**
+     * @var CustomObjectRepository
+     */
+    private $customObjectRepository;
+
+    /**
+     * @var PortalRepository
+     */
+    private $portalRepository;
+
+    /**
      * NSCSApiController constructor.
      * @param EntityManagerInterface $entityManager
      * @param SerializerInterface $serializer
      * @param RecordRepository $recordRepository
+     * @param CustomObjectRepository $customObjectRepository
+     * @param PortalRepository $portalRepository
      */
     public function __construct(
         EntityManagerInterface $entityManager,
         SerializerInterface $serializer,
-        RecordRepository $recordRepository
+        RecordRepository $recordRepository,
+        CustomObjectRepository $customObjectRepository,
+        PortalRepository $portalRepository
     ) {
         $this->entityManager = $entityManager;
         $this->serializer = $serializer;
         $this->recordRepository = $recordRepository;
+        $this->customObjectRepository = $customObjectRepository;
+        $this->portalRepository = $portalRepository;
     }
+
 
     public function authorizationCheck(Request $request) {
         $email = $request->request->get('emailAddress');
@@ -166,6 +185,8 @@ class NSCSApiController extends  AbstractController
         foreach($results["results"] as &$result) {
             $result['account_properties'] = json_decode($result['account_properties'], true);
             $result['event_properties'] = json_decode($result['event_properties'], true);
+            $result['event_registration_properties'] = json_decode($result['event_registration_properties'], true);
+            $result['contact_properties'] = json_decode($result['contact_properties'], true);
         }
         return $this->json([
             'success' => true,
@@ -241,6 +262,8 @@ class NSCSApiController extends  AbstractController
 
         $eventRecordId = $request->request->get('eventRecordId', false);
         $contactRecordId = $request->request->get('contactRecordId', false);
+        $additionalGuests = $request->request->get('additionalGuests', 0);
+
         if(!$eventRecordId) {
             return $this->json([
                 'success' => false,
@@ -272,24 +295,142 @@ class NSCSApiController extends  AbstractController
             ]);
         }
 
-        $properties = $event->getProperties();
-        if(isset($properties['registrations'])) {
-            $registrations = explode(";", $properties['registrations']);
-        } else {
-            $registrations = [];
+        $portal = $this->portalRepository->findBy([
+           'internalIdentifier' => '9874561920'
+        ]);
+
+        if(!$portal) {
+            return $this->json([
+                'success' => false,
+                'message' => sprintf('Portal not found for internal identifier %s', '9874561920')
+            ]);
         }
 
+        $customObject = $this->customObjectRepository->findOneBy([
+            'internalName' => 'event_registration',
+            'portal' => $portal
+        ]);
 
-        $registrations[] = $contactRecordId;
-        $registrations = implode(";", $registrations);
-        $properties['registrations'] = $registrations;
-        $event->setProperties($properties);
-        $this->entityManager->persist($event);
+        if(!$customObject) {
+            return $this->json([
+                'success' => false,
+                'message' => sprintf('Event Registration Custom Object not found for portal internal identifier %s', '9874561920')
+            ]);
+        }
+
+        $properties = [];
+        $properties['checked_in'] = "0";
+        $properties['additional_guests'] = (int) $additionalGuests;
+        $properties['contact'] = $contactRecordId;
+        $properties['event'] = $eventRecordId;
+
+        $record = new Record();
+        $record->setCustomObject($customObject);
+        $record->setProperties($properties);
+
+        $this->entityManager->persist($record);
         $this->entityManager->flush();
         return $this->json([
             'success' => true,
-            'message' => 'User registered for event'
+            'message' => 'User registered for event',
+            'data' => [
+                'recordId' => $record->getId(),
+                'properties' => $record->getProperties()
+            ]
         ]);
     }
 
+    public function eventUnregister(Request $request) {
+
+        $eventRegistrationRecordId = $request->request->get('eventRegistrationRecordId', false);
+        if(!$eventRegistrationRecordId) {
+            return $this->json([
+                'success' => false,
+                'message' => 'An event registration record Id must be passed up'
+            ]);
+        }
+
+        $eventRegistration = $this->recordRepository->find($eventRegistrationRecordId);
+
+        if(!$eventRegistration) {
+            return $this->json([
+                'success' => false,
+                'message' => sprintf('Event registration not found for record id %s', $eventRegistrationRecordId)
+            ]);
+        }
+
+        $this->entityManager->remove($eventRegistration);
+        $this->entityManager->flush();
+
+        return $this->json([
+            'success' => true,
+            'message' => 'User successfully unregistered from event'
+        ]);
+    }
+
+    public function eventRegistrationCheckIn(Request $request) {
+
+        $eventRegistrationRecordId = $request->request->get('eventRegistrationRecordId', false);
+        if(!$eventRegistrationRecordId) {
+            return $this->json([
+                'success' => false,
+                'message' => 'An event registration record Id must be passed up'
+            ]);
+        }
+
+        $eventRegistration = $this->recordRepository->find($eventRegistrationRecordId);
+
+        if(!$eventRegistration) {
+            return $this->json([
+                'success' => false,
+                'message' => sprintf('Event registration not found for record id %s', $eventRegistrationRecordId)
+            ]);
+        }
+
+        $properties = $eventRegistration->getProperties();
+        if(isset($properties['checked_in'])) {
+            $properties['checked_in'] = "1";
+        }
+
+        $eventRegistration->setProperties($properties);
+        $this->entityManager->persist($eventRegistration);
+        $this->entityManager->flush();
+        return $this->json([
+            'success' => true,
+            'message' => 'User checked in successfully'
+        ]);
+    }
+
+    public function eventRegistrationCancelCheckIn(Request $request) {
+
+        $eventRegistrationRecordId = $request->request->get('eventRegistrationRecordId', false);
+        if(!$eventRegistrationRecordId) {
+            return $this->json([
+                'success' => false,
+                'message' => 'An event registration record Id must be passed up'
+            ]);
+        }
+
+        $eventRegistration = $this->recordRepository->find($eventRegistrationRecordId);
+
+        if(!$eventRegistration) {
+            return $this->json([
+                'success' => false,
+                'message' => sprintf('Event registration not found for record id %s', $eventRegistrationRecordId)
+            ]);
+        }
+
+        $properties = $eventRegistration->getProperties();
+        if(isset($properties['checked_in'])) {
+            $properties['checked_in'] = "0";
+        }
+
+        $eventRegistration->setProperties($properties);
+        $this->entityManager->persist($eventRegistration);
+        $this->entityManager->flush();
+        return $this->json([
+            'success' => true,
+            'message' => 'User check in successfully cancelled for event'
+        ]);
+    }
 }

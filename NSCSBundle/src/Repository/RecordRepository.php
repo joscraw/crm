@@ -179,25 +179,49 @@ WHERE co.internal_name = 'cengage_scholarships'";
      * @throws \Doctrine\DBAL\DBALException
      */
     public function getChapters($limit, $offset, $search) {
-        $query = "SELECT DISTINCT `AZ0WM.account`.id as chapter_record_id, 
-    `AZ0WM.account`.properties as account_properties,
-    `I4LB1.event`.id as event_record_id,
-    `I4LB1.event`.properties as event_properties
-    from record `AZ0WM.account`     
-    /* Given the id \"11\" This first statement matches: {\"property_name\": \"11\"} */
-     LEFT JOIN record `I4LB1.event` on 
-     (`I4LB1.event`.properties->>'$.\"chapter\"' REGEXP concat('^', `AZ0WM.account`.id, '$') AND `I4LB1.event`.custom_object_id = '24')
-    /* Given the id \"11\" This second statement matches: {\"property_name\": \"12;11\"} */
-     OR (`I4LB1.event`.properties->>'$.\"chapter\"' REGEXP concat(';', `AZ0WM.account`.id, '$') AND `I4LB1.event`.custom_object_id = '24')
-     /* Given the id \"11\" This second statement matches: {\"property_name\": \"12;11;13\"} */
-     OR (`I4LB1.event`.properties->>'$.\"chapter\"' REGEXP concat(';', `AZ0WM.account`.id, ';') AND `I4LB1.event`.custom_object_id = '24')
-     /* Given the id \"11\" This second statement matches: {\"property_name\": \"11;12;13\"} */
-     OR (`I4LB1.event`.properties->>'$.\"chapter\"' REGEXP concat('^', `AZ0WM.account`.id, ';') AND `I4LB1.event`.custom_object_id = '24') WHERE 
-     (
-    `AZ0WM.account`.custom_object_id = 2
-    )";
+        $query = "SELECT
 
-        $query .= !empty($search) ? sprintf(" AND LOWER(`AZ0WM.account`.properties) LIKE \"%%%s%%\"", strtolower($search)) : '';
+	`zqCrP.account`.id as chapter_record_id,
+	`zqCrP.account`.properties as account_properties,
+	`zGyra.event`.id as event_record_id,
+	`zGyra.event`.properties as event_properties,
+	`DknLX.event_registration`.id as event_registration_record_id,
+	`DknLX.event_registration`.properties as event_registration_properties,
+	`LersM.contacts`.id as contact_record_id,
+	`LersM.contacts`.properties as contact_properties
+	 
+	 from record `zqCrP.account`     /* Given the id \"11\" This first statement matches: {\"property_name\": \"11\"} */
+     LEFT JOIN record `zGyra.event` on 
+     (`zGyra.event`.properties->>'$.\"chapter\"' REGEXP concat('^', `zqCrP.account`.id, '$') AND `zGyra.event`.custom_object_id = '24')
+    /* Given the id \"11\" This second statement matches: {\"property_name\": \"12;11\"} */
+     OR (`zGyra.event`.properties->>'$.\"chapter\"' REGEXP concat(';', `zqCrP.account`.id, '$') AND `zGyra.event`.custom_object_id = '24')
+     /* Given the id \"11\" This second statement matches: {\"property_name\": \"12;11;13\"} */
+     OR (`zGyra.event`.properties->>'$.\"chapter\"' REGEXP concat(';', `zqCrP.account`.id, ';') AND `zGyra.event`.custom_object_id = '24')
+     /* Given the id \"11\" This second statement matches: {\"property_name\": \"11;12;13\"} */
+     OR (`zGyra.event`.properties->>'$.\"chapter\"' REGEXP concat('^', `zqCrP.account`.id, ';') AND `zGyra.event`.custom_object_id = '24')     /* Given the id \"11\" This first statement matches: {\"property_name\": \"11\"} */
+     LEFT JOIN record `DknLX.event_registration` on 
+     (`DknLX.event_registration`.properties->>'$.\"event\"' REGEXP concat('^', `zGyra.event`.id, '$') AND `DknLX.event_registration`.custom_object_id = '25')
+    /* Given the id \"11\" This second statement matches: {\"property_name\": \"12;11\"} */
+     OR (`DknLX.event_registration`.properties->>'$.\"event\"' REGEXP concat(';', `zGyra.event`.id, '$') AND `DknLX.event_registration`.custom_object_id = '25')
+     /* Given the id \"11\" This second statement matches: {\"property_name\": \"12;11;13\"} */
+     OR (`DknLX.event_registration`.properties->>'$.\"event\"' REGEXP concat(';', `zGyra.event`.id, ';') AND `DknLX.event_registration`.custom_object_id = '25')
+     /* Given the id \"11\" This second statement matches: {\"property_name\": \"11;12;13\"} */
+     OR (`DknLX.event_registration`.properties->>'$.\"event\"' REGEXP concat('^', `zGyra.event`.id, ';') AND `DknLX.event_registration`.custom_object_id = '25') 
+    /* Given the id \"11\" This first statement matches: {\"property_name\": \"11\"} */
+     LEFT JOIN record `LersM.contacts` on 
+     (`DknLX.event_registration`.properties->>'$.\"contact\"' REGEXP concat('^', `LersM.contacts`.id, '$') AND `LersM.contacts`.custom_object_id = '1')
+     /* Given the id \"11\" This second statement matches: {\"property_name\": \"12;11\"} */
+     OR (`DknLX.event_registration`.properties->>'$.\"contact\"' REGEXP concat(';', `LersM.contacts`.id, '$') AND `LersM.contacts`.custom_object_id = '1')
+     /* Given the id \"11\" This second statement matches: {\"property_name\": \"12;11;13\"} */
+     OR (`DknLX.event_registration`.properties->>'$.\"contact\"' REGEXP concat(';', `LersM.contacts`.id, ';') AND `LersM.contacts`.custom_object_id = '1')
+     /* Given the id \"11\" This second statement matches: {\"property_name\": \"11;12;13\"} */
+     OR (`DknLX.event_registration`.properties->>'$.\"contact\"' REGEXP concat('^', `LersM.contacts`.id, ';')AND `LersM.contacts`.custom_object_id = '1')
+ WHERE 
+ (
+`zqCrP.account`.custom_object_id = 2
+) ";
+
+        $query .= !empty($search) ? sprintf(" AND LOWER(`zqCrP.account`.properties) LIKE \"%%%s%%\"", strtolower($search)) : '';
         $query .= sprintf(" LIMIT %s OFFSET %s", $limit, $offset);
         $em = $this->getEntityManager();
         $stmt = $em->getConnection()->prepare($query);

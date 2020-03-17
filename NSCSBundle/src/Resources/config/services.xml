@@ -8,10 +8,25 @@
             <argument type="service" id="doctrine.orm.default_entity_manager"/>
             <argument type="service" id="serializer"/>
             <argument type="service" id="nscs.repository.record_repository"/>
+            <argument type="service" id="nscs.repository.custom_object"/>
+            <argument type="service" id="nscs.repository.portal"/>
         </service>
+
         <service id="nscs.repository.record_repository" class="NSCSBundle\Repository\RecordRepository" >
             <argument type="service" id="doctrine"/>
         </service>
         <service id="NSCSBundle\Repository\RecordRepository" alias="nscs.repository.record_repository"/>
+
+
+        <service id="nscs.repository.custom_object" class="NSCSBundle\Repository\CustomObjectRepository" >
+            <argument type="service" id="doctrine"/>
+        </service>
+        <service id="NSCSBundle\Repository\CustomObjectRepository" alias="nscs.repository.custom_object"/>
+
+        <service id="nscs.repository.portal" class="NSCSBundle\Repository\PortalRepository" >
+            <argument type="service" id="doctrine"/>
+        </service>
+        <service id="NSCSBundle\Repository\PortalRepository" alias="nscs.repository.portal"/>
+
     </services>
 </container>
