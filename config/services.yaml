@@ -17,6 +17,7 @@ services:
         bind:
           $siteFromEmail: 'noreply@travishoglund.com'
           $uploadsPath: '%kernel.project_dir%/public/uploads'
+          $privateUploadsPath: '%kernel.project_dir%/var/uploads'
           $publicUploadsFilesystem: '@oneup_flysystem.public_uploads_filesystem_filesystem'
           $privateUploadsFilesystem: '@oneup_flysystem.private_uploads_filesystem_filesystem'
           $tmpDirectoryFilesystem: '@oneup_flysystem.tmp_directory_filesystem_filesystem'
@@ -64,3 +65,11 @@ services:
       arguments: []
       tags:
         - { name: kernel.event_subscriber }
+
+    App\Service\ImageCacheGenerator:
+      arguments:
+        - "@liip_imagine.cache.manager"
+        - "@liip_imagine.data.manager"
+        - "@liip_imagine.filter.manager"
+        - "@liip_imagine.filter.configuration"
+        - "@logger"

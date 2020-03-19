@@ -11,6 +11,8 @@ use Google_Service_Gmail_MessagePart;
 use Google_Service_Gmail_MessagePartBody;
 use Google_Service_Gmail_MessagePartHeader;
 use Google_Service_Gmail_Profile;
+use GuzzleHttp\Psr7\Request;
+use Swift_Attachment;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Mime\Address;
@@ -133,13 +135,38 @@ class GmailProvider
     /**
      * @param Portal $portal
      * @param $accessToken
+     * @param int $maxResults
      * @return \Google_Service_Gmail_ListMessagesResponse
      */
-    public function getMessageList(Portal $portal, $accessToken) {
+    public function getMessageList(Portal $portal, $accessToken, $maxResults = 10) {
         $googleClient = $this->getGoogleClient($portal, $accessToken);
         $this->googleServiceGmail = new Google_Service_Gmail($googleClient);
-        $messages = $this->googleServiceGmail->users_messages->listUsersMessages('me', ['labelIds' => 'INBOX', 'maxResults' => 10, 'q' => 'category:primary']);
+        $messages = $this->googleServiceGmail->users_messages->listUsersMessages('me', ['labelIds' => 'INBOX', 'maxResults' => $maxResults, 'q' => 'category:primary']);
         return $messages;
+    }
+
+    /**
+     * @param Portal $portal
+     * @param \Google_Service_Gmail_ListMessagesResponse $messageList
+     * @param $accessToken
+     * @return array|null
+     */
+    public function getBatchMessagesFromMessageList(Portal $portal, \Google_Service_Gmail_ListMessagesResponse $messageList, $accessToken) {
+        $googleClient = $this->getGoogleClient($portal, $accessToken);
+        $googleClient->setUseBatch(true);
+        $this->googleServiceGmail = new Google_Service_Gmail($googleClient);
+        $batch = $this->googleServiceGmail->createBatch();
+
+        $optParams['format'] = 'raw';
+        /** @var \Google_Service_Gmail_Message $message */
+        foreach($messageList->getMessages() as $message) {
+            /** @var Request $request */
+            $request = $this->googleServiceGmail->users_messages->get('me', $message->getId(), $optParams);
+            $batch->add($request);
+        }
+
+        $results = $batch->execute();
+        return $results;
     }
 
     /**
@@ -206,9 +233,10 @@ class GmailProvider
      * @param $messageBody
      * @param $subject
      * @param $recipients ['joshcrawmer4@yahoo.com' => 'Test Name']
+     * @param $attachmentFilePaths
      * @return \Google_Service_Gmail_Message
      */
-    public function sendMessage(Portal $portal, $accessToken, $messageBody, $subject, $recipients) {
+    public function sendMessage(Portal $portal, $accessToken, $messageBody, $subject, $recipients, $attachmentFilePaths = []) {
         $googleClient = $this->getGoogleClient($portal, $accessToken);
         $this->googleServiceGmail = new Google_Service_Gmail($googleClient);
         $profile = $this->getProfile($portal, $accessToken);
@@ -218,6 +246,10 @@ class GmailProvider
             ->setContentType('text/plain')
             ->setCharset('utf-8')
             ->setBody($messageBody);
+
+        foreach ($attachmentFilePaths as $attachmentFilePath) {
+            $message->attach(Swift_Attachment::fromPath($attachmentFilePath));
+        }
 
         $mime = $this->base64url_encode($message->toString());
 

@@ -82,6 +82,11 @@ class Portal
     private $gmailAccount;
 
     /**
+     * @ORM\OneToMany(targetEntity="App\Entity\GmailAttachment", mappedBy="portal")
+     */
+    private $gmailAttachments;
+
+    /**
      * @ORM\PrePersist
      */
     public function setInternalIdentifierValue()
@@ -108,6 +113,7 @@ class Portal
         $this->folders = new ArrayCollection();
         $this->forms = new ArrayCollection();
         $this->workflows = new ArrayCollection();
+        $this->gmailAttachments = new ArrayCollection();
     }
 
     /**
@@ -420,6 +426,37 @@ class Portal
         // set the owning side of the relation if necessary
         if ($gmailAccount->getPortal() !== $this) {
             $gmailAccount->setPortal($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|GmailAttachment[]
+     */
+    public function getGmailAttachments(): Collection
+    {
+        return $this->gmailAttachments;
+    }
+
+    public function addGmailAttachment(GmailAttachment $gmailAttachment): self
+    {
+        if (!$this->gmailAttachments->contains($gmailAttachment)) {
+            $this->gmailAttachments[] = $gmailAttachment;
+            $gmailAttachment->setPortal($this);
+        }
+
+        return $this;
+    }
+
+    public function removeGmailAttachment(GmailAttachment $gmailAttachment): self
+    {
+        if ($this->gmailAttachments->contains($gmailAttachment)) {
+            $this->gmailAttachments->removeElement($gmailAttachment);
+            // set the owning side to null (unless already changed)
+            if ($gmailAttachment->getPortal() === $this) {
+                $gmailAttachment->setPortal(null);
+            }
         }
 
         return $this;

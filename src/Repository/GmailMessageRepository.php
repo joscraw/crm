@@ -99,6 +99,33 @@ class GmailMessageRepository extends ServiceEntityRepository
         return $results;
     }
 
+    /**
+     * @param Portal $portal
+     * @param array $messageIds
+     * @return mixed[]
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    public function getMessageIdsForPortal(Portal $portal, $messageIds = []) {
+        $query = sprintf("SELECT  gm.message_id
+        FROM gmail_message gm
+        INNER JOIN gmail_thread gt on gm.gmail_thread_id = gt.id
+        INNER JOIN gmail_account ga on ga.id = gt.gmail_account_id
+        AND ga.portal_id = '%s'", $portal->getId());
+
+        if(!empty($messageIds)) {
+            $query .= ' AND gm.message_id IN ("' . implode('", "', $messageIds) . '")';
+        }
+
+
+        $em = $this->getEntityManager();
+        $stmt = $em->getConnection()->prepare($query);
+        $stmt->execute();
+        $results = $stmt->fetchAll();
+        if(empty($results)) {
+            return [];
+        }
+        return $results;
+    }
 
     /*
      * SELECT gm.thread_id, gm.message_id, gm.created_at, gm.sent_to,

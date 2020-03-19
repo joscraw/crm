@@ -3,6 +3,7 @@
 namespace App\Controller\Api;
 
 use App\Entity\CustomObject;
+use App\Entity\GmailAccount;
 use App\Entity\GmailAttachment;
 use App\Entity\GmailMessage;
 use App\Entity\GmailThread;
@@ -25,10 +26,12 @@ use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Google_Client;
 use Google_Service_Gmail;
+use League\Flysystem\FileNotFoundException;
 use League\Flysystem\FilesystemInterface;
 use PhpMimeMailParser\Parser;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\File;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\HeaderUtils;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -44,6 +47,7 @@ use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
+use Symfony\Component\HttpFoundation\File\File as FileObject;
 
 /**
  * Class GoogleController
@@ -70,7 +74,7 @@ class GmailController extends AbstractController
            'fileName' => $fileName
         ]);
 
-        /*$this->denyAccessUnlessGranted('download_attachment', $chatMessage);*/
+        $this->denyAccessUnlessGranted('download_attachment', $gmailAttachment);
         $response = new StreamedResponse(function() use ($gmailAttachment, $uploaderHelper, $privateUploadsFilesystem, $tmpDirectoryFilesystem) {
             $outputStream = fopen('php://output', 'wb');
             $stream = $uploaderHelper->readStream($gmailAttachment->getAttachmentFilePath(), false);
@@ -86,6 +90,59 @@ class GmailController extends AbstractController
         );
         $response->headers->set('Content-Disposition', $disposition);
         return $response;
+    }
+
+    /**
+     * We are just allowing one attachment at a time to be uploaded instead of an array like this $attachments[] that
+     * way the user doesn't have to wait for all attachments to be uploaded before they can see each attachment that was uploaded
+     *
+     * @Route("/upload-attachments", name="gmail_upload_attachments", options = { "expose" = true }, methods={"POST"})
+     * @param Portal $portal
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function uploadGmailAttachments(Portal $portal, Request $request)
+    {
+        $attachmentOriginalFileName = $request->request->get('attachmentOriginalFileName', null);
+        $body = $request->request->get('body', null);
+
+        if(empty($attachmentOriginalFileName) || empty($body)) {
+            return new JsonResponse(
+                [
+                    'success' => false,
+                    'message' => 'body and/or attachmentOriginalFileName is missing from the request.'
+                ], Response::HTTP_BAD_REQUEST
+            );
+        }
+
+        $tmpPath = sys_get_temp_dir().'/'.uniqid();
+        file_put_contents($tmpPath, base64_decode($body));
+        $uploadedFile = new FileObject($tmpPath);
+
+        $fileSize = filesize($uploadedFile->getPathname());
+        $newFilename = $this->uploaderHelper->uploadAttachment($uploadedFile);
+        $mimeType = $uploadedFile->getMimeType();
+        $gmailAttachment = new GmailAttachment();
+        $gmailAttachment->setFileName($newFilename);
+        $gmailAttachment->setPortal($portal);
+        $gmailAttachment->setOriginalFileName($attachmentOriginalFileName);
+        $gmailAttachment->setMimeType($mimeType);
+        $gmailAttachment->setFileSize($fileSize);
+        $downloadUrl = $this->router->generate('gmail_download_message_attachment', [
+            'internalIdentifier' => $portal->getInternalIdentifier(),
+            'fileName' => $newFilename
+        ]);
+        $gmailAttachment->setDownloadUrl($downloadUrl);
+        $this->entityManager->persist($gmailAttachment);
+        $this->entityManager->flush();
+
+        return new JsonResponse(
+            [
+                'success' => true,
+                'download_url' => $downloadUrl,
+                'attachment_id' => $gmailAttachment->getId()
+            ], Response::HTTP_OK
+        );
     }
 
     /**
@@ -137,22 +194,28 @@ class GmailController extends AbstractController
      * @Route("/send-message", name="gmail_send_message", methods={"POST"}, options = { "expose" = true })
      * @param Portal $portal
      * @param Request $request
+     * @param $privateUploadsPath
      * @return JsonResponse
-     * @throws \Doctrine\DBAL\DBALException
      */
-    public function sendMessage(Portal $portal, Request $request)
+    public function sendMessage(Portal $portal, Request $request, $privateUploadsPath)
     {
-
         $messageBody = $request->request->get('messageBody');
         $subject = $request->request->get('subject');
-        
+        /** @var int $attachmentIds the actual GmailAttachmentIds that correspond to the Gmail Attachments in the DB. */
+        $attachmentIds = $request->request->get('attachmentIds', []);
+
+        $attachments = $this->gmailAttachmentRepository->findBy(['id' => $attachmentIds]);
+        $attachmentFilePaths = [];
+        foreach($attachments as $attachment) {
+            $attachmentFilePaths[] = $privateUploadsPath . '/' . $attachment->getAttachmentFilePath();
+        }
+
         /**
          * @var array ['joshcrawmer4@yahoo.com' => 'Test Name']
          */
         $recipients = $request->request->get('to');
 
-        // TODO consider how you are going to handle attachments
-        $message = $this->gmailProvider->sendMessage($portal, $portal->getGmailAccount()->getGoogleToken(), $messageBody, $subject, $recipients);
+        $message = $this->gmailProvider->sendMessage($portal, $portal->getGmailAccount()->getGoogleToken(), $messageBody, $subject, $recipients, $attachmentFilePaths);
         $message = $this->gmailProvider->getMessage($portal->getGmailAccount()->getPortal(), $portal->getGmailAccount()->getGoogleToken(), $message->getId());
 
         $parser = new Parser();
@@ -190,6 +253,11 @@ class GmailController extends AbstractController
         $gmailMessage->setThreadId($message->getThreadId());
         $gmailMessage->setHistoryId($message->getHistoryId());
         $this->entityManager->persist($gmailMessage);
+
+        foreach($attachments as $attachment) {
+            $attachment->setGmailMessage($gmailMessage);
+        }
+
         $this->entityManager->flush();
 
         return new JsonResponse([

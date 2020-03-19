@@ -33,3 +33,6 @@ yarn-error.log
 /public/.htaccess
 
 #NSCSBundle/
+###> liip/imagine-bundle ###
+/public/media/cache/
+###< liip/imagine-bundle ###

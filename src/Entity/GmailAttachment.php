@@ -38,11 +38,6 @@ class GmailAttachment
     private $gmailMessage;
 
     /**
-     * @ORM\Column(type="string", length=255)
-     */
-    private $fileType;
-
-    /**
      * @ORM\Column(type="integer")
      */
     private $fileSize;
@@ -51,6 +46,11 @@ class GmailAttachment
      * @ORM\Column(type="string", length=255)
      */
     private $downloadUrl;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Portal", inversedBy="gmailAttachments")
+     */
+    private $portal;
 
     public function getId(): ?int
     {
@@ -104,18 +104,6 @@ class GmailAttachment
 
         return $this;
     }
-    
-    public function getFileType(): ?string
-    {
-        return $this->fileType;
-    }
-
-    public function setFileType(string $fileType): self
-    {
-        $this->fileType = $fileType;
-
-        return $this;
-    }
 
     public function getFileSize(): ?int
     {
@@ -141,6 +129,18 @@ class GmailAttachment
     public function setDownloadUrl(string $downloadUrl): self
     {
         $this->downloadUrl = $downloadUrl;
+
+        return $this;
+    }
+
+    public function getPortal(): ?Portal
+    {
+        return $this->portal;
+    }
+
+    public function setPortal(?Portal $portal): self
+    {
+        $this->portal = $portal;
 
         return $this;
     }

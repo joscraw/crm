@@ -14,8 +14,10 @@ use App\Repository\RecordRepository;
 use App\Repository\UserRepository;
 use App\Security\LoginFormAuthenticator;
 use App\Service\GmailProvider;
+use App\Service\ImageCacheGenerator;
 use App\Service\UploaderHelper;
 use Doctrine\ORM\EntityManagerInterface;
+use Liip\ImagineBundle\Imagine\Cache\CacheManager;
 use Symfony\Component\Asset\Packages;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\HttpKernel\KernelInterface;
@@ -154,6 +156,16 @@ trait ServiceHelper
     private $apiTokenRepo;
 
     /**
+     * @var ImageCacheGenerator
+     */
+    private $imageCacheGenerator;
+
+    /**
+     * @var CacheManager
+     */
+    private $cacheManager;
+
+    /**
      * ServiceHelper constructor.
      * @param EntityManagerInterface $entityManager
      * @param Packages $assetsManager
@@ -180,6 +192,8 @@ trait ServiceHelper
      * @param GmailMessageRepository $gmailMessageRepository
      * @param GmailAttachmentRepository $gmailAttachmentRepository
      * @param ApiTokenRepository $apiTokenRepo
+     * @param ImageCacheGenerator $imageCacheGenerator
+     * @param CacheManager $cacheManager
      */
     public function __construct(
         EntityManagerInterface $entityManager,
@@ -206,7 +220,9 @@ trait ServiceHelper
         GmailThreadRepository $gmailThreadRepository,
         GmailMessageRepository $gmailMessageRepository,
         GmailAttachmentRepository $gmailAttachmentRepository,
-        ApiTokenRepository $apiTokenRepo
+        ApiTokenRepository $apiTokenRepo,
+        ImageCacheGenerator $imageCacheGenerator,
+        CacheManager $cacheManager
     ) {
         $this->entityManager = $entityManager;
         $this->assetsManager = $assetsManager;
@@ -233,6 +249,8 @@ trait ServiceHelper
         $this->gmailMessageRepository = $gmailMessageRepository;
         $this->gmailAttachmentRepository = $gmailAttachmentRepository;
         $this->apiTokenRepo = $apiTokenRepo;
+        $this->imageCacheGenerator = $imageCacheGenerator;
+        $this->cacheManager = $cacheManager;
     }
 
     /**

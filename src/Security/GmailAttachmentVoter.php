@@ -51,7 +51,7 @@ class GmailAttachmentVoter extends Voter
 
     private function canDownloadAttachment(GmailAttachment $gmailAttachment, User $user)
     {
-        if($gmailAttachment->getGmailMessage()->getGmailThread()->getGmailAccount()->getPortal()->getId() === $user->getPortal()->getId()) {
+        if($gmailAttachment->getPortal()->getId() === $user->getPortal()->getId()) {
             return true;
         }
 

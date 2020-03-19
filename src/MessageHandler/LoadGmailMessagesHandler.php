@@ -129,6 +129,7 @@ class LoadGmailMessagesHandler implements MessageHandlerInterface, LoggerAwareIn
      * return from the __invoke for whatever reason, it will remove the message from the queue and say it was aknowledged.
      *
      * @param LoadGmailMessages $message
+     * @throws \Doctrine\DBAL\DBALException
      */
     public function __invoke(LoadGmailMessages $message)
     {
@@ -141,19 +142,36 @@ class LoadGmailMessagesHandler implements MessageHandlerInterface, LoggerAwareIn
             return;
         }
 
+        $fromHistoryList = false;
+        $performFullSync = false;
+
         /** @var \Google_Service_Gmail_ListHistoryResponse $historyList */
-        $historyList = $this->gmailProvider->getHistoryList($gmailAccount->getPortal(), $gmailAccount->getGoogleToken(), $gmailAccount->getCurrentHistoryId());
+        try {
+            $historyList = $this->gmailProvider->getHistoryList($gmailAccount->getPortal(), $gmailAccount->getGoogleToken(), $gmailAccount->getCurrentHistoryId());
+            $fromHistoryList = true;
+        } catch (\Google_Service_Exception $exception) {
+            $performFullSync = true;
+        }
 
-        // Add messages to the database
-        $this->addMessagesFromHistoryList($historyList, $gmailAccount);
+        // Add messages to the database starting with history ID to perform a partial sync
+        if($fromHistoryList) {
+            $this->addMessagesFromHistoryList($historyList, $gmailAccount);
+            // We aren't running this now as we probably don't want to delete messages from the CRM when they are deleted from GMAIL
+            //$this->removeMessagesFromHistoryList($historyList, $gmailAccount);
+            // Go ahead and update the main current history id. this ensures we aren't pulling duplicate messages next time this handler runs
+            $mailboxHistoryId = $historyList->getHistoryId();
+            $gmailAccount->setCurrentHistoryId($mailboxHistoryId);
+            $this->entityManager->flush();
+        }
 
-        // We aren't running this now as we probably don't want to delete messages from the CRM when they are deleted from GMAIL
-        //$this->removeMessagesFromHistoryList($historyList, $gmailAccount);
+        // Could not find a history ID so let's perform a full sync
+        if($performFullSync) {
+            $messageList = $this->gmailProvider->getMessageList($gmailAccount->getPortal(), $gmailAccount->getGoogleToken(), 100);
+            $historyId = $this->addMessagesFromMessageList($messageList, $gmailAccount);
+            $gmailAccount->setCurrentHistoryId($historyId);
+            $this->entityManager->flush();
+        }
 
-        // Go ahead and update the main current history id. this ensures we aren't pulling duplicate messages next time this handler runs
-        $mailboxHistoryId = $historyList->getHistoryId();
-        $gmailAccount->setCurrentHistoryId($mailboxHistoryId);
-        $this->entityManager->flush();
         echo sprintf("Gmail messages handler successfully completed.");
     }
 
@@ -162,6 +180,7 @@ class LoadGmailMessagesHandler implements MessageHandlerInterface, LoggerAwareIn
      * @param GmailAccount $gmailAccount
      */
     private function addMessagesFromHistoryList(\Google_Service_Gmail_ListHistoryResponse $historyList, GmailAccount $gmailAccount) {
+
         if(empty($historyList['history'])) {
             return;
         }
@@ -169,6 +188,10 @@ class LoadGmailMessagesHandler implements MessageHandlerInterface, LoggerAwareIn
         /** @var \Google_Service_Gmail_History $history */
         foreach($historyList['history'] as $history) {
             $messagesAdded = $history->getMessagesAdded();
+
+            if(empty($messagesAdded)) {
+                continue;
+            }
 
             /** @var \Google_Service_Gmail_HistoryMessageAdded $messageAdded */
             foreach($messagesAdded as $messageAdded) {
@@ -180,77 +203,137 @@ class LoadGmailMessagesHandler implements MessageHandlerInterface, LoggerAwareIn
                 // We need the all the message data so pull the full message from the API
                 $message = $this->gmailProvider->getMessage($gmailAccount->getPortal(), $gmailAccount->getGoogleToken(), $messageId);
 
-                // Parse the message from the raw data
-                $parser = new Parser();
-                $raw = $message->getRaw();
-                $switched = str_replace(['-', '_'], ['+', '/'], $raw);
-                $raw = base64_decode($switched);
-                $parser->setText($raw);
-                $sentTo = $parser->getHeader('to');
-                $sentFrom = $parser->getHeader('from');
-                $subject = $parser->getHeader('subject');
-                $messageBody = $parser->getMessageBody('text');
-                $arrayHeaders = $parser->getHeaders();
-
-                // Check to see if a thread exists in the database for this message
-                // If not go ahead and create a brand new thread in the db
-                /** @var GmailThread $thread */
-                $existingGmailThread = $this->gmailThreadRepository->findOneBy([
-                    'threadId' => $message->getThreadId()
-                ]);
-                if(!$existingGmailThread) {
-                    $thread = new GmailThread();
-                    $thread->setGmailAccount($gmailAccount);
-                    $thread->setThreadId($message->getThreadId());
-                    $this->entityManager->persist($thread);
-                } else {
-                    $thread = $existingGmailThread;
-                }
-
-                // Create the message in the database
-                $gmailMessage = new GmailMessage();
-                $gmailMessage->setGmailThread($thread);
-                $gmailMessage->setMessageId($messageId);
-                $gmailMessage->setSentTo($sentTo);
-                $gmailMessage->setSentFrom($sentFrom);
-                $gmailMessage->setSubject($subject);
-                $gmailMessage->setMessageBody($messageBody);
-                $gmailMessage->setInternalDate($message->getInternalDate());
-                $gmailMessage->setThreadId($message->getThreadId());
-                $gmailMessage->setHistoryId($message->getHistoryId());
-
-                // handle saving attachments
-                // let's go ahead and store each attachment in the /tmp directory
-                /*$attachments = $parser->saveAttachments(sys_get_temp_dir(), true, Parser::ATTACHMENT_DUPLICATE_SUFFIX);*/
-
-                $attachments = $parser->getAttachments();
-                foreach ($attachments as $attachment) {
-                    $originalFilename = $attachment->getFilename();
-                    $fileType = $attachment->getContentType();
-                    $tmpSavedFilePath = $attachment->save(sys_get_temp_dir(), Parser::ATTACHMENT_DUPLICATE_SUFFIX);
-                    $fileSize = filesize($tmpSavedFilePath);
-                    $uploadedFile = new FileObject($tmpSavedFilePath);
-                    $filename = $this->uploaderHelper->uploadAttachment($uploadedFile);
-                    $mimeType = $uploadedFile->getMimeType();
-                    $gmailAttachment = new GmailAttachment();
-                    $gmailAttachment->setFileName($filename);
-                    $gmailAttachment->setOriginalFileName($originalFilename);
-                    $gmailAttachment->setMimeType($mimeType);
-                    $gmailAttachment->setGmailMessage($gmailMessage);
-                    $gmailAttachment->setFileType($fileType);
-                    $gmailAttachment->setFileSize($fileSize);
-                    $downloadUrl = $this->router->generate('gmail_download_message_attachment', [
-                        'internalIdentifier' => $gmailAccount->getPortal()->getInternalIdentifier(),
-                        'fileName' => $filename
-                    ]);
-                    $gmailAttachment->setDownloadUrl($downloadUrl);
-                    $this->entityManager->persist($gmailAttachment);
-                }
-
-                $this->entityManager->persist($gmailMessage);
-                $this->entityManager->flush();
+                $this->saveMessageContents($message, $gmailAccount);
             }
         }
+    }
+
+    /**
+     * @param \Google_Service_Gmail_ListMessagesResponse $messageList
+     * @param GmailAccount $gmailAccount
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    private function addMessagesFromMessageList(\Google_Service_Gmail_ListMessagesResponse $messageList, GmailAccount $gmailAccount) {
+
+        if(empty($messageList['messages'])) {
+            return;
+        }
+
+        $results = $this->gmailProvider->getBatchMessagesFromMessageList($gmailAccount->getPortal(), $messageList, $gmailAccount->getGoogleToken());
+
+        if(empty($results)) {
+            return;
+        }
+
+        // we should store the history ID of the first message in the list response
+        $historyId = $results[array_key_first($results)]->getHistoryId();
+
+
+        $messageIdsToImport = [];
+        /** @var \Google_Service_Gmail_Message $message */
+        foreach($results as $message) {
+            $messageIdsToImport[] = $message->getId();
+        }
+
+        $alreadyExistingMessageIdArray = $this->gmailMessageRepository->getMessageIdsForPortal($gmailAccount->getPortal(), $messageIdsToImport);
+
+        $alreadyExistingMessageIds = [];
+        foreach($alreadyExistingMessageIdArray as $key => $alreadyExistingMessageId) {
+            $alreadyExistingMessageIds[] = $alreadyExistingMessageId['message_id'];
+        }
+
+        /** @var \Google_Service_Gmail_Message $message */
+        foreach($results as $message) {
+
+            $messageId = $message->getId();
+
+            // let's not import the same message if it already exists.
+            if(in_array($messageId, $alreadyExistingMessageIds)) {
+                continue;
+            }
+
+            $this->saveMessageContents($message, $gmailAccount);
+        }
+
+        return $historyId;
+    }
+
+    /**
+     * @param \Google_Service_Gmail_Message $message
+     * @param GmailAccount $gmailAccount
+     */
+    private function saveMessageContents(\Google_Service_Gmail_Message $message, GmailAccount $gmailAccount) {
+
+        // Parse the message from the raw data
+        $parser = new Parser();
+        $raw = $message->getRaw();
+        $switched = str_replace(['-', '_'], ['+', '/'], $raw);
+        $raw = base64_decode($switched);
+        $parser->setText($raw);
+        $sentTo = $parser->getHeader('to');
+        $sentFrom = $parser->getHeader('from');
+        $subject = $parser->getHeader('subject');
+        $messageBody = $parser->getMessageBody('text');
+        $arrayHeaders = $parser->getHeaders();
+
+        // Check to see if a thread exists in the database for this message
+        // If not go ahead and create a brand new thread in the db
+        /** @var GmailThread $thread */
+        $existingGmailThread = $this->gmailThreadRepository->findOneBy([
+            'threadId' => $message->getThreadId()
+        ]);
+        if(!$existingGmailThread) {
+            $thread = new GmailThread();
+            $thread->setGmailAccount($gmailAccount);
+            $thread->setThreadId($message->getThreadId());
+            $this->entityManager->persist($thread);
+        } else {
+            $thread = $existingGmailThread;
+        }
+
+        // Create the message in the database
+        $gmailMessage = new GmailMessage();
+        $gmailMessage->setGmailThread($thread);
+        $gmailMessage->setMessageId($message->getId());
+        $gmailMessage->setSentTo($sentTo);
+        $gmailMessage->setSentFrom($sentFrom);
+        $gmailMessage->setSubject($subject);
+        $gmailMessage->setMessageBody($messageBody);
+        $gmailMessage->setInternalDate($message->getInternalDate());
+        $gmailMessage->setThreadId($message->getThreadId());
+        $gmailMessage->setHistoryId($message->getHistoryId());
+
+        // handle saving attachments
+        // let's go ahead and store each attachment in the /tmp directory
+        /*$attachments = $parser->saveAttachments(sys_get_temp_dir(), true, Parser::ATTACHMENT_DUPLICATE_SUFFIX);*/
+
+        $attachments = $parser->getAttachments();
+        foreach ($attachments as $attachment) {
+            $originalFilename = $attachment->getFilename();
+            $fileType = $attachment->getContentType();
+            $tmpSavedFilePath = $attachment->save(sys_get_temp_dir(), Parser::ATTACHMENT_DUPLICATE_SUFFIX);
+            $fileSize = filesize($tmpSavedFilePath);
+            $uploadedFile = new FileObject($tmpSavedFilePath);
+            $filename = $this->uploaderHelper->uploadAttachment($uploadedFile);
+            $mimeType = $uploadedFile->getMimeType();
+            $gmailAttachment = new GmailAttachment();
+            $gmailAttachment->setFileName($filename);
+            $gmailAttachment->setPortal($gmailAccount->getPortal());
+            $gmailAttachment->setOriginalFileName($originalFilename);
+            $gmailAttachment->setMimeType($mimeType);
+            $gmailAttachment->setGmailMessage($gmailMessage);
+            $gmailAttachment->setFileSize($fileSize);
+            $downloadUrl = $this->router->generate('gmail_download_message_attachment', [
+                'internalIdentifier' => $gmailAccount->getPortal()->getInternalIdentifier(),
+                'fileName' => $filename
+            ]);
+            $gmailAttachment->setDownloadUrl($downloadUrl);
+            $this->entityManager->persist($gmailAttachment);
+        }
+
+        $this->entityManager->persist($gmailMessage);
+        $this->entityManager->flush();
+
     }
 
     /**
