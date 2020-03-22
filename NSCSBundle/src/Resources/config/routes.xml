@@ -29,4 +29,10 @@
     </route>
     <route id="nscs_api_event_unregister" controller="nscs_controller_api.nscs_api_controller:eventUnregister" path="/event-unregister" methods="POST">
     </route>
+    <route id="nscs_api_event_new" controller="nscs_controller_api.nscs_api_controller:eventNew" path="/create-event" methods="POST">
+    </route>
+    <route id="nscs_api_event_cancel" controller="nscs_controller_api.nscs_api_controller:eventCancel" path="/cancel-event" methods="POST">
+    </route>
+    <route id="nscs_api_event_edit" controller="nscs_controller_api.nscs_api_controller:eventEdit" path="/events/{recordId}/edit" methods="POST">
+    </route>
 </routes>

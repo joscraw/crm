@@ -433,4 +433,128 @@ class NSCSApiController extends  AbstractController
             'message' => 'User check in successfully cancelled for event'
         ]);
     }
+
+    public function eventNew(Request $request) {
+
+        $eventName = $request->request->get('eventName', false);
+        $startTime = $request->request->get('startTime', false);
+        $endTime = $request->request->get('endTime', false);
+        $startDate = $request->request->get('startDate', false);
+        $endDate = $request->request->get('endDate', false);
+        $type = $request->request->get('type', false);
+        $chapterRecordId = $request->request->get('chapterRecordId', false);
+
+        if(!$eventName || !$startTime || !$endTime || !$startDate || !$endDate || !$type || !$chapterRecordId) {
+            return $this->json([
+                'success' => false,
+                'message' => 'An event must have eventName, startTime, endTime, startDate, and endDate, type and chapter record id'
+            ]);
+        }
+
+        $portal = $this->portalRepository->findBy([
+            'internalIdentifier' => '9874561920'
+        ]);
+
+        if(!$portal) {
+            return $this->json([
+                'success' => false,
+                'message' => sprintf('Portal not found for internal identifier %s', '9874561920')
+            ]);
+        }
+
+        $customObject = $this->customObjectRepository->findOneBy([
+            'internalName' => 'event',
+            'portal' => $portal
+        ]);
+
+        if(!$customObject) {
+            return $this->json([
+                'success' => false,
+                'message' => sprintf('Event Custom Object not found for portal internal identifier %s', '9874561920')
+            ]);
+        }
+
+        $eventRecord = new Record();
+        $eventRecord->setCustomObject($customObject);
+        $properties = [];
+        $properties['name'] = $eventName;
+        $properties['start_date'] = $startDate;
+        $properties['end_date'] = $endDate;
+        $properties['start_time'] = $startTime;
+        $properties['end_time'] = $endTime;
+        $properties['type'] = $type;
+        $properties['chapter'] = $chapterRecordId;
+        $eventRecord->setProperties($properties);
+
+        $this->entityManager->persist($eventRecord);
+        $this->entityManager->flush();
+        return $this->json([
+            'success' => true,
+            'message' => 'Event successfully created!',
+            'data' => [
+                'recordId' => $eventRecord->getId()
+            ]
+        ]);
+    }
+
+    public function eventEdit(Request $request, Record $eventRecord) {
+
+        $eventName = $request->request->get('eventName', false);
+        $startTime = $request->request->get('startTime', false);
+        $endTime = $request->request->get('endTime', false);
+        $startDate = $request->request->get('startDate', false);
+        $endDate = $request->request->get('endDate', false);
+        $type = $request->request->get('type', false);
+        $chapterRecordId = $request->request->get('chapterRecordId', false);
+
+        if(!$eventName || !$startTime || !$endTime || !$startDate || !$endDate || !$type || !$chapterRecordId) {
+            return $this->json([
+                'success' => false,
+                'message' => 'An event must have eventName, startTime, endTime, startDate, and endDate, type and chapter record id'
+            ]);
+        }
+
+        $properties = [];
+        $properties['name'] = $eventName;
+        $properties['start_date'] = $startDate;
+        $properties['end_date'] = $endDate;
+        $properties['start_time'] = $startTime;
+        $properties['end_time'] = $endTime;
+        $properties['type'] = $type;
+        $properties['chapter'] = $chapterRecordId;
+        $eventRecord->setProperties($properties);
+
+        $this->entityManager->persist($eventRecord);
+        $this->entityManager->flush();
+        return $this->json([
+            'success' => true,
+            'message' => 'Event successfully updated!',
+            'data' => [
+                'recordId' => $eventRecord->getId()
+            ]
+        ]);
+    }
+
+    public function eventCancel(Request $request) {
+
+        $eventRecordId = $request->request->get('eventRecordId', false);
+
+        if(!$eventRecordId) {
+            return $this->json([
+                'success' => false,
+                'message' => 'An event record id not found in database.'
+            ]);
+        }
+
+        $eventRecord = $this->recordRepository->find($eventRecordId);
+
+        $this->entityManager->remove($eventRecord);
+        $this->entityManager->flush();
+
+        return $this->json([
+            'success' => true,
+            'message' => 'Event successfully cancelled!',
+        ]);
+
+    }
 }
