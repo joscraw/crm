@@ -8,11 +8,11 @@ namespace App\Utils;
  */
 trait ArrayHelper
 {
-    private function arrayHasDupes($array) {
+    protected function arrayHasDupes($array) {
         return count($array) !== count(array_unique($array));
     }
 
-    private function getKeysForDuplicateValues($my_arr, $clean = false, $includeInitialKeys = false, $caseSensitive = true) {
+    protected function getKeysForDuplicateValues($my_arr, $clean = false, $includeInitialKeys = false, $caseSensitive = true) {
         if ($clean) {
             return array_unique($my_arr);
         }
@@ -40,7 +40,7 @@ trait ArrayHelper
         return $dups;
     }
 
-    public function getArrayValuesRecursive($array) {
+    protected function getArrayValuesRecursive($array) {
         $flat = array();
 
         foreach($array as $value) {
@@ -54,7 +54,7 @@ trait ArrayHelper
         return $flat;
     }
 
-    public function arrayFlatten($array) {
+    protected function arrayFlatten($array) {
         if (!is_array($array)) {
             return FALSE;
         }
@@ -77,7 +77,7 @@ trait ArrayHelper
      * @param null $default
      * @return array|mixed|null
      */
-    public function getValueByDotNotation($key, array $data, $default = null)
+    protected function getValueByDotNotation($key, array $data, $default = null)
     {
         // @assert $key is a non-empty string
         // @assert $data is a loopable array
@@ -111,7 +111,7 @@ trait ArrayHelper
         return array_key_exists($key, $data) ? $data[$key] : $default;
     }
 
-    function setValueByDotNotation(array &$arr, $path,$val)
+    protected function setValueByDotNotation(array &$arr, $path,$val)
     {
         $loc = &$arr;
         foreach(explode('.', $path) as $step)
@@ -126,7 +126,7 @@ trait ArrayHelper
      * @param array $array2
      * @return array
      */
-    public function arrayMergeRecursive(array $array1, array $array2)
+    protected function arrayMergeRecursive(array $array1, array $array2)
     {
         $merged = $array1;
 
@@ -150,7 +150,7 @@ trait ArrayHelper
      * @param $raw_array
      * @return array
      */
-    function arrayNotUnique($raw_array) {
+    protected function arrayNotUnique($raw_array) {
         $dupes = array();
         natcasesort($raw_array);
         reset($raw_array);
@@ -167,5 +167,19 @@ trait ArrayHelper
             $old_key   = $key;
         }
         return $dupes;
+    }
+
+    /**
+     * Checks if a given key is available in an array. If it is it returns that key
+     * if not it increments and keeps checking until one is found that's available.
+     * @param $array
+     * @param $key
+     * @return mixed
+     */
+    protected function determineKeyAvailability($array, $key) {
+        if(!array_key_exists($key, $array)) {
+            return $key;
+        }
+        return $this->determineKeyAvailability($array, ++$key);
     }
 }

@@ -3,11 +3,16 @@
 namespace App\Model\Filter;
 
 
+use App\Utils\ArrayHelper;
+use App\Utils\RandomStringGenerator;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 
 class AbstractFilter
 {
+    use RandomStringGenerator;
+    use ArrayHelper;
+
     /**
      * @var Filter[]
      */
@@ -24,11 +29,6 @@ class AbstractFilter
     protected $joins;
 
     /**
-     * @var Order[]
-     */
-    protected $orders;
-
-    /**
      * @var string
      */
     protected $alias;
@@ -38,7 +38,6 @@ class AbstractFilter
         $this->columns = new ArrayCollection();
         $this->filters = new ArrayCollection();
         $this->joins = new ArrayCollection();
-        $this->orders = new ArrayCollection();
     }
 
     /**
@@ -122,29 +121,6 @@ class AbstractFilter
     }
 
     /**
-     * @return Collection|Order[]
-     */
-    public function getOrders(): Collection
-    {
-        return $this->orders;
-    }
-
-    public function addOrder(Order $order): self
-    {
-        $this->orders[] = $order;
-        return $this;
-    }
-
-    public function removeOrder(Order $order): self
-    {
-        if ($this->orders->contains($order)) {
-            $this->orders->removeElement($order);
-        }
-
-        return $this;
-    }
-
-    /**
      * @return string
      */
     public function getAlias(): string
@@ -158,5 +134,13 @@ class AbstractFilter
     public function setAlias(string $alias): void
     {
         $this->alias = $alias;
+    }
+
+    public function getFilterByUid() {
+
+    }
+
+    public function getColumnByUid() {
+
     }
 }

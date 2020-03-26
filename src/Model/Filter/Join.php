@@ -216,10 +216,6 @@ class Join extends AbstractFilter
             $filter->setAlias($alias);
         }
 
-        foreach($this->getOrders() as $order) {
-            $order->setAlias($alias);
-        }
-
         /** @var Join $join */
         foreach($this->joins as $join) {
             $join->generateAliases($customObject, $this);
@@ -267,7 +263,8 @@ class Join extends AbstractFilter
     public function generateOrderQueries(FilterData $filterData) {
 
         foreach($this->getOrders() as $order) {
-            $filterData->orderQueries[$order->getPriority()] = $order->getQuery();
+            $priority = $this->determineKeyAvailability($filterData->orderQueries, $order->getPriority());
+            $filterData->orderQueries[$priority] = $order->getQuery();
         }
 
         /** @var Join $join */

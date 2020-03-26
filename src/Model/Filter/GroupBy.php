@@ -2,7 +2,7 @@
 
 namespace App\Model\Filter;
 
-class Order
+class GroupBy
 {
     use Uid;
 

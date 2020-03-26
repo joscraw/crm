@@ -8,7 +8,7 @@ namespace App\Utils;
  */
 trait RandomStringGenerator
 {
-    public function generateRandomString($length = 10) {
+    protected function generateRandomString($length = 10) {
         $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
         $charactersLength = strlen($characters);
         $randomString = '';
@@ -18,7 +18,7 @@ trait RandomStringGenerator
         return $randomString;
     }
 
-    public function generateRandomNumber($length = 10) {
+    protected function generateRandomNumber($length = 10) {
         $characters = '0123456789';
         $charactersLength = strlen($characters);
         $randomString = '';
@@ -28,7 +28,7 @@ trait RandomStringGenerator
         return $randomString;
     }
 
-    public function generateRandomCharacters($length = 10) {
+    protected function generateRandomCharacters($length = 10) {
         $characters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
         $charactersLength = strlen($characters);
         $randomString = '';

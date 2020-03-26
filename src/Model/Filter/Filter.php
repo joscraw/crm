@@ -165,7 +165,6 @@ class Filter
         $filterData->filterUids[] = $this->getUid();
 
         $query = '';
-        $query = [];
         switch($this->getProperty()->getFieldType()) {
             case 'number_field':
                 switch($this->getOperator()) {
@@ -408,11 +407,10 @@ class Filter
                 break;
         }
 
-        /** @var OrCriteria $orCriteria */
-        if(!empty($filterData->filterCriteriaParts)) {
-            $pattern = '/'.$this->getUid().'/';
-            /*$filterData->filterCriteriaString = str_replace($this->getUid(), $query, $filterData->filterCriteriaString);*/
-            $filterData->filterCriteriaString = preg_replace($pattern, $query, $filterData->filterCriteriaString);
+        if(!empty($filterData->filterCriteriaParts) && !empty($query)) {
+            $pattern = '/^'.$this->getUid().'$/';
+
+            $filterData->filterCriteriaParts = preg_replace($pattern, $query, $filterData->filterCriteriaParts);
         }
 
         return $query;

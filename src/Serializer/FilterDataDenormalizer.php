@@ -187,6 +187,11 @@ class FilterDataDenormalizer implements DenormalizerInterface, DenormalizerAware
         // FILTERS
         if(isset($data['filters'])) {
             foreach($data['filters'] as $filter) {
+
+                if(!isset($filter['uid'])) {
+                    throw new ApiProblemException(400, 'Each filter object must have a uid. Example: "uid": "1"');
+                }
+
                 if(!isset($filter['property'])) {
                     throw new ApiProblemException(400, 'Each filter object must have a property. Example: "property": 1');
                 }
@@ -325,9 +330,14 @@ class FilterDataDenormalizer implements DenormalizerInterface, DenormalizerAware
                 }
             }
 
-            // OR FILTERS
+            // FILTERS
             if(isset($join['filters'])) {
                 foreach($join['filters'] as $filter) {
+
+                    if(!isset($filter['uid'])) {
+                        throw new ApiProblemException(400, 'Each filter object must have a uid. Example: "uid": "1"');
+                    }
+
                     if(!isset($filter['property'])) {
                         throw new ApiProblemException(400, 'Each filter object must have a property. Example: "property": 1');
                     }

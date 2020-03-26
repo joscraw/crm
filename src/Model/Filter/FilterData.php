@@ -4,17 +4,11 @@ namespace App\Model\Filter;
 
 use App\Api\ApiProblemException;
 use App\Entity\CustomObject;
-use App\Entity\Property;
-use App\Model\FieldCatalog;
-use App\Model\NumberField;
-use App\Utils\RandomStringGenerator;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 
 class FilterData extends AbstractFilter
 {
-    use RandomStringGenerator;
-
     /**
      * @var CustomObject
      */
@@ -39,6 +33,16 @@ class FilterData extends AbstractFilter
      * @var int
      */
     protected $offset;
+
+    /**
+     * @var Order[]
+     */
+    protected $orders;
+
+    /**
+     * @var GroupBy[]
+     */
+    protected $groupBys;
 
     /**
      * @var string
@@ -99,6 +103,14 @@ class FilterData extends AbstractFilter
      * @var array
      */
     public $filterCriteriaUids = [];
+
+    public function __construct()
+    {
+        $this->orders = new ArrayCollection();
+        $this->groupBys = new ArrayCollection();
+
+        parent::__construct();
+    }
 
     /**
      * @return CustomObject
@@ -197,6 +209,52 @@ class FilterData extends AbstractFilter
     }
 
     /**
+     * @return Collection|Order[]
+     */
+    public function getOrders(): Collection
+    {
+        return $this->orders;
+    }
+
+    public function addOrder(Order $order): self
+    {
+        $this->orders[] = $order;
+        return $this;
+    }
+
+    public function removeOrder(Order $order): self
+    {
+        if ($this->orders->contains($order)) {
+            $this->orders->removeElement($order);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|GroupBy[]
+     */
+    public function getGroupBys(): Collection
+    {
+        return $this->groupBys;
+    }
+
+    public function addGroupBy(GroupBy $groupBy): self
+    {
+        $this->groupBys[] = $groupBy;
+        return $this;
+    }
+
+    public function removeGroupBy(GroupBy $groupBy): self
+    {
+        if ($this->groupBys->contains($groupBy)) {
+            $this->groupBys->removeElement($groupBy);
+        }
+
+        return $this;
+    }
+
+    /**
      * This function needs to be called to generate an alias for each Join and then
      * that alias needs to be added to each column and filter being applied to the query
      */
@@ -217,9 +275,6 @@ class FilterData extends AbstractFilter
         }
         foreach($this->getFilters() as $filter) {
             $filter->setAlias($alias);
-        }
-        foreach($this->getOrders() as $order) {
-            $order->setAlias($alias);
         }
 
         /** @var Join $join */
@@ -281,9 +336,9 @@ class FilterData extends AbstractFilter
 
     public function generateFilterCriteria() {
 
-        $this->filterCriteria->generateFilterCriteria($this);
-
-        $this->filterCriteriaString = implode(" ", $this->filterCriteriaParts);
+        if($this->filterCriteria) {
+            $this->filterCriteria->generateFilterCriteria($this);
+        }
 
         return $this;
     }
@@ -308,8 +363,10 @@ class FilterData extends AbstractFilter
 
     public function generateOrderQueries() {
 
+        // todo this needs to be changed now that we changed our process
         foreach($this->getOrders() as $order) {
-            $this->orderQueries[$order->getPriority()] = $order->getQuery();
+            $priority = $this->determineKeyAvailability($this->orderQueries, $order->getPriority());
+            $this->orderQueries[$priority] = $order->getQuery();
         }
 
         /** @var Join $join */
@@ -355,7 +412,7 @@ class FilterData extends AbstractFilter
 
         $joinConditionalString = !empty($this->joinConditionalQueries) ? sprintf("(\n%s\n)", implode(" AND \n", $this->joinConditionalQueries)) : '';
 
-        $filterString = empty($this->filterCriteriaParts) || empty($this->filterCriteriaString) ? '' : "AND {$this->filterCriteriaString}";
+        $filterString = empty($this->filterCriteriaParts) ? '' : "AND " . implode(" ", $this->filterCriteriaParts);
 
         $searchString = !empty($this->searchQueries) ? sprintf("(\n%s\n)", implode(" OR \n", $this->searchQueries)) : '';
         $searchString = empty($this->searchQueries) ? '' : "AND $searchString";
