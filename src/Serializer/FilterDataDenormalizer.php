@@ -15,6 +15,7 @@ use App\Model\DropdownSelectField;
 use App\Model\FieldCatalog;
 use App\Model\Filter\FilterCriteria;
 use App\Model\Filter\FilterData;
+use App\Model\Filter\GroupBy;
 use App\Model\Filter\Join;
 use App\Model\Filter\OrCriteria;
 use App\Model\Filter\Order;
@@ -176,6 +177,9 @@ class FilterDataDenormalizer implements DenormalizerInterface, DenormalizerAware
                 if(isset($columnData['newValue'])) {
                     $column->setNewValue($columnData['newValue']);
                 }
+                if(isset($columnData['uid'])) {
+                    $column->setUid($columnData['uid']);
+                }
                 if($this->statement === 'UPDATE' && !isset($columnData['newValue'])) {
                     throw new ApiProblemException(400, sprintf('All columns must have a newValue property when using the UPDATE Statement. Example: newValue: "super cool new value here"'));
                 }
@@ -211,15 +215,13 @@ class FilterDataDenormalizer implements DenormalizerInterface, DenormalizerAware
             }
         }
 
-        if(isset($data['order'])) {
-            foreach($data['order'] as $order) {
-                if(!isset($order['property'])) {
-                    throw new ApiProblemException(400, 'Each order object must have a property. Example: "property": 1');
+        // ORDER
+        if(isset($data['orders'])) {
+            foreach($data['orders'] as $order) {
+                if(!isset($order['uid'])) {
+                    throw new ApiProblemException(400, 'Each order object must have a uid. Example: "uid": 1');
                 }
-                $property = $this->propertyRepository->find($order['property']);
-                if(!$property) {
-                    throw new ApiProblemException(400, sprintf("property: %s not not found", $order['property']));
-                }
+
                 /** @var Order $orderObject */
                 $orderObject = $this->denormalizer->denormalize(
                     $order,
@@ -227,8 +229,27 @@ class FilterDataDenormalizer implements DenormalizerInterface, DenormalizerAware
                     $format,
                     $context
                 );
-                $orderObject->setProperty($property);
+
                 $filterData->addOrder($orderObject);
+            }
+        }
+
+        // GROUP BY
+        if(isset($data['groupBys'])) {
+            foreach($data['groupBys'] as $groupBy) {
+                if(!isset($groupBy['uid'])) {
+                    throw new ApiProblemException(400, 'Each group by object must have a uid. Example: "uid": 1');
+                }
+
+                /** @var GroupBy $groupByObject */
+                $groupByObject = $this->denormalizer->denormalize(
+                    $groupBy,
+                    GroupBy::class,
+                    $format,
+                    $context
+                );
+
+                $filterData->addGroupBy($groupByObject);
             }
         }
 
@@ -322,6 +343,9 @@ class FilterDataDenormalizer implements DenormalizerInterface, DenormalizerAware
                     if(isset($columnData['newValue'])) {
                         $column->setNewValue($columnData['newValue']);
                     }
+                    if(isset($columnData['uid'])) {
+                        $column->setUid($columnData['uid']);
+                    }
                     if($this->statement === 'UPDATE' && !isset($columnData['newValue'])) {
                         throw new ApiProblemException(400, sprintf('All columns must have a newValue property when using the UPDATE Statement. Example: newValue: "super cool new value here"'));
                     }
@@ -354,27 +378,6 @@ class FilterDataDenormalizer implements DenormalizerInterface, DenormalizerAware
                     );
                     $filterObject->setProperty($property);
                     $joinObject->addFilter($filterObject);
-                }
-            }
-
-            if(isset($join['order'])) {
-                foreach($join['order'] as $order) {
-                    if(!isset($order['property'])) {
-                        throw new ApiProblemException(400, 'Each order object must have a property. Example: "property": 1');
-                    }
-                    $property = $this->propertyRepository->find($order['property']);
-                    if(!$property) {
-                        throw new ApiProblemException(400, sprintf("property: %s not not found", $order['property']));
-                    }
-                    /** @var Order $orderObject */
-                    $orderObject = $this->denormalizer->denormalize(
-                        $order,
-                        Order::class,
-                        'json',
-                        []
-                    );
-                    $orderObject->setProperty($property);
-                    $joinObject->addOrder($orderObject);
                 }
             }
 

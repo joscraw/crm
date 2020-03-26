@@ -260,19 +260,6 @@ class Join extends AbstractFilter
         }
     }
 
-    public function generateOrderQueries(FilterData $filterData) {
-
-        foreach($this->getOrders() as $order) {
-            $priority = $this->determineKeyAvailability($filterData->orderQueries, $order->getPriority());
-            $filterData->orderQueries[$priority] = $order->getQuery();
-        }
-
-        /** @var Join $join */
-        foreach($this->joins as $join) {
-            $join->generateOrderQueries($filterData);
-        }
-    }
-
     public function generateJoinQueries(FilterData $filterData) {
 
         $this->getQuery($filterData);

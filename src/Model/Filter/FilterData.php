@@ -6,6 +6,7 @@ use App\Api\ApiProblemException;
 use App\Entity\CustomObject;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\ORM\EntityManagerInterface;
 
 class FilterData extends AbstractFilter
 {
@@ -83,6 +84,11 @@ class FilterData extends AbstractFilter
      * @var array
      */
     public $orderQueries = [];
+
+    /**
+     * @var array
+     */
+    public $groupByQueries = [];
 
     /**
      * @var array
@@ -363,15 +369,24 @@ class FilterData extends AbstractFilter
 
     public function generateOrderQueries() {
 
-        // todo this needs to be changed now that we changed our process
         foreach($this->getOrders() as $order) {
             $priority = $this->determineKeyAvailability($this->orderQueries, $order->getPriority());
-            $this->orderQueries[$priority] = $order->getQuery();
+
+            if($column = $this->getColumnByUid($order->getUid())) {
+                $this->orderQueries[$priority] = $order->getQuery($column);
+            }
         }
 
-        /** @var Join $join */
-        foreach($this->joins as $join) {
-            $join->generateOrderQueries($this);
+        return $this;
+    }
+
+    public function generateGroupByQueries() {
+
+        foreach($this->getGroupBys() as $groupBy) {
+
+            if($column = $this->getColumnByUid($groupBy->getUid())) {
+                $this->groupByQueries[] = $groupBy->getQuery($column);
+            }
         }
 
         return $this;
@@ -400,6 +415,18 @@ class FilterData extends AbstractFilter
     }
 
     public function getQuery() {
+
+        $this->generateAliases()
+            ->generateColumnQueries()
+            ->generateFilterCriteria()
+            ->generateFilterQueries()
+            ->generateJoinQueries()
+            ->generateJoinConditionalQueries()
+            ->generateSearchQueries()
+            ->generateOrderQueries()
+            ->generateGroupByQueries()
+            ->validate();
+
         $columnStr = implode(",",$this->columnQueries);
 
         if($this->statement === 'SELECT') {
@@ -426,6 +453,8 @@ class FilterData extends AbstractFilter
 
         ksort($this->orderQueries);
         $orderString = !empty($this->orderQueries) ? sprintf("ORDER BY %s", implode(", \n", $this->orderQueries)) : '';
+
+        $groupString = !empty($this->groupByQueries) ? sprintf(" \nGROUP BY %s\n", implode(", ", $this->groupByQueries)) : '';
 
         $limitString = $this->limit !== null ? sprintf("LIMIT %s \n", $this->limit) : '';
         $offsetString = $this->offset !== null ? sprintf("OFFSET %s \n", $this->offset) : '';
@@ -461,5 +490,32 @@ class FilterData extends AbstractFilter
         }
 
         return $query;
+    }
+
+    public function runQuery(EntityManagerInterface $entityManager) {
+
+        $query = $this->getQuery();
+
+        try {
+            $stmt = $entityManager->getConnection()->prepare($query);
+        } catch (\Exception $exception) {
+            throw new ApiProblemException(400, sprintf('Error running query. Contact system administrator %s', $exception->getMessage()));
+        }
+
+        if(!$stmt->execute()) {
+            throw new ApiProblemException(400, 'Error running query. Contact system administrator');
+        }
+
+        if($this->getStatement() === 'SELECT') {
+            $results = $stmt->fetchAll();
+            return array(
+                'count' => count($results),
+                "results"  => $results,
+            );
+        } elseif ($this->getStatement() === 'UPDATE') {
+            return array("results"  => 'Records successfully updated.');
+        } else {
+            throw new ApiProblemException(400, 'Statement not supported');
+        }
     }
 }

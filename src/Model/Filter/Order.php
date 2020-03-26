@@ -18,27 +18,6 @@ class Order
     protected $priority = 0;
 
     /**
-     * @var string
-     */
-    protected $alias;
-
-    /**
-     * @return string
-     */
-    public function getAlias(): string
-    {
-        return $this->alias;
-    }
-
-    /**
-     * @param string $alias
-     */
-    public function setAlias(string $alias): void
-    {
-        $this->alias = $alias;
-    }
-
-    /**
      * @return string
      */
     public function getSort(): string
@@ -70,11 +49,11 @@ class Order
         $this->priority = $priority;
     }
 
-    public function getQuery() {
+    public function getQuery(Column $column) {
 
         $orderQuery = <<<HERE
 `%s`.properties->>'$."%s"' %s
 HERE;
-        return sprintf($orderQuery, $this->alias, $this->property->getInternalName(), $this->sort);
+        return sprintf($orderQuery, $column->getAlias(), $column->getProperty()->getInternalName(), $this->sort);
     }
 }

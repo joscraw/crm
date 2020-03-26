@@ -9,6 +9,8 @@ use Doctrine\Common\Collections\Collection;
 
 class Filter
 {
+    use Uid;
+
     /**
      * @var Property
      */
@@ -38,11 +40,6 @@ class Filter
      * @var string
      */
     protected $highValue;
-
-    /**
-     * @var string
-     */
-    protected $uid;
 
     /**
      * @return Property
@@ -138,22 +135,6 @@ class Filter
     public function setHighValue(string $highValue): void
     {
         $this->highValue = $highValue;
-    }
-
-    /**
-     * @return string
-     */
-    public function getUid(): string
-    {
-        return $this->uid;
-    }
-
-    /**
-     * @param string $uid
-     */
-    public function setUid(string $uid): void
-    {
-        $this->uid = $uid;
     }
 
     /**

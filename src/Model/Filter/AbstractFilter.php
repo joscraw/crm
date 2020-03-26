@@ -136,11 +136,47 @@ class AbstractFilter
         $this->alias = $alias;
     }
 
-    public function getFilterByUid() {
+    /**
+     * @param string $uid
+     * @return Filter|bool
+     */
+    public function getFilterByUid(string $uid) {
 
+        foreach($this->getFilters() as $filter) {
+            if($filter->getUid() === $uid) {
+                return $filter;
+            }
+        }
+
+        /** @var Join $join */
+        foreach($this->joins as $join) {
+            if($filter = $join->getFilterByUid($uid)) {
+                return $filter;
+            }
+        }
+
+        return false;
     }
 
-    public function getColumnByUid() {
+    /**
+     * @param string $uid
+     * @return Column|bool
+     */
+    public function getColumnByUid(string $uid) {
 
+        foreach($this->getColumns() as $column) {
+            if($column->getUid() === $uid) {
+                return $column;
+            }
+        }
+
+        /** @var Join $join */
+        foreach($this->joins as $join) {
+            if($column = $join->getColumnByUid($uid)) {
+                return $column;
+            }
+        }
+
+        return false;
     }
 }

@@ -919,14 +919,13 @@ class RecordController extends ApiController
      * @param CustomObject $customObject
      * @param Request $request
      * @return Response
-     * @throws \Doctrine\DBAL\DBALException
      */
     public function filterAction(Portal $portal, CustomObject $customObject, Request $request) {
 
         $data = $request->request->get('filterData', []);
         /** @var FilterData $filterData */
         $filterData = $this->serializer->deserialize(json_encode($data, true), FilterData::class, 'json');
-        $results = $this->recordRepository->filterRecords($filterData);
+        $results = $filterData->runQuery($this->entityManager);
         $response = new JsonResponse([
             'success' => true,
             'data'  => $results

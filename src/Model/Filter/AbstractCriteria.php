@@ -2,12 +2,13 @@
 
 namespace App\Model\Filter;
 
-
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 
 class AbstractCriteria
 {
+    use Uid;
+
     /**
      * @var AndCriteria[]
      */
@@ -17,11 +18,6 @@ class AbstractCriteria
      * @var OrCriteria[]
      */
     protected $or;
-
-    /**
-     * @var string
-     */
-    protected $uid;
 
     public function __construct()
     {
@@ -93,22 +89,6 @@ class AbstractCriteria
         }
 
         return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public function getUid(): string
-    {
-        return $this->uid;
-    }
-
-    /**
-     * @param string $uid
-     */
-    public function setUid(string $uid): void
-    {
-        $this->uid = $uid;
     }
 
     public function generateFilterCriteria(FilterData $filterData) {

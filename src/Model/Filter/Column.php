@@ -9,6 +9,8 @@ use App\Model\NumberField;
 
 class Column
 {
+    use Uid;
+
     /**
      * @var Property
      */
