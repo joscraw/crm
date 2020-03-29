@@ -2,8 +2,10 @@
 
 namespace App\Utils;
 
+use App\AuthorizationHandler\PermissionAuthorizationHandler;
 use App\Repository\ApiTokenRepository;
 use App\Repository\CustomObjectRepository;
+use App\Repository\FilterRepository;
 use App\Repository\GmailAttachmentRepository;
 use App\Repository\GmailMessageRepository;
 use App\Repository\GmailAccountRepository;
@@ -15,12 +17,16 @@ use App\Repository\UserRepository;
 use App\Security\LoginFormAuthenticator;
 use App\Service\GmailProvider;
 use App\Service\ImageCacheGenerator;
+use App\Service\PhpSpreadsheetHelper;
 use App\Service\UploaderHelper;
+use App\Service\WorkflowProcessor;
 use Doctrine\ORM\EntityManagerInterface;
 use Liip\ImagineBundle\Imagine\Cache\CacheManager;
 use Symfony\Component\Asset\Packages;
+use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\HttpKernel\KernelInterface;
+use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\Routing\RouterInterface;
@@ -166,6 +172,36 @@ trait ServiceHelper
     private $cacheManager;
 
     /**
+     * @var PermissionAuthorizationHandler
+     */
+    private $permissionAuthorizationHandler;
+
+    /**
+     * @var FilterRepository
+     */
+    private $filterRepository;
+
+    /**
+     * @var WorkflowProcessor
+     */
+    private $workflowProcessor;
+
+    /**
+     * @var MessageBusInterface $bus
+     */
+    private $bus;
+
+    /**
+     * @var PhpSpreadsheetHelper;
+     */
+    private $phpSpreadsheetHelper;
+
+    /**
+     * @var UploaderHelper
+     */
+    private $uploadHelper;
+
+    /**
      * ServiceHelper constructor.
      * @param EntityManagerInterface $entityManager
      * @param Packages $assetsManager
@@ -194,6 +230,12 @@ trait ServiceHelper
      * @param ApiTokenRepository $apiTokenRepo
      * @param ImageCacheGenerator $imageCacheGenerator
      * @param CacheManager $cacheManager
+     * @param PermissionAuthorizationHandler $permissionAuthorizationHandler
+     * @param FilterRepository $filterRepository
+     * @param WorkflowProcessor $workflowProcessor
+     * @param MessageBusInterface $bus
+     * @param PhpSpreadsheetHelper $phpSpreadsheetHelper
+     * @param UploaderHelper $uploadHelper
      */
     public function __construct(
         EntityManagerInterface $entityManager,
@@ -222,7 +264,13 @@ trait ServiceHelper
         GmailAttachmentRepository $gmailAttachmentRepository,
         ApiTokenRepository $apiTokenRepo,
         ImageCacheGenerator $imageCacheGenerator,
-        CacheManager $cacheManager
+        CacheManager $cacheManager,
+        PermissionAuthorizationHandler $permissionAuthorizationHandler,
+        FilterRepository $filterRepository,
+        WorkflowProcessor $workflowProcessor,
+        MessageBusInterface $bus,
+        PhpSpreadsheetHelper $phpSpreadsheetHelper,
+        UploaderHelper $uploadHelper
     ) {
         $this->entityManager = $entityManager;
         $this->assetsManager = $assetsManager;
@@ -251,6 +299,12 @@ trait ServiceHelper
         $this->apiTokenRepo = $apiTokenRepo;
         $this->imageCacheGenerator = $imageCacheGenerator;
         $this->cacheManager = $cacheManager;
+        $this->permissionAuthorizationHandler = $permissionAuthorizationHandler;
+        $this->filterRepository = $filterRepository;
+        $this->workflowProcessor = $workflowProcessor;
+        $this->bus = $bus;
+        $this->phpSpreadsheetHelper = $phpSpreadsheetHelper;
+        $this->uploadHelper = $uploadHelper;
     }
 
     /**
@@ -267,5 +321,4 @@ trait ServiceHelper
             $routerContext->getBaseUrl()
         );
     }
-
 }

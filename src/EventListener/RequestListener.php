@@ -19,5 +19,11 @@ class RequestListener
             $data = json_decode($request->getContent(), true);
             $request->request->replace(is_array($data) ? $data : array());
         }
+
+        if (0 === strpos($request->headers->get('Accept'), 'application/json')) {
+            $request->setRequestFormat('json');
+        } else {
+            $request->setRequestFormat('html');
+        }
     }
 }

@@ -14,25 +14,6 @@
 </div>
 <br>
 <div class="js-column-mapper">
-{#    {% if columns is not empty %}
-        <small style="font-weight: bold">Here's a fun fact for you!</small>
-        <br>
-        <small>
-            Choosing "Unmapped" will use the exact same name as the column from your spreadsheet! We have to spice it up a little bit though!
-            We remove all special characters (except underscores), convert to lowercase,
-            and replace all spaces with underscores. Example: "NC FIRST NAME" will be mapped in as "nc_first_name".
-        </small>
-        <br>
-        <small style="font-weight: bold">Okay, so what does that mean for you?</small>
-        <br>
-        <small>
-            This means that even if you haven't created a property that matches one of your column names,
-            you can always create one later. Even after you've done the import!
-        </small>
-        <br>
-        <br>
-    {% endif %}#}
-
     {% set sharedButtonMarkup %}
         <button type="button" class="btn btn-link js-addItem float-left"><i class="fa fa-plus" aria-hidden="true"></i> Add mapping</button>
     {% endset %}

@@ -129,6 +129,8 @@ class RecordListener
     public function postUpdate(Record $record, LifecycleEventArgs $args) {
 
         $record->updated_at = $record->getUpdatedAt()->format("m/d/Y");
+        $this->entityManager->persist($record);
+        $this->entityManager->flush();
         // todo possibly add the logic here for automations/workflows
         //  but take not this will only fire if the data is different at all. Will this work with JSON as well?
         //  since this is all in one column? Will this fire if one JSON value gets updated in that column? Hmmm. Test that out.

@@ -35,6 +35,10 @@ class RecordImportSpreadsheetValidator extends ConstraintValidator
      */
     public function validate($file, Constraint $constraint)
     {
+        if(!$file) {
+            return;
+        }
+
         // Let's let PHPSpreadsheet validate it for us and try to load the columns from the spreadsheet
         // If it can't we aren't going to be able to load the file in anyways to import so let's just
         // throw an error back to the end user

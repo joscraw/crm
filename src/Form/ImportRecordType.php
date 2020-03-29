@@ -39,6 +39,7 @@ use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\Count;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\NotNull;
 
@@ -114,7 +115,10 @@ class ImportRecordType extends AbstractType
                 'entry_options' => [
                     'customObject' => $customObject,
                     'columns' => $columns
-                ]
+                ],
+                /*'constraints' => [
+                    new Count(['min' => 1, 'minMessage' => 'You must add at least one mapping!'])
+                ]*/
             ]
         );
         $form->add($builder->getForm());
@@ -135,7 +139,10 @@ class ImportRecordType extends AbstractType
 
     public function configureOptions(OptionsResolver $resolver)
     {
-        $resolver->setDefault('allow_extra_fields', true);
+        $resolver->setDefaults([
+            'allow_extra_fields' => true,
+            'csrf_protection' => false
+        ]);
         $resolver->setRequired(['customObject']);
     }
 }

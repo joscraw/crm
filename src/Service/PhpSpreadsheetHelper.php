@@ -26,14 +26,16 @@ class PhpSpreadsheetHelper
     }
 
     /**
-     * @param UploadedFile $uploadedFile
+     * @param File $uploadedFile
      * @return array
-     * @throws \Exception
+     * @throws \Box\Spout\Common\Exception\IOException
+     * @throws \Box\Spout\Reader\Exception\ReaderNotOpenedException
      */
-    public function getColumns(UploadedFile $uploadedFile) {
+    public function getColumns(File $uploadedFile) {
 
-        $tempPathName = $uploadedFile->getRealPath();
-        $fileExtension = $uploadedFile->getClientOriginalExtension();
+        $fileExtension = $this->uploadHelper->guessExtension($uploadedFile);
+        $path = $uploadedFile->getRealPath();
+
         $columns = [];
 
         switch ($fileExtension) {
@@ -51,7 +53,7 @@ class PhpSpreadsheetHelper
                 break;
         }
 
-        $reader->open($tempPathName);
+        $reader->open($path);
 
         /** @var \Box\Spout\Reader\SheetInterface $sheet */
         foreach ($reader->getSheetIterator() as $sheet) {
