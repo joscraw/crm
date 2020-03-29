@@ -47,7 +47,7 @@ class PhpSpreadsheetHelper
                 $reader = ReaderEntityFactory::createCSVReader();
                 break;
             default:
-                throw new \Exception("Reader could not be created from file extension: %s", $fileExtension);
+                throw new \Exception("Error reading file. Make sure file is a valid CSV, ODD, or XLSX. File extension %s being used.", $fileExtension);
                 break;
         }
 

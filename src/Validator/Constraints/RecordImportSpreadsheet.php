@@ -19,5 +19,5 @@ class RecordImportSpreadsheet extends Constraint
         parent::__construct($options);
     }
 
-    public $message = 'Error reading file. Make sure file is a valid CSV, XSL, or XLSX.';
+    public $message = 'Error reading file. Make sure file is a valid CSV, ODD, or XLSX.';
 }
