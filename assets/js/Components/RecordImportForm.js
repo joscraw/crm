@@ -8,6 +8,7 @@ import List from 'list.js';
 import ColumnSearch from "./ColumnSearch";
 require('jquery-ui-dist/jquery-ui');
 import AjaxLoader from '../AjaxLoader';
+import FormCollectionPrototypeUpdater from "../FormCollectionPrototypeUpdater";
 
 class RecordImportForm {
 
@@ -45,6 +46,19 @@ class RecordImportForm {
             RecordImportForm._selectors.importFileField,
             this.handleFileFieldChange.bind(this)
         );
+
+        this.$wrapper.on(
+            'click',
+            RecordImportForm._selectors.addItem,
+            this.handleAddItemButtonClick.bind(this)
+        );
+
+        this.$wrapper.on(
+            'click',
+            RecordImportForm._selectors.removeItem,
+            this.handleRemoveItemButtonClick.bind(this)
+        );
+
         return this;
     }
 
@@ -55,7 +69,9 @@ class RecordImportForm {
         return {
             importFileField: '.js-import-file-field',
             form: '.js-record-import-form',
-            customFileLabel: '.custom-file-label'
+            customFileLabel: '.custom-file-label',
+            addItem: '.js-addItem',
+            removeItem: '.js-removeItem'
         }
     }
 
@@ -70,6 +86,43 @@ class RecordImportForm {
                 reject(errorData);
             });
         });
+    }
+
+    handleAddItemButtonClick(e) {
+
+        debugger;
+        if(e.cancelable) {
+            e.preventDefault();
+        }
+
+        let $parentContainer = $('.js-parent-container');
+        let index = $parentContainer.children('.js-child-item').length;
+        let template = $parentContainer.data('template');
+        let tpl = eval('`'+template+'`');
+        let $container = $('<li>').addClass('list-group-item js-child-item');
+        $container.append(tpl);
+        $parentContainer.append($container);
+    }
+
+    handleRemoveItemButtonClick(e) {
+
+        if(e.cancelable) {
+            e.preventDefault();
+        }
+
+        let $item = $(e.currentTarget).parents('.js-child-item');
+        let $container = $item.closest('.js-parent-container');
+        let fieldPrefix = FormCollectionPrototypeUpdater.getFieldPrefix($item);
+        let index = $item.index();
+        $item.remove();
+        $container.children().slice(index).each(this.updateListElementGenerator(index, fieldPrefix));
+    }
+
+    updateListElementGenerator(offset, fieldPrefix) {
+        return function(index, el) {
+            debugger;
+            FormCollectionPrototypeUpdater.updateAttributes($(el), fieldPrefix, offset + index + 1)
+        }
     }
 
     /**

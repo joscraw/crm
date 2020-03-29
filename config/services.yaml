@@ -43,12 +43,16 @@ services:
             - { name: doctrine.orm.entity_listener }
 
     App\EntityListener\WorkflowListener:
-      tags:
-        - { name: doctrine.orm.entity_listener }
+        tags:
+            - { name: doctrine.orm.entity_listener }
 
     App\EntityListener\RecordListener:
         tags:
             - { name: doctrine.orm.entity_listener }
+
+    App\EntityListener\CustomObjectListener:
+      tags:
+        - { name: doctrine.orm.entity_listener }
 
   # add more service definitions when explicit configuration is needed
   # please note that last definitions always *replace* previous ones

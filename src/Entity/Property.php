@@ -124,6 +124,7 @@ class Property
     protected $defaultPropertyOrder;
 
     /**
+     * This flag is used for system defined properties which can't be deleted
      * @ORM\Column(type="boolean")
      */
     protected $systemDefined = false;
@@ -137,6 +138,14 @@ class Property
      * @ORM\OneToMany(targetEntity="App\Entity\SetPropertyValueAction", mappedBy="property")
      */
     private $setPropertyValueActions;
+
+    /**
+     * This property is used to determine whether or not we show that property in
+     * the create, edit, and list view for the properties
+     *
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private $hidden;
 
     public function __construct()
     {
@@ -430,6 +439,18 @@ class Property
                 $setPropertyValueAction->setProperty(null);
             }
         }
+
+        return $this;
+    }
+
+    public function isHidden(): ?bool
+    {
+        return $this->hidden;
+    }
+
+    public function setHidden(?bool $hidden): self
+    {
+        $this->hidden = $hidden;
 
         return $this;
     }

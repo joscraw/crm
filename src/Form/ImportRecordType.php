@@ -26,6 +26,7 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\CallbackTransformer;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\CollectionType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
@@ -76,12 +77,14 @@ class ImportRecordType extends AbstractType
                 new RecordImportSpreadsheet([])
             ]
         ]);
+
         $builder->get('file')->addEventListener(FormEvents::POST_SUBMIT, [$this, 'fieldModifier']);
     }
 
     /**
      * @see * @see https://stackoverflow.com/questions/25354806/how-to-add-an-event-listener-to-a-dynamically-added-field-using-symfony-forms#answer-29735470
      * @param FormEvent $event
+     * @throws \Exception
      */
     public function fieldModifier(FormEvent $event) {
         $form = $event->getForm()->getParent();
@@ -89,40 +92,33 @@ class ImportRecordType extends AbstractType
         $customObject = $form->getConfig()->getOption('customObject');
         /** @var UploadedFile $uploadedFile */
         $uploadedFile = $event->getData();
-        if(!$columns = $this->phpSpreadsheetHelper->getColumnNames($uploadedFile)) {
+
+        try {
+            $columns = $this->phpSpreadsheetHelper->getColumns($uploadedFile);
+        } catch (\Exception $exception) {
             return;
         }
-        foreach($columns as $column) {
-            $columnFormFieldName = $this->phpSpreadsheetHelper->formFriendly($column)[0];
-            $builder = $form->getConfig()->getFormFactory()->createNamedBuilder(
-                $columnFormFieldName,
-                ChoiceType::class,
-                null,
-               [
-                   'auto_initialize' => false,
-                   'label' => false,
-                   'choices'  => $this->phpSpreadsheetHelper->choicesForForm($column)
-               ]
-            );
-            $form->add($builder->getForm());
-            $properties = [];
-            $properties['Unmapped'] = 'unmapped';
-            foreach($customObject->getProperties() as $property) {
-                $properties[$property->getLabel()] = $property->getInternalName();
-            }
-            $builder = $form->getConfig()->getFormFactory()->createNamedBuilder(
-                $columnFormFieldName . '_properties',
-                ChoiceType::class,
-                null,
-                [
-                    'auto_initialize' => false,
-                    'label' => false,
-                    'choices'  => $properties,
-                    'data' => 'unmapped'
+
+        $builder = $form->getConfig()->getFormFactory()->createNamedBuilder(
+            'mappings',
+            CollectionType::class,
+            null,
+            [
+                'auto_initialize' => false,
+                'entry_type'   => ImportRecordsColumnMappingType::class,
+                'allow_add' => true,
+                'label' => false,
+                'error_bubbling' => false,
+                'prototype' => true,
+                'prototype_name' => '__prototype_one__',
+                'entry_options' => [
+                    'customObject' => $customObject,
+                    'columns' => $columns
                 ]
-            );
-            $form->add($builder->getForm());
-        }
+            ]
+        );
+        $form->add($builder->getForm());
+
         $builder = $form->getConfig()->getFormFactory()->createNamedBuilder(
             'import',
             SubmitType::class,

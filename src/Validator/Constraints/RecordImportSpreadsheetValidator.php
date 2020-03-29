@@ -38,7 +38,9 @@ class RecordImportSpreadsheetValidator extends ConstraintValidator
         // Let's let PHPSpreadsheet validate it for us and try to load the columns from the spreadsheet
         // If it can't we aren't going to be able to load the file in anyways to import so let's just
         // throw an error back to the end user
-        if(!$this->phpSpreadsheetHelper->getColumnNames($file)) {
+        try {
+            $this->phpSpreadsheetHelper->getColumns($file);
+        } catch (\Exception $exception) {
             $this->context->buildViolation($constraint->message)
                 ->addViolation();
         }

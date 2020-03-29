@@ -2,6 +2,15 @@
     "behat/transliterator": {
         "version": "v1.2.0"
     },
+    "blackfire/php-sdk": {
+        "version": "v1.22.0"
+    },
+    "box/spout": {
+        "version": "v3.1.0"
+    },
+    "composer/ca-bundle": {
+        "version": "1.2.6"
+    },
     "doctrine/annotations": {
         "version": "1.0",
         "recipe": {

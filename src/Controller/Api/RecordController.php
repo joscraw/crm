@@ -813,15 +813,10 @@ class RecordController extends ApiController
             ]
         );
         if ($form->isSubmitted() && $form->isValid()) {
-            /** @var UploadedFile $file */
-            $file = $form->get('file')->getData();
-            $columns = $this->phpSpreadsheetHelper->getColumnNames($file);
-            $columns = $this->phpSpreadsheetHelper->formFriendly($columns);
             $formMarkup = $this->renderView(
                 'Api/form/record_import_form.html.twig',
                 [
-                    'form' => $form->createView(),
-                    'columns' => $columns
+                    'form' => $form->createView()
                 ]
             );
         } elseif ($form->isSubmitted() && !$form->isValid()) {
@@ -852,29 +847,10 @@ class RecordController extends ApiController
         $formMarkup = $this->renderView(
             'Api/form/record_import_form.html.twig',
             [
-                'form' => $form->createView(),
-                'columns' => []
+                'form' => $form->createView()
             ]
         );
-        if($form->isSubmitted()) {
-            $importData = $form->getData();
-            // We don't need to pass the file object into the message
-            unset($importData['file']);
-          /*  $duplicates = $this->arrayNotUnique($importData);
-            foreach($duplicates as $duplicate) {
-                if($duplicate !== 'unmapped') {
-                    $form->addError(new FormError('You can\'t map more than one column to the same property!'));
-                }
-                break;
-            }*/
-            $formMarkup = $this->renderView(
-                'Api/form/record_import_form.html.twig',
-                [
-                    'form' => $form->createView(),
-                    'columns' => []
-                ]
-            );
-        }
+
         if($form->isSubmitted() && $form->isValid()) {
             $importData = $form->getData();
             /** @var UploadedFile $file */
@@ -893,11 +869,10 @@ class RecordController extends ApiController
             $spreadsheet->setOriginalName($file->getClientOriginalName() ?? $newFilename);
             $spreadsheet->setMimeType($mimeType ?? 'application/octet-stream');
             $spreadsheet->setFileName($newFilename);
+            $spreadsheet->setMappings($form->get('mappings')->getData());
             $this->entityManager->persist($spreadsheet);
             $this->entityManager->flush();
-            // We don't need to pass the file object into the message
-            unset($importData['file']);
-            $this->bus->dispatch(new ImportSpreadsheet($spreadsheet->getId(), $importData));
+            $this->bus->dispatch(new ImportSpreadsheet($spreadsheet->getId()));
             return new JsonResponse([
                 'success' => true,
                 'formMarkup' => $formMarkup,

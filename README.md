@@ -48,3 +48,10 @@
     sudo apt install php-cli php-mailparse and gd
     
     _______________________________________________
+    
+    
+    Make sure to use --no-debug on your local to not consume memory by built in 
+    Symfony data collector/profiler. You might need this on production as well. 
+    Test this out.
+    
+    ./bin/console app:test --no-debug

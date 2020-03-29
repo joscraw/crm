@@ -9,6 +9,7 @@ use Gedmo\Timestampable\Traits\TimestampableEntity;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\RecordRepository")
+ * @ORM\EntityListeners({"App\EntityListener\RecordListener"})
  */
 class Record
 {
@@ -45,6 +46,17 @@ class Record
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function __get($key) {
+        $properties = $this->getProperties();
+        return array_key_exists($key, $properties) ? $properties[$key] : null;
+    }
+
+    public function __set($key, $value) {
+        $properties = $this->getProperties();
+        $properties[$key] = $value;
+        $this->setProperties($properties);
     }
 
     public function getCustomObject(): ?CustomObject

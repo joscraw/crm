@@ -4,12 +4,14 @@ namespace App\MessageHandler;
 
 use App\Entity\Record;
 use App\Message\ImportSpreadsheet;
+use App\Repository\CustomObjectRepository;
 use App\Repository\SpreadsheetRepository;
 use App\Service\PhpSpreadsheetHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Symfony\Component\HttpFoundation\File\File;
+use Symfony\Component\HttpKernel\Profiler\Profiler;
 use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
 
 /**
@@ -42,23 +44,35 @@ class ImportSpreadsheetHandler implements MessageHandlerInterface, LoggerAwareIn
     private $uploadsPath;
 
     /**
+     * @var CustomObjectRepository
+     */
+    private $customObjectRepository;
+
+    /**
      * ImportSpreadsheetHandler constructor.
      * @param EntityManagerInterface $entityManager
      * @param SpreadsheetRepository $spreadsheetRepository
      * @param PhpSpreadsheetHelper $phpSpreadsheetHelper
-     * @param $uploadsPath
+     * @param string $uploadsPath
+     * @param CustomObjectRepository $customObjectRepository
      */
-    public function __construct(EntityManagerInterface $entityManager,
+    public function __construct(
+        EntityManagerInterface $entityManager,
         SpreadsheetRepository $spreadsheetRepository,
         PhpSpreadsheetHelper $phpSpreadsheetHelper,
-        $uploadsPath
-    )
-    {
+        string $uploadsPath,
+        CustomObjectRepository $customObjectRepository
+    ) {
         $this->entityManager = $entityManager;
         $this->spreadsheetRepository = $spreadsheetRepository;
         $this->phpSpreadsheetHelper = $phpSpreadsheetHelper;
         $this->uploadsPath = $uploadsPath;
+        $this->customObjectRepository = $customObjectRepository;
+
+        // Help Prevent Memory leakage
+        $this->entityManager->getConfiguration()->setSQLLogger(null);
     }
+
 
     /**
      * @see https://symfonycasts.com/screencast/messenger
@@ -89,51 +103,116 @@ class ImportSpreadsheetHandler implements MessageHandlerInterface, LoggerAwareIn
      */
     public function __invoke(ImportSpreadsheet $message)
     {
-        // NOTE 3
+        // Make sure garbage collection is enabled.
+        gc_enable();
+
         $spreadsheetId = $message->getSpreadsheetId();
         $spreadsheet = $this->spreadsheetRepository->find($spreadsheetId);
-        // NOTE 4
+        $customObjectId = $spreadsheet->getCustomObject()->getId();
+        $mappings = $spreadsheet->getMappings();
+
         if(!$spreadsheet) {
+             if ($this->logger) {
+                 $this->logger->alert(sprintf('Spreadsheet %d was missing!', $spreadsheetId));
+             }
+            return;
+        }
+
+        if(empty($mappings)) {
             if ($this->logger) {
-                $this->logger->alert(sprintf('Spreadsheet %d was missing!', $spreadsheetId));
+                $this->logger->alert(sprintf('Spreadsheet mapping missing for spreadsheet %d!', $spreadsheetId));
             }
             return;
         }
+
         $path = $this->uploadsPath.'/'.$spreadsheet->getPath();
         $file = new File($path);
-        // if the service can't load the rows just return
-        if(!$rows = $this->phpSpreadsheetHelper->getAllRows($file)) {
+
+        try {
+            $reader = $this->phpSpreadsheetHelper->getReader($file);
+        } catch (\Exception $exception) {
+            if ($this->logger) {
+                $this->logger->alert(sprintf('Error loading spreadsheet reader for spreadsheet: %d (%s).', $spreadsheetId, $exception->getMessage()));
+            }
             return;
         }
-        $importData = $message->getImportData();
-        // The first row is the columns. So let's go ahead and remove those
-        $columns = array_shift($rows);
-        foreach($rows as $row) {
-            $record = new Record();
-            $properties = [];
-            foreach($row as $index => $value) {
-                $formFriendlyName = $this->phpSpreadsheetHelper->formFriendly($columns[$index])[0];
-                if(empty($formFriendlyName)) {
-                    continue;
-                }
-                $internalName = $importData[$formFriendlyName . '_properties'];
-                // if one of the values is null from the import then just set it to an empty string.
-                if($value === null) {
-                    $value = '';
-                }
-                // if the user chose unmapped for one of the columns
-                // go ahead and use the form friendly column name from the csv
-                if($internalName === 'unmapped') {
-                    $properties[$formFriendlyName] = $value;
-                } else {
-                    $properties[$internalName] = $value;
+
+        try {
+            $this->entityManager->beginTransaction();
+
+            /** @var \Box\Spout\Reader\SheetInterface $sheet */
+            foreach ($reader->getSheetIterator() as $sheet) {
+                /** @var \Box\Spout\Common\Entity\Row $row */
+                $columns = [];
+                $batchSize = 20;
+                foreach ($sheet->getRowIterator() as $rowIndex => $row) {
+                    $values = [];
+                    $importData = [];
+
+                    $cells = $row->getCells();
+                    foreach ($cells as $cell) {
+                        $value = $cell->getValue();
+                        if($rowIndex === 1) {
+                            $columns[] = $value;
+
+                        } else {
+                            $values[] = $value;
+                        }
+                    }
+
+                    if($rowIndex > 1) {
+                        $record = new Record();
+                        $data = array_combine($columns, $values);
+                        foreach($data as $column => $value) {
+                            $mapping = array_filter($mappings, function($mapping) use($column) {
+                                return !empty($mapping['mapped_from']) &&  $mapping['mapped_from'] === $column;
+                            });
+                            $mapping = array_values($mapping);
+                            if(!empty($mapping[0]) && !empty($mapping[0]['mapped_to'])) {
+                                $importData[$mapping[0]['mapped_to']] = $value;
+                            }
+                        }
+                        $record->setProperties($importData);
+                        // Because we are batching and completely clearing the entity manager
+                        // to conserve memory, we need to re-fetch the custom object entity each time
+                        $record->setCustomObject($this->customObjectRepository->find($customObjectId));
+                        $this->entityManager->persist($record);
+                    }
+
+                    if (($rowIndex % $batchSize) === 0) {
+                        $this->entityManager->flush();
+                        echo sprintf("Records imported %s", $rowIndex);
+                        $this->entityManager->clear();
+                    }
+
+                    // clean up unused variables to conserve memory
+                    // I didn't really notice hardly any memory improvement
+                    // with un setting these. But I know it def helps regardless
+                    unset($mapping);
+                    unset($column);
+                    unset($record);
+                    unset($data);
+                    unset($cell);
+                    unset($cells);
+                    unset($values);
+                    unset($rowIndex);
+                    unset($importData);
+                    unset($row);
+                    unset($value);
+                    gc_collect_cycles();
                 }
             }
-            $record->setProperties($properties);
-            $record->setCustomObject($spreadsheet->getCustomObject());
-            $this->entityManager->persist($record);
+            // make sure any final records that came after the (($rowIndex % $batchSize) === 0) are flushed
+            $this->entityManager->flush();
+            $this->entityManager->commit();
+
+        } catch (\Exception $exception) {
+            $this->entityManager->rollback();
+            if ($this->logger) {
+                $this->logger->alert(sprintf('Error parsing spreadsheet rows for spreadsheet: %d (%s).', $spreadsheetId, $exception->getMessage()));
+            }
+            return;
         }
-        $this->entityManager->flush();
-        echo sprintf("Import successfully handled");
+
     }
 }

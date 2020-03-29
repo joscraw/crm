@@ -13,24 +13,14 @@ class ImportSpreadsheet
      * @var int
      */
     private $spreadsheetId;
-    private $importData;
 
-    public function __construct(int $spreadsheetId, $importData)
+    public function __construct(int $spreadsheetId)
     {
         $this->spreadsheetId = $spreadsheetId;
-        $this->importData = $importData;
     }
 
     public function getSpreadsheetId(): int
     {
         return $this->spreadsheetId;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getImportData()
-    {
-        return $this->importData;
     }
 }
