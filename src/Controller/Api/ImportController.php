@@ -123,7 +123,10 @@ class ImportController extends ApiController
     public function importMapping(Portal $portal, Request $request) {
 
         $form = $this->createForm(ImportMappingType::class, null, [
-            'portal' => $portal
+            'portal' => $portal,
+            'validation_groups' => [
+                'MAPPING'
+            ]
         ]);
 
         $form->submit($request->request->all());
@@ -172,7 +175,10 @@ class ImportController extends ApiController
     public function import(Portal $portal, Request $request) {
 
         $form = $this->createForm(ImportMappingType::class, null, [
-            'portal' => $portal
+            'portal' => $portal,
+            'validation_groups' => [
+                'IMPORT'
+            ]
         ]);
 
         $form->submit($request->request->all());

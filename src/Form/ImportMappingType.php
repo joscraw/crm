@@ -23,6 +23,8 @@ use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\Count;
+use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\NotNull;
 
 
@@ -83,11 +85,22 @@ class ImportMappingType extends AbstractType
                     ->setParameter('portal', $portal);
             },
             'choice_label' => 'name',
+            'constraints' => [
+                new NotNull(['groups' => ['IMPORT', 'MAPPING']])
+            ]
         ));
 
-        $builder->add('originalFileName', TextType::class, array());
+        $builder->add('originalFileName', TextType::class, array(
+            'constraints' => [
+                new NotBlank(['groups' => ['IMPORT']])
+            ]
+        ));
 
-        $builder->add('file', TextareaType::class, []);
+        $builder->add('file', TextareaType::class, [
+            'constraints' => [
+                new NotBlank(['groups' => ['IMPORT', 'MAPPING']])
+            ]
+        ]);
 
         $builder->get('file')->addEventListener(FormEvents::POST_SUBMIT, [$this, 'fieldModifier']);
         $builder->get('file')->addModelTransformer($this->importFileTransformer);
@@ -105,7 +118,7 @@ class ImportMappingType extends AbstractType
         /** @var File $uploadedFile */
         $uploadedFile  = $event->getForm()->getData();
 
-        if(empty($uploadedFile)) {
+        if(empty($uploadedFile) || !$customObject) {
             return;
         }
 
@@ -131,9 +144,9 @@ class ImportMappingType extends AbstractType
                     'customObject' => $customObject,
                     'columns' => $columns
                 ],
-                /*'constraints' => [
-                    new Count(['min' => 1, 'minMessage' => 'You must add at least one mapping!'])
-                ]*/
+                'constraints' => [
+                    new Count(['min' => 1, 'minMessage' => 'You must add at least one mapping!', 'groups' => ['IMPORT']])
+                ]
             ]
         );
         $form->add($builder->getForm());
