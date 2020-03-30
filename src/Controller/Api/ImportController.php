@@ -115,21 +115,24 @@ class ImportController extends ApiController
     }
 
     /**
-     * @Route("/{id}/mapping", name="api_import_mapping", methods={"POST", "GET"}, options = { "expose" = true })
+     * @Route("/mapping", name="api_import_mapping", methods={"POST"}, options = { "expose" = true })
      * @param Portal $portal
-     * @param CustomObject $customObject
      * @param Request $request
      * @return ApiResponse|string|JsonResponse
      */
-    public function importMapping(Portal $portal, CustomObject $customObject, Request $request) {
+    public function importMapping(Portal $portal, Request $request) {
 
-        $form = $this->createForm(ImportMappingType::class, null, []);
+        $form = $this->createForm(ImportMappingType::class, null, [
+            'portal' => $portal
+        ]);
 
-        $this->submit($request, $form);
+        $form->submit($request->request->all());
 
         if ($form->isSubmitted() && $form->isValid()) {
             /** @var File $uploadedFile */
             $uploadedFile = $form->get('file')->getData();
+            /** @var CustomObject $customObject */
+            $customObject = $form->get('customObject')->getData();
 
             try {
                 $columns = $this->phpSpreadsheetHelper->getColumns($uploadedFile);
@@ -161,24 +164,27 @@ class ImportController extends ApiController
     }
 
     /**
-     * @Route("/{id}/import", name="api_import", methods={"POST"}, options = { "expose" = true })
+     * @Route("", name="api_import", methods={"POST"}, options = { "expose" = true })
      * @param Portal $portal
-     * @param CustomObject $customObject
      * @param Request $request
      * @return ApiResponse|JsonResponse
      */
-    public function importTest(Portal $portal, CustomObject $customObject, Request $request) {
+    public function import(Portal $portal, Request $request) {
 
         $form = $this->createForm(ImportMappingType::class, null, [
-            'customObject' => $customObject
+            'portal' => $portal
         ]);
-        
-        $form->submit(array_merge($request->files->all(), $request->request->all()));
+
+        $form->submit($request->request->all());
 
         if ($form->isSubmitted() && $form->isValid()) {
             $importData = $form->getData();
-            /** @var UploadedFile $file */
+            /** @var File $file */
             $file = $form->get('file')->getData();
+
+            /** @var CustomObject $customObject */
+            $customObject = $form->get('customObject')->getData();
+            $originalFileName = $form->get('originalFileName')->getData();
             $newFilename = $this->uploadHelper->uploadSpreadsheet($file);
             // For security reasons symfony uses the following method to determine file extension
             // https://www.tutorialfor.com/questions-41236.htm
@@ -188,22 +194,24 @@ class ImportController extends ApiController
             } else {
                 $mimeType = $file->getMimeType();
             }
+
             $spreadsheet = new Spreadsheet();
             $spreadsheet->setCustomObject($customObject);
-            $spreadsheet->setOriginalName($file->getClientOriginalName() ?? $newFilename);
+            $spreadsheet->setOriginalName($originalFileName ?? $newFilename);
             $spreadsheet->setMimeType($mimeType ?? 'application/octet-stream');
             $spreadsheet->setFileName($newFilename);
             $spreadsheet->setMappings($form->get('mappings')->getData());
             $this->entityManager->persist($spreadsheet);
             $this->entityManager->flush();
             $this->bus->dispatch(new ImportSpreadsheet($spreadsheet->getId()));
-            return new JsonResponse([
-                'success' => true
-            ], Response::HTTP_OK);
+
+            return new ApiResponse("File successfully queued for import.", [
+                'success' => true,
+            ], [], 200);
         }
 
         $errors = $this->getErrorsFromForm($form);
-        return new ApiResponse("Error fetching mapping.", [
+        return new ApiResponse("Error queuing import.", [
             'success' => false,
         ], $errors, 400);
     }

@@ -115,15 +115,18 @@ class ImportController extends AbstractController
     }
 
     /**
-     * @Route("/{id}/form", name="import_form", methods={"GET", "POST"}, options = { "expose" = true })
+     * @Route("/{internalName}/mapping", name="import_mapping", methods={"GET", "POST"}, options = { "expose" = true })
      * @param Portal $portal
      * @param CustomObject $customObject
      * @param Request $request
      * @return JsonResponse
      */
-    public function importForm(Portal $portal, CustomObject $customObject, Request $request) {
+    public function importMapping(Portal $portal, CustomObject $customObject, Request $request) {
         $form = $this->createForm(ImportRecordType::class, null, [
-            'customObject' => $customObject
+            'customObject' => $customObject,
+            'validation_groups' => [
+                'MAPPING'
+            ]
         ]);
         $form->handleRequest($request);
         $formMarkup = $this->renderView(
@@ -162,7 +165,11 @@ class ImportController extends AbstractController
     public function importAction(Portal $portal, CustomObject $customObject, Request $request) {
         $user = $this->getUser();
         $form = $this->createForm(ImportRecordType::class, null, [
-            'customObject' => $customObject
+            'customObject' => $customObject,
+            'validation_groups' => [
+                'MAPPING',
+                'IMPORT'
+            ]
         ]);
         $form->handleRequest($request);
         $formMarkup = $this->renderView(
@@ -199,6 +206,14 @@ class ImportController extends AbstractController
                 'formMarkup' => $formMarkup,
             ], Response::HTTP_OK);
         }
+
+        $formMarkup = $this->renderView(
+            'Api/form/record_import_form.html.twig',
+            [
+                'form' => $form->createView()
+            ]
+        );
+
         return new JsonResponse(
             [
                 'success' => false,

@@ -75,7 +75,7 @@ class ImportRecordType extends AbstractType
             'required' => true,
             'multiple' => false,
             'constraints' => [
-                new RecordImportSpreadsheet([])
+                new RecordImportSpreadsheet(['groups' => ['MAPPING', 'IMPORT']])
             ]
         ]);
 
@@ -109,16 +109,15 @@ class ImportRecordType extends AbstractType
                 'entry_type'   => ImportRecordsColumnMappingType::class,
                 'allow_add' => true,
                 'label' => false,
-                'error_bubbling' => false,
                 'prototype' => true,
                 'prototype_name' => '__prototype_one__',
                 'entry_options' => [
                     'customObject' => $customObject,
                     'columns' => $columns
                 ],
-                /*'constraints' => [
-                    new Count(['min' => 1, 'minMessage' => 'You must add at least one mapping!'])
-                ]*/
+                'constraints' => [
+                    new Count(['min' => 1, 'minMessage' => 'You must add at least one mapping!', 'groups' => ['IMPORT']])
+                ]
             ]
         );
         $form->add($builder->getForm());

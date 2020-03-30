@@ -78,7 +78,7 @@ class RecordImportForm {
     loadForm() {
         return new Promise((resolve, reject) => {
             $.ajax({
-                url: Routing.generate('record_import_form', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName}),
+                url: Routing.generate('import_mapping', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName}),
             }).then(data => {
                 this.$wrapper.html(data.formMarkup);
                 resolve(data);
@@ -137,6 +137,7 @@ class RecordImportForm {
         let formData = new FormData($form.get(0));
         this._import(formData)
             .then((data) => {
+                debugger;
                 AjaxLoader.kill(this.$wrapper);
                 swal("Whoop whoop!", `Spreadsheet successfully queued for import!`, "success");
             }).catch((errorData) => {
@@ -194,7 +195,7 @@ class RecordImportForm {
      */
     _importForm(data) {
         return new Promise( (resolve, reject) => {
-            const url = Routing.generate('record_import_form', {'internalIdentifier' : this.portalInternalIdentifier, 'internalName' : this.customObjectInternalName});
+            const url = Routing.generate('import_mapping', {'internalIdentifier' : this.portalInternalIdentifier, 'internalName' : this.customObjectInternalName});
             $.ajax({
                 url,
                 method: 'POST',
@@ -218,7 +219,7 @@ class RecordImportForm {
      */
     _import(data) {
         return new Promise( (resolve, reject) => {
-            const url = Routing.generate('record_import', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
+            const url = Routing.generate('import', {internalIdentifier: this.portalInternalIdentifier, internalName: this.customObjectInternalName});
             $.ajax({
                 url,
                 method: 'POST',

@@ -7,19 +7,6 @@ use Symfony\Component\HttpFoundation\Request;
 
 trait FormHelper
 {
-
-    /**
-     * @param Request $request
-     * @param FormInterface $form
-     */
-    private function submit(Request $request, FormInterface $form) {
-        if($request->getContentType() === 'json') {
-            $form->submit($request->request->all());
-        } else {
-            $form->submit(array_merge($request->files->all(), $request->request->all()));
-        }
-    }
-
     /**
      * @param FormInterface $form
      * @return array
