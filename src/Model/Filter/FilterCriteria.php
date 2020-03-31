@@ -19,6 +19,7 @@ class FilterCriteria extends AbstractCriteria
     public function generateFilterCriteria(FilterData $filterData) {
 
         if($this->or->count() > 0) {
+            $filterData->filterCriteriaParts[] = " AND \n";
             $filterData->filterCriteriaParts[] = ' ( ';
         }
 
@@ -41,9 +42,6 @@ class FilterCriteria extends AbstractCriteria
 
         if($this->and->count() > 0) {
             $filterData->filterCriteriaParts[] = " AND \n";
-        }
-
-        if($this->and->count() > 0) {
             $filterData->filterCriteriaParts[] = ' ( ';
         }
 
@@ -64,4 +62,5 @@ class FilterCriteria extends AbstractCriteria
             $filterData->filterCriteriaParts[] = ' ) ';
         }
     }
+
 }

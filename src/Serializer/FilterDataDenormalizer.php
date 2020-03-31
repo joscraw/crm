@@ -152,6 +152,15 @@ class FilterDataDenormalizer implements DenormalizerInterface, DenormalizerAware
             $filterData->setStatement($data['statement']);
         }
 
+        // COUNT ONLY
+        if(isset($data['countOnly'])) {
+            if(!in_array($data['countOnly'], [true, false])) {
+                throw new ApiProblemException(400, 'countOnly property can only be true or false. Example: "countOnly": true');
+            }
+            $filterData->setCountOnly($data['countOnly']);
+        }
+
+        // FILTER CRITERIA
         if(isset($data['filterCriteria'])) {
             /** @var FilterCriteria $filterCriteria */
             $filterCriteria = $this->filterCriteria($data['filterCriteria'], new FilterCriteria());

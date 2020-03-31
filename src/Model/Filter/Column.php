@@ -96,7 +96,8 @@ class Column
     }
 
     /**
-     * This function sets up the property fields we are querying
+     * Gets query for column WITHOUT using binding for prepared statements
+     *
      * @param FilterData $filterData
      * @return array
      */
@@ -105,13 +106,13 @@ class Column
         $internalName = $this->getProperty()->getInternalName();
         $label = !empty($this->renameTo) ? $this->renameTo : $this->getProperty()->getLabel();
         $alias = $this->getAlias();
-        $resultStr = '';
+        $result = [];
 
-        if($filterData->getStatement() === 'UPDATE') {
+     /*   if($filterData->getStatement() === 'UPDATE') {
             $jsonExtract = $this->getUpdateQuery($alias);
             $resultStr = sprintf($jsonExtract, $internalName, $this->newValue);
             return $resultStr;
-        }
+        }*/
 
         switch($this->getProperty()->getFieldType()) {
             case FieldCatalog::DATE_PICKER:
@@ -137,7 +138,56 @@ class Column
                 break;
 
         }
-        return $resultStr;
+
+        $result['sql'] = $resultStr;
+        $result['bindings'] = [];
+        $filterData->columnQueries[] = $result;
+        return $result;
+    }
+
+    /**
+     * Gets query for column using binding for prepared statements
+     * @param FilterData $filterData
+     */
+    public function getQueryWithBindings(FilterData $filterData)
+    {
+        $internalName = sprintf('$."%s"', $this->getProperty()->getInternalName());
+        $label = !empty($this->renameTo) ? $this->renameTo : $this->getProperty()->getLabel();
+        $alias = $this->getAlias();
+        $result = [];
+
+        /*       if($filterData->getStatement() === 'UPDATE') {
+                   $jsonExtract = $this->getUpdateQuery($alias);
+                   $resultStr = sprintf($jsonExtract, $internalName, $this->newValue);
+                   return $resultStr;
+               }*/
+
+        switch($this->getProperty()->getFieldType()) {
+            case FieldCatalog::DATE_PICKER:
+                $result['sql'] = $this->getDatePickerQueryWithBindings($alias);
+                $result['bindings'] = [$internalName, $label];
+                break;
+            case FieldCatalog::SINGLE_CHECKBOX:
+                $result['sql'] = $this->getSingleCheckboxQueryWithBindings($alias);
+                $result['bindings'] = [$internalName, $internalName, $internalName, $internalName, $internalName, $label];
+                break;
+            case FieldCatalog::NUMBER:
+                if($this->getProperty()->getField()->getType() === NumberField::$types['Currency']) {
+                    $result['sql'] = $this->getNumberIsCurrencyQueryWithBindings($alias);
+                    $result['bindings'] = [$internalName, $label];
+                } elseif($this->getProperty()->getField()->getType() === NumberField::$types['Unformatted Number']) {
+                    $result['sql']= $this->getNumberIsUnformattedQueryWithBindings($alias);
+                    $result['bindings'] = [$internalName, $label];
+                }
+                break;
+            default:
+                $result['sql'] = $this->getDefaultQueryWithBindings($alias);
+                $result['bindings'] = [$internalName, $label];
+                break;
+
+        }
+
+        $filterData->columnQueries[] = $result;
     }
 
     public function getSearchQuery($search) {
@@ -206,5 +256,41 @@ HERE;
 HERE;
     }
 
-    //SET `%s`.properties = JSON_SET(`%s`.properties, '$.%s', '%s') \n
+    private function getDatePickerQueryWithBindings($alias) {
+        return <<<HERE
+    COALESCE(`${alias}`.properties->>?, "") AS ?
+HERE;
+    }
+
+    // TODO REVISIT THIS. I'M STARTING TO THINK THAT THE FORMATTING SHOULD BE ON THE SAVE SIDE AND NOT
+    //  THE ACTUAL QUERYING SIDE OF THIS.
+    private function getNumberIsCurrencyQueryWithBindings($alias) {
+        return <<<HERE
+    COALESCE( CAST( `${alias}`.properties->>? AS DECIMAL(15,2) ), "") AS ?
+HERE;
+    }
+
+    private function getNumberIsUnformattedQueryWithBindings($alias) {
+        return <<<HERE
+    COALESCE(`${alias}`.properties->>?, "") AS ?
+HERE;
+    }
+
+    private function getDefaultQueryWithBindings($alias) {
+        return <<<HERE
+    COALESCE(`${alias}`.properties->>?, "") AS ?
+HERE;
+    }
+
+    private function getSingleCheckboxQueryWithBindings($alias) {
+        return <<<HERE
+    CASE
+        WHEN `${alias}`.properties->>? IS NULL THEN "" 
+        WHEN `${alias}`.properties->>? = '' THEN ""
+        WHEN `${alias}`.properties->>? = '1' THEN "yes"
+        WHEN `${alias}`.properties->>? = '0' THEN "no"
+        ELSE `${alias}`.properties->>?
+    END AS ?
+HERE;
+    }
 }

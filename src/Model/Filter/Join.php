@@ -226,7 +226,12 @@ class Join extends AbstractFilter
 
         /** @var Column $column */
         foreach($this->getColumns() as $column) {
-            $filterData->columnQueries[] = $column->getQuery($filterData);
+
+            if($filterData::$useBindings) {
+                $column->getQueryWithBindings($filterData);
+            } else {
+                $column->getQuery($filterData);
+            }
         }
 
         /** @var Join $join */
@@ -239,13 +244,33 @@ class Join extends AbstractFilter
 
         /** @var Filter $filter */
         foreach($this->getFilters() as $filter) {
-            $filterData->filterQueries[] = $filter->getQuery($filterData);
+
+            if($filterData::$useBindings) {
+                $filter->getQueryWithBindings($filterData);
+            } else {
+                $filter->getQuery($filterData);
+            }
         }
 
         /** @var Join $join */
         foreach($this->joins as $join) {
             $join->generateFilterQueries($filterData);
         }
+    }
+
+    public function getAllFilterUids($uids = []) {
+
+        /** @var Filter $filter */
+        foreach($this->getFilters() as $filter) {
+            $uids[] = $filter->getUid();
+        }
+
+        /** @var Join $join */
+        foreach($this->joins as $join) {
+            return $join->getAllFilterUids($uids);
+        }
+
+        return $uids;
     }
 
     public function generateSearchQueries(FilterData $filterData) {
@@ -262,7 +287,11 @@ class Join extends AbstractFilter
 
     public function generateJoinQueries(FilterData $filterData) {
 
-        $this->getQuery($filterData);
+        if($filterData::$useBindings) {
+            $this->getQueryWithBindings($filterData);
+        } else {
+            $this->getQuery($filterData);
+        }
 
         /** @var Join $join */
         foreach($this->joins as $join) {
@@ -276,7 +305,17 @@ class Join extends AbstractFilter
             ($this->joinType === 'With/Without');
 
         if(!$skipJoinCondition) {
-            $filterData->joinConditionalQueries[] = sprintf("`%s`.custom_object_id = %s", $this->getAlias(), $this->joinObject->getId());
+            if($filterData::$useBindings) {
+                $filterData->joinConditionalQueries[] = array(
+                    'sql' => sprintf("`%s`.custom_object_id  = ?", $this->getAlias()),
+                    'bindings' => [$this->joinObject->getId()],
+                );
+            } else {
+                $filterData->joinConditionalQueries[] = array(
+                    'sql' => sprintf("`%s`.custom_object_id = %s", $this->getAlias(), $this->joinObject->getId()),
+                    'bindings' => [],
+                );
+            }
         }
 
         foreach($this->joins as $join) {
@@ -304,11 +343,58 @@ class Join extends AbstractFilter
                 ));
         }
 
+        /** @var Filter $filter */
+        foreach($this->filters as $filter) {
+            $filter->validate();
+        }
+
         /** @var Join $join */
         foreach($this->joins as $join) {
             $join->validate();
         }
 
+    }
+
+    private function getQueryWithBindings(FilterData $filterData) {
+
+        $connectedProperty = $this->getRelationshipPropertyToJoinOn();
+        $joinDirection = $this->getJoinDirection();
+        $joinType = $this->getJoinType();
+        $alias = $this->getAlias();
+        $parentAlias = $this->getParentAlias();
+        if($joinType === 'With' && $joinDirection === 'normal_join') {
+            $filterData->joinQueries[] = array(
+                'sql' => sprintf($this->getJoinQueryWithBindings(), $alias, $parentAlias, $alias),
+                'bindings' => [sprintf('$."%s"', $connectedProperty->getInternalName())],
+            );
+        } elseif ($joinType === 'With/Without' && $joinDirection === 'normal_join') {
+            $filterData->joinQueries[] = array(
+                'sql' => sprintf($this->getWithOrWithoutJoinQueryWithBindings(), $alias, $parentAlias, $alias, $alias),
+                'bindings' => [sprintf('$."%s"', $connectedProperty->getInternalName()), $this->joinObject->getId()],
+            );
+        } elseif ($joinType === 'Without' && $joinDirection === 'normal_join') {
+            // You actually aren't performing a join here but rather checking for null.
+            $filterData->joinConditionalQueries[] = array(
+                'sql' => sprintf($this->getWithoutJoinQueryWithBindings(), $parentAlias),
+                'bindings' => [sprintf('$."%s"', $connectedProperty->getInternalName())],
+            );
+        } elseif ($joinType === 'Without' && $joinDirection === 'cross_join') {
+            $filterData->joinQueries[] = array(
+                'sql' => sprintf($this->getWithoutCrossJoinQueryWithBindings(), $alias, $alias, $parentAlias),
+                'bindings' => [sprintf('$."%s"', $connectedProperty->getInternalName())],
+            );
+        }
+        elseif ($joinType === 'With' && $joinDirection === 'cross_join') {
+            $filterData->joinQueries[] = array(
+                'sql' => sprintf($this->getCrossJoinQueryWithBindings(), $alias, $alias, $parentAlias),
+                'bindings' => [sprintf('$."%s"', $connectedProperty->getInternalName())],
+            );
+        } elseif ($joinType === 'With/Without' && $joinDirection === 'cross_join') {
+            $filterData->joinQueries[] = array(
+                'sql' => sprintf($this->getWithOrWithoutCrossJoinQueryWithBindings(), $alias, $alias, $parentAlias, $alias),
+                'bindings' => [sprintf('$."%s"', $connectedProperty->getInternalName()), $this->joinObject->getId()],
+            );
+        }
     }
 
     private function getQuery(FilterData $filterData) {
@@ -318,48 +404,60 @@ class Join extends AbstractFilter
         $joinType = $this->getJoinType();
         $alias = $this->getAlias();
         $parentAlias = $this->getParentAlias();
-        $query = '';
         if($joinType === 'With' && $joinDirection === 'normal_join') {
-            $filterData->joinQueries[] = sprintf($this->getJoinQuery(),
+            $filterData->joinQueries[] = array(
+                'sql' => sprintf($this->getJoinQuery(),
                 'INNER JOIN', $alias, $parentAlias, $connectedProperty->getInternalName(), $alias,
                 $parentAlias, $connectedProperty->getInternalName(), $alias,
                 $parentAlias, $connectedProperty->getInternalName(), $alias,
-                $parentAlias, $connectedProperty->getInternalName(), $alias
+                $parentAlias, $connectedProperty->getInternalName(), $alias),
+                'bindings' => [],
             );
         } elseif ($joinType === 'With/Without' && $joinDirection === 'normal_join') {
-            $filterData->joinQueries[] = sprintf($this->getWithOrWithoutJoinQuery(),
+            $filterData->joinQueries[] = array(
+                'sql' => sprintf($this->getWithOrWithoutJoinQuery(),
                 $alias, $parentAlias, $connectedProperty->getInternalName(), $alias, $alias, $this->joinObject->getId(),
                 $parentAlias, $connectedProperty->getInternalName(), $alias, $alias, $this->joinObject->getId(),
                 $parentAlias, $connectedProperty->getInternalName(), $alias, $alias, $this->joinObject->getId(),
-                $parentAlias, $connectedProperty->getInternalName(), $alias, $alias, $this->joinObject->getId()
+                $parentAlias, $connectedProperty->getInternalName(), $alias, $alias, $this->joinObject->getId()),
+                'bindings' => [],
             );
         } elseif ($joinType === 'Without' && $joinDirection === 'normal_join') {
             // You actually aren't performing a join here but rather checking for null.
-            $filterData->joinConditionalQueries[] = sprintf($this->getWithoutJoinQuery(), $parentAlias, $connectedProperty->getInternalName(), $parentAlias, $connectedProperty->getInternalName());
+            $filterData->joinConditionalQueries[] = array(
+                'sql' => sprintf($this->getWithoutJoinQuery(), $parentAlias, $connectedProperty->getInternalName(), $parentAlias, $connectedProperty->getInternalName()),
+                'bindings' => [],
+            );
         } elseif ($joinType === 'Without' && $joinDirection === 'cross_join') {
-            $filterData->joinQueries[] = sprintf($this->getWithoutCrossJoinQuery(),
+            $filterData->joinQueries[] = array(
+                'sql' => sprintf($this->getWithoutCrossJoinQuery(),
                 $alias, $alias, $connectedProperty->getInternalName(), $parentAlias,
                 $alias, $connectedProperty->getInternalName(), $parentAlias,
                 $alias, $connectedProperty->getInternalName(), $parentAlias,
                 $alias, $connectedProperty->getInternalName(), $parentAlias,
-                $alias, $connectedProperty->getInternalName(), $alias, $connectedProperty->getInternalName());
+                $alias, $connectedProperty->getInternalName(), $alias, $connectedProperty->getInternalName()),
+                'bindings' => [],
+            );
         }
         elseif ($joinType === 'With' && $joinDirection === 'cross_join') {
-            $filterData->joinQueries[] = sprintf($this->getCrossJoinQuery(),
+            $filterData->joinQueries[] = array(
+                'sql' => sprintf($this->getCrossJoinQuery(),
                 'INNER JOIN', $alias, $alias, $connectedProperty->getInternalName(), $parentAlias,
                 $alias, $connectedProperty->getInternalName(), $parentAlias,
                 $alias, $connectedProperty->getInternalName(), $parentAlias,
-                $alias, $connectedProperty->getInternalName(), $parentAlias
+                $alias, $connectedProperty->getInternalName(), $parentAlias),
+                'bindings' => [],
             );
         } elseif ($joinType === 'With/Without' && $joinDirection === 'cross_join') {
-            $filterData->joinQueries[] = sprintf($this->getWithOrWithoutCrossJoinQuery(),
+            $filterData->joinQueries[] = array(
+                'sql' => sprintf($this->getWithOrWithoutCrossJoinQuery(),
                 $alias, $alias, $connectedProperty->getInternalName(), $parentAlias, $alias, $this->joinObject->getId(),
                 $alias, $connectedProperty->getInternalName(), $parentAlias, $alias, $this->joinObject->getId(),
                 $alias, $connectedProperty->getInternalName(), $parentAlias, $alias, $this->joinObject->getId(),
-                $alias, $connectedProperty->getInternalName(), $parentAlias, $alias, $this->joinObject->getId()
+                $alias, $connectedProperty->getInternalName(), $parentAlias, $alias, $this->joinObject->getId()),
+                'bindings' => [],
             );
         }
-        return $query;
     }
 
     /**
@@ -472,6 +570,80 @@ HERE;
      OR (`%s`.properties->>'$."%s"' REGEXP concat(';', `%s`.id, ';') AND `%s`.custom_object_id = '%s')
      /* Given the id "11" This second statement matches: {"property_name": "11;12;13"} */
      OR (`%s`.properties->>'$."%s"' REGEXP concat('^', `%s`.id, ';') AND `%s`.custom_object_id = '%s')
+HERE;
+    }
+
+    /**
+     * We store relations to a single object as a string.
+     * We store relations to multiple objects as a semicolon delimited string
+     * Single object example: {chapter: "11"}
+     * Multiple object example: {chapter: "11;12;13"}
+     * @return string
+     */
+    private function getJoinQueryWithBindings() {
+        return <<<HERE
+INNER JOIN record `%s` on `%s`.properties->>? REGEXP concat('(^|;)', `%s`.id, '(;|$)') 
+HERE;
+    }
+
+    /**
+     * We store relations to a single object as a string.
+     * We store relations to multiple objects as a semicolon delimited string
+     * Single object example: {chapter: "11"}
+     * Multiple object example: {chapter: "11;12;13"}
+     * @return string
+     */
+    private function getWithOrWithoutJoinQueryWithBindings() {
+        return <<<HERE
+LEFT JOIN record `%s` on 
+     (`%s`.properties->>? REGEXP concat('(^|;)', `%s`.id, '(;|$)') AND `%s`.building_block_id = ?)
+HERE;
+    }
+
+    /**
+     * Normal Join Looking for records without a match
+     * @return string
+     */
+    private function getWithoutJoinQueryWithBindings() {
+        return <<<HERE
+(COALESCE(`%s`.properties->>?, '') = '')
+HERE;
+    }
+
+    /**
+     * Normal Join Looking for records without a match
+     * @return string
+     */
+    private function getWithoutCrossJoinQueryWithBindings() {
+        return <<<HERE
+LEFT JOIN record `%s` on `%s`.properties->>? NOT REGEXP concat('(^|;)', `%s`.id, '(;|$)')
+HERE;
+    }
+
+    /**
+     * We store relations to a single object as a string.
+     * We store relations to multiple objects as a semicolon delimited string
+     * Single object example: {chapter: "11"}
+     * Multiple object example: {chapter: "11;12;13"}
+     * @return string
+     */
+    private function getCrossJoinQueryWithBindings() {
+        return <<<HERE
+INNER JOIN record `%s` on `%s`.properties->>? REGEXP concat('(^|;)', `%s`.id, '(;|$)')
+HERE;
+    }
+
+    /**
+     * We store relations to a single object as a string.
+     * We store relations to multiple objects as a semicolon delimited string
+     * Single object example: {chapter: "11"}
+     * Multiple object example: {chapter: "11;12;13"}
+     * @return string
+     */
+    private function getWithOrWithoutCrossJoinQueryWithBindings() {
+        return <<<HERE
+LEFT JOIN record `%s` on 
+     (`%s`.properties->>? REGEXP concat('(^|;)', `%s`.id, '(;|$)') AND `%s`.building_block_id = ?)
 HERE;
     }
 }

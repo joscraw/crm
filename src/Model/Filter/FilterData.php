@@ -6,10 +6,17 @@ use App\Api\ApiProblemException;
 use App\Entity\CustomObject;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\ParameterType;
 use Doctrine\ORM\EntityManagerInterface;
 
 class FilterData extends AbstractFilter
 {
+    /**
+     * @var string Flag for whether or not query bindings should be used.
+     * Not having this on could potentially leave queries open for SQL Injection
+     */
+    public static $useBindings = true;
+
     /**
      * @var CustomObject
      */
@@ -49,6 +56,11 @@ class FilterData extends AbstractFilter
      * @var string
      */
     protected $statement = 'SELECT';
+
+    /**
+     * @var bool
+     */
+    protected $countOnly = false;
 
     /**
      * @var array
@@ -103,12 +115,12 @@ class FilterData extends AbstractFilter
     /**
      * @var array
      */
-    public $filterUids = [];
+    public $filterCriteriaUids = [];
 
     /**
      * @var array
      */
-    public $filterCriteriaUids = [];
+    public $bindings = [];
 
     public function __construct()
     {
@@ -196,6 +208,22 @@ class FilterData extends AbstractFilter
     public function setStatement(string $statement): void
     {
         $this->statement = $statement;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isCountOnly(): bool
+    {
+        return $this->countOnly;
+    }
+
+    /**
+     * @param bool $countOnly
+     */
+    public function setCountOnly(bool $countOnly): void
+    {
+        $this->countOnly = $countOnly;
     }
 
     /**
@@ -300,22 +328,33 @@ class FilterData extends AbstractFilter
     public function validate() {
 
         // make sure each of the provided filter criteria have a matching filter
-        if(!empty(array_diff($this->filterCriteriaUids, $this->filterUids))) {
+        if(!empty(array_diff($this->filterCriteria->getAllUids(), $this->getAllFilterUids()))) {
             throw new ApiProblemException(400, sprintf('Each filter criteria uid must match a provided filter uid. Filter Criteria UIDS that don\'t match are: %s',
-            implode(",", array_diff($this->filterCriteriaUids, $this->filterUids))));
+            implode(",", array_diff($this->filterCriteria->getAllUids(), $this->getAllFilterUids()))));
         }
 
         /** @var Join $join */
         foreach($this->joins as $join) {
             $join->validate();
         }
+
+        /** @var Filter $filter */
+        foreach($this->filters as $filter) {
+            $filter->validate();
+        }
+
         return $this;
     }
 
     public function generateColumnQueries() {
 
         foreach($this->getColumns() as $column) {
-            $this->columnQueries[] = $column->getQuery($this);
+
+            if($this::$useBindings) {
+                $column->getQueryWithBindings($this);
+            } else {
+                $column->getQuery($this);
+            }
         }
 
         /** @var Join $join */
@@ -329,7 +368,12 @@ class FilterData extends AbstractFilter
     public function generateFilterQueries() {
 
         foreach($this->getFilters() as $filter) {
-            $this->filterQueries[] = $filter->getQuery($this);
+
+            if($this::$useBindings) {
+                $filter->getQueryWithBindings($this);
+            } else {
+                $filter->getQuery($this);
+            }
         }
 
         /** @var Join $join */
@@ -338,6 +382,19 @@ class FilterData extends AbstractFilter
         }
 
         return $this;
+    }
+
+    public function getAllFilterUids() {
+        $uids = [];
+        foreach($this->getFilters() as $filter) {
+            $uids[] = $filter->getUid();
+        }
+
+        /** @var Join $join */
+        foreach($this->joins as $join) {
+            $uids = $join->getAllFilterUids($uids);
+        }
+        return $uids;
     }
 
     public function generateFilterCriteria() {
@@ -404,7 +461,17 @@ class FilterData extends AbstractFilter
 
     public function generateJoinConditionalQueries() {
 
-        $this->joinConditionalQueries[] = sprintf("`%s`.custom_object_id = %s", $this->getAlias(), $this->baseObject->getId());
+        if($this::$useBindings) {
+            $this->joinConditionalQueries[] = array(
+                'sql' => sprintf("`%s`.custom_object_id  = ?", $this->getAlias()),
+                'bindings' => [$this->baseObject->getId()]
+            );
+        } else {
+            $this->joinConditionalQueries[] = array(
+                'sql' => sprintf("`%s`.custom_object_id = %s", $this->getAlias(), $this->baseObject->getId()),
+                'bindings' => []
+            );
+        }
 
         /** @var Join $join */
         foreach($this->joins as $join) {
@@ -416,7 +483,9 @@ class FilterData extends AbstractFilter
 
     public function getQuery() {
 
-        $this->generateAliases()
+        $this->clearCache()
+            ->validate()
+            ->generateAliases()
             ->generateColumnQueries()
             ->generateFilterCriteria()
             ->generateFilterQueries()
@@ -424,22 +493,37 @@ class FilterData extends AbstractFilter
             ->generateJoinConditionalQueries()
             ->generateSearchQueries()
             ->generateOrderQueries()
-            ->generateGroupByQueries()
-            ->validate();
-
-        $columnStr = implode(",",$this->columnQueries);
-
-        if($this->statement === 'SELECT') {
-            $columnStr  = !empty($columnStr) ? ', ' . $columnStr : '';
-        } elseif ($this->statement === 'UPDATE') {
-            $columnStr  = !empty($columnStr) ? $columnStr : '';
+            ->generateGroupByQueries();
+        
+        // We don't want to configure bindings for any of the column queries if we are just counting results
+        if(!$this->countOnly) {
+            foreach($this->columnQueries as $row) {
+                $this->bindings = array_merge($this->bindings, $row['bindings']);
+            }
         }
 
-        $joinString = implode(" ", $this->joinQueries);
+        $columnStr = implode(",\n",array_map(function($e) { return $e['sql']; }, $this->columnQueries));
 
-        $joinConditionalString = !empty($this->joinConditionalQueries) ? sprintf("(\n%s\n)", implode(" AND \n", $this->joinConditionalQueries)) : '';
+        $joinString = implode("\n", array_map(function($e) { return $e['sql']; }, $this->joinQueries));
+        foreach($this->joinQueries as $row) {
+            $this->bindings = array_merge($this->bindings, $row['bindings']);
+        }
 
-        $filterString = empty($this->filterCriteriaParts) ? '' : "AND " . implode(" ", $this->filterCriteriaParts);
+        $joinConditionalString = !empty($this->joinConditionalQueries) ? sprintf("(\n%s\n)", implode(" AND \n", array_map(function($e) { return $e['sql']; }, $this->joinConditionalQueries))) : '';
+        if (!empty($this->joinConditionalQueries)) {
+            foreach($this->joinConditionalQueries as $row) {
+                $this->bindings = array_merge($this->bindings, $row['bindings']);
+            }
+        }
+
+        foreach($this->filterCriteriaParts as $i => $part) {
+            if (array_key_exists($part, $this->filterQueries)) {
+                $this->filterCriteriaParts[$i] = $this->filterQueries[$part]['sql'];
+                $this->bindings = array_merge($this->bindings, $this->filterQueries[$part]['bindings']);
+            }
+        }
+
+        $filterString = empty($this->filterCriteriaParts) ? '' : implode(" ", $this->filterCriteriaParts);
 
         $searchString = !empty($this->searchQueries) ? sprintf("(\n%s\n)", implode(" OR \n", $this->searchQueries)) : '';
         $searchString = empty($this->searchQueries) ? '' : "AND $searchString";
@@ -460,9 +544,19 @@ class FilterData extends AbstractFilter
         $offsetString = $this->offset !== null ? sprintf("OFFSET %s \n", $this->offset) : '';
 
         if($this->statement === 'SELECT') {
-            $query = sprintf("SELECT DISTINCT `%s`.id %s from record `%s` %s WHERE \n %s \n %s \n %s \n %s %s %s %s",
-                $this->getAlias(),
-                $columnStr,
+
+            if ($this->countOnly) {
+                $query = "SELECT COUNT(*) AS 'main_query_count'\n";
+            } else {
+                $query = sprintf("SELECT `%s`.id %s%s\n",
+                    $this->getAlias(),
+                    !empty($this->columnQueries) ?  ", \n" : '',
+                    $columnStr
+                );
+            }
+
+            $query = sprintf("%s from record `%s` %s WHERE \n %s \n %s \n %s \n %s %s %s %s",
+                $query,
                 $this->getAlias(),
                 $joinString,
                 $joinConditionalString,
@@ -492,6 +586,23 @@ class FilterData extends AbstractFilter
         return $query;
     }
 
+    public function clearCache() {
+
+        $this->columnQueries = [];
+        $this->joinQueries = [];
+        $this->filterQueries = [];
+        $this->joinConditionalQueries = [];
+        $this->searchQueries = [];
+        $this->orderQueries = [];
+        $this->groupByQueries = [];
+        $this->filterCriteriaParts = [];
+        $this->filterCriteriaString = '';
+        $this->filterCriteriaUids = [];
+        $this->bindings = [];
+
+        return $this;
+    }
+
     public function runQuery(EntityManagerInterface $entityManager) {
 
         $query = $this->getQuery();
@@ -502,20 +613,50 @@ class FilterData extends AbstractFilter
             throw new ApiProblemException(400, sprintf('Error running query. Contact system administrator %s', $exception->getMessage()));
         }
 
-        if(!$stmt->execute()) {
-            throw new ApiProblemException(400, 'Error running query. Contact system administrator');
+        // todo possibly pass the type as an associative array with each binding Ex: $this->bindings['integer'] => $.'first_name', etc
+        //  so you can make sure you are setting the correct type in the prepared statement
+        $this->bindParameters($stmt);
+
+        try {
+            if(!$stmt->execute()) {
+                throw new ApiProblemException(400, 'Error running query. Contact system administrator');
+            }
+        } catch (\Exception $exception) {
+            throw new ApiProblemException(400, $exception->getMessage());
         }
 
         if($this->getStatement() === 'SELECT') {
             $results = $stmt->fetchAll();
-            return array(
-                'count' => count($results),
-                "results"  => $results,
-            );
+            if ($this->countOnly) {
+                return array(
+                    'count' => count($results) ? $results[0]['main_query_count'] : 0,
+                    "results"  => [],
+                );
+            } else {
+                return array(
+                    'count' => count($results),
+                    "results"  => $results,
+                );
+            }
         } elseif ($this->getStatement() === 'UPDATE') {
             return array("results"  => 'Records successfully updated.');
         } else {
             throw new ApiProblemException(400, 'Statement not supported');
         }
+    }
+
+    private function bindParameters(\Doctrine\DBAL\Driver\Statement $stmt) {
+
+        // binding must be passed by reference
+        foreach($this->bindings as $index => &$binding) {
+            if(is_int($binding)) {
+                $stmt->bindParam($index + 1, $binding, ParameterType::INTEGER);
+            } elseif(is_string($binding)) {
+                $stmt->bindParam($index + 1, $binding, ParameterType::STRING);
+            } elseif(is_bool($binding)) {
+                $stmt->bindParam($index + 1, $binding, ParameterType::BOOLEAN);
+            }
+        }
+
     }
 }

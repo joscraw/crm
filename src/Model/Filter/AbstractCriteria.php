@@ -144,4 +144,13 @@ class AbstractCriteria
         return $this->getUid();
 
     }
+
+    public function getAllUids($uids = []) {
+        /** @var AbstractCriteria $criteria */
+        foreach(array_merge($this->and->toArray(), $this->or->toArray()) as $criteria) {
+            $uids[] = $criteria->getUid();
+            $uids = $criteria->getAllUids($uids);
+        }
+        return $uids;
+    }
 }
