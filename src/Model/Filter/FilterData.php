@@ -15,12 +15,7 @@ class FilterData extends AbstractFilter
      * @var string Flag for whether or not query bindings should be used.
      * Not having this on could potentially leave queries open for SQL Injection
      */
-    const USE_BINDINGS = true;
-
-    /**
-     * @var string
-     */
-    const BINDING_PLACEHOLDER = '{?}';
+    const USE_BINDINGS = false;
 
     /**
      * @var CustomObject
@@ -339,7 +334,7 @@ class FilterData extends AbstractFilter
     public function generateColumnQueries() {
 
         foreach($this->getColumns() as $column) {
-            $column->getQueryWithBindings($this);
+            $column->getQuery($this);
         }
 
         /** @var Join $join */
@@ -353,7 +348,7 @@ class FilterData extends AbstractFilter
     public function generateFilterQueries() {
 
         foreach($this->getFilters() as $filter) {
-            $filter->getQueryWithBindings($this);
+            $filter->getQuery($this);
         }
 
         /** @var Join $join */
@@ -423,7 +418,7 @@ class FilterData extends AbstractFilter
             $priority = $this->determineKeyAvailability($this->orderQueries, $order->getPriority());
 
             if($column = $this->getColumnByUid($order->getUid())) {
-                $this->orderQueries[$priority] = $order->getQueryWithBindings($column);
+                $this->orderQueries[$priority] = $order->getQuery($column);
             }
         }
 
@@ -435,7 +430,7 @@ class FilterData extends AbstractFilter
         foreach($this->getGroupBys() as $groupBy) {
 
             if($column = $this->getColumnByUid($groupBy->getUid())) {
-                $this->groupByQueries[] = $groupBy->getQueryWithBindings($column);
+                $this->groupByQueries[] = $groupBy->getQuery($column);
             }
         }
 
@@ -639,12 +634,8 @@ class FilterData extends AbstractFilter
     }
 
     /**
-     * This is more experimental as I don't know how well this will work if you add a ? to
-     * and actual bindings value. Example: Where :param = :value and :value is "josh?"/
-     * We don't actually want the regex to replace that question mark with a binding value.
-     * So this function more or less is little to be desired but can help with debugging purposes
-     * if you want to actually debug the raw query after params have been attached to the query. There
-     * literally is no other way to due to the fact:
+     * This is more experimental but can help with debugging purposes if you want to actually
+     * debug the raw query using prepared statements/binding. There literally is no other way to due to the fact:
      *
      * Doctrine is not sending a "real SQL query" to the database server : it is actually using prepared statements, which means:
      * Sending the statement, for it to be prepared (this is what is returned by $query->getSql())
@@ -667,12 +658,13 @@ class FilterData extends AbstractFilter
         }, $sql);
 
         return $sql;
-
     }
 
     private function bindParameters(\Doctrine\DBAL\Driver\Statement $stmt) {
 
-        // binding must be passed by reference
+        // binding must be passed by reference when using ->bindParam()
+        // if you don't want to pass by reference you can use ->bindValue()
+        // I'm not sure if there is a pro/con to one or the other
         foreach($this->bindings as $index => &$binding) {
             if(is_int($binding)) {
                 $stmt->bindParam($index + 1, $binding, ParameterType::INTEGER);
