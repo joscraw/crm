@@ -15,7 +15,7 @@ class FilterData extends AbstractFilter
      * @var string Flag for whether or not query bindings should be used.
      * Not having this on could potentially leave queries open for SQL Injection
      */
-    const USE_BINDINGS = false;
+    const USE_BINDINGS = true;
 
     /**
      * @var CustomObject
