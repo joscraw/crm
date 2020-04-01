@@ -412,14 +412,28 @@ class FilterData extends AbstractFilter
             return $this;
         }
 
+        $andCriteria = new AndCriteria();
         foreach($this->getColumns() as $column) {
-            $this->searchQueries[] = $column->getSearchQuery($this->search);
+            $uid = $this->generateRandomNumber(5);
+            $filter = new Filter();
+            $filter->setProperty($column->getProperty());
+            $filter->setAlias($column->getAlias());
+            $filter->setOperator(Filter::CONTAINS);
+            $filter->setValue($this->search);
+            $filter->setUid($uid);
+            $this->addFilter($filter);
+            $orCriteria = new OrCriteria();
+            $orCriteria->setUid($uid);
+            $andCriteria->addOrCriteria($orCriteria);
+            /*$this->searchQueries[] = $column->getSearchQuery($this->search);*/
         }
 
         /** @var Join $join */
         foreach($this->joins as $join) {
-            $join->generateSearchQueries($this);
+            $join->generateSearchQueries($this, $andCriteria);
         }
+
+        $this->filterCriteria->addAndCriteria($andCriteria);
 
         return $this;
     }
@@ -430,7 +444,11 @@ class FilterData extends AbstractFilter
             $priority = $this->determineKeyAvailability($this->orderQueries, $order->getPriority());
 
             if($column = $this->getColumnByUid($order->getUid())) {
-                $this->orderQueries[$priority] = $order->getQuery($column);
+                if($this::$useBindings) {
+                    $this->orderQueries[$priority] = $order->getQueryWithBindings($column);
+                } else {
+                    $this->orderQueries[$priority] = $order->getQuery($column);
+                }
             }
         }
 
@@ -442,7 +460,12 @@ class FilterData extends AbstractFilter
         foreach($this->getGroupBys() as $groupBy) {
 
             if($column = $this->getColumnByUid($groupBy->getUid())) {
-                $this->groupByQueries[] = $groupBy->getQuery($column);
+                if($this::$useBindings) {
+                    $this->groupByQueries[] = $groupBy->getQueryWithBindings($column);
+                } else {
+                    $this->groupByQueries[] = $groupBy->getQuery($column);
+                }
+
             }
         }
 
@@ -487,14 +510,14 @@ class FilterData extends AbstractFilter
             ->validate()
             ->generateAliases()
             ->generateColumnQueries()
+            ->generateSearchQueries()
             ->generateFilterCriteria()
             ->generateFilterQueries()
             ->generateJoinQueries()
             ->generateJoinConditionalQueries()
-            ->generateSearchQueries()
             ->generateOrderQueries()
             ->generateGroupByQueries();
-        
+
         // We don't want to configure bindings for any of the column queries if we are just counting results
         if(!$this->countOnly) {
             foreach($this->columnQueries as $row) {
@@ -525,20 +548,25 @@ class FilterData extends AbstractFilter
 
         $filterString = empty($this->filterCriteriaParts) ? '' : implode(" ", $this->filterCriteriaParts);
 
-        $searchString = !empty($this->searchQueries) ? sprintf("(\n%s\n)", implode(" OR \n", $this->searchQueries)) : '';
-        $searchString = empty($this->searchQueries) ? '' : "AND $searchString";
-
         /**
          * SET THE GROUP BY
          * This ensures that duplicate rows don't get returned with the same root object ID
          * https://stackoverflow.com/questions/23921117/disable-only-full-group-by/23921234
+         *
+         * You need to disable only full group by on MYSQL
+         * https://stackoverflow.com/questions/23921117/disable-only-full-group-by/23921234
          */
-        $groupString = sprintf(" \nGROUP BY `%s`.id\n", $this->getAlias());
+        $groupString = !empty($this->groupByQueries) ? sprintf(" \nGROUP BY %s\n", implode(", \n", array_map(function($e) { return $e['sql']; }, $this->groupByQueries))) : '';
+        foreach($this->groupByQueries as $row) {
+            $this->bindings = array_merge($this->bindings, $row['bindings']);
+        }
 
         ksort($this->orderQueries);
-        $orderString = !empty($this->orderQueries) ? sprintf("ORDER BY %s", implode(", \n", $this->orderQueries)) : '';
+        $orderString = !empty($this->orderQueries) ? sprintf("ORDER BY %s", implode(", \n", array_map(function($e) { return $e['sql']; }, $this->orderQueries))) : '';
+        foreach($this->orderQueries as $row) {
+            $this->bindings = array_merge($this->bindings, $row['bindings']);
+        }
 
-        $groupString = !empty($this->groupByQueries) ? sprintf(" \nGROUP BY %s\n", implode(", ", $this->groupByQueries)) : '';
 
         $limitString = $this->limit !== null ? sprintf("LIMIT %s \n", $this->limit) : '';
         $offsetString = $this->offset !== null ? sprintf("OFFSET %s \n", $this->offset) : '';
@@ -555,26 +583,24 @@ class FilterData extends AbstractFilter
                 );
             }
 
-            $query = sprintf("%s from record `%s` %s WHERE \n %s \n %s \n %s \n %s %s %s %s",
+            $query = sprintf("%s from record `%s` %s WHERE \n %s \n %s \n \n %s %s %s %s",
                 $query,
                 $this->getAlias(),
                 $joinString,
                 $joinConditionalString,
                 $filterString,
-                $searchString,
                 $groupString,
                 $orderString,
                 $limitString,
                 $offsetString
             );
         } elseif ($this->statement === 'UPDATE') {
-            $query = sprintf("UPDATE record `%s` %s SET %s WHERE \n %s \n %s \n %s",
+            $query = sprintf("UPDATE record `%s` %s SET %s WHERE \n %s \n %s",
                 $this->getAlias(),
                 $joinString,
                 $columnStr,
                 $joinConditionalString,
-                $filterString,
-                $searchString
+                $filterString
             );
         } else {
             throw new ApiProblemException(400, sprintf('Statement %s not supported. Supported statements are: %s',

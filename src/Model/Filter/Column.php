@@ -256,6 +256,14 @@ HERE;
 HERE;
     }
 
+    public function getSearchQueryWithBindings($search) {
+
+        $searchQuery = <<<HERE
+    LOWER(`%s`.properties->>?) LIKE '%%%s%%'
+HERE;
+        return sprintf($searchQuery, $this->alias, $this->getProperty()->getInternalName(), strtolower($search));
+    }
+
     private function getDatePickerQueryWithBindings($alias) {
         return <<<HERE
     COALESCE(`${alias}`.properties->>?, "") AS ?

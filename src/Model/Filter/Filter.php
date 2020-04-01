@@ -11,19 +11,38 @@ class Filter
 {
     use Uid;
 
-    public $templates = array(
-        'EQ' => ':prop = :value', // THIS IS WORKING PROPERLY!
-        'NEQ' => ':prop != :value', // THIS IS WORKING PROPERLY!
-        'LT' => ':prop < :value',
-        'GT' => ':prop > :value',
-        'LTE' => ':prop <= :value',
-        'GTE' => ':prop >= :value',
-        'CONTAINS' => ':prop LIKE :value',
-        'IN' => ':prop IN (:multivalue)',
-        'NOT_IN' => ':prop NOT IN (:multivalue)',
-        'BETWEEN' => ':prop BETWEEN :low AND :high',
-        'HAS_PROPERTY' => 'LENGTH(COALESCE(:prop, \'\')) > 0',
-        'NOT_HAS_PROPERTY' => 'COALESCE(:prop, \'\') = \'\'',
+
+    /**#@+
+     * These are all the OPERATORS available for filtering
+     * @var int
+     */
+    const EQ = 'EQ';
+    const NEQ = 'NEQ';
+    const LT = 'LT';
+    const GT = 'GT';
+    const LTE = 'LTE';
+    const GTE = 'GTE';
+    const CONTAINS = 'CONTAINS';
+    const IN = 'IN';
+    const NOT_IN = 'NOT_IN';
+    const BETWEEN = 'BETWEEN';
+    const HAS_PROPERTY = 'HAS_PROPERTY';
+    const NOT_HAS_PROPERTY = 'NOT_HAS_PROPERTY';
+    /**#@-*/
+
+    protected $templates = array(
+        self::EQ => ':prop = :value', // THIS IS WORKING PROPERLY!
+        self::NEQ => ':prop != :value', // THIS IS WORKING PROPERLY!
+        self::LT => ':prop < :value',
+        self::GT => ':prop > :value',
+        self::LTE => ':prop <= :value',
+        self::GTE => ':prop >= :value',
+        self::CONTAINS => ':prop LIKE :value',
+        self::IN => ':prop IN (:multivalue)',
+        self::NOT_IN => ':prop NOT IN (:multivalue)',
+        self::BETWEEN => ':prop BETWEEN :low AND :high',
+        self::HAS_PROPERTY => 'LENGTH(COALESCE(:prop, \'\')) > 0',
+        self::NOT_HAS_PROPERTY => 'COALESCE(:prop, \'\') = \'\'',
     );
 
     /**

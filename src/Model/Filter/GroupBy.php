@@ -7,10 +7,17 @@ class GroupBy
     use Uid;
 
     public function getQuery(Column $column) {
+        return [
+            'sql' => sprintf("`%s`.properties->>'$.\"%s\"'", $column->getAlias(), $column->getProperty()->getInternalName()),
+            'bindings' => []
+        ];
+    }
 
-        $groupByQuery = <<<HERE
-`%s`.properties->>'$."%s"'
-HERE;
-        return sprintf($groupByQuery, $column->getAlias(), $column->getProperty()->getInternalName());
+    public function getQueryWithBindings(Column $column) {
+        $internalName = sprintf('$."%s"', $column->getProperty()->getInternalName());
+        return [
+            'sql' => sprintf("`%s`.properties->>?", $column->getAlias()),
+            'bindings' => [$internalName]
+        ];
     }
 }

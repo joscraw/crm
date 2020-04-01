@@ -12,7 +12,7 @@ trait Uid
     /**
      * @return string
      */
-    public function getUid(): string
+    public function getUid(): ?string
     {
         return $this->uid;
     }
@@ -20,7 +20,7 @@ trait Uid
     /**
      * @param string $uid
      */
-    public function setUid(string $uid): void
+    public function setUid(?string $uid): void
     {
         $this->uid = $uid;
     }

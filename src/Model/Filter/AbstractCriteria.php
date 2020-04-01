@@ -93,11 +93,14 @@ class AbstractCriteria
 
     public function generateFilterCriteria(FilterData $filterData) {
 
-        $filterData->filterCriteriaUids[] = $this->getUid();
+        // Uids are not required for defining Criteria. Criteria can simply
+        // be  used for grouping and do NOT necessarily have to have a filter attached
+        if($this->getUid()) {
+            $filterData->filterCriteriaUids[] = $this->getUid();
+            $filterData->filterCriteriaParts[] = $this->getQuery();
+        }
 
-        $filterData->filterCriteriaParts[] = $this->getQuery();
-
-        if($this->or->count() > 0) {
+        if($this->or->count() > 0 && $this->getUid()) {
             $filterData->filterCriteriaParts[] = " OR \n";
             $filterData->filterCriteriaParts[] = ' ( ';
         }
@@ -112,11 +115,11 @@ class AbstractCriteria
             $i++;
         }
 
-        if($this->or->count() > 0) {
+        if($this->or->count() > 0 && $this->getUid()) {
             $filterData->filterCriteriaParts[] = ' ) ';
         }
 
-        if($this->and->count() > 0) {
+        if($this->and->count() > 0 && $this->getUid()) {
             $filterData->filterCriteriaParts[] = " AND \n";
             $filterData->filterCriteriaParts[] = ' ( ';
         }
@@ -131,7 +134,7 @@ class AbstractCriteria
             $i++;
         }
 
-        if($this->and->count() > 0) {
+        if($this->and->count() > 0 && $this->getUid()) {
             $filterData->filterCriteriaParts[] = ' ) ';
         }
     }

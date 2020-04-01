@@ -273,15 +273,25 @@ class Join extends AbstractFilter
         return $uids;
     }
 
-    public function generateSearchQueries(FilterData $filterData) {
+    public function generateSearchQueries(FilterData $filterData, AndCriteria $andCriteria) {
 
         foreach($this->getColumns() as $column) {
-            $filterData->searchQueries[] = $column->getSearchQuery($filterData->getSearch());
+            $uid = $this->generateRandomNumber(5);
+            $filter = new Filter();
+            $filter->setProperty($column->getProperty());
+            $filter->setAlias($column->getAlias());
+            $filter->setOperator(Filter::CONTAINS);
+            $filter->setValue($filterData->getSearch());
+            $filter->setUid($uid);
+            $this->addFilter($filter);
+            $orCriteria = new OrCriteria();
+            $orCriteria->setUid($uid);
+            $andCriteria->addOrCriteria($orCriteria);
         }
 
         /** @var Join $join */
         foreach($this->joins as $join) {
-            $join->generateSearchQueries($filterData);
+            $join->generateSearchQueries($filterData, $andCriteria);
         }
     }
 

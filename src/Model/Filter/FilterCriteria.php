@@ -19,6 +19,12 @@ class FilterCriteria extends AbstractCriteria
     public function generateFilterCriteria(FilterData $filterData) {
 
         if($this->or->count() > 0) {
+            /**
+             * This must start with an AND as you can't have situations like this happening:
+             * WHERE `otqeV.contacts`.custom_object_id  = ? OR (  LOWER(`epnIw.contacts`.properties->>?) = ?  )
+             * That statement would make it so the custom_object_id was completely optional
+             */
+            // todo should we add AND to the getQuery part
             $filterData->filterCriteriaParts[] = " AND \n";
             $filterData->filterCriteriaParts[] = ' ( ';
         }

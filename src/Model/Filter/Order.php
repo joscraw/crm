@@ -50,10 +50,17 @@ class Order
     }
 
     public function getQuery(Column $column) {
+        return [
+            'sql' => sprintf("`%s`.properties->>'$.\"%s\"' %s", $column->getAlias(), $column->getProperty()->getInternalName(), $this->sort),
+            'bindings' => []
+        ];
+    }
 
-        $orderQuery = <<<HERE
-`%s`.properties->>'$."%s"' %s
-HERE;
-        return sprintf($orderQuery, $column->getAlias(), $column->getProperty()->getInternalName(), $this->sort);
+    public function getQueryWithBindings(Column $column) {
+        $internalName = sprintf('$."%s"', $column->getProperty()->getInternalName());
+        return [
+            'sql' => sprintf("`%s`.properties->>? %s", $column->getAlias(), $this->sort),
+            'bindings' => [$internalName]
+        ];
     }
 }
