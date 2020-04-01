@@ -142,10 +142,10 @@ class FilterDataDenormalizer implements DenormalizerInterface, DenormalizerAware
 
         // STATEMENT (SELECT, UPDATE, ETC)
         if(isset($data['statement'])) {
-            if(!in_array($data['statement'], $filterData->supportedStatements)) {
+            if(!in_array($data['statement'], FilterData::SUPPORTED_STATEMENTS)) {
                 throw new ApiProblemException(400, sprintf('Statement %s not supported. Supported statements are: %s',
                     $data['statement'],
-                    implode(",", $filterData->supportedStatements)
+                    implode(",", FilterData::SUPPORTED_STATEMENTS)
                 ));
             }
             $this->statement = $data['statement'];

@@ -15,7 +15,13 @@ class FilterData extends AbstractFilter
      * @var string Flag for whether or not query bindings should be used.
      * Not having this on could potentially leave queries open for SQL Injection
      */
-    const USE_BINDINGS = true;
+    const USE_BINDINGS = false;
+
+    /**
+     * List of supported statements
+     * @var array
+     */
+    const SUPPORTED_STATEMENTS = ['SELECT', 'UPDATE'];
 
     /**
      * @var CustomObject
@@ -61,11 +67,6 @@ class FilterData extends AbstractFilter
      * @var bool
      */
     protected $countOnly = false;
-
-    /**
-     * @var array
-     */
-    protected $supportedStatements = ['SELECT', 'UPDATE'];
 
     /**
      * @var array
@@ -563,7 +564,7 @@ class FilterData extends AbstractFilter
         } else {
             throw new ApiProblemException(400, sprintf('Statement %s not supported. Supported statements are: %s',
                 $this->statement,
-                implode(",", $this->supportedStatements)
+                implode(",", $this::SUPPORTED_STATEMENTS)
             ));
         }
 

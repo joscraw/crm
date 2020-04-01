@@ -109,6 +109,8 @@ class Column
        if($filterData->getStatement() === 'UPDATE') {
            $result['sql'] = $this->getUpdateQuery($alias);
            $result['bindings'] = [$internalName, $this->newValue];
+           $filterData->columnQueries[] = $result;
+           return;
        }
 
         switch($this->getProperty()->getFieldType()) {
