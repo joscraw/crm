@@ -665,6 +665,7 @@ class FilterData extends AbstractFilter
         // binding must be passed by reference when using ->bindParam()
         // if you don't want to pass by reference you can use ->bindValue()
         // I'm not sure if there is a pro/con to one or the other
+        // Binding parameters always start at index 1.
         foreach($this->bindings as $index => &$binding) {
             if(is_int($binding)) {
                 $stmt->bindParam($index + 1, $binding, ParameterType::INTEGER);
