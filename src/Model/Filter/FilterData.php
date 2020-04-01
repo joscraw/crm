@@ -15,7 +15,12 @@ class FilterData extends AbstractFilter
      * @var string Flag for whether or not query bindings should be used.
      * Not having this on could potentially leave queries open for SQL Injection
      */
-    public static $useBindings = true;
+    const USE_BINDINGS = true;
+
+    /**
+     * @var string
+     */
+    const BINDING_PLACEHOLDER = '{?}';
 
     /**
      * @var CustomObject
@@ -65,7 +70,7 @@ class FilterData extends AbstractFilter
     /**
      * @var array
      */
-    public $supportedStatements = ['SELECT', 'UPDATE'];
+    protected $supportedStatements = ['SELECT', 'UPDATE'];
 
     /**
      * @var array
@@ -90,11 +95,6 @@ class FilterData extends AbstractFilter
     /**
      * @var array
      */
-    public $searchQueries = [];
-
-    /**
-     * @var array
-     */
     public $orderQueries = [];
 
     /**
@@ -106,16 +106,6 @@ class FilterData extends AbstractFilter
      * @var array
      */
     public $filterCriteriaParts = [];
-
-    /**
-     * @var string
-     */
-    public $filterCriteriaString = '';
-
-    /**
-     * @var array
-     */
-    public $filterCriteriaUids = [];
 
     /**
      * @var array
@@ -349,12 +339,7 @@ class FilterData extends AbstractFilter
     public function generateColumnQueries() {
 
         foreach($this->getColumns() as $column) {
-
-            if($this::$useBindings) {
-                $column->getQueryWithBindings($this);
-            } else {
-                $column->getQuery($this);
-            }
+            $column->getQueryWithBindings($this);
         }
 
         /** @var Join $join */
@@ -368,12 +353,7 @@ class FilterData extends AbstractFilter
     public function generateFilterQueries() {
 
         foreach($this->getFilters() as $filter) {
-
-            if($this::$useBindings) {
-                $filter->getQueryWithBindings($this);
-            } else {
-                $filter->getQuery($this);
-            }
+            $filter->getQueryWithBindings($this);
         }
 
         /** @var Join $join */
@@ -425,7 +405,6 @@ class FilterData extends AbstractFilter
             $orCriteria = new OrCriteria();
             $orCriteria->setUid($uid);
             $andCriteria->addOrCriteria($orCriteria);
-            /*$this->searchQueries[] = $column->getSearchQuery($this->search);*/
         }
 
         /** @var Join $join */
@@ -444,11 +423,7 @@ class FilterData extends AbstractFilter
             $priority = $this->determineKeyAvailability($this->orderQueries, $order->getPriority());
 
             if($column = $this->getColumnByUid($order->getUid())) {
-                if($this::$useBindings) {
-                    $this->orderQueries[$priority] = $order->getQueryWithBindings($column);
-                } else {
-                    $this->orderQueries[$priority] = $order->getQuery($column);
-                }
+                $this->orderQueries[$priority] = $order->getQueryWithBindings($column);
             }
         }
 
@@ -460,12 +435,7 @@ class FilterData extends AbstractFilter
         foreach($this->getGroupBys() as $groupBy) {
 
             if($column = $this->getColumnByUid($groupBy->getUid())) {
-                if($this::$useBindings) {
-                    $this->groupByQueries[] = $groupBy->getQueryWithBindings($column);
-                } else {
-                    $this->groupByQueries[] = $groupBy->getQuery($column);
-                }
-
+                $this->groupByQueries[] = $groupBy->getQueryWithBindings($column);
             }
         }
 
@@ -484,17 +454,10 @@ class FilterData extends AbstractFilter
 
     public function generateJoinConditionalQueries() {
 
-        if($this::$useBindings) {
-            $this->joinConditionalQueries[] = array(
-                'sql' => sprintf("`%s`.custom_object_id  = ?", $this->getAlias()),
-                'bindings' => [$this->baseObject->getId()]
-            );
-        } else {
-            $this->joinConditionalQueries[] = array(
-                'sql' => sprintf("`%s`.custom_object_id = %s", $this->getAlias(), $this->baseObject->getId()),
-                'bindings' => []
-            );
-        }
+        $this->joinConditionalQueries[] = array(
+            'sql' => sprintf("`%s`.custom_object_id  = ?", $this->getAlias()),
+            'bindings' => [$this->baseObject->getId()]
+        );
 
         /** @var Join $join */
         foreach($this->joins as $join) {
@@ -618,12 +581,9 @@ class FilterData extends AbstractFilter
         $this->joinQueries = [];
         $this->filterQueries = [];
         $this->joinConditionalQueries = [];
-        $this->searchQueries = [];
         $this->orderQueries = [];
         $this->groupByQueries = [];
         $this->filterCriteriaParts = [];
-        $this->filterCriteriaString = '';
-        $this->filterCriteriaUids = [];
         $this->bindings = [];
 
         return $this;
@@ -633,7 +593,12 @@ class FilterData extends AbstractFilter
 
         $query = $this->getQuery();
 
+        if(!$this::USE_BINDINGS) {
+            $query = $this->getRawSQL($query);
+        }
+
         try {
+            /** @var \Doctrine\DBAL\Driver\Statement $stmt */
             $stmt = $entityManager->getConnection()->prepare($query);
         } catch (\Exception $exception) {
             throw new ApiProblemException(400, sprintf('Error running query. Contact system administrator %s', $exception->getMessage()));
@@ -641,7 +606,9 @@ class FilterData extends AbstractFilter
 
         // todo possibly pass the type as an associative array with each binding Ex: $this->bindings['integer'] => $.'first_name', etc
         //  so you can make sure you are setting the correct type in the prepared statement
-        $this->bindParameters($stmt);
+        if($this::USE_BINDINGS) {
+            $this->bindParameters($stmt);
+        }
 
         try {
             if(!$stmt->execute()) {
@@ -669,6 +636,38 @@ class FilterData extends AbstractFilter
         } else {
             throw new ApiProblemException(400, 'Statement not supported');
         }
+    }
+
+    /**
+     * This is more experimental as I don't know how well this will work if you add a ? to
+     * and actual bindings value. Example: Where :param = :value and :value is "josh?"/
+     * We don't actually want the regex to replace that question mark with a binding value.
+     * So this function more or less is little to be desired but can help with debugging purposes
+     * if you want to actually debug the raw query after params have been attached to the query. There
+     * literally is no other way to due to the fact:
+     *
+     * Doctrine is not sending a "real SQL query" to the database server : it is actually using prepared statements, which means:
+     * Sending the statement, for it to be prepared (this is what is returned by $query->getSql())
+     * And, then, sending the parameters (returned by $query->getParameters())
+     * and executing the prepared statements
+     * This means there is never a "real" SQL query on the PHP side — so, Doctrine cannot display it.
+     *
+     * @param $sql
+     * @return string|string[]|null
+     */
+    protected function getRawSQL($sql) {
+
+        $bindings = $this->bindings;
+        $index = -1;
+        $sql = preg_replace_callback('/\?/',function($matches) use($bindings, &$index) {
+            if(!empty($matches[0])) {
+                $index++;
+                return "'" . $bindings[$index] . "'";
+            }
+        }, $sql);
+
+        return $sql;
+
     }
 
     private function bindParameters(\Doctrine\DBAL\Driver\Statement $stmt) {

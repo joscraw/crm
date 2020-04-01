@@ -96,6 +96,7 @@ class Column
     }
 
     /**
+     * @deprecated
      * Gets query for column WITHOUT using binding for prepared statements
      *
      * @param FilterData $filterData
@@ -108,11 +109,10 @@ class Column
         $alias = $this->getAlias();
         $result = [];
 
-     /*   if($filterData->getStatement() === 'UPDATE') {
+        if($filterData->getStatement() === 'UPDATE') {
             $jsonExtract = $this->getUpdateQuery($alias);
             $resultStr = sprintf($jsonExtract, $internalName, $this->newValue);
-            return $resultStr;
-        }*/
+        }
 
         switch($this->getProperty()->getFieldType()) {
             case FieldCatalog::DATE_PICKER:
@@ -190,14 +190,11 @@ class Column
         $filterData->columnQueries[] = $result;
     }
 
-    public function getSearchQuery($search) {
-
-        $searchQuery = <<<HERE
-    LOWER(`%s`.properties->>'$."%s"') LIKE '%%%s%%'
-HERE;
-        return sprintf($searchQuery, $this->alias, $this->getProperty()->getInternalName(), strtolower($search));
-    }
-
+    /**
+     * @deprecated
+     * @param string $alias
+     * @return string
+     */
     private function getDatePickerQuery($alias = 'r1') {
         return <<<HERE
     CASE 
@@ -208,6 +205,11 @@ HERE;
 HERE;
     }
 
+    /**
+     * @deprecated
+     * @param string $alias
+     * @return string
+     */
     private function getNumberIsCurrencyQuery($alias = 'r1') {
         return <<<HERE
     CASE 
@@ -218,6 +220,11 @@ HERE;
 HERE;
     }
 
+    /**
+     * @deprecated
+     * @param string $alias
+     * @return string
+     */
     private function getNumberIsUnformattedQuery($alias = 'r1') {
         return <<<HERE
     CASE
@@ -228,6 +235,11 @@ HERE;
 HERE;
     }
 
+    /**
+     * @deprecated
+     * @param string $alias
+     * @return string
+     */
     private function getDefaultQuery($alias = 'r1') {
         return <<<HERE
     CASE
@@ -238,6 +250,11 @@ HERE;
 HERE;
     }
 
+    /**
+     * @deprecated
+     * @param string $alias
+     * @return string
+     */
     private function getSingleCheckboxQuery($alias = 'r1') {
         return <<<HERE
     CASE
@@ -250,18 +267,15 @@ HERE;
 HERE;
     }
 
+    /**
+     * @deprecated
+     * @param string $alias
+     * @return string
+     */
     private function getUpdateQuery($alias = 'r1') {
         return <<<HERE
     `${alias}`.properties = JSON_SET(`${alias}`.properties, '$."%s"', "%s") \n
 HERE;
-    }
-
-    public function getSearchQueryWithBindings($search) {
-
-        $searchQuery = <<<HERE
-    LOWER(`%s`.properties->>?) LIKE '%%%s%%'
-HERE;
-        return sprintf($searchQuery, $this->alias, $this->getProperty()->getInternalName(), strtolower($search));
     }
 
     private function getDatePickerQueryWithBindings($alias) {

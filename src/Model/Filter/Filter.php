@@ -303,6 +303,7 @@ class Filter
     }
 
     /**
+     * @deprecated
      * Gets query for filter WITHOUT using binding for prepared statements
      * @param FilterData $filterData
      */

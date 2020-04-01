@@ -6,6 +6,11 @@ class GroupBy
 {
     use Uid;
 
+    /**
+     * @deprecated
+     * @param Column $column
+     * @return array
+     */
     public function getQuery(Column $column) {
         return [
             'sql' => sprintf("`%s`.properties->>'$.\"%s\"'", $column->getAlias(), $column->getProperty()->getInternalName()),

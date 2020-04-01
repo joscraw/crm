@@ -226,12 +226,7 @@ class Join extends AbstractFilter
 
         /** @var Column $column */
         foreach($this->getColumns() as $column) {
-
-            if($filterData::$useBindings) {
-                $column->getQueryWithBindings($filterData);
-            } else {
-                $column->getQuery($filterData);
-            }
+            $column->getQueryWithBindings($filterData);
         }
 
         /** @var Join $join */
@@ -244,12 +239,7 @@ class Join extends AbstractFilter
 
         /** @var Filter $filter */
         foreach($this->getFilters() as $filter) {
-
-            if($filterData::$useBindings) {
-                $filter->getQueryWithBindings($filterData);
-            } else {
-                $filter->getQuery($filterData);
-            }
+            $filter->getQueryWithBindings($filterData);
         }
 
         /** @var Join $join */
@@ -297,11 +287,7 @@ class Join extends AbstractFilter
 
     public function generateJoinQueries(FilterData $filterData) {
 
-        if($filterData::$useBindings) {
-            $this->getQueryWithBindings($filterData);
-        } else {
-            $this->getQuery($filterData);
-        }
+        $this->getQueryWithBindings($filterData);
 
         /** @var Join $join */
         foreach($this->joins as $join) {
@@ -315,17 +301,10 @@ class Join extends AbstractFilter
             ($this->joinType === 'With/Without');
 
         if(!$skipJoinCondition) {
-            if($filterData::$useBindings) {
-                $filterData->joinConditionalQueries[] = array(
-                    'sql' => sprintf("`%s`.custom_object_id  = ?", $this->getAlias()),
-                    'bindings' => [$this->joinObject->getId()],
-                );
-            } else {
-                $filterData->joinConditionalQueries[] = array(
-                    'sql' => sprintf("`%s`.custom_object_id = %s", $this->getAlias(), $this->joinObject->getId()),
-                    'bindings' => [],
-                );
-            }
+            $filterData->joinConditionalQueries[] = array(
+                'sql' => sprintf("`%s`.custom_object_id  = ?", $this->getAlias()),
+                'bindings' => [$this->joinObject->getId()],
+            );
         }
 
         foreach($this->joins as $join) {
@@ -407,6 +386,10 @@ class Join extends AbstractFilter
         }
     }
 
+    /**
+     * @deprecated
+     * @param FilterData $filterData
+     */
     private function getQuery(FilterData $filterData) {
 
         $connectedProperty = $this->getRelationshipPropertyToJoinOn();
@@ -471,6 +454,7 @@ class Join extends AbstractFilter
     }
 
     /**
+     * @deprecated
      * We store relations to a single object as a string.
      * We store relations to multiple objects as a semicolon delimited string
      * Single object example: {chapter: "11"}
@@ -493,6 +477,7 @@ HERE;
     }
 
     /**
+     * @deprecated
      * We store relations to a single object as a string.
      * We store relations to multiple objects as a semicolon delimited string
      * Single object example: {chapter: "11"}
@@ -516,6 +501,7 @@ HERE;
     }
 
     /**
+     * @deprecated
      * Normal Join Looking for records without a match
      * @return string
      */
@@ -526,6 +512,7 @@ HERE;
     }
 
     /**
+     * @deprecated
      * Normal Join Looking for records without a match
      * @return string
      */
@@ -543,6 +530,7 @@ HERE;
     }
 
     /**
+     * @deprecated
      * We store relations to a single object as a string.
      * We store relations to multiple objects as a semicolon delimited string
      * Single object example: {chapter: "11"}
@@ -563,6 +551,7 @@ HERE;
     }
 
     /**
+     * @deprecated
      * We store relations to a single object as a string.
      * We store relations to multiple objects as a semicolon delimited string
      * Single object example: {chapter: "11"}

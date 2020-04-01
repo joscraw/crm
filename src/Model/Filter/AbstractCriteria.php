@@ -96,7 +96,6 @@ class AbstractCriteria
         // Uids are not required for defining Criteria. Criteria can simply
         // be  used for grouping and do NOT necessarily have to have a filter attached
         if($this->getUid()) {
-            $filterData->filterCriteriaUids[] = $this->getUid();
             $filterData->filterCriteriaParts[] = $this->getQuery();
         }
 
