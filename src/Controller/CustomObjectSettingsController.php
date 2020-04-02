@@ -14,6 +14,7 @@ use App\Repository\CustomObjectRepository;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Messenger\MessageBusInterface;
@@ -69,9 +70,21 @@ class CustomObjectSettingsController extends AbstractController
     /**
      * @Route(name="custom_object_settings", methods={"GET"}, options = { "expose" = true })
      * @param Portal $portal
+     * @param AdapterInterface $cache
      * @return \Symfony\Component\HttpFoundation\Response
+     * @throws \Psr\Cache\InvalidArgumentException
      */
     public function indexAction(Portal $portal) {
+
+/*        $item = $cache->getItem('markdown_'.md5($portal->getInternalIdentifier()));
+        if (!$item->isHit()) {
+            $item->set($portal->getInternalIdentifier());
+            $cache->save($item);
+        }
+        $portalIdentifier = $item->get();
+
+        $name = "josh";*/
+
 
      /*   $connectionFactory = new RedisConnectionFactory([
             'host' => 'localhost',

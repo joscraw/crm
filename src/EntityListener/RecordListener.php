@@ -15,6 +15,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Event\LifecycleEventArgs;
 use Doctrine\ORM\Event\PreUpdateEventArgs;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\SerializerInterface;
@@ -56,6 +57,11 @@ class RecordListener
     private $bus;
 
     /**
+     * @var AdapterInterface $cache
+     */
+    private $cache;
+
+    /**
      * RecordListener constructor.
      * @param SerializerInterface $serializer
      * @param WorkflowRepository $workflowRepository
@@ -63,6 +69,7 @@ class RecordListener
      * @param RecordRepository $recordRepository
      * @param EntityManagerInterface $entityManager
      * @param MessageBusInterface $bus
+     * @param AdapterInterface $cache
      */
     public function __construct(
         SerializerInterface $serializer,
@@ -70,7 +77,8 @@ class RecordListener
         ObjectWorkflowRepository $objectWorkflowRepository,
         RecordRepository $recordRepository,
         EntityManagerInterface $entityManager,
-        MessageBusInterface $bus
+        MessageBusInterface $bus,
+        AdapterInterface $cache
     ) {
         $this->serializer = $serializer;
         $this->workflowRepository = $workflowRepository;
@@ -78,6 +86,7 @@ class RecordListener
         $this->recordRepository = $recordRepository;
         $this->entityManager = $entityManager;
         $this->bus = $bus;
+        $this->cache = $cache;
     }
 
     /**
@@ -108,6 +117,7 @@ class RecordListener
      *
      * @param Record $record
      * @param LifecycleEventArgs $args
+     * @throws \Psr\Cache\InvalidArgumentException
      */
     public function postPersist(Record $record, LifecycleEventArgs $args) {
 
@@ -116,6 +126,20 @@ class RecordListener
         $record->id = $record->getId();
         $this->entityManager->persist($record);
         $this->entityManager->flush();
+
+/*        if($this->cache->hasItem('contact_emails')) {
+            $item = $this->cache->getItem('contact_emails');
+            $contactEmails = $item->get();
+            $contactEmails[] = $record->email;
+            $item->set($contactEmails);
+            $this->cache->save($item);
+        } else {
+            $contactEmails = [];
+            $item = $this->cache->getItem('contact_emails');
+            $contactEmails[] = $record->email;
+            $item->set($contactEmails);
+            $this->cache->save($item);
+        }*/
         // todo possibly add the logic here for automations/workflows
     }
 

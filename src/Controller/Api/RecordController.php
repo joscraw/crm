@@ -179,9 +179,9 @@ class RecordController extends ApiController
 
         $properties = $this->propertyRepository->findDefaultProperties($customObject);
 
-        $form = $this->createForm(RecordType::class, null, [
-            'properties' => $properties,
-            'portal' => $portal
+        $record = new Record();
+        $form = $this->createForm(RecordType::class, $record, [
+            'properties' => $properties
         ]);
 
         $formMarkup = $this->renderView(
@@ -265,11 +265,8 @@ class RecordController extends ApiController
             'customObject' => $customObject->getId()
         ]);
 
-        $recordProperties = $record->getProperties();
-
-        $form = $this->createForm(RecordType::class, $recordProperties, [
+        $form = $this->createForm(RecordType::class, $record, [
             'properties' => $properties,
-            'portal' => $portal
         ]);
 
         $propertyGroups = $customObject->getPropertyGroups();
@@ -318,11 +315,8 @@ class RecordController extends ApiController
             'customObject' => $customObject->getId()
         ]);
 
-        $recordProperties = $record->getProperties();
-
-        $form = $this->createForm(RecordType::class, $recordProperties, [
-            'properties' => $properties,
-            'portal' => $portal
+        $form = $this->createForm(RecordType::class, $record, [
+            'properties' => $properties
         ]);
 
         $propertyGroups = $customObject->getPropertyGroups();
@@ -355,8 +349,6 @@ class RecordController extends ApiController
                 ], Response::HTTP_BAD_REQUEST
             );
         }
-
-        $record->setProperties($form->getData());
         $this->entityManager->persist($record);
         $this->entityManager->flush();
 
@@ -393,10 +385,10 @@ class RecordController extends ApiController
         }
 
         $properties = $this->propertyRepository->findDefaultProperties($customObject);
-
-        $form = $this->createForm(RecordType::class, null, [
-            'properties' => $properties,
-            'portal' => $portal
+        $record = new Record();
+        $record->setCustomObject($customObject);
+        $form = $this->createForm(RecordType::class, $record, [
+            'properties' => $properties
         ]);
 
         $form->handleRequest($request);
@@ -418,10 +410,8 @@ class RecordController extends ApiController
             );
         }
 
-        $record = new Record();
-        $record->setProperties($form->getData());
-        $record->setCustomObject($customObject);
-
+        /** @var Record $record */
+        $record = $form->getData();
         $this->entityManager->persist($record);
         $this->entityManager->flush();
 

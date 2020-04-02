@@ -112,6 +112,7 @@ class FilterData extends AbstractFilter
     {
         $this->orders = new ArrayCollection();
         $this->groupBys = new ArrayCollection();
+        $this->filterCriteria = new FilterCriteria();
 
         parent::__construct();
     }
@@ -613,6 +614,8 @@ class FilterData extends AbstractFilter
         } catch (\Exception $exception) {
             throw new ApiProblemException(400, $exception->getMessage());
         }
+
+        /*$entityManager->getConnection()->close();*/
 
         if($this->getStatement() === 'SELECT') {
             $results = $stmt->fetchAll();

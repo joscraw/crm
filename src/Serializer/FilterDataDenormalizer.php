@@ -163,10 +163,8 @@ class FilterDataDenormalizer implements DenormalizerInterface, DenormalizerAware
         // FILTER CRITERIA
         if(isset($data['filterCriteria'])) {
             /** @var FilterCriteria $filterCriteria */
-            $filterCriteria = $this->filterCriteria($data['filterCriteria'], new FilterCriteria());
+            $filterCriteria = $this->filterCriteria($data['filterCriteria'], $filterData->getFilterCriteria());
             $filterData->setFilterCriteria($filterCriteria);
-        } else {
-            $filterData->setFilterCriteria(new FilterCriteria());
         }
 
         // COLUMNS TO RETURN

@@ -6,8 +6,10 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
+use App\Validator\Constraints as CustomAssert;
 
 /**
+ * @CustomAssert\RecordProperty()
  * @ORM\Entity(repositoryClass="App\Repository\RecordRepository")
  * @ORM\EntityListeners({"App\EntityListener\RecordListener"})
  */

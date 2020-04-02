@@ -2,17 +2,23 @@
 
 namespace App\MessageHandler;
 
+use App\Entity\Property;
 use App\Entity\Record;
 use App\Message\ImportSpreadsheet;
+use App\Model\Filter\Column;
+use App\Model\Filter\FilterData;
 use App\Repository\CustomObjectRepository;
+use App\Repository\PropertyRepository;
 use App\Repository\SpreadsheetRepository;
 use App\Service\PhpSpreadsheetHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
+use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpKernel\Profiler\Profiler;
 use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 /**
  * @see https://symfony.com/doc/4.2/messenger.html
@@ -49,27 +55,50 @@ class ImportSpreadsheetHandler implements MessageHandlerInterface, LoggerAwareIn
     private $customObjectRepository;
 
     /**
+     * @var ValidatorInterface
+     */
+    private $validator;
+
+    /**
+     * @var AdapterInterface $cache
+     */
+    private $cache;
+
+    /**
+     * @var PropertyRepository
+     */
+    private $propertyRepository;
+
+    /**
      * ImportSpreadsheetHandler constructor.
      * @param EntityManagerInterface $entityManager
      * @param SpreadsheetRepository $spreadsheetRepository
      * @param PhpSpreadsheetHelper $phpSpreadsheetHelper
      * @param string $uploadsPath
      * @param CustomObjectRepository $customObjectRepository
+     * @param ValidatorInterface $validator
+     * @param AdapterInterface $cache
+     * @param PropertyRepository $propertyRepository
      */
     public function __construct(
         EntityManagerInterface $entityManager,
         SpreadsheetRepository $spreadsheetRepository,
         PhpSpreadsheetHelper $phpSpreadsheetHelper,
         string $uploadsPath,
-        CustomObjectRepository $customObjectRepository
+        CustomObjectRepository $customObjectRepository,
+        ValidatorInterface $validator,
+        AdapterInterface $cache,
+        PropertyRepository $propertyRepository
     ) {
         $this->entityManager = $entityManager;
         $this->spreadsheetRepository = $spreadsheetRepository;
         $this->phpSpreadsheetHelper = $phpSpreadsheetHelper;
         $this->uploadsPath = $uploadsPath;
         $this->customObjectRepository = $customObjectRepository;
+        $this->validator = $validator;
+        $this->cache = $cache;
+        $this->propertyRepository = $propertyRepository;
 
-        // Help Prevent Memory leakage
         $this->entityManager->getConfiguration()->setSQLLogger(null);
     }
 
@@ -100,6 +129,7 @@ class ImportSpreadsheetHandler implements MessageHandlerInterface, LoggerAwareIn
      * return from the __invoke for whatever reason, it will remove the message from the queue and say it was aknowledged.
      *
      * @param ImportSpreadsheet $message
+     * @throws \Psr\Cache\InvalidArgumentException
      */
     public function __invoke(ImportSpreadsheet $message)
     {
@@ -123,6 +153,27 @@ class ImportSpreadsheetHandler implements MessageHandlerInterface, LoggerAwareIn
                 $this->logger->alert(sprintf('Spreadsheet mapping missing for spreadsheet %d!', $spreadsheetId));
             }
             return;
+        }
+
+
+        $emailProperty = $this->entityManager->getRepository(Property::class)->findOneBy([
+            'customObject' => $spreadsheet->getCustomObject(),
+            'internalName' => 'email'
+        ]);
+
+        $existingEmails = [];
+        if($emailProperty) {
+            $column = new Column();
+            $column->setProperty($emailProperty);
+            $column->setRenameTo('email');
+            $filterData = new FilterData();
+            $filterData->setBaseObject($spreadsheet->getCustomObject());
+            $filterData->addColumn($column);
+            $results = $filterData->runQuery($this->entityManager);
+            if(!empty($results['results'])) {
+                $existingEmails = array_column($results['results'], 'email');
+            }
+            echo "email results captured... \n";
         }
 
         $path = $this->uploadsPath.'/'.$spreadsheet->getPath();
@@ -162,6 +213,11 @@ class ImportSpreadsheetHandler implements MessageHandlerInterface, LoggerAwareIn
 
                     if($rowIndex > 1) {
                         $record = new Record();
+
+                        // Normalizing empty cell possibilities https://github.com/box/spout/issues/332
+                        if(count($columns) !== count($values)) {
+                            $values = $values + array_fill(count($values), count($columns) - count($values), '');
+                        }
                         $data = array_combine($columns, $values);
                         foreach($data as $column => $value) {
                             $mapping = array_filter($mappings, function($mapping) use($column) {
@@ -176,6 +232,43 @@ class ImportSpreadsheetHandler implements MessageHandlerInterface, LoggerAwareIn
                         // Because we are batching and completely clearing the entity manager
                         // to conserve memory, we need to re-fetch the custom object entity each time
                         $record->setCustomObject($this->customObjectRepository->find($customObjectId));
+
+                        $email = $record->email;
+
+                        // todo how do we handle imports having the same email address inside of each spreadsheet. We
+                        //  don't want those duplicates getting added either right?
+                        if(!empty($email) && in_array($email, $existingEmails)) {
+                            echo "email already exists in system. Skipping import.... $rowIndex \n ";
+                            continue;
+                        } else {
+                            $existingEmails[] = $email;
+                        }
+
+                        /*$errors = $this->validator->validate($record);*/
+
+                        // Let's not import the record if there are any validation errors
+                        // todo we can't run a query each time we need to validate on whether or not an email exists. We need
+                        //  some type of caching file or something to query the emails from.
+                       /* $errors = $this->validator->validate($record);
+                        if (count($errors) > 0) {*/
+                            // if we have any errors let's go ahead and flush any records we have being managed
+                            // and clear the entity manager. The reason we need to clear here is that the validation
+                            // above actually runs queries and we need to make sure the MYSQL Memory is staying low
+                            /*$this->entityManager->flush();
+                            $this->entityManager->clear();*/
+                         /*   echo $rowIndex . "  ";
+                            continue;
+                        }*/
+
+         /*               if($this->cache->hasItem('contact_emails')) {
+                            $item = $this->cache->getItem('contact_emails');
+                            $contactEmails = $item->get();
+                            if(in_array($record->email, $contactEmails)) {
+                                echo "Record already exists.   ";
+                                continue;
+                            }
+                        }*/
+
                         $this->entityManager->persist($record);
                     }
 
@@ -205,6 +298,7 @@ class ImportSpreadsheetHandler implements MessageHandlerInterface, LoggerAwareIn
             // make sure any final records that came after the (($rowIndex % $batchSize) === 0) are flushed
             $this->entityManager->flush();
             $this->entityManager->commit();
+            echo "Import successfully completed...";
 
         } catch (\Exception $exception) {
             $this->entityManager->rollback();
