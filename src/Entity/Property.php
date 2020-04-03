@@ -147,6 +147,11 @@ class Property
      */
     private $hidden;
 
+    /**
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private $isUnique = false;
+
     public function __construct()
     {
         $this->triggerFilters = new ArrayCollection();
@@ -451,6 +456,18 @@ class Property
     public function setHidden(?bool $hidden): self
     {
         $this->hidden = $hidden;
+
+        return $this;
+    }
+
+    public function getIsUnique(): ?bool
+    {
+        return $this->isUnique;
+    }
+
+    public function setIsUnique(?bool $isUnique): self
+    {
+        $this->isUnique = $isUnique;
 
         return $this;
     }

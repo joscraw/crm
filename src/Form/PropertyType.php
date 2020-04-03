@@ -58,6 +58,9 @@ class PropertyType extends AbstractType
             ->add('required', CheckboxType::class, [
                 'required' => false,
             ])
+            ->add('isUnique', CheckboxType::class, [
+                'required' => false,
+            ])
             ->add('fieldType', ChoiceType::class, array(
                 'choices'  => FieldCatalog::getOptionsForChoiceTypeField(),
                 'required' => false,

@@ -105,6 +105,11 @@ class CustomObject /*implements \JsonSerializable*/
      */
     private $objectWorkflows;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\RecordDuplicate", mappedBy="customObject", orphanRemoval=true)
+     */
+    private $recordDuplicates;
+
     public function __construct()
     {
         $this->properties = new ArrayCollection();
@@ -114,6 +119,7 @@ class CustomObject /*implements \JsonSerializable*/
         $this->marketingLists = new ArrayCollection();
         $this->forms = new ArrayCollection();
         $this->objectWorkflows = new ArrayCollection();
+        $this->recordDuplicates = new ArrayCollection();
     }
 
     /**
@@ -437,6 +443,37 @@ class CustomObject /*implements \JsonSerializable*/
             // set the owning side to null (unless already changed)
             if ($objectWorkflow->getCustomObject() === $this) {
                 $objectWorkflow->setCustomObject(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|RecordDuplicate[]
+     */
+    public function getRecordDuplicates(): Collection
+    {
+        return $this->recordDuplicates;
+    }
+
+    public function addRecordDuplicate(RecordDuplicate $recordDuplicate): self
+    {
+        if (!$this->recordDuplicates->contains($recordDuplicate)) {
+            $this->recordDuplicates[] = $recordDuplicate;
+            $recordDuplicate->setCustomObject($this);
+        }
+
+        return $this;
+    }
+
+    public function removeRecordDuplicate(RecordDuplicate $recordDuplicate): self
+    {
+        if ($this->recordDuplicates->contains($recordDuplicate)) {
+            $this->recordDuplicates->removeElement($recordDuplicate);
+            // set the owning side to null (unless already changed)
+            if ($recordDuplicate->getCustomObject() === $this) {
+                $recordDuplicate->setCustomObject(null);
             }
         }
 

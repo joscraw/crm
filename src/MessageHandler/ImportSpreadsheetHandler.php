@@ -4,6 +4,7 @@ namespace App\MessageHandler;
 
 use App\Entity\Property;
 use App\Entity\Record;
+use App\Entity\RecordDuplicate;
 use App\Message\ImportSpreadsheet;
 use App\Model\Filter\Column;
 use App\Model\Filter\FilterData;
@@ -11,6 +12,7 @@ use App\Repository\CustomObjectRepository;
 use App\Repository\PropertyRepository;
 use App\Repository\SpreadsheetRepository;
 use App\Service\PhpSpreadsheetHelper;
+use App\Utils\RandomStringGenerator;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
@@ -29,6 +31,7 @@ class ImportSpreadsheetHandler implements MessageHandlerInterface, LoggerAwareIn
 {
 
     use LoggerAwareTrait;
+    use RandomStringGenerator;
 
     /**
      * @var EntityManagerInterface
@@ -135,6 +138,7 @@ class ImportSpreadsheetHandler implements MessageHandlerInterface, LoggerAwareIn
     {
         // Make sure garbage collection is enabled.
         gc_enable();
+        $duplicateRecords = [];
 
         $spreadsheetId = $message->getSpreadsheetId();
         $spreadsheet = $this->spreadsheetRepository->find($spreadsheetId);
@@ -155,26 +159,31 @@ class ImportSpreadsheetHandler implements MessageHandlerInterface, LoggerAwareIn
             return;
         }
 
+        $uniqueProperties = $this->propertyRepository->findBy([
+           'customObject' => $spreadsheet->getCustomObject(),
+           'isUnique' => true,
+        ]);
+
+        $filterData = new FilterData();
+        $filterData->setBaseObject($spreadsheet->getCustomObject());
+        /** @var Property $uniqueProperty */
+        foreach($uniqueProperties as $uniqueProperty) {
+            $column = new Column();
+            $column->setRenameTo($uniqueProperty->getInternalName());
+            $column->setProperty($uniqueProperty);
+            $filterData->addColumn($column);
+        }
+        $results = $filterData->runQuery($this->entityManager);
+
+/*        $existingEmails = [];
+        if(!empty($results['results'])) {
+            $existingEmails = array_column($results['results'], 'email');
+        }
 
         $emailProperty = $this->entityManager->getRepository(Property::class)->findOneBy([
             'customObject' => $spreadsheet->getCustomObject(),
-            'internalName' => 'email'
-        ]);
-
-        $existingEmails = [];
-        if($emailProperty) {
-            $column = new Column();
-            $column->setProperty($emailProperty);
-            $column->setRenameTo('email');
-            $filterData = new FilterData();
-            $filterData->setBaseObject($spreadsheet->getCustomObject());
-            $filterData->addColumn($column);
-            $results = $filterData->runQuery($this->entityManager);
-            if(!empty($results['results'])) {
-                $existingEmails = array_column($results['results'], 'email');
-            }
-            echo "email results captured... \n";
-        }
+            'internalName' => 'email',
+        ]);*/
 
         $path = $this->uploadsPath.'/'.$spreadsheet->getPath();
         $file = new File($path);
@@ -233,41 +242,49 @@ class ImportSpreadsheetHandler implements MessageHandlerInterface, LoggerAwareIn
                         // to conserve memory, we need to re-fetch the custom object entity each time
                         $record->setCustomObject($this->customObjectRepository->find($customObjectId));
 
-                        $email = $record->email;
+                  /*      $conflictingRecords = array_filter($results['results'], function($result) use($uniqueProperties, $record) {
+                            foreach($uniqueProperties as $uniqueProperty) {
+                                $internalName = $uniqueProperty->getInternalName();
+                                // we probably need to check for the existence of $internalName in $result here.
+                                // This is extremely slow. Ughh!!!! I hate this.
+                                // I Don't know if there is any way around it when you are trying to dedup data on an import.
+                                // if the spreadsheet is super large this $result['results'] array is going to keep growing
+                                // which will slow down the import as it keeps going which will keep eating up more and more cpu.
+                                if($record->$internalName === $result[$internalName]) {
+                                    return true;
+                                }
+                            }
+                            return false;
+                        });*/
 
-                        // todo how do we handle imports having the same email address inside of each spreadsheet. We
-                        //  don't want those duplicates getting added either right?
-                        if(!empty($email) && in_array($email, $existingEmails)) {
-                            echo "email already exists in system. Skipping import.... $rowIndex \n ";
-                            continue;
-                        } else {
-                            $existingEmails[] = $email;
+                        if (($rowIndex % $batchSize) === 0) {
+                            echo sprintf("Records skipped %s", $rowIndex);
                         }
 
-                        /*$errors = $this->validator->validate($record);*/
+                        foreach($uniqueProperties as $uniqueProperty) {
+                            $internalName = $uniqueProperty->getInternalName();
+                            $data = array_column($results['results'], $internalName);
+                            if(in_array($record->$internalName, $data)) {
+                                // todo possibly collect the duplicate records here along with which columns were duplicates
+                                continue 2;
+                            }
+                        }
+                        
+                        //$existingEmails = array_column($results['results'], 'email');
 
-                        // Let's not import the record if there are any validation errors
-                        // todo we can't run a query each time we need to validate on whether or not an email exists. We need
-                        //  some type of caching file or something to query the emails from.
-                       /* $errors = $this->validator->validate($record);
-                        if (count($errors) > 0) {*/
-                            // if we have any errors let's go ahead and flush any records we have being managed
-                            // and clear the entity manager. The reason we need to clear here is that the validation
-                            // above actually runs queries and we need to make sure the MYSQL Memory is staying low
-                            /*$this->entityManager->flush();
-                            $this->entityManager->clear();*/
-                         /*   echo $rowIndex . "  ";
+
+                        // duplicate records were found with the current record trying to be imported
+                        // For now just add the record to the duplicateRecords array and we will deal
+                        // with these later
+                    /*    if(!empty($conflictingRecords)) {
+                            $duplicateRecords[] = $record;
                             continue;
                         }*/
 
-         /*               if($this->cache->hasItem('contact_emails')) {
-                            $item = $this->cache->getItem('contact_emails');
-                            $contactEmails = $item->get();
-                            if(in_array($record->email, $contactEmails)) {
-                                echo "Record already exists.   ";
-                                continue;
-                            }
-                        }*/
+                        // add the record onto the results stack used for the deduplicate logic
+                        // to prevent multiple rows from the spreadsheet with the same unique
+                        // properties from being imported
+                        $results['results'][] = $record->getProperties();
 
                         $this->entityManager->persist($record);
                     }
@@ -292,12 +309,24 @@ class ImportSpreadsheetHandler implements MessageHandlerInterface, LoggerAwareIn
                     unset($importData);
                     unset($row);
                     unset($value);
+                    unset($conflictingRecords);
                     gc_collect_cycles();
                 }
             }
             // make sure any final records that came after the (($rowIndex % $batchSize) === 0) are flushed
             $this->entityManager->flush();
             $this->entityManager->commit();
+
+            // Handle duplicate records
+            $customObject = $this->customObjectRepository->find($customObjectId);
+            /** @var Record $record */
+            /*foreach($duplicateRecords as $record) {*/
+               /* $recordDuplicate = new RecordDuplicate();
+                $recordDuplicate->setCustomObject($customObject);
+                $recordDuplicate->setProperties($record->getProperties());*/
+
+            /*}*/
+
             echo "Import successfully completed...";
 
         } catch (\Exception $exception) {
