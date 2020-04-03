@@ -269,7 +269,7 @@ class ImportSpreadsheetHandler implements MessageHandlerInterface, LoggerAwareIn
                                 continue 2;
                             }
                         }
-                        
+
                         //$existingEmails = array_column($results['results'], 'email');
 
 
