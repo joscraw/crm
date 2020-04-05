@@ -4,12 +4,7 @@ namespace App\Controller;
 
 use App\Entity\MarketingList;
 use App\Entity\Portal;
-use App\Repository\CustomObjectRepository;
-use App\Repository\FolderRepository;
-use App\Repository\PropertyGroupRepository;
-use App\Repository\PropertyRepository;
-use App\Repository\RecordRepository;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Utils\ServiceHelper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
 
@@ -22,61 +17,7 @@ use Symfony\Component\Routing\Annotation\Route;
  */
 class ListController extends AbstractController
 {
-    /**
-     * @var EntityManagerInterface
-     */
-    private $entityManager;
-
-    /**
-     * @var CustomObjectRepository
-     */
-    private $customObjectRepository;
-
-    /**
-     * @var PropertyRepository
-     */
-    private $propertyRepository;
-
-    /**
-     * @var PropertyGroupRepository
-     */
-    private $propertyGroupRepository;
-
-    /**
-     * @var RecordRepository
-     */
-    private $recordRepository;
-
-    /**
-     * @var FolderRepository
-     */
-    private $folderRepository;
-
-    /**
-     * ListController constructor.
-     * @param EntityManagerInterface $entityManager
-     * @param CustomObjectRepository $customObjectRepository
-     * @param PropertyRepository $propertyRepository
-     * @param PropertyGroupRepository $propertyGroupRepository
-     * @param RecordRepository $recordRepository
-     * @param FolderRepository $folderRepository
-     */
-    public function __construct(
-        EntityManagerInterface $entityManager,
-        CustomObjectRepository $customObjectRepository,
-        PropertyRepository $propertyRepository,
-        PropertyGroupRepository $propertyGroupRepository,
-        RecordRepository $recordRepository,
-        FolderRepository $folderRepository
-    ) {
-        $this->entityManager = $entityManager;
-        $this->customObjectRepository = $customObjectRepository;
-        $this->propertyRepository = $propertyRepository;
-        $this->propertyGroupRepository = $propertyGroupRepository;
-        $this->recordRepository = $recordRepository;
-        $this->folderRepository = $folderRepository;
-    }
-
+    use ServiceHelper;
 
     /**
      * @Route("/create/{routing}", name="create_list", requirements={"routing"=".+"}, defaults={"routing": null}, methods={"GET"}, options = { "expose" = true })

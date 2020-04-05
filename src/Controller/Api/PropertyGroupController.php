@@ -2,7 +2,6 @@
 
 namespace App\Controller\Api;
 
-use App\AuthorizationHandler\PermissionAuthorizationHandler;
 use App\Entity\CustomObject;
 use App\Entity\Portal;
 use App\Entity\PropertyGroup;
@@ -10,10 +9,7 @@ use App\Entity\Role;
 use App\Form\DeletePropertyGroupType;
 use App\Form\EditPropertyGroupType;
 use App\Form\PropertyGroupType;
-use App\Repository\CustomObjectRepository;
-use App\Repository\PropertyGroupRepository;
-use App\Repository\PropertyRepository;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Utils\ServiceHelper;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
@@ -28,52 +24,7 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class PropertyGroupController extends ApiController
 {
-    /**
-     * @var EntityManagerInterface
-     */
-    private $entityManager;
-
-    /**
-     * @var CustomObjectRepository
-     */
-    private $customObjectRepository;
-
-    /**
-     * @var PropertyRepository
-     */
-    private $propertyRepository;
-
-    /**
-     * @var PropertyGroupRepository
-     */
-    private $propertyGroupRepository;
-
-    /**
-     * @var PermissionAuthorizationHandler
-     */
-    private $permissionAuthorizationHandler;
-
-    /**
-     * PropertyGroupController constructor.
-     * @param EntityManagerInterface $entityManager
-     * @param CustomObjectRepository $customObjectRepository
-     * @param PropertyRepository $propertyRepository
-     * @param PropertyGroupRepository $propertyGroupRepository
-     * @param PermissionAuthorizationHandler $permissionAuthorizationHandler
-     */
-    public function __construct(
-        EntityManagerInterface $entityManager,
-        CustomObjectRepository $customObjectRepository,
-        PropertyRepository $propertyRepository,
-        PropertyGroupRepository $propertyGroupRepository,
-        PermissionAuthorizationHandler $permissionAuthorizationHandler
-    ) {
-        $this->entityManager = $entityManager;
-        $this->customObjectRepository = $customObjectRepository;
-        $this->propertyRepository = $propertyRepository;
-        $this->propertyGroupRepository = $propertyGroupRepository;
-        $this->permissionAuthorizationHandler = $permissionAuthorizationHandler;
-    }
+    use ServiceHelper;
 
     /**
      * @Route("/{internalName}/get-create-form", name="property_group_form", methods={"GET"}, options = { "expose" = true })

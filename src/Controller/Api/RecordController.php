@@ -2,7 +2,6 @@
 
 namespace App\Controller\Api;
 
-use App\AuthorizationHandler\PermissionAuthorizationHandler;
 use App\Entity\CustomObject;
 use App\Entity\Filter;
 use App\Entity\Portal;
@@ -13,23 +12,13 @@ use App\Form\RecordType;
 use App\Form\SaveFilterType;
 use App\Model\FieldCatalog;
 use App\Model\Filter\FilterData;
-use App\Repository\CustomObjectRepository;
-use App\Repository\FilterRepository;
-use App\Repository\PropertyGroupRepository;
-use App\Repository\PropertyRepository;
-use App\Repository\RecordRepository;
-use App\Service\PhpSpreadsheetHelper;
-use App\Service\UploaderHelper;
-use App\Service\WorkflowProcessor;
 use App\Utils\ArrayHelper;
 use App\Utils\MultiDimensionalArrayExtractor;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Utils\ServiceHelper;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Serializer\SerializerInterface;
 
 /**
  * Class RecordController
@@ -41,109 +30,7 @@ class RecordController extends ApiController
 {
     use MultiDimensionalArrayExtractor;
     use ArrayHelper;
-
-    /**
-     * @var EntityManagerInterface
-     */
-    private $entityManager;
-
-    /**
-     * @var CustomObjectRepository
-     */
-    private $customObjectRepository;
-
-    /**
-     * @var PropertyRepository
-     */
-    private $propertyRepository;
-
-    /**
-     * @var PropertyGroupRepository
-     */
-    private $propertyGroupRepository;
-
-    /**
-     * @var RecordRepository
-     */
-    private $recordRepository;
-
-    /**
-     * @var SerializerInterface
-     */
-    private $serializer;
-
-    /**
-     * @var PermissionAuthorizationHandler
-     */
-    private $permissionAuthorizationHandler;
-
-    /**
-     * @var FilterRepository
-     */
-    private $filterRepository;
-
-    /**
-     * @var WorkflowProcessor
-     */
-    private $workflowProcessor;
-
-    /**
-     * @var MessageBusInterface $bus
-     */
-    private $bus;
-
-    /**
-     * @var PhpSpreadsheetHelper;
-     */
-    private $phpSpreadsheetHelper;
-
-    /**
-     * @var UploaderHelper
-     */
-    private $uploadHelper;
-
-    /**
-     * RecordController constructor.
-     * @param EntityManagerInterface $entityManager
-     * @param CustomObjectRepository $customObjectRepository
-     * @param PropertyRepository $propertyRepository
-     * @param PropertyGroupRepository $propertyGroupRepository
-     * @param RecordRepository $recordRepository
-     * @param SerializerInterface $serializer
-     * @param PermissionAuthorizationHandler $permissionAuthorizationHandler
-     * @param FilterRepository $filterRepository
-     * @param WorkflowProcessor $workflowProcessor
-     * @param MessageBusInterface $bus
-     * @param PhpSpreadsheetHelper $phpSpreadsheetHelper
-     * @param UploaderHelper $uploadHelper
-     */
-    public function __construct(
-        EntityManagerInterface $entityManager,
-        CustomObjectRepository $customObjectRepository,
-        PropertyRepository $propertyRepository,
-        PropertyGroupRepository $propertyGroupRepository,
-        RecordRepository $recordRepository,
-        SerializerInterface $serializer,
-        PermissionAuthorizationHandler $permissionAuthorizationHandler,
-        FilterRepository $filterRepository,
-        WorkflowProcessor $workflowProcessor,
-        MessageBusInterface $bus,
-        PhpSpreadsheetHelper $phpSpreadsheetHelper,
-        UploaderHelper $uploadHelper
-    ) {
-        $this->entityManager = $entityManager;
-        $this->customObjectRepository = $customObjectRepository;
-        $this->propertyRepository = $propertyRepository;
-        $this->propertyGroupRepository = $propertyGroupRepository;
-        $this->recordRepository = $recordRepository;
-        $this->serializer = $serializer;
-        $this->permissionAuthorizationHandler = $permissionAuthorizationHandler;
-        $this->filterRepository = $filterRepository;
-        $this->workflowProcessor = $workflowProcessor;
-        $this->bus = $bus;
-        $this->phpSpreadsheetHelper = $phpSpreadsheetHelper;
-        $this->uploadHelper = $uploadHelper;
-    }
+    use ServiceHelper;
 
     /**
      * @Route("/{internalName}/create-form", name="create_record_form", methods={"GET"}, options = { "expose" = true })

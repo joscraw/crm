@@ -2,15 +2,13 @@
 
 namespace App\Controller;
 
-use App\AuthorizationHandler\PermissionAuthorizationHandler;
 use App\Entity\CustomObject;
 use App\Entity\Portal;
 use App\Entity\Role;
 use App\Form\CustomObjectType;
 use App\Form\DeleteCustomObjectType;
 use App\Form\EditCustomObjectType;
-use App\Repository\CustomObjectRepository;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Utils\ServiceHelper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -27,36 +25,7 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class CustomObjectSettingsController extends AbstractController
 {
-    /**
-     * @var EntityManagerInterface
-     */
-    private $entityManager;
-
-    /**
-     * @var CustomObjectRepository
-     */
-    private $customObjectRepository;
-
-    /**
-     * @var PermissionAuthorizationHandler
-     */
-    private $permissionAuthorizationHandler;
-
-    /**
-     * CustomObjectSettingsController constructor.
-     * @param EntityManagerInterface $entityManager
-     * @param CustomObjectRepository $customObjectRepository
-     * @param PermissionAuthorizationHandler $permissionAuthorizationHandler
-     */
-    public function __construct(
-        EntityManagerInterface $entityManager,
-        CustomObjectRepository $customObjectRepository,
-        PermissionAuthorizationHandler $permissionAuthorizationHandler
-    ) {
-        $this->entityManager = $entityManager;
-        $this->customObjectRepository = $customObjectRepository;
-        $this->permissionAuthorizationHandler = $permissionAuthorizationHandler;
-    }
+    use ServiceHelper;
 
     /**
      * @Route(name="custom_object_settings", methods={"GET"}, options = { "expose" = true })

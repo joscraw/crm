@@ -2,7 +2,6 @@
 
 namespace App\Controller\Api;
 
-use App\AuthorizationHandler\PermissionAuthorizationHandler;
 use App\Entity\Portal;
 use App\Entity\Role;
 use App\Entity\User;
@@ -10,20 +9,12 @@ use App\Form\DeleteUserType;
 use App\Form\EditUserType;
 use App\Form\UserType;
 use App\Model\FieldCatalog;
-use App\Repository\CustomObjectRepository;
-use App\Repository\PropertyGroupRepository;
-use App\Repository\PropertyRepository;
-use App\Repository\RoleRepository;
-use App\Repository\UserRepository;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Utils\ServiceHelper;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
-use Symfony\Component\Serializer\SerializerInterface;
-
 
 /**
  * Class UserController
@@ -34,85 +25,7 @@ use Symfony\Component\Serializer\SerializerInterface;
  */
 class UserController extends ApiController
 {
-    /**
-     * @var EntityManagerInterface
-     */
-    private $entityManager;
-
-    /**
-     * @var CustomObjectRepository
-     */
-    private $customObjectRepository;
-
-    /**
-     * @var PropertyRepository
-     */
-    private $propertyRepository;
-
-    /**
-     * @var PropertyGroupRepository
-     */
-    private $propertyGroupRepository;
-
-    /**
-     * @var UserRepository
-     */
-    private $userRepository;
-
-    /**
-     * @var SerializerInterface
-     */
-    private $serializer;
-
-    /**
-     * @var UserPasswordEncoderInterface
-     */
-    private $passwordEncoder;
-
-    /**
-     * @var PermissionAuthorizationHandler
-     */
-    private $permissionAuthorizationHandler;
-
-    /**
-     * @var RoleRepository
-     */
-    private $roleRepository;
-
-    /**
-     * UserController constructor.
-     * @param EntityManagerInterface $entityManager
-     * @param CustomObjectRepository $customObjectRepository
-     * @param PropertyRepository $propertyRepository
-     * @param PropertyGroupRepository $propertyGroupRepository
-     * @param UserRepository $userRepository
-     * @param SerializerInterface $serializer
-     * @param UserPasswordEncoderInterface $passwordEncoder
-     * @param PermissionAuthorizationHandler $permissionAuthorizationHandler
-     * @param RoleRepository $roleRepository
-     */
-    public function __construct(
-        EntityManagerInterface $entityManager,
-        CustomObjectRepository $customObjectRepository,
-        PropertyRepository $propertyRepository,
-        PropertyGroupRepository $propertyGroupRepository,
-        UserRepository $userRepository,
-        SerializerInterface $serializer,
-        UserPasswordEncoderInterface $passwordEncoder,
-        PermissionAuthorizationHandler $permissionAuthorizationHandler,
-        RoleRepository $roleRepository
-    ) {
-        $this->entityManager = $entityManager;
-        $this->customObjectRepository = $customObjectRepository;
-        $this->propertyRepository = $propertyRepository;
-        $this->propertyGroupRepository = $propertyGroupRepository;
-        $this->userRepository = $userRepository;
-        $this->serializer = $serializer;
-        $this->passwordEncoder = $passwordEncoder;
-        $this->permissionAuthorizationHandler = $permissionAuthorizationHandler;
-        $this->roleRepository = $roleRepository;
-    }
-
+    use ServiceHelper;
 
     /**
      * @Route("/create", name="create_user", methods={"GET", "POST"}, options = { "expose" = true })

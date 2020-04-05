@@ -2,31 +2,19 @@
 
 namespace App\Controller\Api;
 
-use App\AuthorizationHandler\PermissionAuthorizationHandler;
 use App\Entity\Portal;
 use App\Entity\Workflow;
 use App\Form\DeleteWorkflowType;
-use App\Repository\WorkflowRepository;
-use App\Repository\CustomObjectRepository;
-use App\Repository\FolderRepository;
-use App\Repository\FormRepository;
-use App\Repository\MarketingListRepository;
-use App\Repository\PropertyGroupRepository;
-use App\Repository\PropertyRepository;
-use App\Repository\RecordRepository;
 use App\Utils\ArrayHelper;
-use App\Utils\ListFolderBreadcrumbs;
 use App\Utils\MultiDimensionalArrayExtractor;
 use App\Utils\PropertyHelper;
 use App\Utils\RandomStringGenerator;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Utils\ServiceHelper;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
-use Symfony\Component\Serializer\SerializerInterface;
 
 
 /**
@@ -39,117 +27,7 @@ class WorkflowController extends ApiController
     use ArrayHelper;
     use RandomStringGenerator;
     use PropertyHelper;
-
-    /**
-     * @var EntityManagerInterface
-     */
-    private $entityManager;
-
-    /**
-     * @var CustomObjectRepository
-     */
-    private $customObjectRepository;
-
-    /**
-     * @var PropertyRepository
-     */
-    private $propertyRepository;
-
-    /**
-     * @var PropertyGroupRepository
-     */
-    private $propertyGroupRepository;
-
-    /**
-     * @var RecordRepository
-     */
-    private $recordRepository;
-
-    /**
-     * @var SerializerInterface
-     */
-    private $serializer;
-
-    /**
-     * @var FormRepository
-     */
-    private $formRepository;
-
-    /**
-     * @var PermissionAuthorizationHandler
-     */
-    private $permissionAuthorizationHandler;
-
-    /**
-     * @var MarketingListRepository
-     */
-    private $marketingListRepository;
-
-    /**
-     * @var FolderRepository
-     */
-    private $folderRepository;
-
-    /**
-     * @var ListFolderBreadcrumbs
-     */
-    private $folderBreadcrumbs;
-
-    /**
-     * @var DenormalizerInterface
-     */
-    private $denormalizer;
-
-    /**
-     * @var WorkflowRepository
-     */
-    private $workflowRepository;
-
-    /**
-     * WorkflowController constructor.
-     * @param EntityManagerInterface $entityManager
-     * @param CustomObjectRepository $customObjectRepository
-     * @param PropertyRepository $propertyRepository
-     * @param PropertyGroupRepository $propertyGroupRepository
-     * @param RecordRepository $recordRepository
-     * @param SerializerInterface $serializer
-     * @param FormRepository $formRepository
-     * @param PermissionAuthorizationHandler $permissionAuthorizationHandler
-     * @param MarketingListRepository $marketingListRepository
-     * @param FolderRepository $folderRepository
-     * @param ListFolderBreadcrumbs $folderBreadcrumbs
-     * @param DenormalizerInterface $denormalizer
-     * @param WorkflowRepository $workflowRepository
-     */
-    public function __construct(
-        EntityManagerInterface $entityManager,
-        CustomObjectRepository $customObjectRepository,
-        PropertyRepository $propertyRepository,
-        PropertyGroupRepository $propertyGroupRepository,
-        RecordRepository $recordRepository,
-        SerializerInterface $serializer,
-        FormRepository $formRepository,
-        PermissionAuthorizationHandler $permissionAuthorizationHandler,
-        MarketingListRepository $marketingListRepository,
-        FolderRepository $folderRepository,
-        ListFolderBreadcrumbs $folderBreadcrumbs,
-        DenormalizerInterface $denormalizer,
-        WorkflowRepository $workflowRepository
-    ) {
-        $this->entityManager = $entityManager;
-        $this->customObjectRepository = $customObjectRepository;
-        $this->propertyRepository = $propertyRepository;
-        $this->propertyGroupRepository = $propertyGroupRepository;
-        $this->recordRepository = $recordRepository;
-        $this->serializer = $serializer;
-        $this->formRepository = $formRepository;
-        $this->permissionAuthorizationHandler = $permissionAuthorizationHandler;
-        $this->marketingListRepository = $marketingListRepository;
-        $this->folderRepository = $folderRepository;
-        $this->folderBreadcrumbs = $folderBreadcrumbs;
-        $this->denormalizer = $denormalizer;
-        $this->workflowRepository = $workflowRepository;
-    }
+    use ServiceHelper;
 
     /**
      * DataTables passes unique params in the Request and expects a specific response payload

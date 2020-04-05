@@ -3,17 +3,24 @@
 namespace App\Utils;
 
 use App\AuthorizationHandler\PermissionAuthorizationHandler;
+use App\Mailer\ResetPasswordMailer;
 use App\Repository\ApiTokenRepository;
 use App\Repository\CustomObjectRepository;
 use App\Repository\FilterRepository;
+use App\Repository\FolderRepository;
+use App\Repository\FormRepository;
 use App\Repository\GmailAttachmentRepository;
 use App\Repository\GmailMessageRepository;
 use App\Repository\GmailAccountRepository;
 use App\Repository\GmailThreadRepository;
+use App\Repository\MarketingListRepository;
 use App\Repository\PropertyGroupRepository;
 use App\Repository\PropertyRepository;
 use App\Repository\RecordRepository;
+use App\Repository\ReportRepository;
+use App\Repository\RoleRepository;
 use App\Repository\UserRepository;
+use App\Repository\WorkflowRepository;
 use App\Security\LoginFormAuthenticator;
 use App\Service\GmailProvider;
 use App\Service\ImageCacheGenerator;
@@ -30,6 +37,7 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Guard\GuardAuthenticatorHandler;
+use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Twig\Environment;
@@ -201,6 +209,51 @@ trait ServiceHelper
     private $uploadHelper;
 
     /**
+     * @var ReportRepository
+     */
+    private $reportRepository;
+
+    /**
+     * @var MarketingListRepository
+     */
+    private $marketingListRepository;
+
+    /**
+     * @var FolderRepository
+     */
+    private $folderRepository;
+
+    /**
+     * @var ListFolderBreadcrumbs
+     */
+    private $folderBreadcrumbs;
+
+    /**
+     * @var FormRepository
+     */
+    private $formRepository;
+
+    /**
+     * @var DenormalizerInterface
+     */
+    private $denormalizer;
+
+    /**
+     * @var RoleRepository
+     */
+    private $roleRepository;
+
+    /**
+     * @var WorkflowRepository
+     */
+    private $workflowRepository;
+
+    /**
+     * @var ResetPasswordMailer
+     */
+    private $resetPasswordMailer;
+
+    /**
      * ServiceHelper constructor.
      * @param EntityManagerInterface $entityManager
      * @param Packages $assetsManager
@@ -235,6 +288,15 @@ trait ServiceHelper
      * @param MessageBusInterface $bus
      * @param PhpSpreadsheetHelper $phpSpreadsheetHelper
      * @param UploaderHelper $uploadHelper
+     * @param ReportRepository $reportRepository
+     * @param MarketingListRepository $marketingListRepository
+     * @param FolderRepository $folderRepository
+     * @param ListFolderBreadcrumbs $folderBreadcrumbs
+     * @param FormRepository $formRepository
+     * @param DenormalizerInterface $denormalizer
+     * @param RoleRepository $roleRepository
+     * @param WorkflowRepository $workflowRepository
+     * @param ResetPasswordMailer $resetPasswordMailer
      */
     public function __construct(
         EntityManagerInterface $entityManager,
@@ -269,7 +331,16 @@ trait ServiceHelper
         WorkflowProcessor $workflowProcessor,
         MessageBusInterface $bus,
         PhpSpreadsheetHelper $phpSpreadsheetHelper,
-        UploaderHelper $uploadHelper
+        UploaderHelper $uploadHelper,
+        ReportRepository $reportRepository,
+        MarketingListRepository $marketingListRepository,
+        FolderRepository $folderRepository,
+        ListFolderBreadcrumbs $folderBreadcrumbs,
+        FormRepository $formRepository,
+        DenormalizerInterface $denormalizer,
+        RoleRepository $roleRepository,
+        WorkflowRepository $workflowRepository,
+        ResetPasswordMailer $resetPasswordMailer
     ) {
         $this->entityManager = $entityManager;
         $this->assetsManager = $assetsManager;
@@ -304,7 +375,17 @@ trait ServiceHelper
         $this->bus = $bus;
         $this->phpSpreadsheetHelper = $phpSpreadsheetHelper;
         $this->uploadHelper = $uploadHelper;
+        $this->reportRepository = $reportRepository;
+        $this->marketingListRepository = $marketingListRepository;
+        $this->folderRepository = $folderRepository;
+        $this->folderBreadcrumbs = $folderBreadcrumbs;
+        $this->formRepository = $formRepository;
+        $this->denormalizer = $denormalizer;
+        $this->roleRepository = $roleRepository;
+        $this->workflowRepository = $workflowRepository;
+        $this->resetPasswordMailer = $resetPasswordMailer;
     }
+
 
     /**
      * Returns the site url

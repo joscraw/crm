@@ -5,8 +5,7 @@ namespace App\Controller;
 use App\Entity\CustomObject;
 use App\Entity\Portal;
 use App\Entity\User;
-use App\Service\GmailProvider;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Utils\ServiceHelper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Routing\Annotation\Route;
@@ -20,27 +19,7 @@ use Symfony\Component\Routing\Annotation\Route;
  */
 class ConversationController extends AbstractController
 {
-    /**
-     * @var GmailProvider
-     */
-    private $gmailProvider;
-
-    /**
-     * @var EntityManagerInterface
-     */
-    private $entityManager;
-
-    /**
-     * ConversationController constructor.
-     * @param GmailProvider $gmailProvider
-     * @param EntityManagerInterface $entityManager
-     */
-    public function __construct(GmailProvider $gmailProvider, EntityManagerInterface $entityManager)
-    {
-        $this->gmailProvider = $gmailProvider;
-        $this->entityManager = $entityManager;
-    }
-
+    use ServiceHelper;
 
     /**
      * @Route("/{routing}", name="conversation_index", requirements={"routing"=".+"}, defaults={"routing": null}, methods={"GET"}, options = { "expose" = true })

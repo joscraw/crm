@@ -2,27 +2,17 @@
 
 namespace App\Controller\Api;
 
-use App\AuthorizationHandler\PermissionAuthorizationHandler;
 use App\Entity\Folder;
 use App\Entity\Portal;
 use App\Form\DeleteFolderType;
 use App\Form\EditFolderType;
-use App\Repository\CustomObjectRepository;
-use App\Repository\FolderRepository;
-use App\Repository\MarketingListRepository;
-use App\Repository\PropertyGroupRepository;
-use App\Repository\PropertyRepository;
-use App\Repository\RecordRepository;
-use App\Repository\ReportRepository;
 use App\Utils\ArrayHelper;
-use App\Utils\ListFolderBreadcrumbs;
 use App\Utils\MultiDimensionalArrayExtractor;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Utils\ServiceHelper;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Serializer\SerializerInterface;
 
 
 /**
@@ -35,102 +25,7 @@ class FolderController extends ApiController
 {
     use MultiDimensionalArrayExtractor;
     use ArrayHelper;
-
-    /**
-     * @var EntityManagerInterface
-     */
-    private $entityManager;
-
-    /**
-     * @var CustomObjectRepository
-     */
-    private $customObjectRepository;
-
-    /**
-     * @var PropertyRepository
-     */
-    private $propertyRepository;
-
-    /**
-     * @var PropertyGroupRepository
-     */
-    private $propertyGroupRepository;
-
-    /**
-     * @var RecordRepository
-     */
-    private $recordRepository;
-
-    /**
-     * @var SerializerInterface
-     */
-    private $serializer;
-
-    /**
-     * @var ReportRepository
-     */
-    private $reportRepository;
-
-    /**
-     * @var PermissionAuthorizationHandler
-     */
-    private $permissionAuthorizationHandler;
-
-    /**
-     * @var MarketingListRepository
-     */
-    private $marketingListRepository;
-
-    /**
-     * @var FolderRepository
-     */
-    private $folderRepository;
-
-    /**
-     * @var ListFolderBreadcrumbs
-     */
-    private $folderBreadcrumbs;
-
-    /**
-     * ListController constructor.
-     * @param EntityManagerInterface $entityManager
-     * @param CustomObjectRepository $customObjectRepository
-     * @param PropertyRepository $propertyRepository
-     * @param PropertyGroupRepository $propertyGroupRepository
-     * @param RecordRepository $recordRepository
-     * @param SerializerInterface $serializer
-     * @param ReportRepository $reportRepository
-     * @param PermissionAuthorizationHandler $permissionAuthorizationHandler
-     * @param MarketingListRepository $marketingListRepository
-     * @param FolderRepository $folderRepository
-     * @param ListFolderBreadcrumbs $folderBreadcrumbs
-     */
-    public function __construct(
-        EntityManagerInterface $entityManager,
-        CustomObjectRepository $customObjectRepository,
-        PropertyRepository $propertyRepository,
-        PropertyGroupRepository $propertyGroupRepository,
-        RecordRepository $recordRepository,
-        SerializerInterface $serializer,
-        ReportRepository $reportRepository,
-        PermissionAuthorizationHandler $permissionAuthorizationHandler,
-        MarketingListRepository $marketingListRepository,
-        FolderRepository $folderRepository,
-        ListFolderBreadcrumbs $folderBreadcrumbs
-    ) {
-        $this->entityManager = $entityManager;
-        $this->customObjectRepository = $customObjectRepository;
-        $this->propertyRepository = $propertyRepository;
-        $this->propertyGroupRepository = $propertyGroupRepository;
-        $this->recordRepository = $recordRepository;
-        $this->serializer = $serializer;
-        $this->reportRepository = $reportRepository;
-        $this->permissionAuthorizationHandler = $permissionAuthorizationHandler;
-        $this->marketingListRepository = $marketingListRepository;
-        $this->folderRepository = $folderRepository;
-        $this->folderBreadcrumbs = $folderBreadcrumbs;
-    }
-
+    use ServiceHelper;
 
     /**
      * @Route("/{folderId}/edit", name="edit_folder", methods={"GET", "POST"}, options = { "expose" = true })

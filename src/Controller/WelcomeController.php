@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Utils\ServiceHelper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
@@ -12,6 +13,8 @@ use Symfony\Component\Routing\Annotation\Route;
  */
 class WelcomeController extends AbstractController
 {
+    use ServiceHelper;
+
     /**
      * @Route("/", name="welcome_page", methods={"GET"})
      * @param Request $request
