@@ -2,7 +2,6 @@
 
 namespace App\Request\ParamConverter;
 
-
 use App\Entity\CustomObject;
 use App\Repository\CustomObjectRepository;
 use App\Repository\PropertyGroupRepository;

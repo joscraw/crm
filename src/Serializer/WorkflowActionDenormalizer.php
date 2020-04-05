@@ -2,28 +2,10 @@
 
 namespace App\Serializer;
 
-use App\Entity\Action;
-use App\Entity\Property;
-use App\Entity\SendEmailAction;
-use App\Entity\Workflow;
-use App\Model\AbstractField;
-use App\Model\CustomObjectField;
-use App\Model\DatePickerField;
-use App\Model\DropdownSelectField;
-use App\Model\FieldCatalog;
-use App\Model\Filter;
-use App\Model\MultiLineTextField;
-use App\Model\MultipleCheckboxField;
-use App\Model\NumberField;
-use App\Model\RadioSelectField;
-use App\Entity\SetPropertyValueAction;
-use App\Model\SingleCheckboxField;
-use App\Model\SingleLineTextField;
 use App\Repository\CustomObjectRepository;
 use App\Repository\PropertyRepository;
 use App\Utils\PropertyHelper;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Serializer\Exception\BadMethodCallException;
 use Symfony\Component\Serializer\Exception\ExtraAttributesException;
 use Symfony\Component\Serializer\Exception\InvalidArgumentException;
@@ -32,9 +14,6 @@ use Symfony\Component\Serializer\Exception\RuntimeException;
 use Symfony\Component\Serializer\Exception\UnexpectedValueException;
 use Symfony\Component\Serializer\Normalizer\DenormalizerAwareInterface;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
-use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
-use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
-use Symfony\Component\Serializer\SerializerInterface;
 
 /**
  * Class WorkflowActionDenormalizer

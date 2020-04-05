@@ -2,7 +2,6 @@
 
 namespace App\Form\Loader;
 
-
 use App\Entity\Property;
 use App\Repository\PropertyRepository;
 use App\Repository\RecordRepository;

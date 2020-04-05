@@ -2,13 +2,9 @@
 
 namespace App\Validator\Constraints;
 
-use App\Repository\CustomObjectRepository;
-use App\Repository\PropertyRepository;
 use App\Repository\RoleRepository;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
-use Symfony\Component\Validator\Exception\UnexpectedTypeException;
-use Symfony\Component\Validator\Exception\UnexpectedValueException;
 
 /**
  * Class RoleNameAlreadyExistsValidator

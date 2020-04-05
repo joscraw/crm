@@ -2,38 +2,16 @@
 
 namespace App\Controller;
 
-use App\Entity\CustomObject;
-use App\Entity\Form;
 use App\Entity\Portal;
-use App\Entity\Property;
-use App\Entity\PropertyGroup;
-use App\Entity\Report;
 use App\Entity\Workflow;
-use App\Form\CustomObjectType;
-use App\Form\PropertyGroupType;
-use App\Form\PropertyType;
-use App\Model\FieldCatalog;
 use App\Repository\CustomObjectRepository;
 use App\Repository\PropertyGroupRepository;
 use App\Repository\PropertyRepository;
 use App\Repository\RecordRepository;
-use App\Service\MessageGenerator;
 use App\Utils\RandomStringGenerator;
-use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\HttpFoundation\Response;
-
-
-use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
-use Symfony\Component\Serializer\Normalizer\GetSetMethodNormalizer;
-use Symfony\Component\Serializer\Serializer;
-use Symfony\Component\Serializer\Encoder\XmlEncoder;
-use Symfony\Component\Serializer\Encoder\JsonEncoder;
-use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 
 /**
  * Class WorkflowController

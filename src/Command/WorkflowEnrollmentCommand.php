@@ -2,14 +2,9 @@
 
 namespace App\Command;
 
-use App\Entity\Action;
-use App\Entity\PropertyTrigger;
-use App\Entity\SendEmailAction;
-use App\Entity\SetPropertyValueAction;
 use App\Entity\WorkflowEnrollment;
 use App\Mailer\WorkflowSendEmailActionMailer;
 use App\Message\WorkflowMessage;
-use App\Repository\ObjectWorkflowRepository;
 use App\Repository\RecordRepository;
 use App\Repository\WorkflowEnrollmentRepository;
 use App\Repository\WorkflowRepository;
@@ -43,11 +38,6 @@ class WorkflowEnrollmentCommand extends Command
     private $workflowRepository;
 
     /**
-     * @var ObjectWorkflowRepository
-     */
-    private $objectWorkflowRepository;
-
-    /**
      * @var EntityManagerInterface
      */
     private $entityManager;
@@ -79,7 +69,6 @@ class WorkflowEnrollmentCommand extends Command
      * @param WorkflowProcessor $workflowProcessor
      * @param RecordRepository $recordRepository
      * @param WorkflowRepository $workflowRepository
-     * @param ObjectWorkflowRepository $objectWorkflowRepository
      * @param EntityManagerInterface $entityManager
      * @param MessageBusInterface $bus
      * @param SerializerInterface $serializer
@@ -90,7 +79,6 @@ class WorkflowEnrollmentCommand extends Command
         WorkflowProcessor $workflowProcessor,
         RecordRepository $recordRepository,
         WorkflowRepository $workflowRepository,
-        ObjectWorkflowRepository $objectWorkflowRepository,
         EntityManagerInterface $entityManager,
         MessageBusInterface $bus,
         SerializerInterface $serializer,
@@ -100,7 +88,6 @@ class WorkflowEnrollmentCommand extends Command
         $this->workflowProcessor = $workflowProcessor;
         $this->recordRepository = $recordRepository;
         $this->workflowRepository = $workflowRepository;
-        $this->objectWorkflowRepository = $objectWorkflowRepository;
         $this->entityManager = $entityManager;
         $this->bus = $bus;
         $this->serializer = $serializer;
@@ -109,6 +96,7 @@ class WorkflowEnrollmentCommand extends Command
 
         parent::__construct();
     }
+
 
     protected function configure()
     {

@@ -4,7 +4,6 @@ namespace App\Mailer;
 
 use Swift_Mailer;
 use Swift_Transport;
-use Symfony\Bundle\FrameworkBundle\Templating\EngineInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Twig\Environment;
 

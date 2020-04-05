@@ -8,7 +8,6 @@ use Liip\ImagineBundle\Imagine\Data\DataManager;
 use Liip\ImagineBundle\Imagine\Filter\FilterConfiguration;
 use Liip\ImagineBundle\Imagine\Filter\FilterManager;
 use Monolog\Logger;
-use Symfony\Component\HttpFoundation\Session\Session;
 
 class ImageCacheGenerator
 {

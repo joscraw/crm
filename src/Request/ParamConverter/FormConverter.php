@@ -3,17 +3,7 @@
 namespace App\Request\ParamConverter;
 
 use App\Entity\Form;
-use App\Entity\MarketingList;
-use App\Entity\Property;
-use App\Entity\Record;
-use App\Entity\Report;
-use App\Repository\CustomObjectRepository;
 use App\Repository\FormRepository;
-use App\Repository\MarketingListRepository;
-use App\Repository\PropertyGroupRepository;
-use App\Repository\PropertyRepository;
-use App\Repository\RecordRepository;
-use App\Repository\ReportRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use Sensio\Bundle\FrameworkExtraBundle\Request\ParamConverter\ParamConverterInterface;

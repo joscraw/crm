@@ -2,9 +2,7 @@
 
 namespace App\Request\ParamConverter;
 
-use App\Entity\Property;
 use App\Entity\Record;
-use App\Repository\CustomObjectRepository;
 use App\Repository\PropertyGroupRepository;
 use App\Repository\PropertyRepository;
 use App\Repository\RecordRepository;

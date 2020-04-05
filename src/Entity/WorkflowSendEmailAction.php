@@ -6,47 +6,36 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
- * @ORM\Entity(repositoryClass="App\Repository\SendEmailActionRepository")
+ * @ORM\Entity(repositoryClass="App\Repository\WorkflowSendEmailActionRepository")
  */
-class SendEmailAction extends Action
+class WorkflowSendEmailAction extends WorkflowAction
 {
-    const DYNAMIC_USERS_TYPE = 'TO_MATCHING_USERS_TYPE';
-    const STATIC_USER_TYPE = 'TO_MATCHING_USERS_TYPE';
-
     /**
-     * @Groups({"WORKFLOW_ACTION", "MD5_HASH_WORKFLOW"})
+     * @Groups({"WORKFLOW"})
      * @var string
      */
-    protected $name = Action::SEND_EMAIL_ACTION;
+    protected static $name = WorkflowAction::WORKFLOW_SEND_EMAIL_ACTION;
 
     /**
-     * @Groups({"WORKFLOW_ACTION", "MD5_HASH_WORKFLOW"})
+     * @Groups({"WORKFLOW"})
      * @var string
      */
-    protected $description = 'Send email';
+    protected static $description = 'Workflow action for sending an email.';
 
     /**
-     * @Groups({"WORKFLOW_ACTION", "MD5_HASH_WORKFLOW"})
      * @ORM\Column(type="text", nullable=true)
      */
     private $toAddresses;
 
     /**
-     * @Groups({"WORKFLOW_ACTION", "MD5_HASH_WORKFLOW"})
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $subject;
 
     /**
-     * @Groups({"WORKFLOW_ACTION", "MD5_HASH_WORKFLOW"})
      * @ORM\Column(type="text", nullable=true)
      */
     private $body;
-
-    /**
-     * @ORM\Column(type="string", length=255)
-     */
-    private $type = self::STATIC_USER_TYPE;
 
     public function getToAddresses(): ?string
     {
@@ -80,18 +69,6 @@ class SendEmailAction extends Action
     public function setBody(?string $body): self
     {
         $this->body = $body;
-
-        return $this;
-    }
-
-    public function getType(): ?string
-    {
-        return $this->type;
-    }
-
-    public function setType(string $type): self
-    {
-        $this->type = $type;
 
         return $this;
     }

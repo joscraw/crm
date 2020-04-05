@@ -3,7 +3,6 @@
 namespace App\Form\EventType;
 
 use App\Form\DataTransformer\ImportFileTransformer;
-use App\Form\DataTransformer\RecordGenericTransformer;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\FormBuilderInterface;

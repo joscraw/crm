@@ -5,43 +5,22 @@ namespace App\Controller\Api;
 use App\AuthorizationHandler\PermissionAuthorizationHandler;
 use App\Entity\CustomObject;
 use App\Entity\Portal;
-use App\Entity\Property;
-use App\Entity\PropertyGroup;
-use App\Entity\Record;
 use App\Entity\Report;
 use App\Entity\Role;
-use App\Form\CustomObjectType;
 use App\Form\DeleteReportType;
-use App\Form\PropertyGroupType;
-use App\Form\PropertyType;
-use App\Form\RecordType;
-use App\Model\FieldCatalog;
 use App\Repository\CustomObjectRepository;
 use App\Repository\PropertyGroupRepository;
 use App\Repository\PropertyRepository;
 use App\Repository\RecordRepository;
 use App\Repository\ReportRepository;
-use App\Service\MessageGenerator;
 use App\Utils\ArrayHelper;
 use App\Utils\MultiDimensionalArrayExtractor;
-use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Response;
-
-
-use Symfony\Component\Serializer\Encoder\CsvEncoder;
-use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
-use Symfony\Component\Serializer\Normalizer\GetSetMethodNormalizer;
-use Symfony\Component\Serializer\Serializer;
-use Symfony\Component\Serializer\Encoder\XmlEncoder;
-use Symfony\Component\Serializer\Encoder\JsonEncoder;
-use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\SerializerInterface;
-
 
 /**
  * Class ReportController

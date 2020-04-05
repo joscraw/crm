@@ -1,8 +1,6 @@
 <?php
 
-
 namespace App\Controller\Api;
-
 
 use App\Controller\Exception\InvalidInputException;
 use App\Controller\Exception\MissingRequiredQueryParameterException;

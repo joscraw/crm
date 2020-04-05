@@ -5,7 +5,6 @@ namespace App\Validator\Constraints;
 use App\Entity\Property;
 use App\Entity\Record;
 use App\Model\Filter\AndCriteria;
-use App\Model\Filter\Column;
 use App\Model\Filter\Filter;
 use App\Model\Filter\FilterData;
 use App\Repository\PropertyRepository;
@@ -14,8 +13,6 @@ use App\Utils\RandomStringGenerator;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
-use Symfony\Component\Validator\Exception\UnexpectedTypeException;
-use Symfony\Component\Validator\Exception\UnexpectedValueException;
 
 /**
  * Class PropertyPropertyValidator

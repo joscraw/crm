@@ -2,16 +2,10 @@
 
 namespace App\Form;
 
-
-use App\Entity\CustomObject;
 use App\Entity\Form;
-use App\Model\ForgotPassword;
-use EWZ\Bundle\RecaptchaBundle\Form\Type\EWZRecaptchaType;
 use FOS\CKEditorBundle\Form\Type\CKEditorType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
-use Symfony\Component\Form\Extension\Core\Type\SubmitType;
-use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;

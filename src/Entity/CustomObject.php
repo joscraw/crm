@@ -2,7 +2,6 @@
 
 namespace App\Entity;
 
-use App\Model\Content;
 use App\Utils\RandomStringGenerator;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -101,11 +100,6 @@ class CustomObject /*implements \JsonSerializable*/
     private $forms;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\ObjectWorkflow", mappedBy="customObject")
-     */
-    private $objectWorkflows;
-
-    /**
      * @ORM\OneToMany(targetEntity="App\Entity\RecordDuplicate", mappedBy="customObject", orphanRemoval=true)
      */
     private $recordDuplicates;
@@ -118,7 +112,6 @@ class CustomObject /*implements \JsonSerializable*/
         $this->reports = new ArrayCollection();
         $this->marketingLists = new ArrayCollection();
         $this->forms = new ArrayCollection();
-        $this->objectWorkflows = new ArrayCollection();
         $this->recordDuplicates = new ArrayCollection();
     }
 
@@ -412,37 +405,6 @@ class CustomObject /*implements \JsonSerializable*/
             // set the owning side to null (unless already changed)
             if ($form->getCustomObject() === $this) {
                 $form->setCustomObject(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|ObjectWorkflow[]
-     */
-    public function getObjectWorkflows(): Collection
-    {
-        return $this->objectWorkflows;
-    }
-
-    public function addObjectWorkflow(ObjectWorkflow $objectWorkflow): self
-    {
-        if (!$this->objectWorkflows->contains($objectWorkflow)) {
-            $this->objectWorkflows[] = $objectWorkflow;
-            $objectWorkflow->setCustomObject($this);
-        }
-
-        return $this;
-    }
-
-    public function removeObjectWorkflow(ObjectWorkflow $objectWorkflow): self
-    {
-        if ($this->objectWorkflows->contains($objectWorkflow)) {
-            $this->objectWorkflows->removeElement($objectWorkflow);
-            // set the owning side to null (unless already changed)
-            if ($objectWorkflow->getCustomObject() === $this) {
-                $objectWorkflow->setCustomObject(null);
             }
         }
 

@@ -6,21 +6,11 @@ use App\AuthorizationHandler\PermissionAuthorizationHandler;
 use App\Entity\CustomObject;
 use App\Entity\Filter;
 use App\Entity\Portal;
-use App\Entity\Property;
-use App\Entity\PropertyGroup;
 use App\Entity\Record;
-use App\Entity\Role;
-use App\Entity\Spreadsheet;
 use App\Form\BulkEditType;
-use App\Form\CustomObjectType;
 use App\Form\DeleteRecordType;
-use App\Form\ImportRecordType;
-use App\Form\PropertyGroupType;
-use App\Form\PropertyType;
 use App\Form\RecordType;
 use App\Form\SaveFilterType;
-use App\Message\ImportSpreadsheet;
-use App\Message\WorkflowMessage;
 use App\Model\FieldCatalog;
 use App\Model\Filter\FilterData;
 use App\Repository\CustomObjectRepository;
@@ -28,32 +18,18 @@ use App\Repository\FilterRepository;
 use App\Repository\PropertyGroupRepository;
 use App\Repository\PropertyRepository;
 use App\Repository\RecordRepository;
-use App\Service\MessageGenerator;
 use App\Service\PhpSpreadsheetHelper;
 use App\Service\UploaderHelper;
 use App\Service\WorkflowProcessor;
 use App\Utils\ArrayHelper;
 use App\Utils\MultiDimensionalArrayExtractor;
-use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\Form\FormError;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Response;
-
-
-use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
-use Symfony\Component\Serializer\Normalizer\GetSetMethodNormalizer;
-use Symfony\Component\Serializer\Serializer;
-use Symfony\Component\Serializer\Encoder\XmlEncoder;
-use Symfony\Component\Serializer\Encoder\JsonEncoder;
-use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\SerializerInterface;
-
 
 /**
  * Class RecordController

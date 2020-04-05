@@ -2,8 +2,6 @@
 
 namespace App\Utils;
 
-
-use App\Entity\Folder;
 use App\Entity\Portal;
 use App\Repository\FolderRepository;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;

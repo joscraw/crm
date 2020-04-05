@@ -3,10 +3,7 @@
 namespace App\Command;
 
 use App\Entity\GmailAccount;
-use App\Entity\PropertyTrigger;
-use App\Entity\WorkflowEnrollment;
 use App\Message\LoadGmailMessages;
-use App\Message\WorkflowMessage;
 use App\Repository\GmailAccountRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Command\Command;

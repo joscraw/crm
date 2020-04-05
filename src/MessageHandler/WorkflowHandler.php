@@ -2,12 +2,7 @@
 
 namespace App\MessageHandler;
 
-use App\Entity\Action;
-use App\Entity\SendEmailAction;
-use App\Entity\SetPropertyValueAction;
-use App\Mailer\ResetPasswordMailer;
 use App\Mailer\WorkflowSendEmailActionMailer;
-use App\Repository\ObjectWorkflowRepository;
 use App\Repository\RecordRepository;
 use App\Repository\UserRepository;
 use App\Repository\WorkflowEnrollmentRepository;
@@ -47,11 +42,6 @@ class WorkflowHandler implements MessageHandlerInterface
     private $workflowRepository;
 
     /**
-     * @var ObjectWorkflowRepository
-     */
-    private $objectWorkflowRepository;
-
-    /**
      * @var EntityManagerInterface
      */
     private $entityManager;
@@ -82,7 +72,6 @@ class WorkflowHandler implements MessageHandlerInterface
      * @param RecordRepository $recordRepository
      * @param UserRepository $userRepository
      * @param WorkflowRepository $workflowRepository
-     * @param ObjectWorkflowRepository $objectWorkflowRepository
      * @param EntityManagerInterface $entityManager
      * @param MessageBusInterface $bus
      * @param SerializerInterface $serializer
@@ -94,7 +83,6 @@ class WorkflowHandler implements MessageHandlerInterface
         RecordRepository $recordRepository,
         UserRepository $userRepository,
         WorkflowRepository $workflowRepository,
-        ObjectWorkflowRepository $objectWorkflowRepository,
         EntityManagerInterface $entityManager,
         MessageBusInterface $bus,
         SerializerInterface $serializer,
@@ -105,13 +93,13 @@ class WorkflowHandler implements MessageHandlerInterface
         $this->recordRepository = $recordRepository;
         $this->userRepository = $userRepository;
         $this->workflowRepository = $workflowRepository;
-        $this->objectWorkflowRepository = $objectWorkflowRepository;
         $this->entityManager = $entityManager;
         $this->bus = $bus;
         $this->serializer = $serializer;
         $this->workflowSendEmailActionMailer = $workflowSendEmailActionMailer;
         $this->workflowEnrollmentRepository = $workflowEnrollmentRepository;
     }
+
 
     public function __invoke(WorkflowMessage $message)
     {

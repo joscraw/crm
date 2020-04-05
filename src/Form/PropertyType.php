@@ -3,7 +3,6 @@
 namespace App\Form;
 
 use App\Entity\CustomObject;
-use App\Entity\Portal;
 use App\Entity\Property;
 use App\Entity\PropertyGroup;
 use App\Model\CustomObjectField;

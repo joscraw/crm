@@ -3,7 +3,6 @@
 namespace App\DataFixtures;
 
 use App\Entity\Property;
-use App\Entity\PropertyGroup;
 use App\Model\FieldCatalog;
 use App\Model\SingleLineTextField;
 use Doctrine\Bundle\FixturesBundle\Fixture;

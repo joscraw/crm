@@ -18,7 +18,6 @@ use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\HttpFoundation\File\File;
-use Symfony\Component\HttpKernel\Profiler\Profiler;
 use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -269,6 +268,9 @@ class ImportSpreadsheetHandler implements MessageHandlerInterface, LoggerAwareIn
                                 continue 2;
                             }
                         }
+
+                        // TODO You could create a spreadsheet import Modal that has an array or messages and things like that
+                        //  with info about the import as far as there being bugs in the import? Or you could create a logger? 
 
                         //$existingEmails = array_column($results['results'], 'email');
 

@@ -4,12 +4,9 @@ namespace App\Validator\Constraints;
 
 use App\Model\FieldCatalog;
 use App\Repository\PropertyGroupRepository;
-use App\Repository\PropertyRepository;
 use App\Utils\ArrayHelper;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
-use Symfony\Component\Validator\Exception\UnexpectedTypeException;
-use Symfony\Component\Validator\Exception\UnexpectedValueException;
 
 /**
  * Class ChoiceFieldValidator

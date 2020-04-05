@@ -2,7 +2,6 @@
 
 namespace App\Mailer;
 
-use App\Entity\SendEmailAction;
 use App\Entity\User;
 
 /**

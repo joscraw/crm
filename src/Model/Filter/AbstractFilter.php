@@ -2,7 +2,6 @@
 
 namespace App\Model\Filter;
 
-
 use App\Utils\ArrayHelper;
 use App\Utils\RandomStringGenerator;
 use Doctrine\Common\Collections\ArrayCollection;

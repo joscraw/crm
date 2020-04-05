@@ -2,15 +2,8 @@
 
 namespace App\Service;
 
-
-use App\Entity\Action;
-use App\Entity\PropertyTrigger;
-use App\Entity\Record;
-use App\Entity\SendEmailAction;
-use App\Entity\SetPropertyValueAction;
 use App\Entity\Workflow;
 use App\Mailer\WorkflowSendEmailActionMailer;
-use App\Repository\ObjectWorkflowRepository;
 use App\Repository\RecordRepository;
 use App\Repository\WorkflowRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -27,11 +20,6 @@ class WorkflowProcessor
      * @var WorkflowRepository
      */
     private $workflowRepository;
-
-    /**
-     * @var ObjectWorkflowRepository
-     */
-    private $objectWorkflowRepository;
 
     /**
      * @var RecordRepository
@@ -52,7 +40,6 @@ class WorkflowProcessor
      * WorkflowProcessor constructor.
      * @param SerializerInterface $serializer
      * @param WorkflowRepository $workflowRepository
-     * @param ObjectWorkflowRepository $objectWorkflowRepository
      * @param RecordRepository $recordRepository
      * @param EntityManagerInterface $entityManager
      * @param WorkflowSendEmailActionMailer $workflowSendEmailActionMailer
@@ -60,18 +47,17 @@ class WorkflowProcessor
     public function __construct(
         SerializerInterface $serializer,
         WorkflowRepository $workflowRepository,
-        ObjectWorkflowRepository $objectWorkflowRepository,
         RecordRepository $recordRepository,
         EntityManagerInterface $entityManager,
         WorkflowSendEmailActionMailer $workflowSendEmailActionMailer
     ) {
         $this->serializer = $serializer;
         $this->workflowRepository = $workflowRepository;
-        $this->objectWorkflowRepository = $objectWorkflowRepository;
         $this->recordRepository = $recordRepository;
         $this->entityManager = $entityManager;
         $this->workflowSendEmailActionMailer = $workflowSendEmailActionMailer;
     }
+
 
     public function run(Workflow $workflow) {
 

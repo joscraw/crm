@@ -2,22 +2,13 @@
 
 namespace App\EntityListener;
 
-use App\Entity\Action;
-use App\Entity\Property;
-use App\Entity\PropertyTrigger;
 use App\Entity\Record;
-use App\Message\WorkflowMessage;
-use App\Model\AbstractField;
-use App\Repository\ObjectWorkflowRepository;
 use App\Repository\RecordRepository;
 use App\Repository\WorkflowRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Event\LifecycleEventArgs;
-use Doctrine\ORM\Event\PreUpdateEventArgs;
-use Psr\Log\LoggerInterface;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
-use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\SerializerInterface;
 
 /**
@@ -35,11 +26,6 @@ class RecordListener
      * @var WorkflowRepository
      */
     private $workflowRepository;
-
-    /**
-     * @var ObjectWorkflowRepository
-     */
-    private $objectWorkflowRepository;
 
     /**
      * @var RecordRepository
@@ -65,7 +51,6 @@ class RecordListener
      * RecordListener constructor.
      * @param SerializerInterface $serializer
      * @param WorkflowRepository $workflowRepository
-     * @param ObjectWorkflowRepository $objectWorkflowRepository
      * @param RecordRepository $recordRepository
      * @param EntityManagerInterface $entityManager
      * @param MessageBusInterface $bus
@@ -74,7 +59,6 @@ class RecordListener
     public function __construct(
         SerializerInterface $serializer,
         WorkflowRepository $workflowRepository,
-        ObjectWorkflowRepository $objectWorkflowRepository,
         RecordRepository $recordRepository,
         EntityManagerInterface $entityManager,
         MessageBusInterface $bus,
@@ -82,12 +66,12 @@ class RecordListener
     ) {
         $this->serializer = $serializer;
         $this->workflowRepository = $workflowRepository;
-        $this->objectWorkflowRepository = $objectWorkflowRepository;
         $this->recordRepository = $recordRepository;
         $this->entityManager = $entityManager;
         $this->bus = $bus;
         $this->cache = $cache;
     }
+
 
     /**
      * Serialize the record properties before persisting

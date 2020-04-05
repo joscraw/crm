@@ -2,14 +2,10 @@
 
 namespace App\Form\DataTransformer;
 
-use App\Entity\Record;
-use App\Model\DatePickerField;
 use App\Repository\RecordRepository;
 use App\Utils\ArrayHelper;
-use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Form\DataTransformerInterface;
-use Symfony\Component\Form\Exception\TransformationFailedException;
 
 class RecordCheckboxTransformer implements DataTransformerInterface
 {
