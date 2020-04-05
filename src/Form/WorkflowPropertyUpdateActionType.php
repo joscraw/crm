@@ -2,6 +2,7 @@
 
 namespace App\Form;
 
+use App\Entity\Property;
 use App\Entity\WorkflowPropertyUpdateAction;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
@@ -24,9 +25,9 @@ class WorkflowPropertyUpdateActionType extends AbstractType
     {
         $builder->add('name', TextType::class, [])
             ->add('value', TextType::class, [])
-            ->add('field', EntityType::class, [
+            ->add('property', EntityType::class, [
                 // looks for choices from this entity
-                'class' => Field::class,
+                'class' => Property::class,
             ]);
     }
 

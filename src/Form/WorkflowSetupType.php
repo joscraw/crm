@@ -2,8 +2,10 @@
 
 namespace App\Form;
 
+use App\Entity\CustomObject;
 use App\Entity\WorkflowAction;
 use App\Entity\Workflow;
+use App\Model\WorkflowTrigger;
 use App\Repository\CustomObjectRepository;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
@@ -69,8 +71,8 @@ class WorkflowSetupType extends AbstractType implements DataMapperInterface
         $triggers = $forms['triggers']->getData();
         $viewData->setTriggers($triggers);
 
-        $buildingBlock = $forms['buildingBlock']->getData();
-        $viewData->setBuildingBlock($buildingBlock);
+        $customObject = $forms['customObject']->getData();
+        $viewData->setCustomObject($customObject);
 
         $filterData = json_decode($forms['filterData']->getData(), true);
         $viewData->setFilterData($filterData);
@@ -95,9 +97,9 @@ class WorkflowSetupType extends AbstractType implements DataMapperInterface
      */
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
-        $builder->add('buildingBlock', EntityType::class, [
+        $builder->add('customObject', EntityType::class, [
             // looks for choices from this entity
-            'class' => BuildingBlock::class,
+            'class' => CustomObject::class,
         ])->add('triggers', ChoiceType::class, array(
             'choices'  => WorkflowTrigger::$triggers,
             'multiple' => true,

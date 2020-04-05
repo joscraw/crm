@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Utils\RandomStringGenerator;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -17,6 +18,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 class Workflow
 {
     use TimestampableEntity;
+    use RandomStringGenerator;
 
     /**
      * @Groups({"WORKFLOW"})
@@ -40,6 +42,18 @@ class Workflow
 
     /**
      * @Groups({"WORKFLOW"})
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    protected $name;
+
+    /**
+     * @Groups({"WORKFLOW"})
+     * @ORM\Column(type="boolean")
+     */
+    protected $paused = true;
+
+    /**
+     * @Groups({"WORKFLOW"})
      * @ORM\Column(type="json", nullable=true)
      */
     private $filterData = [];
@@ -53,10 +67,31 @@ class Workflow
     private $triggers = [];
 
     /**
+     * @ORM\OneToMany(targetEntity="App\Entity\WorkflowEnrollment", mappedBy="workflow", orphanRemoval=true)
+     */
+    private $workflowEnrollments;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\WorkflowAction", mappedBy="workflow", orphanRemoval=true, cascade={"persist"})
+     */
+    private $workflowActions;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\CustomObject", inversedBy="workflows")
+     */
+    private $customObject;
+
+    public function __construct()
+    {
+        $this->workflowEnrollments = new ArrayCollection();
+        $this->workflowActions = new ArrayCollection();
+    }
+
+    /**
      * @ORM\PrePersist
      * @throws \Exception
      */
-    public function setWorkflowName()
+    public function setNameOnPrePersist()
     {
         if(empty($this->name)) {
             $this->name = sprintf('New workflow (%s)', date("M j, Y g:i:s A"));
@@ -64,31 +99,14 @@ class Workflow
     }
 
     /**
-     * @Groups({"WORKFLOW"})
-     * @ORM\Column(type="string", length=255, nullable=true)
+     * @ORM\PrePersist
+     * @throws \Exception
      */
-    protected $name;
-
-    /**
-     * @Groups({"WORKFLOW"})
-     * @ORM\Column(type="boolean")
-     */
-    protected $paused = true;
-
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\WorkflowEnrollment", mappedBy="workflow", orphanRemoval=true)
-     */
-    private $workflowEnrollments;
-
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\WorkflowAction", mappedBy="workflow", orphanRemoval=true)
-     */
-    private $workflowActions;
-
-    public function __construct()
+    public function setUidOnPrePersist()
     {
-        $this->workflowEnrollments = new ArrayCollection();
-        $this->workflowActions = new ArrayCollection();
+        if(empty($this->uid)) {
+            $this->uid = $this->generateRandomString(40);
+        }
     }
 
     public function getId(): ?int
@@ -231,6 +249,18 @@ class Workflow
                 $workflowAction->setWorkflow(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getCustomObject(): ?CustomObject
+    {
+        return $this->customObject;
+    }
+
+    public function setCustomObject(?CustomObject $customObject): self
+    {
+        $this->customObject = $customObject;
 
         return $this;
     }

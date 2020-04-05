@@ -104,6 +104,11 @@ class CustomObject /*implements \JsonSerializable*/
      */
     private $recordDuplicates;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Workflow", mappedBy="customObject")
+     */
+    private $workflows;
+
     public function __construct()
     {
         $this->properties = new ArrayCollection();
@@ -113,6 +118,7 @@ class CustomObject /*implements \JsonSerializable*/
         $this->marketingLists = new ArrayCollection();
         $this->forms = new ArrayCollection();
         $this->recordDuplicates = new ArrayCollection();
+        $this->workflows = new ArrayCollection();
     }
 
     /**
@@ -436,6 +442,37 @@ class CustomObject /*implements \JsonSerializable*/
             // set the owning side to null (unless already changed)
             if ($recordDuplicate->getCustomObject() === $this) {
                 $recordDuplicate->setCustomObject(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Workflow[]
+     */
+    public function getWorkflows(): Collection
+    {
+        return $this->workflows;
+    }
+
+    public function addWorkflow(Workflow $workflow): self
+    {
+        if (!$this->workflows->contains($workflow)) {
+            $this->workflows[] = $workflow;
+            $workflow->setCustomObject($this);
+        }
+
+        return $this;
+    }
+
+    public function removeWorkflow(Workflow $workflow): self
+    {
+        if ($this->workflows->contains($workflow)) {
+            $this->workflows->removeElement($workflow);
+            // set the owning side to null (unless already changed)
+            if ($workflow->getCustomObject() === $this) {
+                $workflow->setCustomObject(null);
             }
         }
 

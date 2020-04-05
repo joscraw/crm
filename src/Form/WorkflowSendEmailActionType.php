@@ -22,10 +22,7 @@ class WorkflowSendEmailActionType extends AbstractType
 
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
-        $builder->add('message', EntityType::class, [
-            // looks for choices from this entity
-            'class' => Message::class,
-        ])->add('name', TextType::class, []);
+        $builder->add('name', TextType::class, []);
     }
 
     public function configureOptions(OptionsResolver $resolver)
