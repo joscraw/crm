@@ -3,6 +3,7 @@
 namespace App\EntityListener;
 
 use App\Entity\Record;
+use App\Model\WorkflowTrigger;
 use App\Repository\RecordRepository;
 use App\Repository\WorkflowRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -105,25 +106,9 @@ class RecordListener
      */
     public function postPersist(Record $record, LifecycleEventArgs $args) {
 
-        $record->created_at = $record->getCreatedAt()->format("m/d/Y");
-        $record->updated_at = $record->getUpdatedAt()->format("m/d/Y");
-        $record->id = $record->getId();
-        $this->entityManager->persist($record);
-        $this->entityManager->flush();
+        $this->setupSystemDefinedProperties($record, $args)
+            ->setupWorkflows($record, $args, WorkflowTrigger::RECORD_CREATE);
 
-/*        if($this->cache->hasItem('contact_emails')) {
-            $item = $this->cache->getItem('contact_emails');
-            $contactEmails = $item->get();
-            $contactEmails[] = $record->email;
-            $item->set($contactEmails);
-            $this->cache->save($item);
-        } else {
-            $contactEmails = [];
-            $item = $this->cache->getItem('contact_emails');
-            $contactEmails[] = $record->email;
-            $item->set($contactEmails);
-            $this->cache->save($item);
-        }*/
         // todo possibly add the logic here for automations/workflows
     }
 
@@ -142,5 +127,23 @@ class RecordListener
         // todo possibly add the logic here for automations/workflows
         //  but take not this will only fire if the data is different at all. Will this work with JSON as well?
         //  since this is all in one column? Will this fire if one JSON value gets updated in that column? Hmmm. Test that out.
+    }
+
+    private function setupSystemDefinedProperties(Record $record, LifecycleEventArgs $args) {
+
+        $record->created_at = $record->getCreatedAt()->format("m/d/Y");
+        $record->updated_at = $record->getUpdatedAt()->format("m/d/Y");
+        $record->id = $record->getId();
+        $this->entityManager->persist($record);
+        $this->entityManager->flush();
+
+        return $this;
+    }
+
+    private function setupWorkflows(Record $record, LifecycleEventArgs $args, $workflowTrigger) {
+
+        $workflows = $this->workflowRepository->getByTriggers($workflowTrigger);
+
+        return $this;
     }
 }

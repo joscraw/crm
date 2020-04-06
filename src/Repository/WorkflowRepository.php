@@ -50,6 +50,21 @@ class WorkflowRepository extends ServiceEntityRepository
     */
 
     /**
+     * @param array $triggers
+     * @return mixed
+     */
+    public function getByTriggers($triggers)
+    {
+        $triggers = is_array($triggers) ? $triggers : [$triggers];
+
+        return $this->createQueryBuilder('workflow')
+            ->where('workflow.triggers IN (:triggers)')
+            ->setParameter('triggers', $triggers)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
      * @param $uid
      * @return mixed
      * @throws \Doctrine\ORM\NonUniqueResultException

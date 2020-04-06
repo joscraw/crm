@@ -2,7 +2,10 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Gedmo\Timestampable\Traits\TimestampableEntity;
 use Symfony\Component\Serializer\Annotation\DiscriminatorMap;
 
 /**
@@ -23,6 +26,8 @@ use Symfony\Component\Serializer\Annotation\DiscriminatorMap;
  */
 abstract class WorkflowAction
 {
+    use TimestampableEntity;
+
     const WORKFLOW_PROPERTY_UPDATE_ACTION = 'workflow-property-update-action';
     const WORKFLOW_SEND_EMAIL_ACTION = 'workflow-send-email-action';
 
@@ -48,6 +53,16 @@ abstract class WorkflowAction
      * @ORM\JoinColumn(nullable=false)
      */
     private $workflow;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\WorkflowLog", mappedBy="action", orphanRemoval=true)
+     */
+    private $workflowLogs;
+
+    public function __construct()
+    {
+        $this->workflowLogs = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -88,5 +103,36 @@ abstract class WorkflowAction
     public static function setDescription(string $description): void
     {
         self::$description = $description;
+    }
+
+    /**
+     * @return Collection|WorkflowLog[]
+     */
+    public function getWorkflowLogs(): Collection
+    {
+        return $this->workflowLogs;
+    }
+
+    public function addWorkflowLog(WorkflowLog $workflowLog): self
+    {
+        if (!$this->workflowLogs->contains($workflowLog)) {
+            $this->workflowLogs[] = $workflowLog;
+            $workflowLog->setAction($this);
+        }
+
+        return $this;
+    }
+
+    public function removeWorkflowLog(WorkflowLog $workflowLog): self
+    {
+        if ($this->workflowLogs->contains($workflowLog)) {
+            $this->workflowLogs->removeElement($workflowLog);
+            // set the owning side to null (unless already changed)
+            if ($workflowLog->getAction() === $this) {
+                $workflowLog->setAction(null);
+            }
+        }
+
+        return $this;
     }
 }

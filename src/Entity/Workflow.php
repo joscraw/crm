@@ -2,12 +2,15 @@
 
 namespace App\Entity;
 
+use App\Model\Filter\FilterData;
 use App\Utils\RandomStringGenerator;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Serializer\SerializerInterface;
 
 
 /**
@@ -81,10 +84,16 @@ class Workflow
      */
     private $customObject;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\WorkflowLog", mappedBy="workflow", orphanRemoval=true)
+     */
+    private $workflowLogs;
+
     public function __construct()
     {
         $this->workflowEnrollments = new ArrayCollection();
         $this->workflowActions = new ArrayCollection();
+        $this->workflowLogs = new ArrayCollection();
     }
 
     /**
@@ -263,5 +272,50 @@ class Workflow
         $this->customObject = $customObject;
 
         return $this;
+    }
+
+    /**
+     * @return Collection|WorkflowLog[]
+     */
+    public function getWorkflowLogs(): Collection
+    {
+        return $this->workflowLogs;
+    }
+
+    public function addWorkflowLog(WorkflowLog $workflowLog): self
+    {
+        if (!$this->workflowLogs->contains($workflowLog)) {
+            $this->workflowLogs[] = $workflowLog;
+            $workflowLog->setWorkflow($this);
+        }
+
+        return $this;
+    }
+
+    public function removeWorkflowLog(WorkflowLog $workflowLog): self
+    {
+        if ($this->workflowLogs->contains($workflowLog)) {
+            $this->workflowLogs->removeElement($workflowLog);
+            // set the owning side to null (unless already changed)
+            if ($workflowLog->getWorkflow() === $this) {
+                $workflowLog->setWorkflow(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function shouldInvoke(SerializerInterface $serializer, EntityManager $entityManager, Record $record) {
+        /** @var FilterData $filterData */
+        $filterData = $serializer->deserialize(json_encode($this->getFilterData()), FilterData::class, 'json');
+        $filterData->setCountOnly(true);
+
+
+
+
+        // does this api not allow to add a record? I'm not sure.
+        /*$filterData->addRecord($record->getId());*/
+        $results = $filterData->runQuery($entityManager);
+        return $results['count'] > 0;
     }
 }
