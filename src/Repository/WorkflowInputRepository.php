@@ -2,25 +2,25 @@
 
 namespace App\Repository;
 
-use App\Entity\WorkflowLog;
+use App\Entity\WorkflowInput;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Common\Persistence\ManagerRegistry;
 
 /**
- * @method WorkflowLog|null find($id, $lockMode = null, $lockVersion = null)
- * @method WorkflowLog|null findOneBy(array $criteria, array $orderBy = null)
- * @method WorkflowLog[]    findAll()
- * @method WorkflowLog[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method WorkflowInput|null find($id, $lockMode = null, $lockVersion = null)
+ * @method WorkflowInput|null findOneBy(array $criteria, array $orderBy = null)
+ * @method WorkflowInput[]    findAll()
+ * @method WorkflowInput[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class WorkflowLogRepository extends ServiceEntityRepository
+class WorkflowInputRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, WorkflowLog::class);
+        parent::__construct($registry, WorkflowInput::class);
     }
 
     // /**
-    //  * @return WorkflowLog[] Returns an array of WorkflowLog objects
+    //  * @return WorkflowInput[] Returns an array of WorkflowInput objects
     //  */
     /*
     public function findByExampleField($value)
@@ -37,7 +37,7 @@ class WorkflowLogRepository extends ServiceEntityRepository
     */
 
     /*
-    public function findOneBySomeField($value): ?WorkflowLog
+    public function findOneBySomeField($value): ?WorkflowInput
     {
         return $this->createQueryBuilder('w')
             ->andWhere('w.exampleField = :val')

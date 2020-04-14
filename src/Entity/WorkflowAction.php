@@ -55,13 +55,14 @@ abstract class WorkflowAction
     private $workflow;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\WorkflowLog", mappedBy="action", orphanRemoval=true)
+     * @ORM\Column(type="integer", nullable=true)
      */
-    private $workflowLogs;
+    private $sequence = 1;
 
+    abstract public function getHandlerMessage();
+    
     public function __construct()
     {
-        $this->workflowLogs = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -105,33 +106,14 @@ abstract class WorkflowAction
         self::$description = $description;
     }
 
-    /**
-     * @return Collection|WorkflowLog[]
-     */
-    public function getWorkflowLogs(): Collection
+    public function getSequence(): ?int
     {
-        return $this->workflowLogs;
+        return $this->sequence;
     }
 
-    public function addWorkflowLog(WorkflowLog $workflowLog): self
+    public function setSequence(?int $sequence): self
     {
-        if (!$this->workflowLogs->contains($workflowLog)) {
-            $this->workflowLogs[] = $workflowLog;
-            $workflowLog->setAction($this);
-        }
-
-        return $this;
-    }
-
-    public function removeWorkflowLog(WorkflowLog $workflowLog): self
-    {
-        if ($this->workflowLogs->contains($workflowLog)) {
-            $this->workflowLogs->removeElement($workflowLog);
-            // set the owning side to null (unless already changed)
-            if ($workflowLog->getAction() === $this) {
-                $workflowLog->setAction(null);
-            }
-        }
+        $this->sequence = $sequence;
 
         return $this;
     }

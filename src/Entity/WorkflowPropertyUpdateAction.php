@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Message\WorkflowPropertyUpdateActionMessage;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 
@@ -32,6 +33,11 @@ class WorkflowPropertyUpdateAction extends WorkflowAction
      * @ORM\JoinColumn(nullable=false)
      */
     private $property;
+
+    public function getHandlerMessage() {
+
+        return WorkflowPropertyUpdateActionMessage::class;
+    }
 
     public function getValue(): ?string
     {

@@ -9,7 +9,6 @@ use App\Repository\RecordRepository;
 use App\Repository\SpreadsheetRepository;
 use App\Repository\UserRepository;
 use App\Service\PhpSpreadsheetHelper;
-use App\Service\WorkflowProcessor;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -22,11 +21,6 @@ class TestCommand extends Command
 
     // the name of the command (the part after "bin/console")
     protected static $defaultName = 'app:test';
-
-    /**
-     * @var WorkflowProcessor
-     */
-    private $workflowProcessor;
 
     /**
      * @var RecordRepository
@@ -69,7 +63,6 @@ class TestCommand extends Command
 
     /**
      * TestCommand constructor.
-     * @param WorkflowProcessor $workflowProcessor
      * @param RecordRepository $recordRepository
      * @param ResetPasswordMailer $resetPasswordMailer
      * @param UserRepository $userRepository
@@ -79,8 +72,8 @@ class TestCommand extends Command
      * @param string $uploadsPath
      * @param CustomObjectRepository $customObjectRepository
      */
-    public function __construct(
-        WorkflowProcessor $workflowProcessor,
+    public function
+    __construct(
         RecordRepository $recordRepository,
         ResetPasswordMailer $resetPasswordMailer,
         UserRepository $userRepository,
@@ -90,7 +83,6 @@ class TestCommand extends Command
         string $uploadsPath,
         CustomObjectRepository $customObjectRepository
     ) {
-        $this->workflowProcessor = $workflowProcessor;
         $this->recordRepository = $recordRepository;
         $this->resetPasswordMailer = $resetPasswordMailer;
         $this->userRepository = $userRepository;

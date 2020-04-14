@@ -2,6 +2,7 @@
 
 namespace App\Model\Filter;
 
+use App\Utils\RandomStringGenerator;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 
@@ -19,10 +20,23 @@ class AbstractCriteria
      */
     protected $or;
 
-    public function __construct()
+    /**
+     * AbstractCriteria constructor.
+     * @param ArrayCollection $andCriteria
+     * @param ArrayCollection $orCriteria
+     */
+    public function __construct(ArrayCollection $andCriteria = null, ArrayCollection $orCriteria = null)
     {
         $this->and = new ArrayCollection();
         $this->or = new ArrayCollection();
+
+        if($andCriteria instanceof ArrayCollection && $andCriteria->count() > 0) {
+            $this->and = $andCriteria;
+        }
+
+        if($orCriteria instanceof ArrayCollection && $orCriteria->count() > 0) {
+            $this->or = $orCriteria;
+        }
     }
 
     /**

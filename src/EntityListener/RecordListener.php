@@ -3,6 +3,9 @@
 namespace App\EntityListener;
 
 use App\Entity\Record;
+use App\Entity\Workflow;
+use App\Entity\WorkflowAction;
+use App\Message\WorkflowActionMessage;
 use App\Model\WorkflowTrigger;
 use App\Repository\RecordRepository;
 use App\Repository\WorkflowRepository;
@@ -82,7 +85,6 @@ class RecordListener
      */
     public function prePersist(Record $record, LifecycleEventArgs $args)
     {
-        $name = "josh";
         // todo possibly add the logic here for automations/workflows
     }
 
@@ -106,10 +108,15 @@ class RecordListener
      */
     public function postPersist(Record $record, LifecycleEventArgs $args) {
 
-        $this->setupSystemDefinedProperties($record, $args)
-            ->setupWorkflows($record, $args, WorkflowTrigger::RECORD_CREATE);
+        // todo I'm thinking we actually need to add an Event Listener that's not
+        //  tied to the actual class like this. Instead of an entity listener
+        //  and event listener would allow us to fire the listener
+        //  from inside a Message Handler as well if you want properties that are updated
+        //  from inside a message handler to actually be able to fire other workflows.
+        //  Which I'm pretty sure we do right? Should we keep track of records that
+        //  have already been enrolled into an automation.
 
-        // todo possibly add the logic here for automations/workflows
+        $this->createSystemDefinedProperties($record, $args);
     }
 
     /**
@@ -121,28 +128,23 @@ class RecordListener
      */
     public function postUpdate(Record $record, LifecycleEventArgs $args) {
 
-        $record->updated_at = $record->getUpdatedAt()->format("m/d/Y");
-        $this->entityManager->persist($record);
-        $this->entityManager->flush();
-        // todo possibly add the logic here for automations/workflows
-        //  but take not this will only fire if the data is different at all. Will this work with JSON as well?
-        //  since this is all in one column? Will this fire if one JSON value gets updated in that column? Hmmm. Test that out.
+        $this->updateSystemDefinedProperties($record, $args);
     }
 
-    private function setupSystemDefinedProperties(Record $record, LifecycleEventArgs $args) {
+    private function createSystemDefinedProperties(Record $record, LifecycleEventArgs $args) {
 
         $record->created_at = $record->getCreatedAt()->format("m/d/Y");
         $record->updated_at = $record->getUpdatedAt()->format("m/d/Y");
         $record->id = $record->getId();
-        $this->entityManager->persist($record);
         $this->entityManager->flush();
 
         return $this;
     }
 
-    private function setupWorkflows(Record $record, LifecycleEventArgs $args, $workflowTrigger) {
+    private function updateSystemDefinedProperties(Record $record, LifecycleEventArgs $args) {
 
-        $workflows = $this->workflowRepository->getByTriggers($workflowTrigger);
+        $record->updated_at = $record->getUpdatedAt()->format("m/d/Y");
+        $this->entityManager->flush();
 
         return $this;
     }

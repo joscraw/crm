@@ -100,10 +100,8 @@ class WorkflowSetupType extends AbstractType implements DataMapperInterface
         $builder->add('customObject', EntityType::class, [
             // looks for choices from this entity
             'class' => CustomObject::class,
-        ])->add('triggers', ChoiceType::class, array(
-            'choices'  => WorkflowTrigger::$triggers,
-            'multiple' => true,
-        ))->add('workflowPropertyUpdateActions', CollectionType::class, array(
+        ])->add('workflowTrigger', TextType::class, [])
+            ->add('workflowPropertyUpdateActions', CollectionType::class, array(
             'entry_type'   => WorkflowPropertyUpdateActionType::class,
             'allow_add' => true,
         ))->add('workflowSendEmailActions', CollectionType::class, array(

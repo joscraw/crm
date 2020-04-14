@@ -2,13 +2,12 @@
 
 namespace App\Command;
 
+use App\Entity\Workflow;
 use App\Entity\WorkflowEnrollment;
-use App\Mailer\WorkflowSendEmailActionMailer;
-use App\Message\WorkflowMessage;
+use App\Model\WorkflowTrigger;
 use App\Repository\RecordRepository;
 use App\Repository\WorkflowEnrollmentRepository;
 use App\Repository\WorkflowRepository;
-use App\Service\WorkflowProcessor;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -22,11 +21,6 @@ use Symfony\Component\Serializer\SerializerInterface;
  */
 class WorkflowEnrollmentCommand extends Command
 {
-    /**
-     * @var WorkflowProcessor
-     */
-    private $workflowProcessor;
-
     /**
      * @var RecordRepository
      */
@@ -53,11 +47,6 @@ class WorkflowEnrollmentCommand extends Command
     private $serializer;
 
     /**
-     * @var WorkflowSendEmailActionMailer
-     */
-    private $workflowSendEmailActionMailer;
-
-    /**
      * @var WorkflowEnrollmentRepository
      */
     private $workflowEnrollmentRepository;
@@ -66,32 +55,26 @@ class WorkflowEnrollmentCommand extends Command
 
     /**
      * WorkflowEnrollmentCommand constructor.
-     * @param WorkflowProcessor $workflowProcessor
      * @param RecordRepository $recordRepository
      * @param WorkflowRepository $workflowRepository
      * @param EntityManagerInterface $entityManager
      * @param MessageBusInterface $bus
      * @param SerializerInterface $serializer
-     * @param WorkflowSendEmailActionMailer $workflowSendEmailActionMailer
      * @param WorkflowEnrollmentRepository $workflowEnrollmentRepository
      */
     public function __construct(
-        WorkflowProcessor $workflowProcessor,
         RecordRepository $recordRepository,
         WorkflowRepository $workflowRepository,
         EntityManagerInterface $entityManager,
         MessageBusInterface $bus,
         SerializerInterface $serializer,
-        WorkflowSendEmailActionMailer $workflowSendEmailActionMailer,
         WorkflowEnrollmentRepository $workflowEnrollmentRepository
     ) {
-        $this->workflowProcessor = $workflowProcessor;
         $this->recordRepository = $recordRepository;
         $this->workflowRepository = $workflowRepository;
         $this->entityManager = $entityManager;
         $this->bus = $bus;
         $this->serializer = $serializer;
-        $this->workflowSendEmailActionMailer = $workflowSendEmailActionMailer;
         $this->workflowEnrollmentRepository = $workflowEnrollmentRepository;
 
         parent::__construct();
@@ -100,58 +83,95 @@ class WorkflowEnrollmentCommand extends Command
 
     protected function configure()
     {
-        // ...
+        $this->setDescription('Determines which records need to be enrolled into all the workflows.');
     }
 
+    /**
+     * @param InputInterface $input
+     * @param OutputInterface $output
+     * @return int|void
+     */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        gc_enable();
+
         $workflows = $this->workflowRepository->findBy([
-            'published' => true,
-            'draft' => true,
-            'paused' => false
+            'paused' => false,
         ]);
 
-        $numRecordsEnrolled = 0;
-
+        $batchSize = 20;
+        /** @var Workflow $workflow */
         foreach($workflows as $workflow) {
 
-            $publishedWorkflow = $workflow->getPublishedWorkflow();
-            foreach($publishedWorkflow->getTriggers() as $trigger) {
-                switch ($trigger->getName()) {
-                    case PropertyTrigger::PROPERTY_BASED_TRIGGER:
-                        /** @var PropertyTrigger $trigger */
-                        $filters = $trigger->getFilters();
-                        $json = $this->serializer->serialize($filters, 'json', ['groups' => ['WORKFLOW', 'TRIGGER', 'WORKFLOW_ACTION']]);
-                        $filters = json_decode($json, true);
-                        $results = $this->recordRepository->getTriggerFilterMysqlOnly($filters, $publishedWorkflow->getCustomObject());
-                        foreach($results['results'] as $result) {
-                            $record = $this->recordRepository->find($result['id']);
+            // We are clearing the entity manager with each batch so we need to pull a fresh workflow object
+            $workflow = $this->workflowRepository->find($workflow->getId());
 
-                            $enrolledWorkflow = $this->workflowEnrollmentRepository->findOneBy([
-                               'record' => $record,
-                               'workflow' => $publishedWorkflow,
-                            ]);
+            switch ($workflow->getWorkflowTrigger()) {
+                case WorkflowTrigger::PROPERTY_TRIGGER:
+                    $results = $workflow->query($this->serializer, $this->entityManager);
 
-                            if($enrolledWorkflow) {
-                                $output->writeln([sprintf('record %s already enrolled for workflow %s...', $record->getId(), $publishedWorkflow->getId()), '============', '',]);
-                                continue;
-                            }
+                    $index = 0;
+                    foreach($this->recordGenerator($results) as $recordId) {
+                        $record = $this->recordRepository->find($recordId);
 
+                        if(!$record) {
+                            continue;
+                        }
+
+                        $enrolledWorkflow = $this->workflowEnrollmentRepository->findOneBy([
+                            'record' => $record,
+                            'workflow' => $workflow,
+                        ]);
+
+                        if(!$enrolledWorkflow) {
                             $workflowEnrollment = new WorkflowEnrollment();
-                            $workflowEnrollment->setWorkflow($publishedWorkflow);
+                            $workflowEnrollment->setWorkflow($workflow);
                             $workflowEnrollment->setRecord($record);
                             $this->entityManager->persist($workflowEnrollment);
-                            $this->entityManager->flush();
-
-                            $this->bus->dispatch(new WorkflowMessage($workflowEnrollment->getId()));
-                            $output->writeln([sprintf('workflow enrollment %s added to queue...', $workflowEnrollment->getId()), '============', '',]);
-                            $numRecordsEnrolled++;
                         }
-                        break;
-                }
+
+                        if (($index % $batchSize) === 0) {
+                            $this->entityManager->flush();
+                            $this->entityManager->clear();
+                            // We are clearing the entity manager with each batch so we need to pull a fresh workflow object
+                            $workflow = $this->workflowRepository->find($workflow->getId());
+                        }
+                        $index++;
+
+                        unset($record);
+                        unset($enrolledWorkflow);
+                        gc_collect_cycles();
+                    }
+
+                    // flush any remaining records that were created after the last batch update
+                    $this->entityManager->flush();
+                    break;
             }
         }
 
-        $output->writeln([sprintf('%s Records enrolled.', $numRecordsEnrolled), '============', '',]);
+        // todo this shouldn't probably be right here as what if some workflows don't require enrollment or a record?
+        //  like workflows that aren't property/record based. We might not even need a switch case here if this is just property trigger based
+        $output->writeln(['Workflow enrollments completed...', '============', '',]);
+    }
+
+    /**
+     * This is important for saving memory consumption as standard loops
+     * keep leaking memory as each loop iteration variable is stored in memory.
+     * Extremely helpful for large data sets and background workers where memory
+     * consumption is of utmost priority
+     *
+     * @param $results
+     * @return array|\Generator
+     * @see https://www.php.net/manual/en/language.generators.overview.php
+     */
+    private function recordGenerator($results) {
+
+        if(empty($results['results'])) {
+            return [];
+        }
+
+        for($i = 0; $i < count($results['results']); $i++) {
+            yield $results['results'][$i]['id'];
+        }
     }
 }

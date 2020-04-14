@@ -6,9 +6,9 @@ use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 
 /**
- * @ORM\Entity(repositoryClass="App\Repository\WorkflowLogRepository")
+ * @ORM\Entity(repositoryClass="App\Repository\WorkflowInputRepository")
  */
-class WorkflowLog
+class WorkflowInput
 {
     use TimestampableEntity;
 
@@ -20,26 +20,15 @@ class WorkflowLog
     private $id;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Workflow", inversedBy="workflowLogs")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Workflow", inversedBy="workflowInputs")
      * @ORM\JoinColumn(nullable=false)
      */
     private $workflow;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\WorkflowAction", inversedBy="workflowLogs")
-     * @ORM\JoinColumn(nullable=false)
-     */
-    private $action;
-
-    /**
      * @ORM\Column(type="json")
      */
     private $input = [];
-
-    /**
-     * @ORM\Column(type="json")
-     */
-    private $output = [];
 
     public function getId(): ?int
     {
@@ -58,18 +47,6 @@ class WorkflowLog
         return $this;
     }
 
-    public function getAction(): ?WorkflowAction
-    {
-        return $this->action;
-    }
-
-    public function setAction(?WorkflowAction $action): self
-    {
-        $this->action = $action;
-
-        return $this;
-    }
-
     public function getInput(): ?array
     {
         return $this->input;
@@ -78,18 +55,6 @@ class WorkflowLog
     public function setInput(array $input): self
     {
         $this->input = $input;
-
-        return $this;
-    }
-
-    public function getOutput(): ?array
-    {
-        return $this->output;
-    }
-
-    public function setOutput(array $output): self
-    {
-        $this->output = $output;
 
         return $this;
     }

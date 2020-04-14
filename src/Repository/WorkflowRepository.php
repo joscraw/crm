@@ -50,16 +50,14 @@ class WorkflowRepository extends ServiceEntityRepository
     */
 
     /**
-     * @param array $triggers
+     * @param $trigger
      * @return mixed
      */
-    public function getByTriggers($triggers)
+    public function getByTrigger($trigger)
     {
-        $triggers = is_array($triggers) ? $triggers : [$triggers];
-
         return $this->createQueryBuilder('workflow')
-            ->where('workflow.triggers IN (:triggers)')
-            ->setParameter('triggers', $triggers)
+            ->where('workflow.triggers LIKE :trigger')
+            ->setParameter('trigger', '%"'.$trigger.'"%')
             ->getQuery()
             ->getResult();
     }

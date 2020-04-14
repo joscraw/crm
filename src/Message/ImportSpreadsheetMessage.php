@@ -7,7 +7,7 @@ namespace App\Message;
  * Class ImportSpreadsheetMessage
  * @package App\Message
  */
-class ImportSpreadsheet
+class ImportSpreadsheetMessage
 {
     /**
      * @var int

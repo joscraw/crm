@@ -5,7 +5,7 @@ namespace App\MessageHandler;
 use App\Entity\Property;
 use App\Entity\Record;
 use App\Entity\RecordDuplicate;
-use App\Message\ImportSpreadsheet;
+use App\Message\ImportSpreadsheetMessage;
 use App\Model\Filter\Column;
 use App\Model\Filter\FilterData;
 use App\Repository\CustomObjectRepository;
@@ -130,10 +130,10 @@ class ImportSpreadsheetHandler implements MessageHandlerInterface, LoggerAwareIn
      * 5. An aknowledged message means the message was handeled and removed from the queue. https://cl.ly/a796c7daa7e1 Even if you
      * return from the __invoke for whatever reason, it will remove the message from the queue and say it was aknowledged.
      *
-     * @param ImportSpreadsheet $message
+     * @param ImportSpreadsheetMessage $message
      * @throws \Psr\Cache\InvalidArgumentException
      */
-    public function __invoke(ImportSpreadsheet $message)
+    public function __invoke(ImportSpreadsheetMessage $message)
     {
         // Make sure garbage collection is enabled.
         gc_enable();
@@ -255,10 +255,6 @@ class ImportSpreadsheetHandler implements MessageHandlerInterface, LoggerAwareIn
                             }
                             return false;
                         });*/
-
-                        if (($rowIndex % $batchSize) === 0) {
-                            echo sprintf("Records skipped %s", $rowIndex);
-                        }
 
                         foreach($uniqueProperties as $uniqueProperty) {
                             $internalName = $uniqueProperty->getInternalName();

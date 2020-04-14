@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Message\WorkflowSendEmailActionMessage;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 
@@ -36,6 +37,10 @@ class WorkflowSendEmailAction extends WorkflowAction
      * @ORM\Column(type="text", nullable=true)
      */
     private $body;
+
+    public function getHandlerMessage() {
+        return new WorkflowSendEmailActionMessage($this->getId());
+    }
 
     public function getToAddresses(): ?string
     {

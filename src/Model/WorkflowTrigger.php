@@ -12,12 +12,10 @@ class WorkflowTrigger
      * These are the triggers for all the automations/business rules (workflows)
      * @var int
      */
-    const RECORD_CREATE = 'RECORD_CREATE';
-    const RECORD_UPDATE = 'RECORD_UPDATE';
+    const PROPERTY_TRIGGER = 'PROPERTY_TRIGGER';
     /**#@-*/
 
     public static $triggers = [
-      self::RECORD_CREATE => self::RECORD_CREATE,
-      self::RECORD_UPDATE => self::RECORD_UPDATE
+      self::PROPERTY_TRIGGER => self::PROPERTY_TRIGGER
     ];
 }

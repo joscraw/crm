@@ -2,15 +2,18 @@
 
 namespace App\Entity;
 
+use App\Model\Filter\AndCriteria;
 use App\Model\Filter\FilterData;
 use App\Utils\RandomStringGenerator;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Doctrine\ORM\EntityManager;
+use Doctrine\Common\Collections\Criteria;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Serializer\SerializerInterface;
+use App\Model\Filter\Filter;
 
 
 /**
@@ -62,14 +65,6 @@ class Workflow
     private $filterData = [];
 
     /**
-     * todo possibly refactor into it's own class in the future....
-     *
-     * @Groups({"WORKFLOW"})
-     * @ORM\Column(type="array", nullable=true)
-     */
-    private $triggers = [];
-
-    /**
      * @ORM\OneToMany(targetEntity="App\Entity\WorkflowEnrollment", mappedBy="workflow", orphanRemoval=true)
      */
     private $workflowEnrollments;
@@ -85,15 +80,20 @@ class Workflow
     private $customObject;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\WorkflowLog", mappedBy="workflow", orphanRemoval=true)
+     * @ORM\Column(type="string", length=255)
      */
-    private $workflowLogs;
+    private $workflowTrigger;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\WorkflowInput", mappedBy="workflow", orphanRemoval=true)
+     */
+    private $workflowInputs;
 
     public function __construct()
     {
         $this->workflowEnrollments = new ArrayCollection();
         $this->workflowActions = new ArrayCollection();
-        $this->workflowLogs = new ArrayCollection();
+        $this->workflowInputs = new ArrayCollection();
     }
 
     /**
@@ -158,19 +158,7 @@ class Workflow
 
         return $this;
     }
-
-    public function getTriggers(): ?array
-    {
-        return $this->triggers;
-    }
-
-    public function setTriggers(?array $triggers): self
-    {
-        $this->triggers = $triggers;
-
-        return $this;
-    }
-
+    
     public function getClassName()
     {
         return (new \ReflectionClass($this))->getShortName();
@@ -274,48 +262,109 @@ class Workflow
         return $this;
     }
 
-    /**
-     * @return Collection|WorkflowLog[]
-     */
-    public function getWorkflowLogs(): Collection
-    {
-        return $this->workflowLogs;
-    }
-
-    public function addWorkflowLog(WorkflowLog $workflowLog): self
-    {
-        if (!$this->workflowLogs->contains($workflowLog)) {
-            $this->workflowLogs[] = $workflowLog;
-            $workflowLog->setWorkflow($this);
-        }
-
-        return $this;
-    }
-
-    public function removeWorkflowLog(WorkflowLog $workflowLog): self
-    {
-        if ($this->workflowLogs->contains($workflowLog)) {
-            $this->workflowLogs->removeElement($workflowLog);
-            // set the owning side to null (unless already changed)
-            if ($workflowLog->getWorkflow() === $this) {
-                $workflowLog->setWorkflow(null);
-            }
-        }
-
-        return $this;
-    }
-
-    public function shouldInvoke(SerializerInterface $serializer, EntityManager $entityManager, Record $record) {
+    public function shouldInvoke(SerializerInterface $serializer, EntityManagerInterface $entityManager, Record $record) {
         /** @var FilterData $filterData */
         $filterData = $serializer->deserialize(json_encode($this->getFilterData()), FilterData::class, 'json');
         $filterData->setCountOnly(true);
+        $property = $entityManager->getRepository(Property::class)->findOneByInternalNameAndCustomObject('id', $record->getCustomObject());
+        $uid = $this->generateRandomCharacters(5);
+        $filter = new Filter();
+        $filter->setProperty($property);
+        $filter->setUid($uid);
+        $filter->setOperator(Filter::EQ);
+        $filter->setValue($record->getId());
+        $filterData->getFilterCriteria()->addAndCriteria(new AndCriteria($uid));
+        $filterData->addFilter($filter);
 
-
-
-
+        // todo maybe we should fix this and allow easier record searching
+        //  we should add the addRecord logic to the FilterData API incase IDs don't always
+        //  get added to the records
         // does this api not allow to add a record? I'm not sure.
         /*$filterData->addRecord($record->getId());*/
         $results = $filterData->runQuery($entityManager);
         return $results['count'] > 0;
+    }
+
+    public function query(SerializerInterface $serializer, EntityManagerInterface $entityManager) {
+        /** @var FilterData $filterData */
+        $filterData = $serializer->deserialize(json_encode($this->getFilterData()), FilterData::class, 'json');
+        $results = $filterData->runQuery($entityManager);
+        return $results;
+    }
+
+    /**
+     * @return array
+     */
+    public function getFirstActionInSequence() {
+        $sort = new Criteria(null, ['sequence' => Criteria::ASC]);
+        return $this->workflowActions->matching($sort)->first();
+    }
+
+    /**
+     * @return array
+     */
+    public function getActionsInSequence() {
+        $sort = new Criteria(null, ['sequence' => Criteria::ASC]);
+        return $this->workflowActions->matching($sort);
+    }
+
+    /**
+     * @param WorkflowAction $workflowAction
+     * @return array
+     */
+    public function getNextActionInSequence(WorkflowAction $workflowAction) {
+
+        $workflowActions = $this->workflowActions->filter(function(WorkflowAction $action) use($workflowAction) {
+            return $action->getSequence() === ($workflowAction->getSequence() + 1);
+        });
+
+        if($workflowActions->count() > 0) {
+            return $workflowActions->first();
+        }
+
+        return null;
+    }
+
+    public function getWorkflowTrigger(): ?string
+    {
+        return $this->workflowTrigger;
+    }
+
+    public function setWorkflowTrigger(string $workflowTrigger): self
+    {
+        $this->workflowTrigger = $workflowTrigger;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|WorkflowInput[]
+     */
+    public function getWorkflowInputs(): Collection
+    {
+        return $this->workflowInputs;
+    }
+
+    public function addWorkflowInput(WorkflowInput $workflowInput): self
+    {
+        if (!$this->workflowInputs->contains($workflowInput)) {
+            $this->workflowInputs[] = $workflowInput;
+            $workflowInput->setWorkflow($this);
+        }
+
+        return $this;
+    }
+
+    public function removeWorkflowInput(WorkflowInput $workflowInput): self
+    {
+        if ($this->workflowInputs->contains($workflowInput)) {
+            $this->workflowInputs->removeElement($workflowInput);
+            // set the owning side to null (unless already changed)
+            if ($workflowInput->getWorkflow() === $this) {
+                $workflowInput->setWorkflow(null);
+            }
+        }
+
+        return $this;
     }
 }

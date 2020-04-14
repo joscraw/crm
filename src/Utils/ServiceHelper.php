@@ -189,11 +189,6 @@ trait ServiceHelper
     private $filterRepository;
 
     /**
-     * @var WorkflowProcessor
-     */
-    private $workflowProcessor;
-
-    /**
      * @var MessageBusInterface $bus
      */
     private $bus;
@@ -284,7 +279,6 @@ trait ServiceHelper
      * @param CacheManager $cacheManager
      * @param PermissionAuthorizationHandler $permissionAuthorizationHandler
      * @param FilterRepository $filterRepository
-     * @param WorkflowProcessor $workflowProcessor
      * @param MessageBusInterface $bus
      * @param PhpSpreadsheetHelper $phpSpreadsheetHelper
      * @param UploaderHelper $uploadHelper
@@ -328,7 +322,6 @@ trait ServiceHelper
         CacheManager $cacheManager,
         PermissionAuthorizationHandler $permissionAuthorizationHandler,
         FilterRepository $filterRepository,
-        WorkflowProcessor $workflowProcessor,
         MessageBusInterface $bus,
         PhpSpreadsheetHelper $phpSpreadsheetHelper,
         UploaderHelper $uploadHelper,
@@ -371,7 +364,6 @@ trait ServiceHelper
         $this->cacheManager = $cacheManager;
         $this->permissionAuthorizationHandler = $permissionAuthorizationHandler;
         $this->filterRepository = $filterRepository;
-        $this->workflowProcessor = $workflowProcessor;
         $this->bus = $bus;
         $this->phpSpreadsheetHelper = $phpSpreadsheetHelper;
         $this->uploadHelper = $uploadHelper;

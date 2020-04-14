@@ -7,7 +7,7 @@ use App\Entity\Portal;
 use App\Entity\Spreadsheet;
 use App\Form\ImportMappingType;
 use App\Http\ApiResponse;
-use App\Message\ImportSpreadsheet;
+use App\Message\ImportSpreadsheetMessage;
 use App\Utils\ArrayHelper;
 use App\Utils\FormHelper;
 use App\Utils\MultiDimensionalArrayExtractor;
@@ -127,7 +127,7 @@ class ImportController extends ApiController
             $spreadsheet->setMappings($form->get('mappings')->getData());
             $this->entityManager->persist($spreadsheet);
             $this->entityManager->flush();
-            $this->bus->dispatch(new ImportSpreadsheet($spreadsheet->getId()));
+            $this->bus->dispatch(new ImportSpreadsheetMessage($spreadsheet->getId()));
 
             return new ApiResponse("File successfully queued for import.", [
                 'success' => true,

@@ -7,10 +7,6 @@ use Doctrine\Common\Collections\Collection;
 
 class FilterCriteria extends AbstractCriteria
 {
-    public function __construct()
-    {
-        parent::__construct();
-    }
 
     /**
      * @param FilterData $filterData

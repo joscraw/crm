@@ -189,6 +189,23 @@ class PropertyRepository extends ServiceEntityRepository
     }
 
     /**
+     * @param $internalName
+     * @param CustomObject $customObject
+     * @return mixed
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     */
+    public function findOneByInternalNameAndCustomObject($internalName, CustomObject $customObject)
+    {
+        return $this->createQueryBuilder('property')
+            ->where('property.internalName = :internalName')
+            ->andWhere('property.customObject = :customObject')
+            ->setParameter('internalName', $internalName)
+            ->setParameter('customObject', $customObject->getId())
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    /**
      * @param $ids
      * @return mixed
      */
