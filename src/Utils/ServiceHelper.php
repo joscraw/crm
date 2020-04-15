@@ -25,6 +25,7 @@ use App\Security\LoginFormAuthenticator;
 use App\Service\GmailProvider;
 use App\Service\ImageCacheGenerator;
 use App\Service\PhpSpreadsheetHelper;
+use App\Service\SessionStore;
 use App\Service\UploaderHelper;
 use App\Service\WorkflowProcessor;
 use Doctrine\ORM\EntityManagerInterface;
@@ -249,6 +250,11 @@ trait ServiceHelper
     private $resetPasswordMailer;
 
     /**
+     * @var SessionStore
+     */
+    private $sessionStore;
+
+    /**
      * ServiceHelper constructor.
      * @param EntityManagerInterface $entityManager
      * @param Packages $assetsManager
@@ -291,6 +297,7 @@ trait ServiceHelper
      * @param RoleRepository $roleRepository
      * @param WorkflowRepository $workflowRepository
      * @param ResetPasswordMailer $resetPasswordMailer
+     * @param SessionStore $sessionStore
      */
     public function __construct(
         EntityManagerInterface $entityManager,
@@ -333,7 +340,8 @@ trait ServiceHelper
         DenormalizerInterface $denormalizer,
         RoleRepository $roleRepository,
         WorkflowRepository $workflowRepository,
-        ResetPasswordMailer $resetPasswordMailer
+        ResetPasswordMailer $resetPasswordMailer,
+        SessionStore $sessionStore
     ) {
         $this->entityManager = $entityManager;
         $this->assetsManager = $assetsManager;
@@ -376,6 +384,7 @@ trait ServiceHelper
         $this->roleRepository = $roleRepository;
         $this->workflowRepository = $workflowRepository;
         $this->resetPasswordMailer = $resetPasswordMailer;
+        $this->sessionStore = $sessionStore;
     }
 
 

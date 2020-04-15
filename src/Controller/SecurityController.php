@@ -7,17 +7,116 @@ use App\Form\ResetPasswordType;
 use App\Model\ForgotPassword;
 use App\Model\ResetPassword;
 use App\Utils\ServiceHelper;
+use Auth0\SDK\JWTVerifier;
+use Firebase\JWT\JWT;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
+use Auth0\SDK\Auth0;
+use Auth0\SDK\API\Authentication;
 
 class SecurityController extends AbstractController
 {
     use ServiceHelper;
+
+    /**
+     * @Route("/login-auth0", name="login_auth0", options = { "expose" = true })
+     * @param Request $request
+     * @return Response
+     * @throws \Auth0\SDK\Exception\CoreException
+     */
+    public function loginAuth0(Request $request): Response
+    {
+
+        $auth0 = new Auth0([
+            'domain' => 'dev-rpv5hibi.auth0.com',
+            'client_id' => 'mBQ6LEjbD2JUzsXJmy98D5Gaf5XW7xl0',
+            'client_secret' => 'BmHkvoqXTq3y6f82oB3jxqTl41klWFHltsJx9kApwmsaS-aDns_SugduHEwSjnre',
+            'redirect_uri' => 'https://crm.dev/auth0-callback',
+            'scope' => 'openid profile email',
+            'store' => $this->sessionStore,
+        ]);
+
+        $auth0->login();
+    }
+
+    /**
+     * @Route("/logout-auth0", name="logout_auth0", options = { "expose" = true })
+     * @param Request $request
+     * @return Response
+     * @throws \Auth0\SDK\Exception\CoreException
+     */
+    public function logoutAuth0(Request $request): Response
+    {
+
+        $auth0 = new Auth0([
+            'domain' => 'dev-rpv5hibi.auth0.com',
+            'client_id' => 'mBQ6LEjbD2JUzsXJmy98D5Gaf5XW7xl0',
+            'client_secret' => 'BmHkvoqXTq3y6f82oB3jxqTl41klWFHltsJx9kApwmsaS-aDns_SugduHEwSjnre',
+            'redirect_uri' => 'https://crm.dev/auth0-callback',
+            'store' => $this->sessionStore,
+        ]);
+
+        $auth0->logout();
+
+        $auth0_api = new Authentication(
+            'dev-rpv5hibi.auth0.com',
+            'mBQ6LEjbD2JUzsXJmy98D5Gaf5XW7xl0'
+        );
+
+        // Get the Auth0 logout URL to end the Auth0 session.
+        $auth0_logout_url = $auth0_api->get_logout_link(
+        // Save this in the "Allowed Logout URLs" field in your Application settings.
+            'https://crm.dev/logout',
+            'mBQ6LEjbD2JUzsXJmy98D5Gaf5XW7xl0'
+        );
+
+        return $this->redirect($auth0_logout_url);
+    }
+
+
+    /**
+     * @Route("/auth0-callback", name="auth0_callback", options = { "expose" = true })
+     * @param Request $request
+     * @return Response
+     * @throws \Auth0\SDK\Exception\CoreException
+     */
+    public function auth0Callback(Request $request): Response
+    {
+        JWT::$leeway = 6000000000000000;
+
+        $auth0 = new Auth0([
+            'domain' => 'dev-rpv5hibi.auth0.com',
+            'client_id' => 'mBQ6LEjbD2JUzsXJmy98D5Gaf5XW7xl0',
+            'client_secret' => 'BmHkvoqXTq3y6f82oB3jxqTl41klWFHltsJx9kApwmsaS-aDns_SugduHEwSjnre',
+            'redirect_uri' => 'https://crm.dev/auth0-callback',
+            'scope' => 'openid profile email',
+            /*'store' => false,*/
+            'store' => $this->sessionStore,
+        ]);
+
+        try {
+            $userInfo = $auth0->getUser();
+        } catch (\Exception $e) {
+            die( $e->getMessage() );
+        }
+
+        // No user information so redirect to the Universal Login Page.
+        if (empty($userInfo)) {
+            $auth0->login();
+        }
+
+        // todo consider creating a custom authenticator to have the flow logic inside
+        //  there instead of here and just make sure it's only applicable on the redirect?
+        //  hmmm I'm not sure about that
+
+        return $this->redirectToRoute('custom_object_settings', ['internalIdentifier' => $this->getUser()->getPortal()->getInternalIdentifier()]);
+    }
 
     /**
      * @Route("/login-form", name="login_form", methods={"GET"}, options = { "expose" = true })
@@ -41,6 +140,15 @@ class SecurityController extends AbstractController
             Response::HTTP_OK
         );
 
+    }
+
+    /**
+     * @Route("/login-middleware", name="login_middleware", options = { "expose" = true })
+     */
+    public function loginMiddleware(): Response
+    {
+        $user = $this->getUser();
+        $name = "josh";
     }
 
     /**

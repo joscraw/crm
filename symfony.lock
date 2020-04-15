@@ -1,4 +1,7 @@
 {
+    "auth0/auth0-php": {
+        "version": "5.7.0"
+    },
     "behat/transliterator": {
         "version": "v1.2.0"
     },

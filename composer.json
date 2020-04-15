@@ -6,6 +6,7 @@
         "ext-ctype": "*",
         "ext-iconv": "*",
         "ext-json": "*",
+        "auth0/auth0-php": "~5.0",
         "blackfire/php-sdk": "^1.22",
         "box/spout": "^3.1",
         "doctrine/doctrine-bundle": "^2.0",
@@ -43,8 +44,7 @@
         "symfony/validator": "4.4.*",
         "symfony/web-link": "4.4.*",
         "symfony/webpack-encore-bundle": "^1.0",
-        "symfony/yaml": "4.4.*",
-        "ext-http": "*"
+        "symfony/yaml": "4.4.*"
     },
     "require-dev": {
         "doctrine/doctrine-fixtures-bundle": "^3.1",
