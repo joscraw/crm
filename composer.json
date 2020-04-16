@@ -15,6 +15,7 @@
         "friendsofsymfony/jsrouting-bundle": "^2.2",
         "google/apiclient": "^2.0",
         "lexik/form-filter-bundle": "^5.0",
+        "lightsaml/lightsaml": "^1.4",
         "nscs/nscs-bundle": "*@dev",
         "oneup/flysystem-bundle": "^3.4",
         "php-mime-mail-parser/php-mime-mail-parser": "^5.0",

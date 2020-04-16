@@ -35,14 +35,20 @@ class SecurityController extends AbstractController
 
         $auth0 = new Auth0([
             'domain' => 'dev-rpv5hibi.auth0.com',
-            'client_id' => 'mBQ6LEjbD2JUzsXJmy98D5Gaf5XW7xl0',
-            'client_secret' => 'BmHkvoqXTq3y6f82oB3jxqTl41klWFHltsJx9kApwmsaS-aDns_SugduHEwSjnre',
+            /*'client_id' => 'mBQ6LEjbD2JUzsXJmy98D5Gaf5XW7xl0',*/
+            'client_id' => 'Ck5Ge9miYd2rKUOi6Qb3Ac8s02lmz8ec',
+            'client_secret' => 'Q8sJQYrulbS0vsnrqj_sFMgwXdB5XpZB0ePGKsMcPgBMQGboZJTAhxeKp-tnSEnw',
+            /*'client_secret' => 'BmHkvoqXTq3y6f82oB3jxqTl41klWFHltsJx9kApwmsaS-aDns_SugduHEwSjnre',*/
+            /*'redirect_uri' => 'https://crm.dev/auth0-callback',*/
             'redirect_uri' => 'https://crm.dev/auth0-callback',
             'scope' => 'openid profile email',
-            'store' => $this->sessionStore,
+            /*'store' => $this->sessionStore,*/
         ]);
 
-        $auth0->login();
+        return $this->redirect($auth0->getLoginUrl());
+        /*$namee = "jossh";*/
+
+        /*$auth0->login();*/
     }
 
     /**
@@ -54,10 +60,21 @@ class SecurityController extends AbstractController
     public function logoutAuth0(Request $request): Response
     {
 
-        $auth0 = new Auth0([
+ /*       $auth0 = new Auth0([
             'domain' => 'dev-rpv5hibi.auth0.com',
             'client_id' => 'mBQ6LEjbD2JUzsXJmy98D5Gaf5XW7xl0',
             'client_secret' => 'BmHkvoqXTq3y6f82oB3jxqTl41klWFHltsJx9kApwmsaS-aDns_SugduHEwSjnre',
+            'redirect_uri' => 'https://crm.dev/auth0-callback',
+            'store' => $this->sessionStore,
+        ]);*/
+
+        $auth0 = new Auth0([
+            'domain' => 'dev-rpv5hibi.auth0.com',
+            /*'client_id' => 'mBQ6LEjbD2JUzsXJmy98D5Gaf5XW7xl0',*/
+            'client_id' => 'Ck5Ge9miYd2rKUOi6Qb3Ac8s02lmz8ec',
+            'client_secret' => 'Q8sJQYrulbS0vsnrqj_sFMgwXdB5XpZB0ePGKsMcPgBMQGboZJTAhxeKp-tnSEnw',
+            /*'client_secret' => 'BmHkvoqXTq3y6f82oB3jxqTl41klWFHltsJx9kApwmsaS-aDns_SugduHEwSjnre',*/
+            /*'redirect_uri' => 'https://crm.dev/auth0-callback',*/
             'redirect_uri' => 'https://crm.dev/auth0-callback',
             'store' => $this->sessionStore,
         ]);
@@ -66,19 +83,45 @@ class SecurityController extends AbstractController
 
         $auth0_api = new Authentication(
             'dev-rpv5hibi.auth0.com',
-            'mBQ6LEjbD2JUzsXJmy98D5Gaf5XW7xl0'
+            'Ck5Ge9miYd2rKUOi6Qb3Ac8s02lmz8ec'
         );
 
         // Get the Auth0 logout URL to end the Auth0 session.
         $auth0_logout_url = $auth0_api->get_logout_link(
         // Save this in the "Allowed Logout URLs" field in your Application settings.
             'https://crm.dev/logout',
-            'mBQ6LEjbD2JUzsXJmy98D5Gaf5XW7xl0'
+            'Ck5Ge9miYd2rKUOi6Qb3Ac8s02lmz8ec',
+            true
         );
+
+        $auth0->logout();
 
         return $this->redirect($auth0_logout_url);
     }
 
+    /**
+     * @Route("/logout", name="logout", options = { "expose" = true })
+     * @param Request $request
+     * @return Response
+     * @throws \Auth0\SDK\Exception\CoreException
+     */
+    public function logout() {
+
+        $auth0_api = new Authentication(
+            'dev-rpv5hibi.auth0.com',
+            'Ck5Ge9miYd2rKUOi6Qb3Ac8s02lmz8ec'
+        );
+
+        // Get the Auth0 logout URL to end the Auth0 session.
+        $auth0_logout_url = $auth0_api->get_logout_link(
+        // Save this in the "Allowed Logout URLs" field in your Application settings.
+            null,
+            'Ck5Ge9miYd2rKUOi6Qb3Ac8s02lmz8ec',
+            true
+        );
+
+        return $this->redirect($auth0_logout_url);
+    }
 
     /**
      * @Route("/auth0-callback", name="auth0_callback", options = { "expose" = true })
@@ -90,13 +133,24 @@ class SecurityController extends AbstractController
     {
         JWT::$leeway = 6000000000000000;
 
-        $auth0 = new Auth0([
+ /*       $auth0 = new Auth0([
             'domain' => 'dev-rpv5hibi.auth0.com',
             'client_id' => 'mBQ6LEjbD2JUzsXJmy98D5Gaf5XW7xl0',
             'client_secret' => 'BmHkvoqXTq3y6f82oB3jxqTl41klWFHltsJx9kApwmsaS-aDns_SugduHEwSjnre',
             'redirect_uri' => 'https://crm.dev/auth0-callback',
             'scope' => 'openid profile email',
-            /*'store' => false,*/
+            'store' => $this->sessionStore,
+        ]);*/
+
+        $auth0 = new Auth0([
+            'domain' => 'dev-rpv5hibi.auth0.com',
+            /*'client_id' => 'mBQ6LEjbD2JUzsXJmy98D5Gaf5XW7xl0',*/
+            'client_id' => 'Ck5Ge9miYd2rKUOi6Qb3Ac8s02lmz8ec',
+            'client_secret' => 'Q8sJQYrulbS0vsnrqj_sFMgwXdB5XpZB0ePGKsMcPgBMQGboZJTAhxeKp-tnSEnw',
+            /*'client_secret' => 'BmHkvoqXTq3y6f82oB3jxqTl41klWFHltsJx9kApwmsaS-aDns_SugduHEwSjnre',*/
+            /*'redirect_uri' => 'https://crm.dev/auth0-callback',*/
+            'redirect_uri' => 'https://crm.dev/auth0-callback',
+            'scope' => 'openid profile email',
             'store' => $this->sessionStore,
         ]);
 

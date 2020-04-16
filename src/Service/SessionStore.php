@@ -53,7 +53,7 @@ class SessionStore implements StoreInterface
         ]);
 
         if(!$user) {
-            // create user if it doesn't exist
+            return;
         }
 
         $token = new UsernamePasswordToken($user, null, 'main', $user->getRoles());

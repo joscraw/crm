@@ -98,6 +98,15 @@ class LoginFormAuthenticator extends AbstractFormLoginAuthenticator
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, $providerKey)
     {
+        if ($targetPath = $this->getTargetPath($request->getSession(), $providerKey)) {
+            return new JsonResponse(
+                [
+                    'targetPath' => $targetPath,
+                    'success' => true,
+                ], Response::HTTP_OK
+            );
+        }
+
         $targetPath = $this->router->generate('custom_object_settings', ['internalIdentifier' => $token->getUser()->getPortal()->getInternalIdentifier()]);
 
         return new JsonResponse(

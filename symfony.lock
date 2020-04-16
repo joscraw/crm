@@ -191,6 +191,9 @@
     "lexik/form-filter-bundle": {
         "version": "v5.0.7"
     },
+    "lightsaml/lightsaml": {
+        "version": "1.4.1"
+    },
     "liip/imagine-bundle": {
         "version": "1.8",
         "recipe": {
@@ -278,6 +281,9 @@
     },
     "ralouphie/getallheaders": {
         "version": "3.0.3"
+    },
+    "robrichards/xmlseclibs": {
+        "version": "3.0.4"
     },
     "rollerworks/password-strength-bundle": {
         "version": "v2.0.3"

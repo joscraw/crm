@@ -21,6 +21,8 @@ use App\Repository\ReportRepository;
 use App\Repository\RoleRepository;
 use App\Repository\UserRepository;
 use App\Repository\WorkflowRepository;
+use App\SAML\IdpProvider;
+use App\SAML\IdpTools;
 use App\Security\LoginFormAuthenticator;
 use App\Service\GmailProvider;
 use App\Service\ImageCacheGenerator;
@@ -255,6 +257,16 @@ trait ServiceHelper
     private $sessionStore;
 
     /**
+     * @var IdpProvider
+     */
+    private $idpProvider;
+
+    /**
+     * @var IdpTools
+     */
+    private $idpTools;
+
+    /**
      * ServiceHelper constructor.
      * @param EntityManagerInterface $entityManager
      * @param Packages $assetsManager
@@ -298,6 +310,8 @@ trait ServiceHelper
      * @param WorkflowRepository $workflowRepository
      * @param ResetPasswordMailer $resetPasswordMailer
      * @param SessionStore $sessionStore
+     * @param IdpProvider $idpProvider
+     * @param IdpTools $idpTools
      */
     public function __construct(
         EntityManagerInterface $entityManager,
@@ -341,7 +355,9 @@ trait ServiceHelper
         RoleRepository $roleRepository,
         WorkflowRepository $workflowRepository,
         ResetPasswordMailer $resetPasswordMailer,
-        SessionStore $sessionStore
+        SessionStore $sessionStore,
+        IdpProvider $idpProvider,
+        IdpTools $idpTools
     ) {
         $this->entityManager = $entityManager;
         $this->assetsManager = $assetsManager;
@@ -385,8 +401,9 @@ trait ServiceHelper
         $this->workflowRepository = $workflowRepository;
         $this->resetPasswordMailer = $resetPasswordMailer;
         $this->sessionStore = $sessionStore;
+        $this->idpProvider = $idpProvider;
+        $this->idpTools = $idpTools;
     }
-
 
     /**
      * Returns the site url
