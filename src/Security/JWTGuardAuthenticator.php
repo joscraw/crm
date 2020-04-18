@@ -2,23 +2,24 @@
 
 namespace App\Security;
 
+use App\Repository\UserRepository;
 use App\Security\User\JWTUserProviderInterface;
 use App\Service\Auth0Service;
 use App\Utils\ServiceHelper;
 use Auth0\SDK\Exception\CoreException;
 use Auth0\SDK\Exception\InvalidTokenException;
 use Auth0\SDK\Helpers\Tokens\TokenVerifier;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Core\Exception\CustomUserMessageAuthenticationException;
-use Symfony\Component\Security\Core\User\User;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
 use Symfony\Component\Security\Guard\AbstractGuardAuthenticator;
-
+use App\Entity\User;
 use Auth0\SDK\Helpers\JWKFetcher;
 use Auth0\SDK\Helpers\Tokens\AsymmetricVerifier;
 use Auth0\SDK\Helpers\Tokens\SymmetricVerifier;
@@ -33,8 +34,7 @@ class JWTGuardAuthenticator extends AbstractGuardAuthenticator
     private $auth0Service;
 
     /**
-     * Constructs a new JwtGuardAuthenticator instance.
-     *
+     * JWTGuardAuthenticator constructor.
      * @param Auth0Service $auth0Service
      */
     public function __construct(Auth0Service $auth0Service)
@@ -85,12 +85,14 @@ class JWTGuardAuthenticator extends AbstractGuardAuthenticator
      */
     public function getUser($credentials, UserProviderInterface $userProvider)
     {
+        if (null === $credentials) {
+            return null;
+        }
+
         try {
             $jwt = $this->auth0Service->decodeJWT($credentials['jwt']);
         } catch (CoreException $exception) {
-            // Skip JWT verification exceptions here.
-            // Verification will be done in checkCredentials().
-            return new User('unknown', null, []);
+            return null;
         }
 
         $jwt['token'] = $credentials['jwt'];
@@ -114,24 +116,26 @@ class JWTGuardAuthenticator extends AbstractGuardAuthenticator
      */
     public function checkCredentials($credentials, UserInterface $user)
     {
-        try {
+        return true;
+        /*try {
             $this->auth0Service->decodeJWT($credentials['jwt']);
             return true;
         } catch (CoreException $exception) {
             throw new AuthenticationException($exception->getMessage(), $exception->getCode(), $exception);
-        }
+        }*/
     }
 
     /**
      * Returns nothing to continue the request when authenticated.
      *
-     * @param Request        $request
+     * @param Request $request
      * @param TokenInterface $token
-     * @param string         $providerKey
+     * @param string $providerKey
+     * @return null
      */
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, $providerKey)
     {
-        // Continue with request.
+        return null;
     }
 
     /**
@@ -144,14 +148,15 @@ class JWTGuardAuthenticator extends AbstractGuardAuthenticator
      */
     public function onAuthenticationFailure(Request $request, AuthenticationException $exception)
     {
-        $responseBody = [
-            'message' => sprintf(
-                'Authentication failed: %s.',
-                rtrim($exception->getMessage(), '.')
-            ),
+        $data = [
+            // you may want to customize or obfuscate the message first
+            'message' => strtr($exception->getMessageKey(), $exception->getMessageData())
+
+            // or to translate this message
+            // $this->translator->trans($exception->getMessageKey(), $exception->getMessageData())
         ];
 
-        return new JsonResponse($responseBody, JsonResponse::HTTP_UNAUTHORIZED);
+        return new JsonResponse($data, Response::HTTP_UNAUTHORIZED);
     }
 
     /**
@@ -164,11 +169,12 @@ class JWTGuardAuthenticator extends AbstractGuardAuthenticator
      */
     public function start(Request $request, AuthenticationException $authenticationException = null)
     {
-        $responseBody = [
-            'message' => 'Authentication required.',
+        $data = [
+            // you might translate this message
+            'message' => 'Authentication Required'
         ];
 
-        return new JsonResponse($responseBody, JsonResponse::HTTP_UNAUTHORIZED);
+        return new JsonResponse($data, Response::HTTP_UNAUTHORIZED);
     }
 
     /**

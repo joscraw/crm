@@ -13,9 +13,8 @@ use Symfony\Component\Routing\Annotation\Route;
  */
 class AlbumController extends AbstractController
 {
-
     /**
-     * @Route("/", name="private_api_albums")
+     * @Route("", name="private_api_albums")
      * @return JsonResponse
      */
     public function index()
