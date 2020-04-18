@@ -24,7 +24,6 @@ security:
                 authenticators:
                     - App\Security\LoginFormAuthenticator
                     - App\Security\ApiTokenAuthenticator
-                    #- App\Security\Auth0Authenticator
                 entry_point: App\Security\LoginFormAuthenticator
             logout:
                 path:   /logout

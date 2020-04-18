@@ -23,7 +23,7 @@ use App\Repository\UserRepository;
 use App\Repository\WorkflowRepository;
 use App\SAML\IdpProvider;
 use App\SAML\IdpTools;
-use App\Service\Auth0\Authenticator;
+use App\Security\Auth0Service;
 use App\Security\LoginFormAuthenticator;
 use App\Service\GmailProvider;
 use App\Service\ImageCacheGenerator;
@@ -267,9 +267,9 @@ trait ServiceHelper
     private $idpTools;
 
     /**
-     * @var Authenticator;
+     * @var Auth0Service
      */
-    private $auth0Authenticator;
+    private $auth0Service;
 
     /**
      * ServiceHelper constructor.
@@ -317,7 +317,7 @@ trait ServiceHelper
      * @param SessionStore $sessionStore
      * @param IdpProvider $idpProvider
      * @param IdpTools $idpTools
-     * @param Authenticator $auth0Authenticator
+     * @param Auth0Service $auth0Service
      */
     public function __construct(
         EntityManagerInterface $entityManager,
@@ -364,7 +364,7 @@ trait ServiceHelper
         SessionStore $sessionStore,
         IdpProvider $idpProvider,
         IdpTools $idpTools,
-        Authenticator $auth0Authenticator
+        Auth0Service $auth0Service
     ) {
         $this->entityManager = $entityManager;
         $this->assetsManager = $assetsManager;
@@ -410,9 +410,8 @@ trait ServiceHelper
         $this->sessionStore = $sessionStore;
         $this->idpProvider = $idpProvider;
         $this->idpTools = $idpTools;
-        $this->auth0Authenticator = $auth0Authenticator;
+        $this->auth0Service = $auth0Service;
     }
-
 
     /**
      * Returns the site url

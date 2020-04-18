@@ -102,7 +102,7 @@ services:
         - App\Entity\User
 
     app.auth0_service:
-      class: App\Service\Auth0Service
+      class: App\Security\Auth0Service
 
     app.jwt_user_provider:
       class: App\Security\User\JwtUserProvider

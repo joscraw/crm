@@ -3,8 +3,7 @@
 namespace App\Security\User;
 
 use App\Repository\UserRepository;
-use App\Service\Auth0Service;
-use stdClass;
+use App\Security\Auth0Service;
 use Symfony\Component\Intl\Exception\NotImplementedException;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use App\Entity\User;

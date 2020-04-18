@@ -4,7 +4,6 @@ namespace App\Security;
 
 use App\Repository\UserRepository;
 use App\Security\User\JWTUserProviderInterface;
-use App\Service\Auth0Service;
 use App\Utils\ServiceHelper;
 use Auth0\SDK\Exception\CoreException;
 use Auth0\SDK\Exception\InvalidTokenException;

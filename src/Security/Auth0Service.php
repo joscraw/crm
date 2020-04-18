@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Service;
+namespace App\Security;
 
 use Auth0\SDK\Helpers\JWKFetcher;
 use Auth0\SDK\Helpers\Tokens\AsymmetricVerifier;
@@ -131,10 +131,6 @@ class Auth0Service
      */
     public function getUser() {
         return $this->auth0Api->getUser();
-    }
-
-    public function login() {
-        $this->auth0Api->login(null, 'NewDBConnection');
     }
 
     /**

@@ -32,7 +32,7 @@ class SecurityController extends AbstractController
     public function loginAuth0(Request $request): Response
     {
         // todo setup the database connection in the env file
-        return $this->redirect($this->auth0Authenticator->getLoginUrl());
+        return $this->redirect($this->auth0Service->getLoginUrl());
     }
 
     /**
@@ -44,8 +44,8 @@ class SecurityController extends AbstractController
     public function logoutAuth0(Request $request): Response
     {
         // todo setup the database connection in the env file
-        $this->auth0Authenticator->logout();
-        return $this->redirect($this->auth0Authenticator->getLogoutLink());
+        $this->auth0Service->logout();
+        return $this->redirect($this->auth0Service->getLogoutLink());
     }
 
     /**
