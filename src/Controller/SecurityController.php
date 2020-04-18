@@ -7,18 +7,18 @@ use App\Form\ResetPasswordType;
 use App\Model\ForgotPassword;
 use App\Model\ResetPassword;
 use App\Utils\ServiceHelper;
-use Auth0\SDK\JWTVerifier;
-use Firebase\JWT\JWT;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
-use Auth0\SDK\Auth0;
-use Auth0\SDK\API\Authentication;
+
+use Auth0\SDK\Helpers\JWKFetcher;
+use Auth0\SDK\Helpers\Tokens\AsymmetricVerifier;
+use Auth0\SDK\Helpers\Tokens\SymmetricVerifier;
+use Auth0\SDK\Helpers\Tokens\IdTokenVerifier;
 
 class SecurityController extends AbstractController
 {
@@ -28,27 +28,11 @@ class SecurityController extends AbstractController
      * @Route("/login-auth0", name="login_auth0", options = { "expose" = true })
      * @param Request $request
      * @return Response
-     * @throws \Auth0\SDK\Exception\CoreException
      */
     public function loginAuth0(Request $request): Response
     {
-
-        $auth0 = new Auth0([
-            'domain' => 'dev-rpv5hibi.auth0.com',
-            /*'client_id' => 'mBQ6LEjbD2JUzsXJmy98D5Gaf5XW7xl0',*/
-            'client_id' => 'Ck5Ge9miYd2rKUOi6Qb3Ac8s02lmz8ec',
-            'client_secret' => 'Q8sJQYrulbS0vsnrqj_sFMgwXdB5XpZB0ePGKsMcPgBMQGboZJTAhxeKp-tnSEnw',
-            /*'client_secret' => 'BmHkvoqXTq3y6f82oB3jxqTl41klWFHltsJx9kApwmsaS-aDns_SugduHEwSjnre',*/
-            /*'redirect_uri' => 'https://crm.dev/auth0-callback',*/
-            'redirect_uri' => 'https://crm.dev/auth0-callback',
-            'scope' => 'openid profile email',
-            /*'store' => $this->sessionStore,*/
-        ]);
-
-        return $this->redirect($auth0->getLoginUrl());
-        /*$namee = "jossh";*/
-
-        /*$auth0->login();*/
+        // todo setup the database connection in the env file
+        return $this->redirect($this->auth0Authenticator->getLoginUrl());
     }
 
     /**
@@ -59,68 +43,9 @@ class SecurityController extends AbstractController
      */
     public function logoutAuth0(Request $request): Response
     {
-
- /*       $auth0 = new Auth0([
-            'domain' => 'dev-rpv5hibi.auth0.com',
-            'client_id' => 'mBQ6LEjbD2JUzsXJmy98D5Gaf5XW7xl0',
-            'client_secret' => 'BmHkvoqXTq3y6f82oB3jxqTl41klWFHltsJx9kApwmsaS-aDns_SugduHEwSjnre',
-            'redirect_uri' => 'https://crm.dev/auth0-callback',
-            'store' => $this->sessionStore,
-        ]);*/
-
-        $auth0 = new Auth0([
-            'domain' => 'dev-rpv5hibi.auth0.com',
-            /*'client_id' => 'mBQ6LEjbD2JUzsXJmy98D5Gaf5XW7xl0',*/
-            'client_id' => 'Ck5Ge9miYd2rKUOi6Qb3Ac8s02lmz8ec',
-            'client_secret' => 'Q8sJQYrulbS0vsnrqj_sFMgwXdB5XpZB0ePGKsMcPgBMQGboZJTAhxeKp-tnSEnw',
-            /*'client_secret' => 'BmHkvoqXTq3y6f82oB3jxqTl41klWFHltsJx9kApwmsaS-aDns_SugduHEwSjnre',*/
-            /*'redirect_uri' => 'https://crm.dev/auth0-callback',*/
-            'redirect_uri' => 'https://crm.dev/auth0-callback',
-            'store' => $this->sessionStore,
-        ]);
-
-        $auth0->logout();
-
-        $auth0_api = new Authentication(
-            'dev-rpv5hibi.auth0.com',
-            'Ck5Ge9miYd2rKUOi6Qb3Ac8s02lmz8ec'
-        );
-
-        // Get the Auth0 logout URL to end the Auth0 session.
-        $auth0_logout_url = $auth0_api->get_logout_link(
-        // Save this in the "Allowed Logout URLs" field in your Application settings.
-            'https://crm.dev/logout',
-            'Ck5Ge9miYd2rKUOi6Qb3Ac8s02lmz8ec',
-            true
-        );
-
-        $auth0->logout();
-
-        return $this->redirect($auth0_logout_url);
-    }
-
-    /**
-     * @Route("/logout", name="logout", options = { "expose" = true })
-     * @param Request $request
-     * @return Response
-     * @throws \Auth0\SDK\Exception\CoreException
-     */
-    public function logout() {
-
-        $auth0_api = new Authentication(
-            'dev-rpv5hibi.auth0.com',
-            'Ck5Ge9miYd2rKUOi6Qb3Ac8s02lmz8ec'
-        );
-
-        // Get the Auth0 logout URL to end the Auth0 session.
-        $auth0_logout_url = $auth0_api->get_logout_link(
-        // Save this in the "Allowed Logout URLs" field in your Application settings.
-            null,
-            'Ck5Ge9miYd2rKUOi6Qb3Ac8s02lmz8ec',
-            true
-        );
-
-        return $this->redirect($auth0_logout_url);
+        // todo setup the database connection in the env file
+        $this->auth0Authenticator->logout();
+        return $this->redirect($this->auth0Authenticator->getLogoutLink());
     }
 
     /**
@@ -131,45 +56,71 @@ class SecurityController extends AbstractController
      */
     public function auth0Callback(Request $request): Response
     {
-        JWT::$leeway = 6000000000000000;
 
- /*       $auth0 = new Auth0([
-            'domain' => 'dev-rpv5hibi.auth0.com',
-            'client_id' => 'mBQ6LEjbD2JUzsXJmy98D5Gaf5XW7xl0',
-            'client_secret' => 'BmHkvoqXTq3y6f82oB3jxqTl41klWFHltsJx9kApwmsaS-aDns_SugduHEwSjnre',
-            'redirect_uri' => 'https://crm.dev/auth0-callback',
-            'scope' => 'openid profile email',
-            'store' => $this->sessionStore,
-        ]);*/
-
-        $auth0 = new Auth0([
-            'domain' => 'dev-rpv5hibi.auth0.com',
-            /*'client_id' => 'mBQ6LEjbD2JUzsXJmy98D5Gaf5XW7xl0',*/
-            'client_id' => 'Ck5Ge9miYd2rKUOi6Qb3Ac8s02lmz8ec',
-            'client_secret' => 'Q8sJQYrulbS0vsnrqj_sFMgwXdB5XpZB0ePGKsMcPgBMQGboZJTAhxeKp-tnSEnw',
-            /*'client_secret' => 'BmHkvoqXTq3y6f82oB3jxqTl41klWFHltsJx9kApwmsaS-aDns_SugduHEwSjnre',*/
-            /*'redirect_uri' => 'https://crm.dev/auth0-callback',*/
-            'redirect_uri' => 'https://crm.dev/auth0-callback',
-            'scope' => 'openid profile email',
-            'store' => $this->sessionStore,
+        return new JsonResponse([
+           'access_token' => $request->request->get('access_token'),
+            'id_token' => $request->request->get('id_token')
         ]);
 
+        // todo this will be a route on the front end picked up by react.js in the near future
+
+        // todo grab the access token here and make requests with it in postman.
+/*        $name = "josh";
+        if(!$request->request->has('id_token')) {
+            die( 'No `id_token` URL parameter' );
+        }
+
+        $id_token  = rawurldecode($request->request->get('id_token'));
+
+        $token_issuer  = 'https://'.getenv('AUTH0_DOMAIN').'/';
+        $signature_verifier = null;
+
+        $jwks_fetcher = new JWKFetcher();
+        $jwks        = $jwks_fetcher->getKeys($token_issuer.'.well-known/jwks.json');
+        $signature_verifier = new AsymmetricVerifier($jwks);
+
+        $token_verifier = new IdTokenVerifier(
+            $token_issuer,
+            getenv('AUTH0_CLIENT_ID'),
+            $signature_verifier
+        );
+
         try {
-            $userInfo = $auth0->getUser();
+            $decoded_token = $token_verifier->verify($id_token);
+            echo '<pre>'.print_r($decoded_token, true).'</pre>';
         } catch (\Exception $e) {
-            die( $e->getMessage() );
+            echo 'Caught: Exception - '.$e->getMessage();
         }
 
-        // No user information so redirect to the Universal Login Page.
-        if (empty($userInfo)) {
-            $auth0->login();
-        }
+        // do nothing as this will be picked up by the Auth0Authenticator
 
-        // todo consider creating a custom authenticator to have the flow logic inside
-        //  there instead of here and just make sure it's only applicable on the redirect?
-        //  hmmm I'm not sure about that
+        return new Response("success parsing token");*/
+    }
 
-        return $this->redirectToRoute('custom_object_settings', ['internalIdentifier' => $this->getUser()->getPortal()->getInternalIdentifier()]);
+    /**
+     * @Route("/sign-up", name="sign_up", methods={"GET"}, options = { "expose" = true })
+     */
+    public function signUp(AuthenticationUtils $authenticationUtils)
+    {
+        return new Response("sign up");
+    }
+
+    /**
+     * @Route("/login", name="app_login", options = { "expose" = true })
+     */
+    public function login(AuthenticationUtils $authenticationUtils): Response
+    {
+
+        // get the login error if there is one
+        $error = $authenticationUtils->getLastAuthenticationError();
+        // last username entered by the user
+        $lastUsername = $authenticationUtils->getLastUsername();
+
+        $resetPassword = new ForgotPassword();
+
+        $form = $this->createForm(ForgotPasswordType::class, $resetPassword);
+
+        return $this->render('security/login.html.twig', ['form' => $form->createView(), 'last_username' => $lastUsername, 'error' => $error]);
     }
 
     /**
@@ -194,33 +145,6 @@ class SecurityController extends AbstractController
             Response::HTTP_OK
         );
 
-    }
-
-    /**
-     * @Route("/login-middleware", name="login_middleware", options = { "expose" = true })
-     */
-    public function loginMiddleware(): Response
-    {
-        $user = $this->getUser();
-        $name = "josh";
-    }
-
-    /**
-     * @Route("/login", name="app_login", options = { "expose" = true })
-     */
-    public function login(AuthenticationUtils $authenticationUtils): Response
-    {
-
-        // get the login error if there is one
-        $error = $authenticationUtils->getLastAuthenticationError();
-        // last username entered by the user
-        $lastUsername = $authenticationUtils->getLastUsername();
-
-        $resetPassword = new ForgotPassword();
-
-        $form = $this->createForm(ForgotPasswordType::class, $resetPassword);
-
-        return $this->render('security/login.html.twig', ['form' => $form->createView(), 'last_username' => $lastUsername, 'error' => $error]);
     }
 
     /**

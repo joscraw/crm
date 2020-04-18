@@ -6,7 +6,7 @@
         "ext-ctype": "*",
         "ext-iconv": "*",
         "ext-json": "*",
-        "auth0/auth0-php": "~5.0",
+        "auth0/auth0-php": "^7.1",
         "blackfire/php-sdk": "^1.22",
         "box/spout": "^3.1",
         "doctrine/doctrine-bundle": "^2.0",

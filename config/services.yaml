@@ -9,6 +9,11 @@ parameters:
     uploads_dir_name: 'uploads'
     uploads_base_url: '%env(SITE_BASE_URL)%/%uploads_dir_name%'
     site_base_url: '%env(SITE_BASE_URL)%'
+    auth0_client_id: '%env(AUTH0_CLIENT_ID)%'
+    auth0_client_secret: '%env(AUTH0_CLIENT_SECRET)%'
+    auth0_domain: '%env(AUTH0_DOMAIN)%'
+    auth0_connection: '%env(AUTH0_CONNECTION)%'
+    auth0_audience: '%env(AUTH0_AUDIENCE)%'
 
 services:
     # default configuration for services in *this* file
@@ -25,6 +30,11 @@ services:
           $uploadedAssetsBaseUrl: '%uploads_base_url%'
           $projectDirectory: '%kernel.project_dir%'
           $siteBaseUrl: '%site_base_url%'
+          $auth0ClientId: '%auth0_client_id%'
+          $auth0ClientSecret: '%auth0_client_secret%'
+          $auth0Domain: '%auth0_domain%'
+          $auth0Connection: '%auth0_connection%'
+          $auth0Audience: '%auth0_audience%'
 
     # makes classes in src/ available to be used as services
     # this creates a service per class whose id is the fully-qualified class name
@@ -80,3 +90,27 @@ services:
         - "@liip_imagine.filter.manager"
         - "@liip_imagine.filter.configuration"
         - "@logger"
+
+    app.security.private_api_request_matcher: '@App\Security\PrivateApiRequestMatcher'
+    app.security.main_request_matcher: '@App\Security\MainRequestMatcher'
+    app.security.user.web_service_user_provider: '@App\Security\User\WebServiceUserProvider'
+
+    app.user_repository:
+      class: Doctrine\ORM\EntityRepository
+      factory: ["@doctrine.orm.entity_manager", getRepository]
+      arguments:
+        - App\Entity\User
+
+    app.auth0_service:
+      class: App\Service\Auth0Service
+
+    app.jwt_user_provider:
+      class: App\Security\User\JwtUserProvider
+      arguments:
+        - "@app.auth0_service"
+        - "@app.user_repository"
+
+    app.jwt_guard_authenticator:
+      class: App\Security\JWTGuardAuthenticator
+      arguments:
+        - "@app.auth0_service"

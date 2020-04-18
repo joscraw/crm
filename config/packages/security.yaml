@@ -4,12 +4,16 @@ security:
             algorithm: bcrypt
             cost: 12
 
-    # https://symfony.com/doc/current/security.html#where-do-users-come-from-user-providers
+    # User Providers (Should have one per firewall)
     providers:
         # used to reload user from session & other features (e.g. switch_user)
         app_user_provider:
             entity:
                 class: App\Entity\User
+        app_jwt_user_provider:
+             id: app.jwt_user_provider
+
+    # Firewalls
     firewalls:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
@@ -20,10 +24,20 @@ security:
                 authenticators:
                     - App\Security\LoginFormAuthenticator
                     - App\Security\ApiTokenAuthenticator
+                    #- App\Security\Auth0Authenticator
                 entry_point: App\Security\LoginFormAuthenticator
             logout:
                 path:   /logout
                 target: /login
+            request_matcher: app.security.main_request_matcher
+            provider: app_user_provider
+        private_api:
+            guard:
+                authenticators:
+                      - app.jwt_guard_authenticator
+            request_matcher: app.security.private_api_request_matcher
+            provider: app_jwt_user_provider
+
 
             # activate different ways to authenticate
 
@@ -36,6 +50,7 @@ security:
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used
     access_control:
+        - { path: ^/api/private, roles: ROLE_ADMIN_USER }
         #- { path: ^/login, roles: IS_AUTHENTICATED_ANONYMOUSLY }
         #- { path: ^/password-reset, roles: IS_AUTHENTICATED_ANONYMOUSLY }
         #- { path: ^/forgot-password, roles: IS_AUTHENTICATED_ANONYMOUSLY }

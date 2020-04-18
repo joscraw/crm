@@ -54,7 +54,7 @@ class User implements UserInterface
      * @Assert\NotBlank(message="Don't forget a password for your user!", groups={"CREATE"})
      *
      * @var string The hashed password
-     * @ORM\Column(type="string")
+     * @ORM\Column(type="string", nullable=true)
      */
     private $password;
 
@@ -67,7 +67,7 @@ class User implements UserInterface
      *
      * @ORM\Column(name="is_active", type="boolean", nullable=false)
      */
-    private $isActive;
+    private $isActive = false;
 
     /**
      * isActive
@@ -78,7 +78,7 @@ class User implements UserInterface
      *
      * @ORM\Column(name="is_admin_user", type="boolean", nullable=false)
      */
-    private $isAdminUser;
+    private $isAdminUser = false;
 
     /**
      * @Assert\NotBlank(message="Don't forget the password repeat field!", groups={"CREATE"})
@@ -90,7 +90,7 @@ class User implements UserInterface
      * @Groups({"USERS_FOR_DATATABLE"})
      * @Assert\NotBlank(message="Don't forget a first name for your user!", groups={"CREATE", "EDIT"})
      *
-     * @ORM\Column(type="string", length=24)
+     * @ORM\Column(type="string", length=24, nullable=true)
      */
     private $firstName;
 
@@ -98,7 +98,7 @@ class User implements UserInterface
      * @Groups({"USERS_FOR_DATATABLE"})
      * @Assert\NotBlank(message="Don't forget a last name for your user!", groups={"CREATE", "EDIT"})
      *
-     * @ORM\Column(type="string", length=24)
+     * @ORM\Column(type="string", length=24, nullable=true)
      */
     private $lastName;
 
@@ -114,7 +114,7 @@ class User implements UserInterface
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Portal", inversedBy="users")
-     * @ORM\JoinColumn(nullable=false)
+     * @ORM\JoinColumn(nullable=true)
      */
     private $portal;
 
@@ -127,6 +127,29 @@ class User implements UserInterface
      * @ORM\ManyToMany(targetEntity="App\Entity\Role", inversedBy="users")
      */
     private $customRoles;
+
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $emailVerified;
+
+    /**
+     * @RollerworksPassword\PasswordRequirements(requireLetters=true, requireNumbers=true, requireCaseDiff=true, requireSpecialCharacter= true, minLength = "6", groups={"CREATE", "EDIT"})
+     * @Assert\NotBlank(message="Don't forget a password for your user!", groups={"CREATE"})
+     */
+    private $plainPassword;
+
+    /**
+     * This is the auth0 user id
+     *
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $sub;
+
+    /**
+     * @var string
+     */
+    private $token;
 
     public function __construct()
     {
@@ -170,6 +193,23 @@ class User implements UserInterface
         $roles[] = 'ROLE_USER';
 
         return array_unique($roles);
+    }
+
+    /**
+     * @param $roles
+     * @return User
+     */
+    public function addRoles($roles)
+    {
+        $roles = !is_array($roles) ? [$roles] : $roles;
+
+        foreach($roles as $role) {
+            $this->roles[] = $role;
+        }
+
+        $this->roles = array_unique($this->roles);
+
+        return $this;
     }
 
     public function setRoles(array $roles): self
@@ -415,4 +455,57 @@ class User implements UserInterface
 
         return false;
     }
+
+    public function getEmailVerified(): ?bool
+    {
+        return $this->emailVerified;
+    }
+
+    public function setEmailVerified(?bool $emailVerified): self
+    {
+        $this->emailVerified = $emailVerified;
+
+        return $this;
+    }
+
+    public function getPlainPassword(): ?string
+    {
+        return $this->plainPassword;
+    }
+
+    public function setPlainPassword(?string $plainPassword): self
+    {
+        $this->plainPassword = $plainPassword;
+
+        return $this;
+    }
+
+    public function getSub(): ?string
+    {
+        return $this->sub;
+    }
+
+    public function setSub(?string $sub): self
+    {
+        $this->sub = $sub;
+
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getToken(): string
+    {
+        return $this->token;
+    }
+
+    /**
+     * @param string $token
+     */
+    public function setToken(string $token): void
+    {
+        $this->token = $token;
+    }
+
 }

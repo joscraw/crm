@@ -63,6 +63,10 @@ class SessionStore implements StoreInterface
 
     public function get($key, $default = null)
     {
+        if(!$this->tokenStorage->getToken()) {
+            return null;
+        }
+
         $user = $this->tokenStorage->getToken()->getUser();
 
         if (!$user instanceof UserInterface) {

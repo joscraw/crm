@@ -87,6 +87,11 @@ class Portal
     private $gmailAttachments;
 
     /**
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private $systemDefined = false;
+
+    /**
      * @ORM\PrePersist
      */
     public function setInternalIdentifierValue()
@@ -458,6 +463,18 @@ class Portal
                 $gmailAttachment->setPortal(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getSystemDefined(): ?bool
+    {
+        return $this->systemDefined;
+    }
+
+    public function setSystemDefined(?bool $systemDefined): self
+    {
+        $this->systemDefined = $systemDefined;
 
         return $this;
     }

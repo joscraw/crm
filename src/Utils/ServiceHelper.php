@@ -23,13 +23,13 @@ use App\Repository\UserRepository;
 use App\Repository\WorkflowRepository;
 use App\SAML\IdpProvider;
 use App\SAML\IdpTools;
+use App\Service\Auth0\Authenticator;
 use App\Security\LoginFormAuthenticator;
 use App\Service\GmailProvider;
 use App\Service\ImageCacheGenerator;
 use App\Service\PhpSpreadsheetHelper;
 use App\Service\SessionStore;
 use App\Service\UploaderHelper;
-use App\Service\WorkflowProcessor;
 use Doctrine\ORM\EntityManagerInterface;
 use Liip\ImagineBundle\Imagine\Cache\CacheManager;
 use Symfony\Component\Asset\Packages;
@@ -267,6 +267,11 @@ trait ServiceHelper
     private $idpTools;
 
     /**
+     * @var Authenticator;
+     */
+    private $auth0Authenticator;
+
+    /**
      * ServiceHelper constructor.
      * @param EntityManagerInterface $entityManager
      * @param Packages $assetsManager
@@ -312,6 +317,7 @@ trait ServiceHelper
      * @param SessionStore $sessionStore
      * @param IdpProvider $idpProvider
      * @param IdpTools $idpTools
+     * @param Authenticator $auth0Authenticator
      */
     public function __construct(
         EntityManagerInterface $entityManager,
@@ -357,7 +363,8 @@ trait ServiceHelper
         ResetPasswordMailer $resetPasswordMailer,
         SessionStore $sessionStore,
         IdpProvider $idpProvider,
-        IdpTools $idpTools
+        IdpTools $idpTools,
+        Authenticator $auth0Authenticator
     ) {
         $this->entityManager = $entityManager;
         $this->assetsManager = $assetsManager;
@@ -403,7 +410,9 @@ trait ServiceHelper
         $this->sessionStore = $sessionStore;
         $this->idpProvider = $idpProvider;
         $this->idpTools = $idpTools;
+        $this->auth0Authenticator = $auth0Authenticator;
     }
+
 
     /**
      * Returns the site url
