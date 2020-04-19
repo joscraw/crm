@@ -2,10 +2,10 @@
 
 namespace App\Model\Filter;
 
-use App\Api\ApiProblemException;
 use App\Entity\Property;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
+use App\Exception\ApiException;
+use App\Http\ApiErrorResponse;
+use Symfony\Component\HttpFoundation\Response;
 
 class Filter
 {
@@ -175,33 +175,48 @@ class Filter
 
         $hasError = !array_key_exists($this->getOperator(), $this->templates);
         if ($hasError) {
-            throw new ApiProblemException(400, sprintf(
-                "Unsupported operator for property=%s (%s): %s",
-                $this->getProperty()->getId(),
-                $this->getProperty()->getFieldType(),
-                $this->getOperator()));
+            throw new ApiException(new ApiErrorResponse(
+                sprintf(
+                    "Unsupported operator for property=%s (%s): %s",
+                    $this->getProperty()->getId(),
+                    $this->getProperty()->getFieldType(),
+                    $this->getOperator()),
+                ApiErrorResponse::TYPE_QUERY_ERROR,
+                [],
+                Response::HTTP_BAD_REQUEST
+            ));
         }
 
         $hasError = ($this->getProperty()->getFieldType() === 'number_field' &&
             $this->getOperator() == 'BETWEEN') && ( $this->getLowValue() === NULL ||
             $this->getLowValue() === '' || $this->getHighValue() === NULL || $this->getHighValue() === '');
         if($hasError) {
-            throw new ApiProblemException(400, sprintf(
-                "A lowValue and highValue must be set for property=%s (%s): %s",
-                $this->getProperty()->getId(),
-                $this->property->getFieldType(),
-                $this->getOperator()));
+            throw new ApiException(new ApiErrorResponse(
+                sprintf(
+                    "A lowValue and highValue must be set for property=%s (%s): %s",
+                    $this->getProperty()->getId(),
+                    $this->property->getFieldType(),
+                    $this->getOperator()),
+                ApiErrorResponse::TYPE_QUERY_ERROR,
+                [],
+                Response::HTTP_BAD_REQUEST
+            ));
         }
 
         $hasError = ($this->getProperty()->getFieldType() === 'number_field' &&
                 $this->getOperator() != 'BETWEEN') && ( $this->getValue() === NULL ||
                 $this->getValue() === '');
         if($hasError) {
-            throw new ApiProblemException(400, sprintf(
-                "A value must be set for property=%s (%s): %s",
-                $this->getProperty()->getId(),
-                $this->property->getFieldType(),
-                $this->getOperator()));
+            throw new ApiException(new ApiErrorResponse(
+                sprintf(
+                    "A value must be set for property=%s (%s): %s",
+                    $this->getProperty()->getId(),
+                    $this->property->getFieldType(),
+                    $this->getOperator()),
+                ApiErrorResponse::TYPE_QUERY_ERROR,
+                [],
+                Response::HTTP_BAD_REQUEST
+            ));
         }
     }
 

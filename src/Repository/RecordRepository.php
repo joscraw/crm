@@ -4,19 +4,19 @@ namespace App\Repository;
 
 ini_set('xdebug.max_nesting_level', 100000);
 
-use App\Api\ApiProblemException;
 use App\Entity\CustomObject;
 use App\Entity\Property;
 use App\Entity\Record;
-use App\EntityListener\PropertyListener;
+use App\Exception\ApiException;
+use App\Http\ApiErrorResponse;
 use App\Model\FieldCatalog;
 use App\Model\Filter\FilterData;
-use App\Model\Filter\Join;
 use App\Model\NumberField;
 use App\Utils\ArrayHelper;
 use App\Utils\RandomStringGenerator;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Common\Persistence\ManagerRegistry;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * @method Record|null find($id, $lockMode = null, $lockVersion = null)
@@ -347,7 +347,12 @@ class RecordRepository extends ServiceEntityRepository
         $em = $this->getEntityManager();
         $stmt = $em->getConnection()->prepare($query);
         if(!$stmt->execute()) {
-            throw new ApiProblemException(400, 'Error running query. Contact system administrator');
+            throw new ApiException(new ApiErrorResponse(
+                null,
+                ApiErrorResponse::TYPE_QUERY_ERROR,
+                [],
+                Response::HTTP_BAD_REQUEST
+            ));
         }
 
         if($filterData->getStatement() === 'SELECT') {
@@ -359,7 +364,12 @@ class RecordRepository extends ServiceEntityRepository
         } elseif ($filterData->getStatement() === 'UPDATE') {
             return array("results"  => 'Records successfully updated.');
         } else {
-            throw new ApiProblemException(400, 'Statement not supported');
+            throw new ApiException(new ApiErrorResponse(
+                'Statement not supported.',
+                ApiErrorResponse::TYPE_QUERY_ERROR,
+                [],
+                Response::HTTP_BAD_REQUEST
+            ));
         }
     }
 

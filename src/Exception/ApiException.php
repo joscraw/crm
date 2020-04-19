@@ -1,26 +1,27 @@
 <?php
 
-namespace App\Controller\Exception;
+namespace App\Exception;
 
 use App\Http\ApiErrorResponse;
-use \Exception as Exception;
 
-abstract class ApiException extends Exception
+use Symfony\Component\HttpKernel\Exception\HttpException;
+
+class ApiException extends HttpException
 {
-    private $errorNumber;
+    private $apiErrorResponse;
 
-    public function __construct(ApiErrorResponse $apiErrorResponse)
+    public function __construct(ApiErrorResponse $apiErrorResponse, \Exception $previous = null, array $headers = array(), $code = 0)
     {
-        parent::__construct($msg, $statusCode);
+        $this->apiErrorResponse = $apiErrorResponse;
 
-        $this->errorNumber = $errorNumber;
+        parent::__construct($apiErrorResponse->getStatusCode(), $apiErrorResponse->getMessage(), $previous, $headers, $code);
     }
 
     /**
-     * @return Exception
+     * @return ApiErrorResponse
      */
-    public function getErrorNumber()
+    public function getApiErrorResponse(): ApiErrorResponse
     {
-        return $this->errorNumber;
+        return $this->apiErrorResponse;
     }
 }

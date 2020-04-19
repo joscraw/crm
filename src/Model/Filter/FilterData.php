@@ -2,12 +2,14 @@
 
 namespace App\Model\Filter;
 
-use App\Api\ApiProblemException;
 use App\Entity\CustomObject;
+use App\Exception\ApiException;
+use App\Http\ApiErrorResponse;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\ParameterType;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\Response;
 
 class FilterData extends AbstractFilter
 {
@@ -316,8 +318,13 @@ class FilterData extends AbstractFilter
 
         // make sure each of the provided filter criteria have a matching filter
         if(!empty(array_diff($this->filterCriteria->getAllUids(), $this->getAllFilterUids()))) {
-            throw new ApiProblemException(400, sprintf('Each filter criteria uid must match a provided filter uid. Filter Criteria UIDS that don\'t match are: %s',
-            implode(",", array_diff($this->filterCriteria->getAllUids(), $this->getAllFilterUids()))));
+            throw new ApiException(new ApiErrorResponse(
+                sprintf('Each filter criteria uid must match a provided filter uid. Filter Criteria UIDS that don\'t match are: %s',
+                    implode(",", array_diff($this->filterCriteria->getAllUids(), $this->getAllFilterUids()))),
+                ApiErrorResponse::TYPE_QUERY_ERROR,
+                [],
+                Response::HTTP_BAD_REQUEST
+            ));
         }
 
         /** @var Join $join */
@@ -563,9 +570,14 @@ class FilterData extends AbstractFilter
                 $filterString
             );
         } else {
-            throw new ApiProblemException(400, sprintf('Statement %s not supported. Supported statements are: %s',
-                $this->statement,
-                implode(",", $this::SUPPORTED_STATEMENTS)
+            throw new ApiException(new ApiErrorResponse(
+                sprintf('Statement %s not supported. Supported statements are: %s',
+                    $this->statement,
+                    implode(",", $this::SUPPORTED_STATEMENTS)
+                ),
+                ApiErrorResponse::TYPE_QUERY_ERROR,
+                [],
+                Response::HTTP_BAD_REQUEST
             ));
         }
 
@@ -598,7 +610,12 @@ class FilterData extends AbstractFilter
             /** @var \Doctrine\DBAL\Driver\Statement $stmt */
             $stmt = $entityManager->getConnection()->prepare($query);
         } catch (\Exception $exception) {
-            throw new ApiProblemException(400, sprintf('Error running query. Contact system administrator %s', $exception->getMessage()));
+            throw new ApiException(new ApiErrorResponse(
+                null,
+                ApiErrorResponse::TYPE_QUERY_ERROR,
+                [],
+                Response::HTTP_BAD_REQUEST
+            ));
         }
 
         // todo possibly pass the type as an associative array with each binding Ex: $this->bindings['integer'] => $.'first_name', etc
@@ -609,10 +626,20 @@ class FilterData extends AbstractFilter
 
         try {
             if(!$stmt->execute()) {
-                throw new ApiProblemException(400, 'Error running query. Contact system administrator');
+                throw new ApiException(new ApiErrorResponse(
+                    null,
+                    ApiErrorResponse::TYPE_QUERY_ERROR,
+                    [],
+                    Response::HTTP_BAD_REQUEST
+                ));
             }
         } catch (\Exception $exception) {
-            throw new ApiProblemException(400, $exception->getMessage());
+            throw new ApiException(new ApiErrorResponse(
+                $exception->getMessage(),
+                ApiErrorResponse::TYPE_QUERY_ERROR,
+                [],
+                Response::HTTP_BAD_REQUEST
+            ));
         }
 
         /*$entityManager->getConnection()->close();*/
@@ -633,7 +660,12 @@ class FilterData extends AbstractFilter
         } elseif ($this->getStatement() === 'UPDATE') {
             return array("results"  => 'Records successfully updated.');
         } else {
-            throw new ApiProblemException(400, 'Statement not supported');
+            throw new ApiException(new ApiErrorResponse(
+                'Statement not supported',
+                ApiErrorResponse::TYPE_QUERY_ERROR,
+                [],
+                Response::HTTP_BAD_REQUEST
+            ));
         }
     }
 

@@ -2,7 +2,6 @@
 
 namespace App\Model\Filter;
 
-use App\Api\ApiProblemException;
 use App\Entity\Property;
 use App\Model\FieldCatalog;
 use App\Model\NumberField;

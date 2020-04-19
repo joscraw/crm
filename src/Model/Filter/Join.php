@@ -2,12 +2,12 @@
 
 namespace App\Model\Filter;
 
-use App\Api\ApiProblemException;
 use App\Entity\CustomObject;
 use App\Entity\Property;
+use App\Exception\ApiException;
+use App\Http\ApiErrorResponse;
 use App\Utils\RandomStringGenerator;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
+use Symfony\Component\HttpFoundation\Response;
 
 class Join extends AbstractFilter
 {
@@ -323,13 +323,17 @@ class Join extends AbstractFilter
     public function validate() {
 
         if($this->joinType === 'Without' && ($this->hasColumns() || $this->hasFilters())) {
-            throw new ApiProblemException(400,
+            throw new ApiException(new ApiErrorResponse(
                 sprintf('"Without" joinTypes cannot have "columns" or "filters" as you are 
                 requesting all records that do NOT have a relationship with property %s (%s). 
                 Please set both "columns" and "filters" to any empty array [].',
                     $this->relationshipPropertyToJoinOn->getId(),
                     $this->relationshipPropertyToJoinOn->getInternalName()
-                ));
+                ),
+                ApiErrorResponse::TYPE_QUERY_ERROR,
+                [],
+                Response::HTTP_BAD_REQUEST
+            ));
         }
 
         /** @var Filter $filter */

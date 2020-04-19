@@ -2,8 +2,11 @@
 
 namespace App\Controller\PrivateApi;
 
+use App\Exception\ApiException;
+use App\Http\ApiErrorResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
@@ -19,6 +22,12 @@ class AlbumController extends AbstractController
      */
     public function index()
     {
+        throw new ApiException(new ApiErrorResponse(
+            null,
+            ApiErrorResponse::TYPE_VALIDATION_ERROR,
+            [],
+            Response::HTTP_BAD_REQUEST
+        ));
 
         $user = $this->getUser();
 

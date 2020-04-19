@@ -2,7 +2,8 @@
 
 namespace App\Serializer;
 
-use App\Api\ApiProblemException;
+use App\Exception\ApiException;
+use App\Http\ApiErrorResponse;
 use App\Model\Filter\AbstractCriteria;
 use App\Model\Filter\AndCriteria;
 use App\Model\Filter\Column;
@@ -17,6 +18,7 @@ use App\Repository\CustomObjectRepository;
 use App\Repository\PropertyRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Serializer\Exception\BadMethodCallException;
 use Symfony\Component\Serializer\Exception\ExtraAttributesException;
 use Symfony\Component\Serializer\Exception\InvalidArgumentException;
@@ -127,9 +129,15 @@ class FilterDataDenormalizer implements DenormalizerInterface, DenormalizerAware
         // STATEMENT (SELECT, UPDATE, ETC)
         if(isset($data['statement'])) {
             if(!in_array($data['statement'], FilterData::SUPPORTED_STATEMENTS)) {
-                throw new ApiProblemException(400, sprintf('Statement %s not supported. Supported statements are: %s',
-                    $data['statement'],
-                    implode(",", FilterData::SUPPORTED_STATEMENTS)
+
+                throw new ApiException(new ApiErrorResponse(
+                    sprintf('Statement %s not supported. Supported statements are: %s',
+                        $data['statement'],
+                        implode(",", FilterData::SUPPORTED_STATEMENTS)
+                    ),
+                    ApiErrorResponse::TYPE_QUERY_ERROR,
+                    [],
+                    Response::HTTP_BAD_REQUEST
                 ));
             }
             $this->statement = $data['statement'];
@@ -139,7 +147,12 @@ class FilterDataDenormalizer implements DenormalizerInterface, DenormalizerAware
         // COUNT ONLY
         if(isset($data['countOnly'])) {
             if(!in_array($data['countOnly'], [true, false])) {
-                throw new ApiProblemException(400, 'countOnly property can only be true or false. Example: "countOnly": true');
+                throw new ApiException(new ApiErrorResponse(
+                    'countOnly property can only be true or false. Example: "countOnly": true',
+                    ApiErrorResponse::TYPE_QUERY_ERROR,
+                    [],
+                    Response::HTTP_BAD_REQUEST
+                ));
             }
             $filterData->setCountOnly($data['countOnly']);
         }
@@ -155,12 +168,22 @@ class FilterDataDenormalizer implements DenormalizerInterface, DenormalizerAware
         if(isset($data['columns'])) {
             foreach($data['columns'] as $columnData) {
                 if(!isset($columnData['property'])) {
-                    throw new ApiProblemException(400, 'Each column object must have a property. Example: "property": 1');
+                    throw new ApiException(new ApiErrorResponse(
+                        'Each column object must have a property. Example: "property": 1',
+                        ApiErrorResponse::TYPE_QUERY_ERROR,
+                        [],
+                        Response::HTTP_BAD_REQUEST
+                    ));
                 }
                 $column = new Column();
                 $property = $this->propertyRepository->find($columnData['property']);
                 if(!$property) {
-                    throw new ApiProblemException(400, sprintf("property: %s not not found", $columnData['property']));
+                    throw new ApiException(new ApiErrorResponse(
+                        sprintf("property: %s not not found", $columnData['property']),
+                        ApiErrorResponse::TYPE_QUERY_ERROR,
+                        [],
+                        Response::HTTP_BAD_REQUEST
+                    ));
                 }
                 if(isset($columnData['renameTo'])) {
                     $column->setRenameTo($columnData['renameTo']);
@@ -172,7 +195,12 @@ class FilterDataDenormalizer implements DenormalizerInterface, DenormalizerAware
                     $column->setUid($columnData['uid']);
                 }
                 if($this->statement === 'UPDATE' && !isset($columnData['newValue'])) {
-                    throw new ApiProblemException(400, sprintf('All columns must have a newValue property when using the UPDATE Statement. Example: newValue: "super cool new value here"'));
+                    throw new ApiException(new ApiErrorResponse(
+                        sprintf('All columns must have a newValue property when using the UPDATE Statement. Example: newValue: "super cool new value here"'),
+                        ApiErrorResponse::TYPE_QUERY_ERROR,
+                        [],
+                        Response::HTTP_BAD_REQUEST
+                    ));
                 }
                 $column->setProperty($property);
                 $filterData->addColumn($column);
@@ -184,15 +212,30 @@ class FilterDataDenormalizer implements DenormalizerInterface, DenormalizerAware
             foreach($data['filters'] as $filter) {
 
                 if(!isset($filter['uid'])) {
-                    throw new ApiProblemException(400, 'Each filter object must have a uid. Example: "uid": "1"');
+                    throw new ApiException(new ApiErrorResponse(
+                        'Each filter object must have a uid. Example: "uid": "1"',
+                        ApiErrorResponse::TYPE_QUERY_ERROR,
+                        [],
+                        Response::HTTP_BAD_REQUEST
+                    ));
                 }
 
                 if(!isset($filter['property'])) {
-                    throw new ApiProblemException(400, 'Each filter object must have a property. Example: "property": 1');
+                    throw new ApiException(new ApiErrorResponse(
+                        'Each filter object must have a property. Example: "property": 1',
+                        ApiErrorResponse::TYPE_QUERY_ERROR,
+                        [],
+                        Response::HTTP_BAD_REQUEST
+                    ));
                 }
                 $property = $this->propertyRepository->find($filter['property']);
                 if(!$property) {
-                    throw new ApiProblemException(400, sprintf("property: %s not not found", $filter['property']));
+                    throw new ApiException(new ApiErrorResponse(
+                        sprintf("property: %s not not found", $filter['property']),
+                        ApiErrorResponse::TYPE_QUERY_ERROR,
+                        [],
+                        Response::HTTP_BAD_REQUEST
+                    ));
                 }
                 /** @var Filter $filterObject */
                 $filterObject = $this->denormalizer->denormalize(
@@ -210,7 +253,12 @@ class FilterDataDenormalizer implements DenormalizerInterface, DenormalizerAware
         if(isset($data['orders'])) {
             foreach($data['orders'] as $order) {
                 if(!isset($order['uid'])) {
-                    throw new ApiProblemException(400, 'Each order object must have a uid. Example: "uid": 1');
+                    throw new ApiException(new ApiErrorResponse(
+                        'Each order object must have a uid. Example: "uid": 1',
+                        ApiErrorResponse::TYPE_QUERY_ERROR,
+                        [],
+                        Response::HTTP_BAD_REQUEST
+                    ));
                 }
 
                 /** @var Order $orderObject */
@@ -229,7 +277,12 @@ class FilterDataDenormalizer implements DenormalizerInterface, DenormalizerAware
         if(isset($data['groupBys'])) {
             foreach($data['groupBys'] as $groupBy) {
                 if(!isset($groupBy['uid'])) {
-                    throw new ApiProblemException(400, 'Each group by object must have a uid. Example: "uid": 1');
+                    throw new ApiException(new ApiErrorResponse(
+                        'Each group by object must have a uid. Example: "uid": 1',
+                        ApiErrorResponse::TYPE_QUERY_ERROR,
+                        [],
+                        Response::HTTP_BAD_REQUEST
+                    ));
                 }
 
                 /** @var GroupBy $groupByObject */
@@ -266,7 +319,12 @@ class FilterDataDenormalizer implements DenormalizerInterface, DenormalizerAware
         if(isset($data['and'])) {
             foreach($data['and'] as $and) {
                 if(!isset($and['uid'])) {
-                    throw new ApiProblemException(400, 'Each and criteria must have a uid. Example: "uid": 1');
+                    throw new ApiException(new ApiErrorResponse(
+                        'Each and criteria must have a uid. Example: "uid": 1',
+                        ApiErrorResponse::TYPE_QUERY_ERROR,
+                        [],
+                        Response::HTTP_BAD_REQUEST
+                    ));
                 }
                 $andCriteriaObject = new AndCriteria();
                 $andCriteriaObject->setUid($and['uid']);
@@ -278,7 +336,12 @@ class FilterDataDenormalizer implements DenormalizerInterface, DenormalizerAware
         if(isset($data['or'])) {
             foreach($data['or'] as $or) {
                 if(!isset($or['uid'])) {
-                    throw new ApiProblemException(400, 'Each or criteria must have a uid. Example: "uid": 1');
+                    throw new ApiException(new ApiErrorResponse(
+                        'Each or criteria must have a uid. Example: "uid": 1',
+                        ApiErrorResponse::TYPE_QUERY_ERROR,
+                        [],
+                        Response::HTTP_BAD_REQUEST
+                    ));
                 }
                 $orCriteriaObject = new OrCriteria();
                 $orCriteriaObject->setUid($or['uid']);
@@ -300,18 +363,33 @@ class FilterDataDenormalizer implements DenormalizerInterface, DenormalizerAware
         foreach($joins as $join) {
 
             if(!isset($join['relationshipPropertyToJoinOn'])) {
-                throw new ApiProblemException(400, 'Each join object must have a relationshipPropertyToJoinOn. Example: "relationshipPropertyToJoinOn": 11');
+                throw new ApiException(new ApiErrorResponse(
+                    'Each join object must have a relationshipPropertyToJoinOn. Example: "relationshipPropertyToJoinOn": 11',
+                    ApiErrorResponse::TYPE_QUERY_ERROR,
+                    [],
+                    Response::HTTP_BAD_REQUEST
+                ));
             }
 
             if(!isset($join['joinType'])) {
-                throw new ApiProblemException(400, 'Each join object must have a joinType. Example: "joinType": "With"');
+                throw new ApiException(new ApiErrorResponse(
+                    'Each join object must have a joinType. Example: "joinType": "With"',
+                    ApiErrorResponse::TYPE_QUERY_ERROR,
+                    [],
+                    Response::HTTP_BAD_REQUEST
+                ));
             }
 
             $joinObject = new Join();
             $relationshipPropertyToJoinOn = $this->propertyRepository->find($join['relationshipPropertyToJoinOn']);
 
             if(!$relationshipPropertyToJoinOn) {
-                throw new ApiProblemException(400, sprintf("relationshipPropertyToJoinOn: %s not not found", $join['relationshipPropertyToJoinOn']));
+                throw new ApiException(new ApiErrorResponse(
+                    sprintf("relationshipPropertyToJoinOn: %s not not found", $join['relationshipPropertyToJoinOn']),
+                    ApiErrorResponse::TYPE_QUERY_ERROR,
+                    [],
+                    Response::HTTP_BAD_REQUEST
+                ));
             }
 
             $joinObject->setRelationshipPropertyToJoinOn($relationshipPropertyToJoinOn);
@@ -321,12 +399,22 @@ class FilterDataDenormalizer implements DenormalizerInterface, DenormalizerAware
             if(isset($join['columns'])) {
                 foreach($join['columns'] as $columnData) {
                     if(!isset($columnData['property'])) {
-                        throw new ApiProblemException(400, 'Each column object must have a property. Example: "property": 1');
+                        throw new ApiException(new ApiErrorResponse(
+                            'Each column object must have a property. Example: "property": 1',
+                            ApiErrorResponse::TYPE_QUERY_ERROR,
+                            [],
+                            Response::HTTP_BAD_REQUEST
+                        ));
                     }
                     $column = new Column();
                     $property = $this->propertyRepository->find($columnData['property']);
                     if(!$property) {
-                        throw new ApiProblemException(400, sprintf("property: %s not not found", $columnData['property']));
+                        throw new ApiException(new ApiErrorResponse(
+                            sprintf("property: %s not not found", $columnData['property']),
+                            ApiErrorResponse::TYPE_QUERY_ERROR,
+                            [],
+                            Response::HTTP_BAD_REQUEST
+                        ));
                     }
                     if(isset($columnData['renameTo'])) {
                         $column->setRenameTo($columnData['renameTo']);
@@ -338,7 +426,12 @@ class FilterDataDenormalizer implements DenormalizerInterface, DenormalizerAware
                         $column->setUid($columnData['uid']);
                     }
                     if($this->statement === 'UPDATE' && !isset($columnData['newValue'])) {
-                        throw new ApiProblemException(400, sprintf('All columns must have a newValue property when using the UPDATE Statement. Example: newValue: "super cool new value here"'));
+                        throw new ApiException(new ApiErrorResponse(
+                            sprintf('All columns must have a newValue property when using the UPDATE Statement. Example: newValue: "super cool new value here"'),
+                            ApiErrorResponse::TYPE_QUERY_ERROR,
+                            [],
+                            Response::HTTP_BAD_REQUEST
+                        ));
                     }
                     $column->setProperty($property);
                     $joinObject->addColumn($column);
@@ -350,15 +443,30 @@ class FilterDataDenormalizer implements DenormalizerInterface, DenormalizerAware
                 foreach($join['filters'] as $filter) {
 
                     if(!isset($filter['uid'])) {
-                        throw new ApiProblemException(400, 'Each filter object must have a uid. Example: "uid": "1"');
+                        throw new ApiException(new ApiErrorResponse(
+                            'Each filter object must have a uid. Example: "uid": "1"',
+                            ApiErrorResponse::TYPE_QUERY_ERROR,
+                            [],
+                            Response::HTTP_BAD_REQUEST
+                        ));
                     }
 
                     if(!isset($filter['property'])) {
-                        throw new ApiProblemException(400, 'Each filter object must have a property. Example: "property": 1');
+                        throw new ApiException(new ApiErrorResponse(
+                            'Each filter object must have a property. Example: "property": 1',
+                            ApiErrorResponse::TYPE_QUERY_ERROR,
+                            [],
+                            Response::HTTP_BAD_REQUEST
+                        ));
                     }
                     $property = $this->propertyRepository->find($filter['property']);
                     if(!$property) {
-                        throw new ApiProblemException(400, sprintf("property: %s not not found", $filter['property']));
+                        throw new ApiException(new ApiErrorResponse(
+                            sprintf("property: %s not not found", $filter['property']),
+                            ApiErrorResponse::TYPE_QUERY_ERROR,
+                            [],
+                            Response::HTTP_BAD_REQUEST
+                        ));
                     }
                     /** @var Filter $filterObject */
                     $filterObject = $this->denormalizer->denormalize(

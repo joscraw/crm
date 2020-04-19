@@ -12,6 +12,7 @@ class ApiErrorResponse extends JsonResponse
 
     const TYPE_VALIDATION_ERROR = 'validation_error';
     const TYPE_INVALID_REQUEST_BODY_FORMAT = 'invalid_body_format';
+    const TYPE_QUERY_ERROR = 'query_error';
 
     /**
      * Error Code to Message Map.
@@ -21,6 +22,7 @@ class ApiErrorResponse extends JsonResponse
     private static $messages = array(
         self::TYPE_VALIDATION_ERROR => 'There was a validation error',
         self::TYPE_INVALID_REQUEST_BODY_FORMAT => 'Invalid JSON format sent',
+        self::TYPE_QUERY_ERROR => 'There was a query error'
     );
 
     /**
