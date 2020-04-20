@@ -21,6 +21,7 @@ class DefaultController extends AbstractController
      */
     public function createAction(Request $request) {
 
+        $name = "Josh";
         return $this->render('default/index.html.twig');
 
     }

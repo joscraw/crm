@@ -9,6 +9,7 @@ import auth0Client from '../utils/Auth';
 class FetchResourcePrivate extends Component {
 
     constructor(props) {
+        debugger;
         super(props);
         this.state = {
             privateResources: null,

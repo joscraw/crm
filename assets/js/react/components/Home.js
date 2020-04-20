@@ -12,15 +12,11 @@ import auth0Client from '../utils/Auth';
 class Home extends Component {
 
     async componentDidMount() {
-        debugger;
         if (this.props.location.pathname === '/callback') return;
         try {
-            debugger;
             await auth0Client.silentAuth();
-            debugger;
             this.forceUpdate();
         } catch (err) {
-            debugger;
             if (err.error === 'login_required') return;
             console.log(err.error);
         }

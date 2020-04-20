@@ -89,19 +89,18 @@ class Auth {
     }
 
     logIn() {
-        // todo make sure you add the connection here
         debugger;
         this.auth0.authorize({
             connection: AUTH0_CONNECTION
         });
     }
 
-    // todo make sure this is federated
     logOut() {
 
         this.auth0.logout({
             returnTo: AUTH0_RETURN_TO,
             clientID: AUTH0_CLIENT_ID,
+            federated: true,
         });
     }
 
@@ -109,7 +108,7 @@ class Auth {
         debugger;
         return new Promise((resolve, reject) => {
             debugger;
-            this.auth0.checkSession({}, (err, authResult) => {
+            this.auth0.checkSession({connection: AUTH0_CONNECTION}, (err, authResult) => {
                 debugger;
                 if (err) return reject(err);
                 this.setSession(authResult);
@@ -122,3 +121,7 @@ class Auth {
 const auth0Client = new Auth();
 
 export default auth0Client;
+// Export a non instantiated version of the class as well
+export {
+    Auth
+}
