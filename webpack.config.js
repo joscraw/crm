@@ -1,5 +1,6 @@
 var Encore = require('@symfony/webpack-encore');
-const CopyWebpackPlugin = require('copy-webpack-plugin')
+const CopyWebpackPlugin = require('copy-webpack-plugin');
+var dotenv = require('dotenv');
 
 Encore
     // directory where compiled assets will be stored
@@ -87,6 +88,22 @@ Encore
         {from: './node_modules/ckeditor/skins', to: 'ckeditor/skins/[path][name].[ext]'}
 
         ]))
+
+    .configureDefinePlugin(options => {
+        const env = dotenv.config();
+
+        if (env.error) {
+            throw env.error;
+        }
+
+        options['process.env'].AUTH0_CLIENT_ID = JSON.stringify(env.parsed.AUTH0_CLIENT_ID);
+        options['process.env'].AUTH0_DOMAIN = JSON.stringify(env.parsed.AUTH0_DOMAIN);
+        options['process.env'].AUTH0_CONNECTION = JSON.stringify(env.parsed.AUTH0_CONNECTION);
+        options['process.env'].AUTH0_AUDIENCE = JSON.stringify(env.parsed.AUTH0_AUDIENCE);
+        options['process.env'].AUTH0_RETURN_TO = JSON.stringify(env.parsed.AUTH0_RETURN_TO);
+        options['process.env'].AUTH0_REDIRECT_URI = JSON.stringify(env.parsed.AUTH0_REDIRECT_URI);
+
+    })
 
     // uncomment if you use API Platform Admin (composer req api-admin)
     //.enableReactPreset()

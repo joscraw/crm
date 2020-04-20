@@ -2,14 +2,24 @@
 
 import auth0 from 'auth0-js';
 
+const AUTH0_CLIENT_ID = process.env.AUTH0_CLIENT_ID,
+      AUTH0_REDIRECT_URI = process.env.AUTH0_REDIRECT_URI,
+      AUTH0_DOMAIN = process.env.AUTH0_DOMAIN,
+      AUTH0_CONNECTION = process.env.AUTH0_CONNECTION,
+      AUTH0_AUDIENCE = process.env.AUTH0_AUDIENCE,
+      AUTH0_RETURN_TO = process.env.AUTH0_RETURN_TO;
+
 class Auth {
     constructor() {
+
+        debugger;
+
         // todo should be pulling this from env file somehow?
         this.auth0 = new auth0.WebAuth({
-            domain: 'crm-development.auth0.com',
-            audience: 'https://crm.dev/api',
-            clientID: 'Hhzjj4oe1CuKYcd9C0nbSjh5ltScR5oL',
-            redirectUri: 'https://crm.dev/callback',
+            domain: AUTH0_DOMAIN,
+            audience: AUTH0_AUDIENCE,
+            clientID: AUTH0_CLIENT_ID,
+            redirectUri: AUTH0_REDIRECT_URI,
             responseType: 'token id_token',
             scope: 'openid profile'
         });
@@ -19,6 +29,30 @@ class Auth {
         this.isAuthenticated = this.isAuthenticated.bind(this);
         this.logIn = this.logIn.bind(this);
         this.logOut = this.logOut.bind(this);
+    }
+
+    static get AUTH0_CLIENT_ID() {
+        return AUTH0_CLIENT_ID;
+    }
+
+    static get AUTH0_REDIRECT_URI() {
+        return AUTH0_REDIRECT_URI;
+    }
+
+    static get AUTH0_DOMAIN() {
+        return AUTH0_DOMAIN;
+    }
+
+    static get AUTH0_CONNECTION() {
+        return AUTH0_CONNECTION;
+    }
+
+    static get AUTH0_AUDIENCE() {
+        return AUTH0_AUDIENCE;
+    }
+
+    static get AUTH0_RETURN_TO() {
+        return AUTH0_RETURN_TO;
     }
 
     getProfile() {
@@ -55,16 +89,19 @@ class Auth {
     }
 
     logIn() {
+        // todo make sure you add the connection here
         debugger;
-        this.auth0.authorize();
+        this.auth0.authorize({
+            connection: AUTH0_CONNECTION
+        });
     }
 
     // todo make sure this is federated
     logOut() {
 
         this.auth0.logout({
-            returnTo: 'https://crm.dev/logout',
-            clientID: 'Hhzjj4oe1CuKYcd9C0nbSjh5ltScR5oL',
+            returnTo: AUTH0_RETURN_TO,
+            clientID: AUTH0_CLIENT_ID,
         });
     }
 
