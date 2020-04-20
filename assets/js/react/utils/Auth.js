@@ -12,9 +12,6 @@ const AUTH0_CLIENT_ID = process.env.AUTH0_CLIENT_ID,
 class Auth {
     constructor() {
 
-        debugger;
-
-        // todo should be pulling this from env file somehow?
         this.auth0 = new auth0.WebAuth({
             domain: AUTH0_DOMAIN,
             audience: AUTH0_AUDIENCE,
@@ -66,7 +63,6 @@ class Auth {
     handleAuthentication() {
         return new Promise((resolve, reject) => {
             this.auth0.parseHash((err, authResult) => {
-                debugger;
                 if (err) return reject(err);
                 if (!authResult || !authResult.idToken) {
                     return reject(err);
@@ -78,7 +74,6 @@ class Auth {
     }
 
     setSession(authResult, step) {
-        debugger;
         this.profile = authResult.idTokenPayload;
         this.accessToken = authResult.accessToken;
         this.expiresAt = authResult.expiresIn * 1000 + new Date().getTime();
@@ -105,11 +100,8 @@ class Auth {
     }
 
     silentAuth() {
-        debugger;
         return new Promise((resolve, reject) => {
-            debugger;
             this.auth0.checkSession({connection: AUTH0_CONNECTION}, (err, authResult) => {
-                debugger;
                 if (err) return reject(err);
                 this.setSession(authResult);
                 resolve();
