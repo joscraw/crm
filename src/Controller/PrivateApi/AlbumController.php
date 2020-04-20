@@ -22,13 +22,6 @@ class AlbumController extends AbstractController
      */
     public function index()
     {
-        throw new ApiException(new ApiErrorResponse(
-            null,
-            ApiErrorResponse::TYPE_VALIDATION_ERROR,
-            [],
-            Response::HTTP_BAD_REQUEST
-        ));
-
         $user = $this->getUser();
 
         $data = [

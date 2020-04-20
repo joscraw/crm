@@ -18,6 +18,8 @@ Encore
      * Each entry will result in one JavaScript file (e.g. app.js)
      * and one CSS file (e.g. app.css) if you JavaScript imports CSS.
      */
+    .addEntry('app', './assets/js/app.js')
+
     .addEntry('layout', './assets/js/layout.js')
     .addEntry('custom_object_settings', './assets/js/custom_object_settings.js')
     .addEntry('property_settings', './assets/js/property_settings.js')
@@ -64,6 +66,16 @@ Encore
 
     // uncomment if you're having problems with a jQuery plugin
     .autoProvidejQuery()
+
+    .enableReactPreset()
+
+    // todo ask travis if this babel stuff here is actually needed.
+    .configureBabel(function (babelConfig) {
+        babelConfig.plugins = [
+            "@babel/plugin-proposal-object-rest-spread","@babel/plugin-proposal-class-properties",
+            "@babel/plugin-transform-runtime"
+        ]
+    })
 
     // copies to {output}/static
     .addPlugin(new CopyWebpackPlugin([

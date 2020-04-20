@@ -14,15 +14,4 @@ use Symfony\Component\Routing\Annotation\Route;
 class WelcomeController extends AbstractController
 {
     use ServiceHelper;
-
-    /**
-     * @Route("/", name="welcome_page", methods={"GET"})
-     * @param Request $request
-     * @return \Symfony\Component\HttpFoundation\Response
-     * @throws \Doctrine\DBAL\DBALException
-     */
-    public function indexAction(Request $request) {
-        return $this->redirectToRoute('login');
-    }
-
 }
