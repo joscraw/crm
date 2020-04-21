@@ -49,24 +49,13 @@ class JwtUserProvider implements JWTUserProviderInterface
 
     public function loadUserByUsername($username)
     {
-        $name = "Josh";
         throw new NotImplementedException('method not implemented');
     }
 
     public function refreshUser(UserInterface $user)
     {
-        if (!$user instanceof User) {
-            throw new UnsupportedUserException(
-                sprintf('Instances of "%s" are not supported.', get_class($user))
-            );
-        }
-
-        $user = $this->userRepository->findOneBy([
-            'sub' => $user->getSub()
-        ]);
-
-        return $user;
-
+        // our api is stateless, so there will be no serializing/refreshing user object to/from the session
+        throw new UnsupportedUserException();
     }
 
     public function supportsClass($class)

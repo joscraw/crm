@@ -36,6 +36,7 @@ security:
                       - app.jwt_guard_authenticator
             request_matcher: app.security.private_api_request_matcher
             provider: app_jwt_user_provider
+            stateless: true
 
 
             # activate different ways to authenticate

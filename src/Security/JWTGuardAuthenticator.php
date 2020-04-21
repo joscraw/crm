@@ -2,6 +2,8 @@
 
 namespace App\Security;
 
+use App\Exception\ApiException;
+use App\Http\ApiErrorResponse;
 use App\Repository\UserRepository;
 use App\Security\User\JWTUserProviderInterface;
 use App\Utils\ServiceHelper;
@@ -115,13 +117,15 @@ class JWTGuardAuthenticator extends AbstractGuardAuthenticator
      */
     public function checkCredentials($credentials, UserInterface $user)
     {
+        if(!$user) {
+            throw new ApiException(new ApiErrorResponse("Authorization has been refused for those credentials.",
+                null,
+                [],
+                Response::HTTP_UNAUTHORIZED
+            ));
+        }
+
         return true;
-        /*try {
-            $this->auth0Service->decodeJWT($credentials['jwt']);
-            return true;
-        } catch (CoreException $exception) {
-            throw new AuthenticationException($exception->getMessage(), $exception->getCode(), $exception);
-        }*/
     }
 
     /**
@@ -134,7 +138,6 @@ class JWTGuardAuthenticator extends AbstractGuardAuthenticator
      */
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, $providerKey)
     {
-        $name = "Josh";
         return null;
     }
 
@@ -148,15 +151,11 @@ class JWTGuardAuthenticator extends AbstractGuardAuthenticator
      */
     public function onAuthenticationFailure(Request $request, AuthenticationException $exception)
     {
-        $data = [
-            // you may want to customize or obfuscate the message first
-            'message' => strtr($exception->getMessageKey(), $exception->getMessageData())
-
-            // or to translate this message
-            // $this->translator->trans($exception->getMessageKey(), $exception->getMessageData())
-        ];
-
-        return new JsonResponse($data, Response::HTTP_UNAUTHORIZED);
+        return new ApiErrorResponse($exception->getMessage(),
+            null,
+            [],
+            Response::HTTP_UNAUTHORIZED
+        );
     }
 
     /**
@@ -169,12 +168,11 @@ class JWTGuardAuthenticator extends AbstractGuardAuthenticator
      */
     public function start(Request $request, AuthenticationException $authenticationException = null)
     {
-        $data = [
-            // you might translate this message
-            'message' => 'Authentication Required'
-        ];
-
-        return new JsonResponse($data, Response::HTTP_UNAUTHORIZED);
+        return new ApiErrorResponse('Authentication Required',
+            null,
+            [],
+            Response::HTTP_UNAUTHORIZED
+        );
     }
 
     /**
@@ -182,7 +180,6 @@ class JWTGuardAuthenticator extends AbstractGuardAuthenticator
      */
     public function supportsRememberMe()
     {
-        $name = "Josh";
         return false;
     }
 
