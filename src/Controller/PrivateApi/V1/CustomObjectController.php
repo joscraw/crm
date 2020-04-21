@@ -5,6 +5,7 @@ namespace App\Controller\PrivateApi\V1;
 use App\Entity\User;
 use App\Exception\ApiException;
 use App\Http\ApiErrorResponse;
+use App\Http\ApiResponse;
 use App\Utils\ServiceHelper;
 use Pagerfanta\Adapter\DoctrineORMAdapter;
 use Pagerfanta\Pagerfanta;
@@ -75,17 +76,14 @@ class CustomObjectController extends AbstractController
 
         $adapter = new DoctrineORMAdapter($qb);
         $pagerfanta = new Pagerfanta($adapter);
+        $pagerfanta->setAllowOutOfRangePages(true);
         $pagerfanta->setMaxPerPage(10);
         $pagerfanta->setCurrentPage($page);
-        $answers = [];
-        foreach ($pagerfanta->getCurrentPageResults() as $result) {
-            $answers[] = $result;
-        }
+        $results = $pagerfanta->getCurrentPageResults();
 
-        $json = $this->serializer->serialize($answers, 'json', ['groups' => ['v1']]);
-        $answers = json_decode($json, true);
+        $json = $this->serializer->serialize($results, 'json', ['groups' => ['v1']]);
 
-        return new JsonResponse($answers);
+        return new ApiResponse(null, $json, Response::HTTP_OK, [], true);
     }
 
 }
