@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controller\PrivateApi;
+namespace App\Controller\PrivateApi\V1;
 
 use App\Exception\ApiException;
 use App\Http\ApiErrorResponse;
