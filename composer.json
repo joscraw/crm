@@ -16,6 +16,7 @@
         "google/apiclient": "^2.0",
         "lexik/form-filter-bundle": "^5.0",
         "lightsaml/lightsaml": "^1.4",
+        "nelmio/api-doc-bundle": "^3.6",
         "nscs/nscs-bundle": "*@dev",
         "oneup/flysystem-bundle": "^3.4",
         "php-mime-mail-parser/php-mime-mail-parser": "^5.0",
