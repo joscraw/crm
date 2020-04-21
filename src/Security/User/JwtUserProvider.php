@@ -2,8 +2,11 @@
 
 namespace App\Security\User;
 
+use App\Exception\ApiException;
+use App\Http\ApiErrorResponse;
 use App\Repository\UserRepository;
 use App\Security\Auth0Service;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Intl\Exception\NotImplementedException;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use App\Entity\User;
@@ -27,10 +30,11 @@ class JwtUserProvider implements JWTUserProviderInterface
         ]);
 
         if(!$user) {
-            // todo change this exception name
-            throw new UsernameNotFoundException(
-                sprintf('Username "%s" does not exist for user.', $jwt['sub'])
-            );
+            throw new ApiException(new ApiErrorResponse("Authorization has been refused for those credentials.",
+                null,
+                [],
+                Response::HTTP_UNAUTHORIZED
+            ));
         }
 
         if(isset($jwt['token'])) {
@@ -45,6 +49,7 @@ class JwtUserProvider implements JWTUserProviderInterface
 
     public function loadUserByUsername($username)
     {
+        $name = "Josh";
         throw new NotImplementedException('method not implemented');
     }
 

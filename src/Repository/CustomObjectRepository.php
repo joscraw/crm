@@ -49,6 +49,18 @@ class CustomObjectRepository extends ServiceEntityRepository
     }
     */
 
+    public function findAllQueryBuilder(Portal $portal = null)
+    {
+        $queryBuilder = $this->createQueryBuilder('customObject');
+
+        if($portal) {
+            $queryBuilder->where('customObject.portal = :portal')
+                ->setParameter('portal', $portal);
+        }
+
+        return $queryBuilder;
+    }
+
     public function getDataTableData($start, $length, $search, $orders, $columns)
     {
         // Main Query

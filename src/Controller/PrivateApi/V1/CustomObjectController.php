@@ -2,50 +2,90 @@
 
 namespace App\Controller\PrivateApi\V1;
 
+use App\Entity\User;
 use App\Exception\ApiException;
 use App\Http\ApiErrorResponse;
+use App\Utils\ServiceHelper;
+use Pagerfanta\Adapter\DoctrineORMAdapter;
+use Pagerfanta\Pagerfanta;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Swagger\Annotations as SWG;
+use Nelmio\ApiDocBundle\Annotation\Model;
+use App\Entity\CustomObject;
+use Nelmio\ApiDocBundle\Annotation\Security;
 
 /**
  * Class AlbumController
  * @package App\Controller\PrivateApi
  * @Route("/api/private/v1/custom-objects")
+ *
+ * @Security(name="Bearer")
  */
 class CustomObjectController extends AbstractController
 {
+    use ServiceHelper;
+
     /**
      * @Route("", name="private_api_v1_custom_objects")
+     *
+     * @SWG\Response(
+     *     response=200,
+     *     description="Returns the custom objects (including shipped objects) in the platform",
+     *     @SWG\Schema(
+     *         type="array",
+     *         @SWG\Items(ref=@Model(type=CustomObject::class, groups={"ANSWER"}))
+     *     )
+     * )
+     *
+     * @SWG\Parameter(
+     *     name="page",
+     *     in="query",
+     *     type="integer",
+     *     description="The page you want to return"
+     * )
+     *
+     * @SWG\Parameter(
+     *     name="XDEBUG_SESSION_START",
+     *     in="query",
+     *     type="string",
+     *     description="Triggers an Xdebug Session",
+     *     default="PHPSTORM"
+     * )
+     *
+     *
+     * @SWG\Tag(name="Custom Objects")
+     *
+     * @Security(name="Bearer")
+     *
+     * @param Request $request
      * @return JsonResponse
      */
-    public function index()
+    public function index(Request $request)
     {
+        /** @var User $user */
         $user = $this->getUser();
 
-        $data = [
-            [
-                'albumIdObjectOne' => "1",
-                "id" => 1,
-                "title" => "accusamus beatae ad facilis cum similique qui sunt",
-                "description" => "It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout"
-            ],
-            [
-                'albumIdObjectTwo' => "2",
-                "id" => 2,
-                "title" => "accusamus beatae ad facilis cum similique qui sunt",
-                "description" => "Many desktop publishing packages and web page editors now use Lorem Ipsum as their default model text"
-            ],
-            [
-                'albumIdObjectThree' => "3",
-                "id" => 3,
-                "title" => "accusamus beatae ad facilis cum similique qui sunt",
-                "description" => "There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form"
-            ],
-        ];
+        $page = $request->query->get('page', 1);
 
-        return new JsonResponse($data);
+        $qb = $this->customObjectRepository->findAllQueryBuilder($user->getPortal());
+
+        $adapter = new DoctrineORMAdapter($qb);
+        $pagerfanta = new Pagerfanta($adapter);
+        $pagerfanta->setMaxPerPage(10);
+        $pagerfanta->setCurrentPage($page);
+        $answers = [];
+        foreach ($pagerfanta->getCurrentPageResults() as $result) {
+            $answers[] = $result;
+        }
+
+        $json = $this->serializer->serialize($answers, 'json', ['groups' => ['v1']]);
+        $answers = json_decode($json, true);
+
+        return new JsonResponse($answers);
     }
 
 }

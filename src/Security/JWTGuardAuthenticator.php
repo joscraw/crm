@@ -134,6 +134,7 @@ class JWTGuardAuthenticator extends AbstractGuardAuthenticator
      */
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, $providerKey)
     {
+        $name = "Josh";
         return null;
     }
 
@@ -181,6 +182,7 @@ class JWTGuardAuthenticator extends AbstractGuardAuthenticator
      */
     public function supportsRememberMe()
     {
+        $name = "Josh";
         return false;
     }
 
