@@ -49,7 +49,7 @@ class ApiResponse extends JsonResponse
         ];
 
         if($json === true) {
-            $response['data'] = json_decode($data);
+            $response['data'] = json_decode($data) === null ? $data : json_decode($data);
             return json_encode($response, true);
         }
 

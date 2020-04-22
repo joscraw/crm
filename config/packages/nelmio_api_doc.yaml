@@ -11,30 +11,23 @@ nelmio_api_doc:
           - Bearer: []
     areas: # to filter documented areas
         default:
-            path_patterns: [ ^/api ]
+            path_patterns: [ ^/test ]
             documentation:
                 info:
                     title: Tecspec CRM
                     description: Tecspec CRM Api Docs
                     version: 1.0.0
-            host_patterns: [ ^api/doc/private ]
         private:
-            path_patterns: [ ^/api/private ]
+            path_patterns: [ ^/api/private/v1 ]
             documentation:
               info:
                 title: Tecspec CRM v1
                 description: Tecspec CRM v1 Api Docs
                 version: 1.0.0
-              securityDefinitions:
-                Bearer:
-                  type: apiKey
-                  description: 'Authorization: Bearer {jwt}'
-                  name: Authorization
-                  in: header
-              security:
-                - Bearer: []
-
-            #host_patterns: [ ^api/doc/private ]
-
-        #path_patterns:
-         #   - ^/api/private(?!/doc$) # Accepts routes under /api except /api/doc
+        private_v2:
+          path_patterns: [ ^/api/private/v2 ]
+          documentation:
+            info:
+              title: Tecspec CRM v2
+              description: Tecspec CRM v2 Api Docs
+              version: 2.0.0

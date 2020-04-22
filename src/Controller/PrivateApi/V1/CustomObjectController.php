@@ -22,23 +22,24 @@ use Nelmio\ApiDocBundle\Annotation\Security;
 /**
  * Class AlbumController
  * @package App\Controller\PrivateApi
- * @Route("/api/private/v1/custom-objects")
- *
- * @Security(name="Bearer")
  */
 class CustomObjectController extends AbstractController
 {
     use ServiceHelper;
 
     /**
-     * @Route("", name="private_api_v1_custom_objects")
+     * Get Custom Objects
+     *
+     * Lists the custom objects (including system defined objects) in the platform
+     *
+     * @Route("/custom-objects", name="private_api_v1_custom_objects", methods={"GET"})
      *
      * @SWG\Response(
      *     response=200,
      *     description="Returns the custom objects (including shipped objects) in the platform",
      *     @SWG\Schema(
      *         type="array",
-     *         @SWG\Items(ref=@Model(type=CustomObject::class, groups={"ANSWER"}))
+     *         @SWG\Items(ref=@Model(type=CustomObject::class, groups={"v1"}))
      *     )
      * )
      *
@@ -59,7 +60,6 @@ class CustomObjectController extends AbstractController
      *
      *
      * @SWG\Tag(name="Custom Objects")
-     *
      * @Security(name="Bearer")
      *
      * @param Request $request
@@ -67,6 +67,9 @@ class CustomObjectController extends AbstractController
      */
     public function index(Request $request)
     {
+        $name = $request->attributes;
+        return new ApiResponse(null, 'v1', Response::HTTP_OK, [], true);
+
         /** @var User $user */
         $user = $this->getUser();
 
@@ -84,6 +87,50 @@ class CustomObjectController extends AbstractController
         $json = $this->serializer->serialize($results, 'json', ['groups' => ['v1']]);
 
         return new ApiResponse(null, $json, Response::HTTP_OK, [], true);
+    }
+
+    /**
+     * Create a Custom Object
+     *
+     * Creates a user defined custom object in the platform.
+     *
+     * @Route("/custom-objects/new", name="private_api_v1_custom_object_new", methods={"POST"})
+     *
+     * @SWG\Response(
+     *     response=201,
+     *     description="Creates a custom object in the platform",
+     *     @SWG\Schema(
+     *         type="array",
+     *         @SWG\Items(ref=@Model(type=CustomObject::class, groups={"v1"}))
+     *     )
+     * )
+     *
+     * @SWG\Parameter(
+     *     name="XDEBUG_SESSION_START",
+     *     in="query",
+     *     type="string",
+     *     description="Triggers an Xdebug Session",
+     *     default="PHPSTORM"
+     * )
+     *
+     * @SWG\Tag(name="Custom Objects")
+     * @Security(name="Bearer")
+     *
+     * @param Request $request
+     * @return ApiResponse
+     */
+    public function new(Request $request) {
+
+        /** @var User $user */
+        $user = $this->getUser();
+
+        $content = $request->getContent();
+
+        $customObject = $this->serializer->deserialize($request->getContent(), CustomObject::class, 'json');
+
+        return new ApiResponse(sprintf("Clinic successfully successfully created"), [
+            'success' => true,
+        ]);
     }
 
 }
