@@ -22,6 +22,8 @@ use Nelmio\ApiDocBundle\Annotation\Security;
 /**
  * Class AlbumController
  * @package App\Controller\PrivateApi
+ *
+ * @Route("/api/private")
  */
 class CustomObjectController extends AbstractController
 {
@@ -32,7 +34,7 @@ class CustomObjectController extends AbstractController
      *
      * Lists the custom objects (including system defined objects) in the platform
      *
-     * @Route("/custom-objects", name="private_api_v1_custom_objects", methods={"GET"})
+     * @Route("/v1/custom-objects", name="private_api_v1_custom_objects", methods={"GET"})
      *
      * @SWG\Response(
      *     response=200,
@@ -67,9 +69,6 @@ class CustomObjectController extends AbstractController
      */
     public function index(Request $request)
     {
-        $name = $request->attributes;
-        return new ApiResponse(null, 'v1', Response::HTTP_OK, [], true);
-
         /** @var User $user */
         $user = $this->getUser();
 
@@ -94,7 +93,7 @@ class CustomObjectController extends AbstractController
      *
      * Creates a user defined custom object in the platform.
      *
-     * @Route("/custom-objects/new", name="private_api_v1_custom_object_new", methods={"POST"})
+     * @Route("/v1/custom-objects/new", name="private_api_v1_custom_object_new", methods={"POST"})
      *
      * @SWG\Response(
      *     response=201,

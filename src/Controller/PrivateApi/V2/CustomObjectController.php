@@ -25,9 +25,47 @@ use App\Controller\PrivateApi\V1\CustomObjectController as CustomObjectControlle
  * Class AlbumController
  * @package App\Controller\PrivateApi
  *
+ * @Route("/api/private")
+ *
  */
 class CustomObjectController extends CustomObjectController_V1
 {
     use ServiceHelper;
+
+    /**
+     * Get Custom Objects
+     *
+     * Lists the custom objects (including system defined objects) in the platform
+     *
+     * @Route("/v2/custom-objects", name="private_api_v2_custom_objects", methods={"GET"})
+     *
+     * @SWG\Response(
+     *     response=200,
+     *     description="Returns the custom objects (including shipped objects) in the platform",
+     *     @SWG\Schema(
+     *         type="array",
+     *         @SWG\Items(ref=@Model(type=CustomObject::class, groups={"v1"}))
+     *     )
+     * )
+     *
+     * @SWG\Parameter(
+     *     name="XDEBUG_SESSION_START",
+     *     in="query",
+     *     type="string",
+     *     description="Triggers an Xdebug Session",
+     *     default="PHPSTORM"
+     * )
+     *
+     *
+     * @SWG\Tag(name="Custom Objects")
+     * @Security(name="Bearer")
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function index(Request $request)
+    {
+        return parent::index($request);
+    }
 
 }
