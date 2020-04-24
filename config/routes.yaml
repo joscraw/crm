@@ -6,9 +6,8 @@ logout:
   path: /logout
 login:
   path: /login
-#private_api_v1:
- # resource: '../src/Controller/PrivateApi/V1'
-  #prefix: '/api/private/v1'
-#private_api_v2:
- # resource: '../src/Controller/PrivateApi/V2'
- # prefix: '/api/private/v2'
+
+# Register the custom ApiRouter
+app_api:
+  resource: .
+  type: api

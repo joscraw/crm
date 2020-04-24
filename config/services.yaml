@@ -93,7 +93,6 @@ services:
 
     app.security.private_api_request_matcher: '@App\Security\PrivateApiRequestMatcher'
     app.security.main_request_matcher: '@App\Security\MainRequestMatcher'
-    app.security.user.web_service_user_provider: '@App\Security\User\WebServiceUserProvider'
 
     app.user_repository:
       class: Doctrine\ORM\EntityRepository
@@ -114,3 +113,6 @@ services:
       class: App\Security\JWTGuardAuthenticator
       arguments:
         - "@app.auth0_service"
+
+    App\Routing\ApiLoader:
+      tags: [routing.loader]

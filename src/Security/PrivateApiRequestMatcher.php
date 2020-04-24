@@ -10,7 +10,7 @@ class PrivateApiRequestMatcher implements RequestMatcherInterface
     public function matches(Request $request)
     {
         $url = $request->getPathInfo();
-        $isMatch = strpos($url, "/api/private") === 0;
-        return $isMatch;
+        $pattern = '/\/api\/.+\/private/';
+        return preg_match($pattern, $url, $matches);
     }
 }

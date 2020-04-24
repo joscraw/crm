@@ -17,15 +17,16 @@ nelmio_api_doc:
                     title: Tecspec CRM
                     description: Tecspec CRM Api Docs
                     version: 1.0.0
-        private:
-            path_patterns: [ ^/api/private/v1 ]
+        v1:
+            path_patterns: [ ^/api/v1 ]
             documentation:
               info:
                 title: Tecspec CRM v1
                 description: Tecspec CRM v1 Api Docs
                 version: 1.0.0
-        private_v2:
-          path_patterns: [ ^/api/private/v2 ]
+            #with_annotation: false
+        v2:
+          path_patterns: [ ^/api/v2 ]
           documentation:
             info:
               title: Tecspec CRM v2
