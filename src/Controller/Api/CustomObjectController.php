@@ -24,6 +24,7 @@ use Swagger\Annotations as SWG;
 use Nelmio\ApiDocBundle\Annotation\Model;
 use Nelmio\ApiDocBundle\Annotation\Security;
 use App\Entity\CustomObject;
+use App\Http\Api;
 
 
 /**
@@ -41,14 +42,50 @@ class CustomObjectController extends ApiController
      *
      * @ApiRoute("/custom-objects", name="custom_objects", methods={"GET"}, versions={"v1"}, scopes={"private"})
      *
+     * @SWG\Get(
+     *     description=Api::DESCRIPTION,
+     *     produces={"application/json"}
+     * )
+     *
      * @SWG\Response(
      *     response=200,
      *     description="Returns the custom objects (including shipped objects) in the platform",
      *     @SWG\Schema(
      *         type="array",
-     *         @SWG\Items(ref=@Model(type=CustomObject::class, groups={"v1"}))
+     *         @SWG\Items(ref=@Model(type=CustomObject_Dto::class, groups={Dto::GROUP_DEFAULT}))
      *     )
      * )
+     *
+     * @SWG\Response(
+     *     response=400,
+     *     description="Bad Request",
+     *     @SWG\Schema(
+     *              type="object",
+     *              format="json",
+     *              @SWG\Property(property="message", type="string", example="Invalid Request format.")
+     *      )
+     * )
+     *
+     * @SWG\Response(
+     *     response=401,
+     *     description="Unauthorized",
+     *     @SWG\Schema(
+     *              type="object",
+     *              format="json",
+     *              @SWG\Property(property="message", type="string", example="JWT expired. Please request a refresh.")
+     *      )
+     * )
+     *
+     * @SWG\Response(
+     *     response=500,
+     *     description="Internal Server Error",
+     *     @SWG\Schema(
+     *              type="object",
+     *              format="json",
+     *              @SWG\Property(property="message", type="string", example="Internal server error. Infinite recursion detected.")
+     *      )
+     * )
+     *
      *
      * @SWG\Parameter(
      *     name="page",
@@ -63,6 +100,13 @@ class CustomObjectController extends ApiController
      *     type="string",
      *     description="Triggers an Xdebug Session",
      *     default="PHPSTORM"
+     * )
+     *
+     * @SWG\Parameter(
+     *     name="verbosity",
+     *     in="query",
+     *     type="string",
+     *     description="Set any value here for a more descriptive error message in the response. Should only be used for debugging purposes only and never in production!"
      * )
      *
      *
@@ -88,7 +132,10 @@ class CustomObjectController extends ApiController
         $pagerfanta->setCurrentPage($page);
         $results = $pagerfanta->getCurrentPageResults();
 
-        $json = $this->serializer->serialize($results, 'json', ['groups' => ['v1']]);
+        // todo wire in pagination collection logic here along with _links added
+        //  to the response. Take a look at symfonycasts
+
+        $json = $this->serializer->serialize($results, 'json', ['groups' => [Dto::GROUP_DEFAULT]]);
 
         return new ApiResponse(null, $json, Response::HTTP_OK, [], true);
     }
@@ -101,6 +148,7 @@ class CustomObjectController extends ApiController
      * @ApiRoute("/custom-objects/new", name="custom_objects_new", methods={"POST"}, versions={"v1"}, scopes={"private"})
      *
      * @SWG\Post(
+     *     description=Api::DESCRIPTION,
      *     consumes={"application/json"},
      *     produces={"application/json"},
      *
@@ -110,11 +158,7 @@ class CustomObjectController extends ApiController
      *         required=true,
      *         description="JSON payload",
      *         format="application/json",
-     *         @SWG\Schema(
-     *              type="object",
-     *              @SWG\Property(property="label", type="string", example="Company"),
-     *              @SWG\Property(property="internalName", type="string", example="company")
-     *          )
+     *         @Model(type=CustomObject_Dto::class, groups={Dto::GROUP_CREATE})
      *     ),
      *
      *    @SWG\Parameter(
@@ -125,13 +169,21 @@ class CustomObjectController extends ApiController
      *     default="PHPSTORM"
      *    ),
      *
+     *    @SWG\Parameter(
+     *     name="verbosity",
+     *     in="query",
+     *     type="string",
+     *     description="Set any value here for a more descriptive error message in the response. Should only be used for debugging purposes only and never in production!"
+     *    ),
+     *
      *     @SWG\Response(
-     *         response=201,
-     *         description="Returns newly created custom object",
+     *          response=201,
+     *          description="Returns newly created custom object",
+     *          @Model(type=CustomObject_Dto::class, groups={Dto::GROUP_DEFAULT})
      *     ),
      *     @SWG\Response(
      *         response=400,
-     *         description="Returns an ApiErrorResponse object",
+     *         description="Validation errors.",
      *         @SWG\Schema(
      *              type="object",
      *              @SWG\Property(property="message", type="string", example="There was a validation error"),
@@ -145,7 +197,26 @@ class CustomObjectController extends ApiController
      *                     )
      *              )
      *         )
-     *     )
+     *     ),
+     *
+     *     @SWG\Response(
+     *          response=401,
+     *          description="Unauthorized",
+     *          @SWG\Schema(
+     *              type="object",
+     *              format="json",
+     *              @SWG\Property(property="message", type="string", example="JWT expired. Please request a refresh.")
+     *          )
+     *     ),
+     *     @SWG\Response(
+     *          response=500,
+     *          description="Internal Server Error",
+     *          @SWG\Schema(
+     *              type="object",
+     *              format="json",
+     *              @SWG\Property(property="message", type="string", example="Internal server error. Infinite recursion detected.")
+     *          )
+     *    )
      *
      * )
      *
@@ -203,20 +274,21 @@ class CustomObjectController extends ApiController
     }
 
     /**
-     * Fetch a Custom Object
+     * Fetch a Custom Object.
      *
      * Fetches a custom object or system defined object in the platform.
      *
      * @ApiRoute("/custom-objects/{id}/view", name="custom_object_view", methods={"GET"}, versions={"v1"}, scopes={"private"})
      *
      * @SWG\Get(
+     *     description=Api::DESCRIPTION,
      *     produces={"application/json"},
      *
      *    @SWG\Parameter(
      *     name="XDEBUG_SESSION_START",
      *     in="query",
      *     type="string",
-     *     description="Triggers an Xdebug Session",
+     *     description="Triggers an Xdebug Session.",
      *     default="PHPSTORM"
      *    ),
      *
@@ -227,31 +299,52 @@ class CustomObjectController extends ApiController
      *     description="Set any value here for a more descriptive error message in the response. Should only be used for debugging purposes only and never in production!"
      *    ),
      *
-     *     @SWG\Response(
-     *         response=400,
-     *         description="Returns an ApiErrorResponse object.",
+     *    @SWG\Response(
+     *          response=200,
+     *          description="Returns the desired custom object.",
+     *          @Model(type=CustomObject_Dto::class, groups={Dto::GROUP_DEFAULT})
+     *    ),
+     *
+     *    @SWG\Response(
+     *      response=400,
+     *      description="Bad Request.",
+     *      @SWG\Schema(
+     *              type="object",
+     *              format="json",
+     *              @SWG\Property(property="message", type="string", example="Invalid Request format.")
+     *      )
+     *    ),
+     *
+     *    @SWG\Response(
+     *          response=401,
+     *          description="Unauthorized",
+     *          @SWG\Schema(
+     *              type="object",
+     *              format="json",
+     *              @SWG\Property(property="message", type="string", example="JWT expired. Please request a refresh.")
+     *          )
      *     ),
      *
      *     @SWG\Response(
      *         response=404,
-     *         description="Not found. Should this return an ApiErrorResponse object?",
+     *         description="Not found",
+     *         @SWG\Schema(
+     *              type="object",
+     *              format="json",
+     *              @SWG\Property(property="message", type="string", example="Not found.")
+     *         )
      *     ),
      *
      *     @SWG\Response(
-     *         response=200,
-     *         description="Returns the desired custom object.",
-     *         @SWG\Schema(
+     *          response=500,
+     *          description="Internal Server Error",
+     *          @SWG\Schema(
      *              type="object",
-     *              @SWG\Property(property="id", type="integer", example=1),
-     *              @SWG\Property(property="internalName", type="string", example="contacts"),
-     *              @SWG\Property(property="label", type="string", example="Contact"),
-     *              @SWG\Property(property="_links", type="object",
-     *                    @SWG\Property(property="view", type="string", example="http://crm.dev/api/v1/private/custom-objects/1/view"),
-     *                    @SWG\Property(property="edit", type="string", example="http://crm.dev/api/v1/private/custom-objects/1/edit")
+     *              format="json",
+     *              @SWG\Property(property="message", type="string", example="Internal server error. Infinite recursion detected.")
+     *          )
+     *      )
      *
-     *              )
-     *         )
-     *     )
      *
      * )
      *

@@ -13,7 +13,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\CustomObjectRepository")
- * @ORM\EntityListeners({"App\EntityListener\CustomObjectListener"})
+ * @ORM\EntityListeners({"App\Entity\Listener\CustomObjectListener"})
  * @ORM\HasLifecycleCallbacks()
  * @CustomAssert\CustomObjectLabelAlreadyExists(groups={"CREATE", "EDIT"})
  * @CustomAssert\CustomObjectInternalNameAlreadyExists(groups={"CREATE", "EDIT"})

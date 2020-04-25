@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Request\ParamConverter;
+namespace App\Http\Request\ParamConverter;
 
-use App\Entity\Property;
+use App\Entity\PropertyGroup;
 use App\Repository\CustomObjectRepository;
 use App\Repository\PropertyGroupRepository;
 use App\Repository\PropertyRepository;
@@ -12,7 +12,7 @@ use Sensio\Bundle\FrameworkExtraBundle\Request\ParamConverter\ParamConverterInte
 use Symfony\Component\HttpFoundation\Request;
 
 
-class PropertyConverter implements ParamConverterInterface
+class PropertyGroupConverter implements ParamConverterInterface
 {
 
     /**
@@ -67,19 +67,19 @@ class PropertyConverter implements ParamConverterInterface
     {
         $portalInternalIdentifier = $request->attributes->get('internalIdentifier');
         $customObjectInternalName = $request->attributes->get('internalName');
-        $propertyInternalName = $request->attributes->get('propertyInternalName');
+        $propertyGroupInternalName = $request->attributes->get('propertyGroupInternalName');
 
-        $property = $this->propertyRepository->findByInternalNameAndPortalInternalIdentifierAndCustomObjectInternalName(
-            $propertyInternalName,
+        $propertyGroup = $this->propertyGroupRepository->findByInternalNameAndPortalInternalIdentifierAndCustomObjectInternalName(
+            $propertyGroupInternalName,
             $portalInternalIdentifier,
             $customObjectInternalName
         );
 
-        if(!$property) {
+        if(!$propertyGroup) {
             return false;
         }
 
-        $request->attributes->set($configuration->getName(), $property);
+        $request->attributes->set($configuration->getName(), $propertyGroup);
 
         return true;
     }
@@ -93,7 +93,7 @@ class PropertyConverter implements ParamConverterInterface
     public function supports(ParamConverter $configuration)
     {
 
-        if($configuration->getClass() !== Property::class) {
+        if($configuration->getClass() !== PropertyGroup::class) {
             return false;
         }
 

@@ -16,7 +16,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 /**
  * @ORM\Entity(repositoryClass="App\Repository\PropertyRepository")
  * @ORM\HasLifecycleCallbacks()
- * @ORM\EntityListeners({"App\EntityListener\PropertyListener"})
+ * @ORM\EntityListeners({"App\Entity\Listener\PropertyListener"})
  * @CustomAssert\PropertyInternalNameAlreadyExists(groups={"CREATE", "EDIT"})
  * @CustomAssert\PropertyLabelAlreadyExists(groups={"CREATE", "EDIT"})
  * @CustomAssert\ChoiceField(groups={"CREATE", "EDIT"})

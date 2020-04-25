@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Request\ParamConverter;
+namespace App\Http\Request\ParamConverter;
 
 use App\Entity\Report;
 use App\Repository\ReportRepository;

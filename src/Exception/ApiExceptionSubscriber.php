@@ -1,8 +1,7 @@
 <?php
 
-namespace App\EventListener;
+namespace App\Exception;
 
-use App\Exception\ApiException;
 use App\Http\ApiErrorResponse;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\Response;

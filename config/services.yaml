@@ -53,25 +53,25 @@ services:
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
 
-    App\EntityListener\PropertyListener:
+    App\Entity\Listener\PropertyListener:
         tags:
             - { name: doctrine.orm.entity_listener }
 
-    App\EntityListener\WorkflowListener:
+    App\Entity\Listener\WorkflowListener:
         tags:
             - { name: doctrine.orm.entity_listener }
 
-    App\EntityListener\RecordListener:
+    App\Entity\Listener\RecordListener:
         tags:
             - { name: doctrine.orm.entity_listener }
 
-    App\EntityListener\CustomObjectListener:
+    App\Entity\Listener\CustomObjectListener:
       tags:
         - { name: doctrine.orm.entity_listener }
 
   # add more service definitions when explicit configuration is needed
   # please note that last definitions always *replace* previous ones
-    App\EventListener\RequestListener:
+    App\Http\Request\RequestListener:
       tags:
         - { name: kernel.event_listener, event: kernel.request }
 
@@ -80,7 +80,7 @@ services:
       public: true
 
     api_exception_subscriber:
-      class: App\EventListener\ApiExceptionSubscriber
+      class: App\Exception\ApiExceptionSubscriber
       arguments: []
       tags:
         - { name: kernel.event_subscriber }
@@ -116,7 +116,7 @@ services:
       arguments:
         - "@app.auth0_service"
 
-    App\Routing\ApiLoader:
+    App\Http\Routing\ApiLoader:
       tags: [routing.loader]
 
     App\Dto\DataTransformer\CustomObject_DtoTransformer:

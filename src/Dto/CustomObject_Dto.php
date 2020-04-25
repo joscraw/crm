@@ -10,6 +10,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 use App\Http\Api;
 use App\Annotation\ApiVersion;
 use App\Annotation\Identifier;
+use Swagger\Annotations as SWG;
 
 /**
  * Class CustomObject
@@ -57,6 +58,17 @@ class CustomObject_Dto extends Dto
      * @var string
      */
     private $internalName;
+
+    /**
+     * @Groups({Dto::GROUP_DEFAULT})
+     *
+     * @SWG\Property(property="_links", type="object",
+     *      @SWG\Property(property="view", type="string", example="http://crm.dev/api/v1/private/custom-objects/1/view"),
+     *      @SWG\Property(property="edit", type="string", example="http://crm.dev/api/v1/private/custom-objects/1/edit")
+     *
+     *  )
+     */
+    private $_links = [];
 
     /**
      * @return string
@@ -118,5 +130,21 @@ class CustomObject_Dto extends Dto
     public function getDataTransformer()
     {
         return CustomObject_DtoTransformer::class;
+    }
+
+    public function getLinks()
+    {
+        return $this->_links;
+    }
+
+    /**
+     * @param $links
+     * @return CustomObject_Dto
+     */
+    public function setLinks($links)
+    {
+        $this->_links = $links;
+
+        return $this;
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\EventListener;
+namespace App\Http\Request;
 
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 

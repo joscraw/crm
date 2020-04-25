@@ -1,6 +1,6 @@
 <?php
 
-namespace App\EntityListener;
+namespace App\Entity\Listener;
 
 use App\Entity\Property;
 use App\Model\AbstractField;

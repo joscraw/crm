@@ -1,16 +1,16 @@
 <?php
 
-namespace App\Request\ParamConverter;
+namespace App\Http\Request\ParamConverter;
 
-use App\Entity\User;
-use App\Repository\UserRepository;
+use App\Entity\MarketingList;
+use App\Repository\MarketingListRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use Sensio\Bundle\FrameworkExtraBundle\Request\ParamConverter\ParamConverterInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 
-class UserConverter implements ParamConverterInterface
+class MarketingListConverter implements ParamConverterInterface
 {
 
     /**
@@ -19,19 +19,19 @@ class UserConverter implements ParamConverterInterface
     private $entityManager;
 
     /**
-     * @var UserRepository
+     * @var MarketingListRepository
      */
-    private $userRepository;
+    private $marketingListRepository;
 
     /**
-     * UserConverter constructor.
+     * MarketingListConverter constructor.
      * @param EntityManagerInterface $entityManager
-     * @param UserRepository $userRepository
+     * @param MarketingListRepository $marketingListRepository
      */
-    public function __construct(EntityManagerInterface $entityManager, UserRepository $userRepository)
+    public function __construct(EntityManagerInterface $entityManager, MarketingListRepository $marketingListRepository)
     {
         $this->entityManager = $entityManager;
-        $this->userRepository = $userRepository;
+        $this->marketingListRepository = $marketingListRepository;
     }
 
     /**
@@ -44,15 +44,15 @@ class UserConverter implements ParamConverterInterface
      */
     public function apply(Request $request, ParamConverter $configuration)
     {
-        $userId = $request->attributes->get('userId');
+        $listId = $request->attributes->get('listId');
 
-        $user = $this->userRepository->find($userId);
+        $list = $this->marketingListRepository->find($listId);
 
-        if(!$user) {
+        if(!$list) {
             return false;
         }
 
-        $request->attributes->set($configuration->getName(), $user);
+        $request->attributes->set($configuration->getName(), $list);
 
         return true;
     }
@@ -66,7 +66,7 @@ class UserConverter implements ParamConverterInterface
     public function supports(ParamConverter $configuration)
     {
 
-        if($configuration->getClass() !== User::class) {
+        if($configuration->getClass() !== MarketingList::class) {
             return false;
         }
 

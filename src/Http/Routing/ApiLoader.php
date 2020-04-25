@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Routing;
+namespace App\Http\Routing;
 
 use App\Utils\NamespaceHelper;
 use Doctrine\Common\Annotations\Reader;

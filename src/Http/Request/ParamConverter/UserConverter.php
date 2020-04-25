@@ -1,16 +1,16 @@
 <?php
 
-namespace App\Request\ParamConverter;
+namespace App\Http\Request\ParamConverter;
 
-use App\Entity\Role;
-use App\Repository\RoleRepository;
+use App\Entity\User;
+use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use Sensio\Bundle\FrameworkExtraBundle\Request\ParamConverter\ParamConverterInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 
-class RoleConverter implements ParamConverterInterface
+class UserConverter implements ParamConverterInterface
 {
 
     /**
@@ -19,19 +19,19 @@ class RoleConverter implements ParamConverterInterface
     private $entityManager;
 
     /**
-     * @var RoleRepository
+     * @var UserRepository
      */
-    private $roleRepository;
+    private $userRepository;
 
     /**
-     * RoleConverter constructor.
+     * UserConverter constructor.
      * @param EntityManagerInterface $entityManager
-     * @param RoleRepository $roleRepository
+     * @param UserRepository $userRepository
      */
-    public function __construct(EntityManagerInterface $entityManager, RoleRepository $roleRepository)
+    public function __construct(EntityManagerInterface $entityManager, UserRepository $userRepository)
     {
         $this->entityManager = $entityManager;
-        $this->roleRepository = $roleRepository;
+        $this->userRepository = $userRepository;
     }
 
     /**
@@ -44,15 +44,15 @@ class RoleConverter implements ParamConverterInterface
      */
     public function apply(Request $request, ParamConverter $configuration)
     {
-        $roleId = $request->attributes->get('roleId');
+        $userId = $request->attributes->get('userId');
 
-        $role = $this->roleRepository->find($roleId);
+        $user = $this->userRepository->find($userId);
 
-        if(!$role) {
+        if(!$user) {
             return false;
         }
 
-        $request->attributes->set($configuration->getName(), $role);
+        $request->attributes->set($configuration->getName(), $user);
 
         return true;
     }
@@ -66,7 +66,7 @@ class RoleConverter implements ParamConverterInterface
     public function supports(ParamConverter $configuration)
     {
 
-        if($configuration->getClass() !== Role::class) {
+        if($configuration->getClass() !== User::class) {
             return false;
         }
 

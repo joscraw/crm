@@ -1,16 +1,16 @@
 <?php
 
-namespace App\Request\ParamConverter;
+namespace App\Http\Request\ParamConverter;
 
-use App\Entity\MarketingList;
-use App\Repository\MarketingListRepository;
+use App\Entity\Workflow;
+use App\Repository\WorkflowRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use Sensio\Bundle\FrameworkExtraBundle\Request\ParamConverter\ParamConverterInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 
-class MarketingListConverter implements ParamConverterInterface
+class WorkflowConverter implements ParamConverterInterface
 {
 
     /**
@@ -19,19 +19,19 @@ class MarketingListConverter implements ParamConverterInterface
     private $entityManager;
 
     /**
-     * @var MarketingListRepository
+     * @var WorkflowRepository
      */
-    private $marketingListRepository;
+    private $workflowRepository;
 
     /**
-     * MarketingListConverter constructor.
+     * WorkflowConverter constructor.
      * @param EntityManagerInterface $entityManager
-     * @param MarketingListRepository $marketingListRepository
+     * @param WorkflowRepository $workflowRepository
      */
-    public function __construct(EntityManagerInterface $entityManager, MarketingListRepository $marketingListRepository)
+    public function __construct(EntityManagerInterface $entityManager, WorkflowRepository $workflowRepository)
     {
         $this->entityManager = $entityManager;
-        $this->marketingListRepository = $marketingListRepository;
+        $this->workflowRepository = $workflowRepository;
     }
 
     /**
@@ -41,18 +41,18 @@ class MarketingListConverter implements ParamConverterInterface
      * @param ParamConverter $configuration Contains the name, class and options of the object
      *
      * @return bool True if the object has been successfully set, else false
+     * @throws \Doctrine\ORM\NonUniqueResultException
      */
     public function apply(Request $request, ParamConverter $configuration)
     {
-        $listId = $request->attributes->get('listId');
+        $uid = $request->attributes->get('uid');
 
-        $list = $this->marketingListRepository->find($listId);
-
-        if(!$list) {
+        $workflow = $this->workflowRepository->getWorkflowAndAssociationsByUid($uid);
+        if(!$workflow) {
             return false;
         }
 
-        $request->attributes->set($configuration->getName(), $list);
+        $request->attributes->set($configuration->getName(), $workflow);
 
         return true;
     }
@@ -66,7 +66,7 @@ class MarketingListConverter implements ParamConverterInterface
     public function supports(ParamConverter $configuration)
     {
 
-        if($configuration->getClass() !== MarketingList::class) {
+        if($configuration->getClass() !== Workflow::class) {
             return false;
         }
 

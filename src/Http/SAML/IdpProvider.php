@@ -1,6 +1,6 @@
 <?php
 
-namespace App\SAML;
+namespace App\Http\SAML;
 
 /**
  * SAML Instructions

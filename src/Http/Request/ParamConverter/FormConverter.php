@@ -1,16 +1,16 @@
 <?php
 
-namespace App\Request\ParamConverter;
+namespace App\Http\Request\ParamConverter;
 
-use App\Entity\Workflow;
-use App\Repository\WorkflowRepository;
+use App\Entity\Form;
+use App\Repository\FormRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use Sensio\Bundle\FrameworkExtraBundle\Request\ParamConverter\ParamConverterInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 
-class WorkflowConverter implements ParamConverterInterface
+class FormConverter implements ParamConverterInterface
 {
 
     /**
@@ -19,20 +19,21 @@ class WorkflowConverter implements ParamConverterInterface
     private $entityManager;
 
     /**
-     * @var WorkflowRepository
+     * @var FormRepository
      */
-    private $workflowRepository;
+    private $formRepository;
 
     /**
-     * WorkflowConverter constructor.
+     * FormConverter constructor.
      * @param EntityManagerInterface $entityManager
-     * @param WorkflowRepository $workflowRepository
+     * @param FormRepository $formRepository
      */
-    public function __construct(EntityManagerInterface $entityManager, WorkflowRepository $workflowRepository)
+    public function __construct(EntityManagerInterface $entityManager, FormRepository $formRepository)
     {
         $this->entityManager = $entityManager;
-        $this->workflowRepository = $workflowRepository;
+        $this->formRepository = $formRepository;
     }
+
 
     /**
      * Stores the object in the request.
@@ -41,18 +42,20 @@ class WorkflowConverter implements ParamConverterInterface
      * @param ParamConverter $configuration Contains the name, class and options of the object
      *
      * @return bool True if the object has been successfully set, else false
-     * @throws \Doctrine\ORM\NonUniqueResultException
      */
     public function apply(Request $request, ParamConverter $configuration)
     {
         $uid = $request->attributes->get('uid');
 
-        $workflow = $this->workflowRepository->getWorkflowAndAssociationsByUid($uid);
-        if(!$workflow) {
+        $form = $this->formRepository->findOneBy([
+            'uid' => $uid
+        ]);
+
+        if(!$form) {
             return false;
         }
 
-        $request->attributes->set($configuration->getName(), $workflow);
+        $request->attributes->set($configuration->getName(), $form);
 
         return true;
     }
@@ -66,7 +69,7 @@ class WorkflowConverter implements ParamConverterInterface
     public function supports(ParamConverter $configuration)
     {
 
-        if($configuration->getClass() !== Workflow::class) {
+        if($configuration->getClass() !== Form::class) {
             return false;
         }
 

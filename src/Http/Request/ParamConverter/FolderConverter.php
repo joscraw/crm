@@ -1,16 +1,16 @@
 <?php
 
-namespace App\Request\ParamConverter;
+namespace App\Http\Request\ParamConverter;
 
-use App\Entity\Form;
-use App\Repository\FormRepository;
+use App\Entity\Folder;
+use App\Repository\FolderRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use Sensio\Bundle\FrameworkExtraBundle\Request\ParamConverter\ParamConverterInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 
-class FormConverter implements ParamConverterInterface
+class FolderConverter implements ParamConverterInterface
 {
 
     /**
@@ -19,19 +19,19 @@ class FormConverter implements ParamConverterInterface
     private $entityManager;
 
     /**
-     * @var FormRepository
+     * @var FolderRepository
      */
-    private $formRepository;
+    private $folderRepository;
 
     /**
-     * FormConverter constructor.
+     * FolderConverter constructor.
      * @param EntityManagerInterface $entityManager
-     * @param FormRepository $formRepository
+     * @param FolderRepository $folderRepository
      */
-    public function __construct(EntityManagerInterface $entityManager, FormRepository $formRepository)
+    public function __construct(EntityManagerInterface $entityManager, FolderRepository $folderRepository)
     {
         $this->entityManager = $entityManager;
-        $this->formRepository = $formRepository;
+        $this->folderRepository = $folderRepository;
     }
 
 
@@ -45,17 +45,15 @@ class FormConverter implements ParamConverterInterface
      */
     public function apply(Request $request, ParamConverter $configuration)
     {
-        $uid = $request->attributes->get('uid');
+        $folderId = $request->attributes->get('folderId');
 
-        $form = $this->formRepository->findOneBy([
-            'uid' => $uid
-        ]);
+        $folder = $this->folderRepository->find($folderId);
 
-        if(!$form) {
+        if(!$folder) {
             return false;
         }
 
-        $request->attributes->set($configuration->getName(), $form);
+        $request->attributes->set($configuration->getName(), $folder);
 
         return true;
     }
@@ -69,7 +67,7 @@ class FormConverter implements ParamConverterInterface
     public function supports(ParamConverter $configuration)
     {
 
-        if($configuration->getClass() !== Form::class) {
+        if($configuration->getClass() !== Folder::class) {
             return false;
         }
 

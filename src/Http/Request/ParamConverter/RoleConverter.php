@@ -1,16 +1,16 @@
 <?php
 
-namespace App\Request\ParamConverter;
+namespace App\Http\Request\ParamConverter;
 
-use App\Entity\Folder;
-use App\Repository\FolderRepository;
+use App\Entity\Role;
+use App\Repository\RoleRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use Sensio\Bundle\FrameworkExtraBundle\Request\ParamConverter\ParamConverterInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 
-class FolderConverter implements ParamConverterInterface
+class RoleConverter implements ParamConverterInterface
 {
 
     /**
@@ -19,21 +19,20 @@ class FolderConverter implements ParamConverterInterface
     private $entityManager;
 
     /**
-     * @var FolderRepository
+     * @var RoleRepository
      */
-    private $folderRepository;
+    private $roleRepository;
 
     /**
-     * FolderConverter constructor.
+     * RoleConverter constructor.
      * @param EntityManagerInterface $entityManager
-     * @param FolderRepository $folderRepository
+     * @param RoleRepository $roleRepository
      */
-    public function __construct(EntityManagerInterface $entityManager, FolderRepository $folderRepository)
+    public function __construct(EntityManagerInterface $entityManager, RoleRepository $roleRepository)
     {
         $this->entityManager = $entityManager;
-        $this->folderRepository = $folderRepository;
+        $this->roleRepository = $roleRepository;
     }
-
 
     /**
      * Stores the object in the request.
@@ -45,15 +44,15 @@ class FolderConverter implements ParamConverterInterface
      */
     public function apply(Request $request, ParamConverter $configuration)
     {
-        $folderId = $request->attributes->get('folderId');
+        $roleId = $request->attributes->get('roleId');
 
-        $folder = $this->folderRepository->find($folderId);
+        $role = $this->roleRepository->find($roleId);
 
-        if(!$folder) {
+        if(!$role) {
             return false;
         }
 
-        $request->attributes->set($configuration->getName(), $folder);
+        $request->attributes->set($configuration->getName(), $role);
 
         return true;
     }
@@ -67,7 +66,7 @@ class FolderConverter implements ParamConverterInterface
     public function supports(ParamConverter $configuration)
     {
 
-        if($configuration->getClass() !== Folder::class) {
+        if($configuration->getClass() !== Role::class) {
             return false;
         }
 

@@ -11,7 +11,7 @@ use App\Validator\Constraints as CustomAssert;
 /**
  * @CustomAssert\RecordProperty()
  * @ORM\Entity(repositoryClass="App\Repository\RecordRepository")
- * @ORM\EntityListeners({"App\EntityListener\RecordListener"})
+ * @ORM\EntityListeners({"App\Entity\Listener\RecordListener"})
  */
 class Record
 {
