@@ -265,7 +265,7 @@ class CustomObjectController extends ApiController
      * @throws \App\Exception\DataTransformerNotFoundException
      */
     public function view(Request $request, CustomObject $customObject) {
-        
+
         /** @var User $user */
         $user = $this->getUser();
 

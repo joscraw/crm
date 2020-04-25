@@ -11,6 +11,16 @@ use Symfony\Component\HttpKernel\KernelEvents;
 
 class ApiExceptionSubscriber implements EventSubscriberInterface
 {
+    /**
+     * @var string
+     */
+    private $env;
+
+    public function __construct($env)
+    {
+        $this->env = $env;
+    }
+
     public function onKernelException(GetResponseForExceptionEvent $event)
     {
         // only run this logic if the client expects a json response
@@ -21,13 +31,19 @@ class ApiExceptionSubscriber implements EventSubscriberInterface
 
         $e = $event->getException();
 
+        // We don't want to override default http status codes
+        // for system defined exceptions that provide their own.
+        // If they do not have their own, fall back to a plain old 500
         if(method_exists($e, 'getStatusCode')) {
             $statusCode = $e->getStatusCode();
         } else {
             $statusCode = Response::HTTP_INTERNAL_SERVER_ERROR;
         }
 
-        if($request->query->has('verbosity')) {
+        // Exception messages shouldn't be exposed in production as this is a
+        // security hole. Only show exception messages with verbosity when
+        // the verbosity query param exists and the app is not running in production
+        if($request->query->has('verbosity') && strtolower($this->env) !== 'prod') {
             $message = $e->getMessage();
         } else {
             $message = null;
