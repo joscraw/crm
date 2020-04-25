@@ -51,8 +51,8 @@ class CustomObjectController extends ApiController
      *     response=200,
      *     description="Returns the custom objects (including shipped objects) in the platform",
      *     @SWG\Schema(
-     *         type="array",
-     *         @SWG\Items(ref=@Model(type=CustomObject_Dto::class, groups={Dto::GROUP_DEFAULT}))
+     *          type="object",
+     *          @SWG\Property(property="data", type="array", @Model(type=CustomObject_Dto::class, groups={Dto::GROUP_DEFAULT}))
      *     )
      * )
      *
@@ -132,7 +132,7 @@ class CustomObjectController extends ApiController
         $pagerfanta->setCurrentPage($page);
         $results = $pagerfanta->getCurrentPageResults();
 
-        // todo wire in pagination collection logic here along with _links added
+        // todo wire in pagination collection logic, filtering, and total_count, etc here along with _links added
         //  to the response. Take a look at symfonycasts
 
         $json = $this->serializer->serialize($results, 'json', ['groups' => [Dto::GROUP_DEFAULT]]);
@@ -177,10 +177,14 @@ class CustomObjectController extends ApiController
      *    ),
      *
      *     @SWG\Response(
-     *          response=201,
-     *          description="Returns newly created custom object",
-     *          @Model(type=CustomObject_Dto::class, groups={Dto::GROUP_DEFAULT})
+     *          response=200,
+     *          description="Returns a newly created custom object",
+     *          @SWG\Schema(
+     *              type="object",
+     *              @SWG\Property(property="data", ref=@Model(type=CustomObject_Dto::class, groups={Dto::GROUP_DEFAULT}))
+     *          )
      *     ),
+     *
      *     @SWG\Response(
      *         response=400,
      *         description="Validation errors.",
@@ -302,7 +306,10 @@ class CustomObjectController extends ApiController
      *    @SWG\Response(
      *          response=200,
      *          description="Returns the desired custom object.",
-     *          @Model(type=CustomObject_Dto::class, groups={Dto::GROUP_DEFAULT})
+     *          @SWG\Schema(
+     *          type="object",
+     *          @SWG\Property(property="data", ref=@Model(type=CustomObject_Dto::class, groups={Dto::GROUP_DEFAULT}))
+     *          )
      *    ),
      *
      *    @SWG\Response(

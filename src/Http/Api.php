@@ -4,6 +4,11 @@ namespace App\Http;
 
 class Api
 {
+    /**
+     * You could create separate description properties for each
+     * Section if you wanted as well if you don't want to be so repetitive
+     * @var string
+     */
     public const DESCRIPTION = "All 40x and 50x error responses are structured the
     exact same throughout the entire app with the exception of some 40x errors. Some 
     40x errors are unique and can return an error code as well as some additional  

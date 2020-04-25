@@ -168,4 +168,19 @@ class Auth0Service
         $tokenVerifier = new TokenVerifier($issuer, $this->auth0Audience, $sigVerifier);
         return $tokenVerifier->verify($encToken);
     }
+
+    /**
+     * @return array
+     * @throws \Auth0\SDK\Exception\ApiException
+     */
+    public function getAccessToken() {
+
+        $config = [
+            'client_secret' => $this->auth0ClientSecret,
+            'client_id' => $this->auth0ClientId,
+            'audience' => $this->auth0Audience,
+        ];
+
+        return $this->authenticationApi->client_credentials($config);
+    }
 }
