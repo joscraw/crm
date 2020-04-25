@@ -186,6 +186,8 @@ class CustomObjectController extends ApiController
             );
         }
 
+        // todo change this logic to use the new data transformer factory.
+
         /** @var DataTransformerInterface $dataTransformer */
         $dataTransformer = $this->get($dto->getDataTransformer());
         $customObject = $dataTransformer->reverseTransform($dto);

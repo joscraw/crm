@@ -50,6 +50,7 @@ class ApiExceptionSubscriber implements EventSubscriberInterface
         }
 
         // We want to make sure all our exceptions for the api come back uniformly
+        // so always pipe every exception through our ApiException
         if (!$e instanceof ApiException) {
             throw new ApiException(new ApiErrorResponse(
                 $message,

@@ -7,6 +7,19 @@ use Symfony\Component\Form\DataTransformerInterface;
 use Symfony\Contracts\Service\ServiceSubscriberInterface;
 use Psr\Container\ContainerInterface;
 
+/**
+ * Sometimes, a service needs access to several other services without being
+ * sure that all of them will actually be used. In those cases, you may want
+ * the instantiation of the services to be lazy. In our case here, we don't know which
+ * data transformer we are going to need until runtime. And rather then creating a large
+ * switch case factory class and injecting every service through dependency injection
+ * (which is going to instantiate every single one of those), we choose to do it on the fly!
+ *
+ * @see https://symfony.com/doc/4.4/service_container/service_subscribers_locators.html
+ *
+ * Class DataTransformerFactory
+ * @package App\Dto\DataTransformer
+ */
 class DataTransformerFactory implements ServiceSubscriberInterface
 {
     /**
