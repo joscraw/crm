@@ -93,7 +93,11 @@ class JWTGuardAuthenticator extends AbstractGuardAuthenticator
         try {
             $jwt = $this->auth0Service->decodeJWT($credentials['jwt']);
         } catch (CoreException $exception) {
-            return null;
+            throw new ApiException(new ApiErrorResponse("Authorization has been refused for those credentials.",
+                null,
+                [],
+                Response::HTTP_UNAUTHORIZED
+            ));
         }
 
         $jwt['token'] = $credentials['jwt'];

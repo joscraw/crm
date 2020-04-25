@@ -18,25 +18,19 @@ class ApiResponse extends JsonResponse
      */
     public function __construct(string $message = null, $data = null, int $status = 200, array $headers = [], bool $json = false)
     {
-        if(!$message) {
-            $message = isset(Response::$statusTexts[$status])
-                ? Response::$statusTexts[$status]
-                : 'Unknown status code';
-        }
-
         parent::__construct($this->format($message, $data, $json), $status, $headers, $json);
     }
 
     /**
      * Format the API response.
      *
-     * @param string $message
+     * @param $message
      * @param $data
      * @param $json
      *
      * @return array
      */
-    private function format(string $message, $data, $json)
+    private function format($message, $data, $json)
     {
         if ($data === null) {
             $data = new \ArrayObject();
@@ -44,9 +38,12 @@ class ApiResponse extends JsonResponse
         }
 
         $response = [
-            'message' => $message,
             'data' => $data
         ];
+
+        if($message) {
+            $response['message'] = $message;
+        }
 
         if($json === true) {
             $response['data'] = json_decode($data) === null ? $data : json_decode($data);

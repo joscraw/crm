@@ -3,11 +3,24 @@
 namespace App\Http;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Serializer\Annotation\Groups;
+use Swagger\Annotations as SWG;
 
 class ApiErrorResponse extends JsonResponse
 {
-    private $message;
-    private $errorCode;
+    /**
+     * @var mixed|string|null
+     */
+    public $message;
+
+    /**
+     * @var string|null
+     */
+    private $code;
+
+    /**
+     * @var array
+     */
     private $errors;
 
     const TYPE_VALIDATION_ERROR = 'validation_error';
@@ -29,44 +42,44 @@ class ApiErrorResponse extends JsonResponse
      * ApiResponse constructor.
      *
      * @param string|null $message A basic message for the error
-     * @param string $errorCode A short string that maps to the $messages defined at the top of this class
+     * @param string|null $code
      * @param array $errors Almost exclusively used for form/entity validation errors as these come back as an array
      * @param int $status
      * @param array $headers
      * @param bool $json
      */
-    public function __construct(string $message = null, string $errorCode = null, array $errors = [], int $status = 200, array $headers = [], bool $json = false)
+    public function __construct(string $message = null, string $code = null, $errors = [], int $status = 200, array $headers = [], bool $json = false)
     {
         if(!$message) {
-            if ($errorCode === null) {
+            if ($code === null) {
                 $message = isset(Response::$statusTexts[$status])
                     ? Response::$statusTexts[$status]
                     : 'Unknown status code';
             } else {
-                if (!isset(self::$messages[$errorCode])) {
-                    throw new \InvalidArgumentException('No message for error code '.$errorCode);
+                if (!isset(self::$messages[$code])) {
+                    throw new \InvalidArgumentException('No message for error code '.$code);
                 }
-                $message = self::$messages[$errorCode];
+                $message = self::$messages[$code];
             }
         }
 
         $this->message = $message;
-        $this->errorCode = $errorCode;
+        $this->code = $code;
         $this->errors = $errors;
 
-        parent::__construct($this->format($message, $errorCode, $errors), $status, $headers, $json);
+        parent::__construct($this->format($message, $code, $errors), $status, $headers, $json);
     }
 
     /**
      * Format the API response.
      *
      * @param string $message
-     * @param null $errorCode
+     * @param null $code
      * @param array $errors
      *
      * @return array
      */
-    private function format(string $message, $errorCode = null, array $errors = [])
+    private function format(string $message, $code = null, $errors = [])
     {
         $response = [
             'message' => $message
@@ -76,8 +89,8 @@ class ApiErrorResponse extends JsonResponse
             $response['errors'] = $errors;
         }
 
-        if ($errorCode) {
-            $response['code'] = $errorCode;
+        if ($code) {
+            $response['code'] = $code;
         }
 
         return $response;
@@ -94,15 +107,15 @@ class ApiErrorResponse extends JsonResponse
     /**
      * @return string|null
      */
-    public function getErrorCode(): ?string
+    public function getCode()
     {
-        return $this->errorCode;
+        return $this->code;
     }
 
     /**
      * @return array
      */
-    public function getErrors(): array
+    public function getErrors()
     {
         return $this->errors;
     }

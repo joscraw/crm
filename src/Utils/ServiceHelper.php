@@ -3,6 +3,8 @@
 namespace App\Utils;
 
 use App\AuthorizationHandler\PermissionAuthorizationHandler;
+use App\Dto\DataTransformer\DataTransformerFactory;
+use App\Dto\DtoFactory;
 use App\Mailer\ResetPasswordMailer;
 use App\Repository\ApiTokenRepository;
 use App\Repository\CustomObjectRepository;
@@ -272,6 +274,16 @@ trait ServiceHelper
     private $auth0Service;
 
     /**
+     * @var DtoFactory
+     */
+    private $dtoFactory;
+
+    /**
+     * @var DataTransformerFactory
+     */
+    private $dataTransformerFactory;
+
+    /**
      * ServiceHelper constructor.
      * @param EntityManagerInterface $entityManager
      * @param Packages $assetsManager
@@ -318,6 +330,8 @@ trait ServiceHelper
      * @param IdpProvider $idpProvider
      * @param IdpTools $idpTools
      * @param Auth0Service $auth0Service
+     * @param DtoFactory $dtoFactory
+     * @param DataTransformerFactory $dataTransformerFactory
      */
     public function __construct(
         EntityManagerInterface $entityManager,
@@ -364,7 +378,9 @@ trait ServiceHelper
         SessionStore $sessionStore,
         IdpProvider $idpProvider,
         IdpTools $idpTools,
-        Auth0Service $auth0Service
+        Auth0Service $auth0Service,
+        DtoFactory $dtoFactory,
+        DataTransformerFactory $dataTransformerFactory
     ) {
         $this->entityManager = $entityManager;
         $this->assetsManager = $assetsManager;
@@ -411,7 +427,10 @@ trait ServiceHelper
         $this->idpProvider = $idpProvider;
         $this->idpTools = $idpTools;
         $this->auth0Service = $auth0Service;
+        $this->dtoFactory = $dtoFactory;
+        $this->dataTransformerFactory = $dataTransformerFactory;
     }
+
 
     /**
      * Returns the site url

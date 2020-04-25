@@ -25,5 +25,14 @@ class RequestListener
         } else {
             $request->setRequestFormat('html');
         }
+
+        $url = $request->getPathInfo();
+        $pattern = '/\/api\/(.+)\/private/';
+        preg_match($pattern, $url, $matches);
+        if(!empty($matches)) {
+            $request->headers->set('X-Accept-Version', $matches[1]);
+        }
+
+
     }
 }

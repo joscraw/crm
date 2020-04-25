@@ -2,6 +2,7 @@
 
 namespace App\Routing;
 
+use App\Utils\NamespaceHelper;
 use Doctrine\Common\Annotations\Reader;
 use Symfony\Component\Config\Loader\Loader;
 use Symfony\Component\Finder\Finder;
@@ -12,6 +13,8 @@ use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 
 class ApiLoader extends Loader
 {
+    use NamespaceHelper;
+
     /**
      * @var bool
      */
@@ -35,7 +38,7 @@ class ApiLoader extends Loader
     /**
      * @var int
      */
-    private $fileRecursionDepth = 3;
+    private $fileRecursionDepth = 100;
 
     /**
      * ApiLoader constructor.
@@ -60,11 +63,6 @@ class ApiLoader extends Loader
         if (true === $this->isLoaded) {
             throw new \RuntimeException('Do not add the "extra" loader twice');
         }
-
-        $dirs = [
-            $this->projectDirectory. '/src/Controller/PrivateApi',
-            $this->projectDirectory. '/src/Controller/PublicApi'
-        ];
 
         $dir = $this->projectDirectory. '/src/Controller';
 
@@ -134,43 +132,5 @@ class ApiLoader extends Loader
     public function supports($resource, $type = null)
     {
         return 'api' === $type;
-    }
-
-    function byRegexp($src) {
-        if (preg_match('#^namespace\s+(.+?);$#sm', $src, $m)) {
-            return $m[1];
-        }
-        return null;
-    }
-
-    // Works in every situations
-    function byToken ($src) {
-        $tokens = token_get_all($src);
-        $count = count($tokens);
-        $i = 0;
-        $namespace = '';
-        $namespace_ok = false;
-        while ($i < $count) {
-            $token = $tokens[$i];
-            if (is_array($token) && $token[0] === T_NAMESPACE) {
-                // Found namespace declaration
-                while (++$i < $count) {
-                    if ($tokens[$i] === ';') {
-                        $namespace_ok = true;
-                        $namespace = trim($namespace);
-                        break;
-                    }
-                    $namespace .= is_array($tokens[$i]) ? $tokens[$i][1] : $tokens[$i];
-                }
-                break;
-            }
-            $i++;
-        }
-
-        if (!$namespace_ok) {
-            return null;
-        } else {
-            return $namespace;
-        }
     }
 }

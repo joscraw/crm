@@ -148,10 +148,13 @@ class CustomObject /*implements \JsonSerializable*/
 
     /**
      * @param string $label
+     * @return CustomObject
      */
-    public function setLabel($label): void
+    public function setLabel($label)
     {
         $this->label = $label;
+
+        return $this;
     }
 
     /**
@@ -164,10 +167,13 @@ class CustomObject /*implements \JsonSerializable*/
 
     /**
      * @param string $internalName
+     * @return CustomObject
      */
     public function setInternalName($internalName)
     {
         $this->internalName = $internalName;
+
+        return $this;
     }
 
     /**

@@ -116,3 +116,6 @@ services:
 
     App\Routing\ApiLoader:
       tags: [routing.loader]
+
+    App\Dto\DataTransformer\CustomObject_DtoTransformer:
+      public: true
