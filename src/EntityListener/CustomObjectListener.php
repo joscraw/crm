@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Entity\Listener;
+namespace App\EntityListener;
 
 use App\Entity\CustomObject;
 use App\Entity\Property;
@@ -16,7 +16,7 @@ use Symfony\Component\Serializer\SerializerInterface;
 
 /**
  * Class CustomObjectListener
- * @package App\Entity\EntityListener
+ * @package App\EntityListener
  */
 class CustomObjectListener
 {

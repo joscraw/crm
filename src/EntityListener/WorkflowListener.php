@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Entity\Listener;
+namespace App\EntityListener;
 
 use App\Entity\Workflow;
 use Doctrine\ORM\EntityManagerInterface;
@@ -9,7 +9,7 @@ use Symfony\Component\Serializer\SerializerInterface;
 
 /**
  * Class WorkflowListener
- * @package App\Entity\EntityListener
+ * @package App\EntityListener
  */
 class WorkflowListener
 {

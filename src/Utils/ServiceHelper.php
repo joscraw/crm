@@ -283,6 +283,7 @@ trait ServiceHelper
      */
     private $dataTransformerFactory;
 
+
     /**
      * ServiceHelper constructor.
      * @param EntityManagerInterface $entityManager
@@ -445,5 +446,12 @@ trait ServiceHelper
             ($port !== 80 ? ':'. $port : ''),
             $routerContext->getBaseUrl()
         );
+    }
+
+    private function createLinkUrl($targetPage, $route, $routeParams) {
+        return $this->router->generate($route, array_merge(
+            $routeParams,
+            array('page' => $targetPage)
+        ));
     }
 }

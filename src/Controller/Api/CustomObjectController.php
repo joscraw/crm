@@ -9,9 +9,12 @@ use App\Dto\DtoFactory;
 use App\Entity\Portal;
 use App\Entity\User;
 use App\Http\ApiErrorResponse;
+use App\Http\ApiPaginatedCollectionResponse;
 use App\Http\ApiResponse;
 use App\Model\CustomObjectField;
 use App\Model\FieldCatalog;
+use App\Model\Pagination\PaginationCollection;
+use App\Serializer\PaginatedCollectionNormalizer;
 use App\Utils\ServiceHelper;
 use Pagerfanta\Adapter\DoctrineORMAdapter;
 use Pagerfanta\Pagerfanta;
@@ -25,6 +28,7 @@ use Nelmio\ApiDocBundle\Annotation\Model;
 use Nelmio\ApiDocBundle\Annotation\Security;
 use App\Entity\CustomObject;
 use App\Http\Api;
+use Symfony\Component\Serializer\Serializer;
 
 
 /**
@@ -54,7 +58,14 @@ class CustomObjectController extends ApiController
      *          type="object",
      *          @SWG\Property(property="total", type="integer", example=135, description="Total count of all items."),
      *          @SWG\Property(property="count", type="integer", example=12, description="Count of items returned in response."),
-     *          @SWG\Property(property="data", type="array", @Model(type=CustomObject_Dto::class, groups={Dto::GROUP_DEFAULT}))
+     *          @SWG\Property(property="data", type="array", @Model(type=CustomObject_Dto::class, groups={Dto::GROUP_DEFAULT})),
+     *          @SWG\Property(property="_links", type="object",
+     *              @SWG\Property(property="self", type="string", example="/api/v1/private/custom-objects?page=3"),
+     *              @SWG\Property(property="first", type="string", example="/api/v1/private/custom-objects?page=1"),
+     *              @SWG\Property(property="last", type="string", example="/api/v1/private/custom-objects?page=8"),
+     *              @SWG\Property(property="next", type="string", example="/api/v1/private/custom-objects?page=4"),
+     *              @SWG\Property(property="prev", type="string", example="/api/v1/private/custom-objects?page=2")
+     *          )
      *     )
      * )
      *
@@ -137,37 +148,27 @@ class CustomObjectController extends ApiController
         $pagerfanta->setAllowOutOfRangePages(true);
         $pagerfanta->setMaxPerPage(10);
         $pagerfanta->setCurrentPage($page);
-        $results = $pagerfanta->getCurrentPageResults();
 
         $customObjects = [];
         foreach ($pagerfanta->getCurrentPageResults() as $result) {
             $customObjects[] = $result;
         }
 
+        // we need to proxy all these custom objects through our transformer.
         $dto = $this->dtoFactory->create(DtoFactory::CUSTOM_OBJECT, $version, true);
-
         /** @var DataTransformerInterface $dataTransformer */
         $dataTransformer = $this->dataTransformerFactory->get($dto->getDataTransformer());
-
         $dtos = [];
         foreach ($customObjects as $customObject) {
             /** @var Dto $dto */
             $dtos[] = $dataTransformer->transform($customObject);
         }
 
-        $extraData = [
-            'total' => $pagerfanta->getNbResults(),
-            'count' => count($dtos),
-        ];
+        $paginationCollection = new PaginationCollection($dtos, $pagerfanta);
 
-        // we need to proxy all these custom objects through our transformer.
+        $json = $this->serializer->serialize($paginationCollection, 'json', ['groups' => [Dto::GROUP_DEFAULT]]);
 
-        // todo wire in pagination collection logic, filtering, and total_count, etc here along with _links added
-        //  to the response. Take a look at symfonycasts
-
-        $json = $this->serializer->serialize($dtos, 'json', ['groups' => [Dto::GROUP_DEFAULT]]);
-
-        return new ApiResponse(null, $json, $extraData, Response::HTTP_OK, [], true);
+        return new ApiResponse(null, $json, Response::HTTP_OK, [], true);
     }
 
     /**

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Entity\Listener;
+namespace App\EntityListener;
 
 use App\Entity\Property;
 use App\Model\AbstractField;
@@ -10,7 +10,7 @@ use Symfony\Component\Serializer\SerializerInterface;
 
 /**
  * Class PropertyListener
- * @package App\Entity\EntityListener
+ * @package App\EntityListener
  */
 class PropertyListener
 {

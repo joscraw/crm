@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Entity\Listener;
+namespace App\EntityListener;
 
 use App\Entity\Record;
 use App\Entity\Workflow;
@@ -17,7 +17,7 @@ use Symfony\Component\Serializer\SerializerInterface;
 
 /**
  * Class RecordListener
- * @package App\Entity\EntityListener
+ * @package App\EntityListener
  */
 class RecordListener
 {

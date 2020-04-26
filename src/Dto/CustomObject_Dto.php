@@ -34,7 +34,7 @@ use Swagger\Annotations as SWG;
 class CustomObject_Dto extends Dto
 {
     /**
-     * @Groups({Dto::GROUP_DEFAULT, "two"})
+     * @Groups({Dto::GROUP_DEFAULT})
      *
      * @var string
      */
@@ -42,7 +42,7 @@ class CustomObject_Dto extends Dto
 
     /**
      *
-     * @Groups({Dto::GROUP_CREATE, Dto::GROUP_DEFAULT, "two"})
+     * @Groups({Dto::GROUP_CREATE, Dto::GROUP_DEFAULT})
      * @Assert\NotBlank(message="Don't forget a label for your custom object.", groups={Dto::GROUP_CREATE, Dto::GROUP_UPDATE})
      * @Assert\Regex("/^[a-zA-Z0-9_\s]*$/", message="Please only use letters, numbers, underscores and spaces.", groups={Dto::GROUP_CREATE, Dto::GROUP_UPDATE})
      *
@@ -51,7 +51,7 @@ class CustomObject_Dto extends Dto
     private $label;
 
     /**
-     * @Groups({Dto::GROUP_CREATE, Dto::GROUP_DEFAULT, "two"})
+     * @Groups({Dto::GROUP_CREATE, Dto::GROUP_DEFAULT})
      *
      * internal name
      *
