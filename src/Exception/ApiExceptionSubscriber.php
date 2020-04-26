@@ -51,16 +51,17 @@ class ApiExceptionSubscriber implements EventSubscriberInterface
         // We want to make sure all our exceptions for the api come back uniformly
         // so always pipe every exception through our ApiException
         if (!$e instanceof ApiException) {
-            throw new ApiException(new ApiErrorResponse(
+            $apiErrorResponse = new ApiErrorResponse(
                 $message,
                 null,
                 [],
                 $statusCode
-            ));
-            return;
+            );
+        } else {
+            $apiErrorResponse = $e->getApiErrorResponse();
         }
 
-        $event->setResponse($e->getApiErrorResponse());
+        $event->setResponse($apiErrorResponse);
     }
     public static function getSubscribedEvents()
     {

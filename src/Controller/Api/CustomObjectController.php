@@ -52,6 +52,8 @@ class CustomObjectController extends ApiController
      *     description="Returns the custom objects (including shipped objects) in the platform",
      *     @SWG\Schema(
      *          type="object",
+     *          @SWG\Property(property="total", type="integer", example=135, description="Total count of all items."),
+     *          @SWG\Property(property="count", type="integer", example=12, description="Count of items returned in response."),
      *          @SWG\Property(property="data", type="array", @Model(type=CustomObject_Dto::class, groups={Dto::GROUP_DEFAULT}))
      *     )
      * )
@@ -115,11 +117,16 @@ class CustomObjectController extends ApiController
      *
      * @param Request $request
      * @return JsonResponse
+     * @throws \App\Exception\DtoNotFoundException
+     * @throws \ReflectionException
+     * @throws \App\Exception\DataTransformerNotFoundException
      */
     public function index(Request $request)
     {
         /** @var User $user */
         $user = $this->getUser();
+
+        $version = $request->headers->get('X-Accept-Version');
 
         $page = $request->query->get('page', 1);
 
@@ -132,12 +139,35 @@ class CustomObjectController extends ApiController
         $pagerfanta->setCurrentPage($page);
         $results = $pagerfanta->getCurrentPageResults();
 
+        $customObjects = [];
+        foreach ($pagerfanta->getCurrentPageResults() as $result) {
+            $customObjects[] = $result;
+        }
+
+        $dto = $this->dtoFactory->create(DtoFactory::CUSTOM_OBJECT, $version, true);
+
+        /** @var DataTransformerInterface $dataTransformer */
+        $dataTransformer = $this->dataTransformerFactory->get($dto->getDataTransformer());
+
+        $dtos = [];
+        foreach ($customObjects as $customObject) {
+            /** @var Dto $dto */
+            $dtos[] = $dataTransformer->transform($customObject);
+        }
+
+        $extraData = [
+            'total' => $pagerfanta->getNbResults(),
+            'count' => count($dtos),
+        ];
+
+        // we need to proxy all these custom objects through our transformer.
+
         // todo wire in pagination collection logic, filtering, and total_count, etc here along with _links added
         //  to the response. Take a look at symfonycasts
 
-        $json = $this->serializer->serialize($results, 'json', ['groups' => [Dto::GROUP_DEFAULT]]);
+        $json = $this->serializer->serialize($dtos, 'json', ['groups' => [Dto::GROUP_DEFAULT]]);
 
-        return new ApiResponse(null, $json, Response::HTTP_OK, [], true);
+        return new ApiResponse(null, $json, $extraData, Response::HTTP_OK, [], true);
     }
 
     /**
@@ -232,6 +262,7 @@ class CustomObjectController extends ApiController
      * @return ApiErrorResponse|ApiResponse
      * @throws \App\Exception\DtoNotFoundException
      * @throws \ReflectionException
+     * @throws \App\Exception\DataTransformerNotFoundException
      */
     public function new(Request $request) {
 
@@ -264,8 +295,10 @@ class CustomObjectController extends ApiController
         // todo change this logic to use the new data transformer factory.
 
         /** @var DataTransformerInterface $dataTransformer */
-        $dataTransformer = $this->get($dto->getDataTransformer());
+        $dataTransformer = $this->dataTransformerFactory->get($dto->getDataTransformer());
+        /** @var CustomObject $customObject */
         $customObject = $dataTransformer->reverseTransform($dto);
+        $customObject->setPortal($user->getPortal());
         $this->entityManager->persist($customObject);
         $this->entityManager->flush();
 
@@ -274,7 +307,7 @@ class CustomObjectController extends ApiController
             'json',
             ['groups' => [Dto::GROUP_DEFAULT]]);
 
-        return new ApiResponse(null, $json, Response::HTTP_CREATED, [], true);
+        return new ApiResponse(null, $json, null, Response::HTTP_CREATED, [], true);
     }
 
     /**
@@ -383,7 +416,7 @@ class CustomObjectController extends ApiController
             'json',
             ['groups' => [Dto::GROUP_DEFAULT]]);
 
-        return new ApiResponse(null, $json, Response::HTTP_OK, [], true);
+        return new ApiResponse(null, $json, null, Response::HTTP_OK, [], true);
     }
 
     /**
