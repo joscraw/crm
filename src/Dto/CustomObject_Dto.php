@@ -18,26 +18,27 @@ use App\Annotation\Identifier;
  *
  *
  * @Link(
- *  Api::LINK_NEW,
- *  route = "api_v1_private_custom_object_new"
+ *  rel= Api::LINK_NEW,
+ *  href = "'/custom-objects/new'",
+ *  scopes={"private"}
  * )
  *
  * @Link(
- *  Api::LINK_VIEW,
- *  route = "api_v1_private_custom_object_view",
- *  params = { "id": "object.getId()" }
+ *  rel= Api::LINK_VIEW,
+ *  href = "'/custom-objects/' ~ object.getId() ~ '/view'",
+ *  scopes={"private"}
  * )
  *
  * @Link(
- *  Api::LINK_EDIT,
- *  route = "api_v1_private_custom_object_edit",
- *  params = { "id": "object.getId()" }
+ *  rel= Api::LINK_EDIT,
+ *  href = "'/custom-objects/' ~ object.getId() ~ '/edit'",
+ *  scopes={"private"}
  * )
  *
  * @Link(
- *  Api::LINK_DELETE,
- *  route = "api_v1_private_custom_object_delete",
- *  params = { "id": "object.getId()" }
+ *  rel= Api::LINK_DELETE,
+ *  href = "'/custom-objects/' ~ object.getId() ~ '/delete'",
+ *  scopes={"private"}
  * )
  *
  */

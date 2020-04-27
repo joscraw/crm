@@ -2,6 +2,8 @@
 
 namespace App\Http\Request;
 
+use App\Annotation\ApiVersion;
+use App\Http\Api;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 
 class RequestListener
@@ -26,13 +28,15 @@ class RequestListener
             $request->setRequestFormat('html');
         }
 
+        // Let's pull the version and the scope from the api
         $url = $request->getPathInfo();
-        $pattern = '/\/api\/(.+)\/private/';
-        preg_match($pattern, $url, $matches);
-        if(!empty($matches)) {
-            $request->headers->set('X-Accept-Version', $matches[1]);
+        $urlParts = array_values(array_filter(explode("/", $url)));
+        if(!empty($urlParts[1]) && in_array($urlParts[1], Api::$versions)) {
+            $request->headers->set('X-Accept-Version', $urlParts[1]);
         }
 
-
+        if(!empty($urlParts[2]) && in_array($urlParts[2], Api::$scopes)) {
+            $request->headers->set('X-Accept-Scope', $urlParts[2]);
+        }
     }
 }

@@ -30,9 +30,21 @@ class Api
     public const VERSION_1 = 'v1';
     public const VERSION_2 = 'v2';
 
+    public const SCOPE_PRIVATE = 'private';
+    public const SCOPE_PUBLIC = 'public';
+
     public const LINK_VIEW = 'view';
     public const LINK_EDIT = 'edit';
     public const LINK_NEW = 'new';
     public const LINK_DELETE = 'delete';
 
+    public static $versions = [
+      self::VERSION_1,
+      self::VERSION_2
+    ];
+
+    public static $scopes = [
+        self::SCOPE_PRIVATE,
+        self::SCOPE_PUBLIC
+    ];
 }

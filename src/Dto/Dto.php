@@ -31,14 +31,6 @@ abstract class Dto
         return $this->_links;
     }
 
-    public function getLink($ref)
-    {
-        if(isset($this->_links[$ref])) {
-            return $this->_links[$ref];
-        }
-        return '';
-    }
-
     /**
      * @param $links
      * @return Dto

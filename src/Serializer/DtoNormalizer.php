@@ -2,14 +2,12 @@
 
 namespace App\Serializer;
 
+use App\Annotation\ApiVersion;
 use App\Annotation\Link;
 use App\Dto\Dto;
-use App\Model\AbstractField;
-use App\Repository\CustomObjectRepository;
-use App\Repository\PropertyRepository;
 use Doctrine\Common\Annotations\Reader;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Serializer\Encoder\NormalizationAwareInterface;
 use Symfony\Component\Serializer\Exception\CircularReferenceException;
@@ -41,19 +39,25 @@ class DtoNormalizer implements NormalizerInterface, NormalizationAwareInterface
     private $router;
 
     private $expressionLanguage;
+    /**
+     * @var RequestStack
+     */
+    private $requestStack;
 
     /**
      * DtoNormalizer constructor.
      * @param ObjectNormalizer $normalizer
      * @param Reader $annotationReader
      * @param RouterInterface $router
+     * @param RequestStack $requestStack
      */
-    public function __construct(ObjectNormalizer $normalizer, Reader $annotationReader, RouterInterface $router)
+    public function __construct(ObjectNormalizer $normalizer, Reader $annotationReader, RouterInterface $router, RequestStack $requestStack)
     {
         $this->normalizer = $normalizer;
         $this->annotationReader = $annotationReader;
         $this->router = $router;
         $this->expressionLanguage = new ExpressionLanguage();
+        $this->requestStack = $requestStack;
     }
 
     /**
@@ -78,14 +82,25 @@ class DtoNormalizer implements NormalizerInterface, NormalizationAwareInterface
 
         $annotations = $this->annotationReader->getClassAnnotations($reflectionClass);
 
+        $request = $this->requestStack->getCurrentRequest();
+        $version = $request->headers->get('X-Accept-Version');
+        $scope = $request->headers->get('X-Accept-Scope');
+
+        $data = $this->normalizer->normalize($object, $format, $context);
+
+        // If we can't detect the version or scope from the
+        // request, then do not attempt to add _links to the data
+        if(!$version || !$scope) {
+            return $data;
+        }
+
         $links = [];
         foreach ($annotations as $annotation) {
             if ($annotation instanceof Link) {
                 try {
-                    $uri = $this->router->generate(
-                        $annotation->route,
-                        $this->resolveParams($annotation->params, $object)
-                    );
+
+                    $href = $this->resolveHref($annotation->href, $object);
+
                 } catch (\Exception $exception) {
                     // All our api routes are dynamically generated
                     // using our ApiLoader Class and custom Annotations.
@@ -94,11 +109,13 @@ class DtoNormalizer implements NormalizerInterface, NormalizationAwareInterface
                     // adding it to the _links array
                     continue;
                 }
-                $links[$annotation->name] = $uri;
+                $links[$annotation->rel] = sprintf("/api/%s/%s%s",
+                    !empty($version) ? $version : '',
+                    !empty($scope) ? $scope : '',
+                    $href
+                    );
             }
         }
-
-        $data = $this->normalizer->normalize($object, $format, $context);
 
         if($links) {
             $data['_links'] = $links;
@@ -124,12 +141,9 @@ class DtoNormalizer implements NormalizerInterface, NormalizationAwareInterface
         return false;
     }
 
-    private function resolveParams(array $params, $object)
+    private function resolveHref($href, $object)
     {
-        foreach ($params as $key => $param) {
-            $params[$key] = $this->expressionLanguage
-                ->evaluate($param, array('object' => $object));
-        }
-        return $params;
+        return $this->expressionLanguage
+            ->evaluate($href, array('object' => $object));
     }
 }

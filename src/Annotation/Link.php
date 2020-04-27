@@ -13,12 +13,22 @@ class Link
      *
      * @var string
      */
-    public $name;
+    public $rel;
     /**
      * @Required
      *
      * @var string
      */
-    public $route;
-    public $params = array();
+    public $href;
+
+    public function __construct(array $data)
+    {
+        if(isset($data['rel'])) {
+            $this->rel = $data['rel'];
+        }
+
+        if(isset($data['href'])) {
+            $this->href= $data['href'];
+        }
+    }
 }
