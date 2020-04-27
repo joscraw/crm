@@ -36,8 +36,6 @@ class CustomObject /*implements \JsonSerializable*/
 
     /**
      * @Groups({"PROPERTY_FIELD_NORMALIZER", "PROPERTIES_FOR_FILTER", "CUSTOM_OBJECTS_FOR_FILTER", "REPORT", "LIST", "FORMS", "TRIGGER", "WORKFLOW", "v1"})
-     * @Assert\NotBlank(message="Don't forget a label for your super cool sweeeeet Custom Object!", groups={"CREATE", "EDIT"})
-     * @Assert\Regex("/^[a-zA-Z0-9_\s]*$/", message="Woah! Only use letters, numbers, underscores and spaces please!", groups={"CREATE", "EDIT"})
      *
      * @ORM\Column(name="label", type="string", length=255, nullable=false)
      *
@@ -49,8 +47,6 @@ class CustomObject /*implements \JsonSerializable*/
      * @Groups({"PROPERTY_FIELD_NORMALIZER", "PROPERTIES_FOR_FILTER", "CUSTOM_OBJECTS_FOR_FILTER", "REPORT", "LIST", "FORMS", "TRIGGER", "WORKFLOW", "v1"})
      *
      * internal name
-     *
-     * @Assert\Regex("/^[a-zA-Z0-9_]*$/", message="Woah! Only use letters numbers and underscores please!", groups={"CREATE"})
      *
      * @ORM\Column(name="internal_name", type="string", length=255, nullable=false)
      *

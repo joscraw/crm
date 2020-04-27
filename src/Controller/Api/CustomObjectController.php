@@ -9,12 +9,10 @@ use App\Dto\DtoFactory;
 use App\Entity\Portal;
 use App\Entity\User;
 use App\Http\ApiErrorResponse;
-use App\Http\ApiPaginatedCollectionResponse;
 use App\Http\ApiResponse;
 use App\Model\CustomObjectField;
 use App\Model\FieldCatalog;
 use App\Model\Pagination\PaginationCollection;
-use App\Serializer\PaginatedCollectionNormalizer;
 use App\Utils\ServiceHelper;
 use Pagerfanta\Adapter\DoctrineORMAdapter;
 use Pagerfanta\Pagerfanta;
@@ -28,7 +26,6 @@ use Nelmio\ApiDocBundle\Annotation\Model;
 use Nelmio\ApiDocBundle\Annotation\Security;
 use App\Entity\CustomObject;
 use App\Http\Api;
-use Symfony\Component\Serializer\Serializer;
 
 
 /**
@@ -176,7 +173,7 @@ class CustomObjectController extends ApiController
      *
      * Creates a user defined custom object in the platform.
      *
-     * @ApiRoute("/custom-objects/new", name="custom_objects_new", methods={"POST"}, versions={"v1"}, scopes={"private"})
+     * @ApiRoute("/custom-objects/new", name="custom_object_new", methods={"POST"}, versions={"v1"}, scopes={"private"})
      *
      * @SWG\Post(
      *     description=Api::DESCRIPTION,
@@ -208,11 +205,16 @@ class CustomObjectController extends ApiController
      *    ),
      *
      *     @SWG\Response(
-     *          response=200,
+     *          response=201,
      *          description="Returns a newly created custom object",
      *          @SWG\Schema(
      *              type="object",
      *              @SWG\Property(property="data", ref=@Model(type=CustomObject_Dto::class, groups={Dto::GROUP_DEFAULT}))
+     *          ),
+     *          @SWG\Header(
+     *              header="Location",
+     *              description="The location to the newly created resource",
+     *              type="string"
      *          )
      *     ),
      *
@@ -293,8 +295,6 @@ class CustomObjectController extends ApiController
             );
         }
 
-        // todo change this logic to use the new data transformer factory.
-
         /** @var DataTransformerInterface $dataTransformer */
         $dataTransformer = $this->dataTransformerFactory->get($dto->getDataTransformer());
         /** @var CustomObject $customObject */
@@ -308,7 +308,9 @@ class CustomObjectController extends ApiController
             'json',
             ['groups' => [Dto::GROUP_DEFAULT]]);
 
-        return new ApiResponse(null, $json, null, Response::HTTP_CREATED, [], true);
+        return new ApiResponse(null, $json,Response::HTTP_CREATED, [
+            'Location' => !empty(json_decode($json, true)['_links']['view']) ? json_decode($json, true)['_links']['view'] : ''
+        ], true);
     }
 
     /**
@@ -417,7 +419,261 @@ class CustomObjectController extends ApiController
             'json',
             ['groups' => [Dto::GROUP_DEFAULT]]);
 
-        return new ApiResponse(null, $json, null, Response::HTTP_OK, [], true);
+        return new ApiResponse(null, $json,Response::HTTP_OK, [], true);
+    }
+
+    /**
+     * Edit a Custom Object
+     *
+     * Edit a user defined custom object in the platform.
+     *
+     * @ApiRoute("/custom-objects/{id}/edit", name="custom_object_edit", methods={"PATCH"}, versions={"v1"}, scopes={"private"})
+     *
+     * @SWG\Patch(
+     *     description=Api::DESCRIPTION,
+     *     consumes={"application/json"},
+     *     produces={"application/json"},
+     *
+     *     @SWG\Parameter(
+     *         name="body",
+     *         in="body",
+     *         required=true,
+     *         description="JSON payload",
+     *         format="application/json",
+     *         @Model(type=CustomObject_Dto::class, groups={Dto::GROUP_UPDATE})
+     *     ),
+     *
+     *    @SWG\Parameter(
+     *     name="XDEBUG_SESSION_START",
+     *     in="query",
+     *     type="string",
+     *     description="Triggers an Xdebug Session",
+     *     default="PHPSTORM"
+     *    ),
+     *
+     *    @SWG\Parameter(
+     *     name="verbosity",
+     *     in="query",
+     *     type="string",
+     *     description="Set any value here for a more descriptive error message in the response. Should only be used for debugging purposes only and never in production!"
+     *    ),
+     *
+     *     @SWG\Response(
+     *          response=200,
+     *          description="Returns the updated custom object",
+     *          @SWG\Schema(
+     *              type="object",
+     *              @SWG\Property(property="data", ref=@Model(type=CustomObject_Dto::class, groups={Dto::GROUP_DEFAULT}))
+     *          )
+     *     ),
+     *
+     *     @SWG\Response(
+     *         response=400,
+     *         description="Validation errors.",
+     *         @SWG\Schema(
+     *              type="object",
+     *              @SWG\Property(property="message", type="string", example="There was a validation error"),
+     *              @SWG\Property(property="code", type="string", example="validation_error"),
+     *              @SWG\Property(property="errors", type="object",
+     *                    @SWG\Property(property="label", type="array",
+     *                          @SWG\Items(type="string", example="Please don't forget a label for your custom object.")
+     *                     )
+     *              )
+     *         )
+     *     ),
+     *
+     *     @SWG\Response(
+     *          response=401,
+     *          description="Unauthorized",
+     *          @SWG\Schema(
+     *              type="object",
+     *              format="json",
+     *              @SWG\Property(property="message", type="string", example="JWT expired. Please request a refresh.")
+     *          )
+     *     ),
+     *     @SWG\Response(
+     *          response=500,
+     *          description="Internal Server Error",
+     *          @SWG\Schema(
+     *              type="object",
+     *              format="json",
+     *              @SWG\Property(property="message", type="string", example="Internal server error. Infinite recursion detected.")
+     *          )
+     *    )
+     *
+     * )
+     *
+     *
+     * @SWG\Tag(name="Custom Objects")
+     * @Security(name="Bearer")
+     *
+     * @param Request $request
+     * @param CustomObject $customObject
+     * @return ApiErrorResponse|ApiResponse
+     * @throws \App\Exception\DataTransformerNotFoundException
+     * @throws \App\Exception\DtoNotFoundException
+     * @throws \ReflectionException
+     */
+    public function edit(Request $request, CustomObject $customObject) {
+
+        /** @var User $user */
+        $user = $this->getUser();
+
+        $version = $request->headers->get('X-Accept-Version');
+
+        // First transform the custom object to our DTO
+        /** @var Dto $dto */
+        $dto = $this->dtoFactory->create(DtoFactory::CUSTOM_OBJECT, $version, true);
+        /** @var DataTransformerInterface $dataTransformer */
+        $dataTransformer = $this->dataTransformerFactory->get($dto->getDataTransformer());
+        /** @var Dto $dto */
+        $dto = $dataTransformer->transform($customObject);
+
+        // populate the DTO with the request content
+        /** @var Dto $dto */
+        $dto = $this->serializer->deserialize(
+            $request->getContent(),
+            $this->dtoFactory->create(DtoFactory::CUSTOM_OBJECT, $version),
+            'json',
+            ['groups' => Dto::GROUP_UPDATE, 'object_to_populate' => $dto]
+        );
+
+        // validate the object
+        $validationErrors = $this->validator->validate($dto, null, [Dto::GROUP_UPDATE]);
+        if (count($validationErrors) > 0) {
+            return new ApiErrorResponse(
+                null,
+                ApiErrorResponse::TYPE_VALIDATION_ERROR,
+                $this->getErrorsFromValidator($validationErrors),
+                Response::HTTP_BAD_REQUEST
+            );
+        }
+
+        // convert the DTO back into a custom object and save to the db
+        /** @var CustomObject $customObject */
+        $customObject = $dataTransformer->reverseTransform($dto);
+        $this->entityManager->flush();
+
+        $json = $this->serializer->serialize(
+            $dataTransformer->transform($customObject),
+            'json',
+            ['groups' => [Dto::GROUP_DEFAULT]]);
+
+        return new ApiResponse(null, $json,Response::HTTP_OK, [], true);
+    }
+
+    /**
+     * Delete a Custom Object
+     *
+     * Delete a user defined custom object in the platform.
+     *
+     * @ApiRoute("/custom-objects/{id}/delete", name="custom_object_delete", methods={"DELETE"}, versions={"v1"}, scopes={"private"})
+     *
+     * @SWG\Delete(
+     *     description=Api::DESCRIPTION,
+     *     produces={"application/json"},
+     *
+     *    @SWG\Parameter(
+     *     name="XDEBUG_SESSION_START",
+     *     in="query",
+     *     type="string",
+     *     description="Triggers an Xdebug Session",
+     *     default="PHPSTORM"
+     *    ),
+     *
+     *    @SWG\Parameter(
+     *     name="verbosity",
+     *     in="query",
+     *     type="string",
+     *     description="Set any value here for a more descriptive error message in the response. Should only be used for debugging purposes only and never in production!"
+     *    ),
+     *
+     *     @SWG\Response(
+     *          response=200,
+     *          description="Returns the deleted custom object",
+     *          @SWG\Schema(
+     *              type="object",
+     *              @SWG\Property(property="data", ref=@Model(type=CustomObject_Dto::class, groups={Dto::GROUP_DEFAULT}))
+     *          )
+     *     ),
+     *
+     *    @SWG\Response(
+     *      response=400,
+     *      description="Bad Request.",
+     *      @SWG\Schema(
+     *              type="object",
+     *              format="json",
+     *              @SWG\Property(property="message", type="string", example="Invalid Request format.")
+     *      )
+     *    ),
+     *
+     *    @SWG\Response(
+     *          response=401,
+     *          description="Unauthorized",
+     *          @SWG\Schema(
+     *              type="object",
+     *              format="json",
+     *              @SWG\Property(property="message", type="string", example="JWT expired. Please request a refresh.")
+     *          )
+     *     ),
+     *
+     *     @SWG\Response(
+     *         response=404,
+     *         description="Not found",
+     *         @SWG\Schema(
+     *              type="object",
+     *              format="json",
+     *              @SWG\Property(property="message", type="string", example="Not found.")
+     *         )
+     *     ),
+     *
+     *     @SWG\Response(
+     *          response=500,
+     *          description="Internal Server Error",
+     *          @SWG\Schema(
+     *              type="object",
+     *              format="json",
+     *              @SWG\Property(property="message", type="string", example="Internal server error. Infinite recursion detected.")
+     *          )
+     *      )
+     *
+     * )
+     *
+     *
+     * @SWG\Tag(name="Custom Objects")
+     * @Security(name="Bearer")
+     *
+     * @param Request $request
+     * @param CustomObject $customObject
+     * @return ApiErrorResponse|ApiResponse
+     * @throws \App\Exception\DataTransformerNotFoundException
+     * @throws \App\Exception\DtoNotFoundException
+     * @throws \ReflectionException
+     */
+    public function delete(Request $request, CustomObject $customObject) {
+
+        /** @var User $user */
+        $user = $this->getUser();
+
+        $version = $request->headers->get('X-Accept-Version');
+
+        // First transform the custom object to our DTO
+        /** @var Dto $dto */
+        $dto = $this->dtoFactory->create(DtoFactory::CUSTOM_OBJECT, $version, true);
+        /** @var DataTransformerInterface $dataTransformer */
+        $dataTransformer = $this->dataTransformerFactory->get($dto->getDataTransformer());
+        /** @var Dto $dto */
+        $dto = $dataTransformer->transform($customObject);
+
+        $this->entityManager->remove($customObject);
+        $this->entityManager->flush();
+
+        $json = $this->serializer->serialize(
+            $dto,
+            'json',
+            ['groups' => [Dto::GROUP_DEFAULT]]);
+
+        return new ApiResponse(null, $json,Response::HTTP_OK, [], true);
     }
 
     /**
