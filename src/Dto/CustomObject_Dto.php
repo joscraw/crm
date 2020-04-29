@@ -4,15 +4,20 @@ namespace App\Dto;
 
 use App\Annotation\Link;
 use App\Dto\DataTransformer\CustomObject_DtoTransformer;
+use App\Entity\Portal;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 use App\Http\Api;
 use App\Annotation\ApiVersion;
 use App\Annotation\Identifier;
+use App\Validator\Constraints as CustomAssert;
 
 /**
  * Class CustomObject
  * @package App\Dto
+ *
+ * @CustomAssert\CustomObjectLabelAlreadyExists(groups={Dto::GROUP_CREATE, Dto::GROUP_UPDATE})
+ *
  * @ApiVersion({Api::VERSION_1})
  * @Identifier({DtoFactory::CUSTOM_OBJECT})
  *
@@ -72,6 +77,8 @@ class CustomObject_Dto extends Dto
      */
     private $internalName;
 
+    private $portal;
+
     /**
      * @return string
      */
@@ -125,6 +132,18 @@ class CustomObject_Dto extends Dto
     public function setInternalName($internalName)
     {
         $this->internalName = $internalName;
+
+        return $this;
+    }
+
+    public function getPortal(): ?Portal
+    {
+        return $this->portal;
+    }
+
+    public function setPortal(Portal $portal): self
+    {
+        $this->portal = $portal;
 
         return $this;
     }

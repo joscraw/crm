@@ -25,21 +25,27 @@ class CustomObjectLabelAlreadyExistsValidator extends ConstraintValidator
     /**
      * @param mixed $protocol
      * @param Constraint $constraint
+     * @throws \Doctrine\ORM\NonUniqueResultException
      */
     public function validate($protocol, Constraint $constraint)
     {
         $label = $protocol->getLabel();
         $portal = $protocol->getPortal();
-        $customObjects = $this->customObjectRepository->findByLabelAndPortal($label, $portal);
+        $customObject = $this->customObjectRepository->findByLabelAndPortal($label, $portal);
 
-        foreach ($customObjects as $customObject) {
-            if ($customObject->getId() !== $protocol->getId()) {
-                $this->context->buildViolation($constraint->labelAlreadyExistsMessage)
-                    ->setParameter('{{ string }}', $label)
-                    ->setParameter('{{ string2 }}', $protocol->getLabel())
-                    ->atPath('label')
-                    ->addViolation();
-            }
+        if(!$customObject) {
+            return;
         }
+
+        if ($customObject->getId() === $protocol->getId()) {
+            return;
+        }
+
+        $this->context->buildViolation($constraint->labelAlreadyExistsMessage)
+            ->setParameter('{{ string }}', $label)
+            ->setParameter('{{ string2 }}', $protocol->getLabel())
+            ->atPath('label')
+            ->addViolation();
+
     }
 }

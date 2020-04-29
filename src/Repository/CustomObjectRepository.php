@@ -183,6 +183,7 @@ class CustomObjectRepository extends ServiceEntityRepository
      * @param $label
      * @param Portal $portal
      * @return mixed
+     * @throws \Doctrine\ORM\NonUniqueResultException
      */
     public function findByLabelAndPortal($label, Portal $portal)
     {
@@ -192,7 +193,7 @@ class CustomObjectRepository extends ServiceEntityRepository
             ->setParameter('label', $label)
             ->setParameter('portal', $portal->getId())
             ->getQuery()
-            ->getResult();
+            ->getOneOrNullResult();
     }
 
     /**

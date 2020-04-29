@@ -665,6 +665,17 @@ class CustomObjectController extends ApiController
         /** @var Dto $dto */
         $dto = $dataTransformer->transform($customObject);
 
+        // validate the object
+        $validationErrors = $this->validator->validate($dto, null, [Dto::GROUP_DELETE]);
+        if (count($validationErrors) > 0) {
+            return new ApiErrorResponse(
+                null,
+                ApiErrorResponse::TYPE_VALIDATION_ERROR,
+                $this->getErrorsFromValidator($validationErrors),
+                Response::HTTP_BAD_REQUEST
+            );
+        }
+
         $this->entityManager->remove($customObject);
         $this->entityManager->flush();
 
