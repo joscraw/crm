@@ -92,6 +92,11 @@ class Portal
     private $systemDefined = false;
 
     /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $name;
+
+    /**
      * @ORM\PrePersist
      */
     public function setInternalIdentifierValue()
@@ -475,6 +480,18 @@ class Portal
     public function setSystemDefined(?bool $systemDefined): self
     {
         $this->systemDefined = $systemDefined;
+
+        return $this;
+    }
+
+    public function getName(): ?string
+    {
+        return $this->name;
+    }
+
+    public function setName(?string $name): self
+    {
+        $this->name = $name;
 
         return $this;
     }

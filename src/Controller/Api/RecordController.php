@@ -161,19 +161,6 @@ class RecordController extends ApiController
      */
     public function editRecordAction(Portal $portal, CustomObject $customObject, Record $record, Request $request) {
 
-        $hasPermission = $this->permissionAuthorizationHandler->isAuthorized(
-            $this->getUser(),
-            sprintf('EDIT_%s', $customObject->getFormatForRole())
-        );
-
-        if(!$hasPermission) {
-            return new JsonResponse(
-                [
-                    'success' => false,
-                ], Response::HTTP_UNAUTHORIZED
-            );
-        }
-
         $properties = $this->propertyRepository->findBy([
             'customObject' => $customObject->getId()
         ]);
@@ -233,19 +220,6 @@ class RecordController extends ApiController
      * @return JsonResponse
      */
     public function createRecordAction(Portal $portal, CustomObject $customObject, Request $request) {
-
-        $hasPermission = $this->permissionAuthorizationHandler->isAuthorized(
-            $this->getUser(),
-            sprintf('CREATE_%s', $customObject->getFormatForRole())
-        );
-
-        if(!$hasPermission) {
-            return new JsonResponse(
-                [
-                    'success' => false,
-                ], Response::HTTP_UNAUTHORIZED
-            );
-        }
 
         $properties = $this->propertyRepository->findDefaultProperties($customObject);
         $record = new Record();

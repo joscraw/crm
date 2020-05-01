@@ -21,6 +21,7 @@ class DtoFactory
      * @var string
      */
     const CUSTOM_OBJECT = 'custom_object';
+    const ROLE = 'role';
     /**#@-*/
 
     /**
@@ -68,6 +69,7 @@ class DtoFactory
     public function create($identifier, $version, $instantiate = false) {
         switch ($identifier) {
             case self::CUSTOM_OBJECT:
+            case self::ROLE:
                 $dto = $this->fetchDtoFromIdentifierAndVersion($identifier, $version, $instantiate);
                 break;
             default:

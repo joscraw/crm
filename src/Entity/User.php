@@ -151,6 +151,11 @@ class User implements UserInterface
      */
     private $token;
 
+    /**
+     * @ORM\Column(type="array", nullable=true)
+     */
+    private $permissions = [];
+
     public function __construct()
     {
         $this->customRoles = new ArrayCollection();
@@ -506,6 +511,18 @@ class User implements UserInterface
     public function setToken(string $token): void
     {
         $this->token = $token;
+    }
+
+    public function getPermissions(): ?array
+    {
+        return $this->permissions;
+    }
+
+    public function setPermissions(?array $permissions): self
+    {
+        $this->permissions = $permissions;
+
+        return $this;
     }
 
 }

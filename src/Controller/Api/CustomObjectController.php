@@ -13,6 +13,7 @@ use App\Http\ApiResponse;
 use App\Model\CustomObjectField;
 use App\Model\FieldCatalog;
 use App\Model\Pagination\PaginationCollection;
+use App\Security\Auth\AttributeIdentity;
 use App\Utils\ServiceHelper;
 use Pagerfanta\Adapter\DoctrineORMAdapter;
 use Pagerfanta\Pagerfanta;
@@ -26,6 +27,11 @@ use Nelmio\ApiDocBundle\Annotation\Model;
 use Nelmio\ApiDocBundle\Annotation\Security;
 use App\Entity\CustomObject;
 use App\Http\Api;
+use Symfony\Component\Security\Acl\Domain\ObjectIdentity;
+use Symfony\Component\Security\Acl\Domain\UserSecurityIdentity;
+use Symfony\Component\Security\Acl\Model\AclProviderInterface;
+use Symfony\Component\Security\Acl\Permission\MaskBuilder;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
 
 /**
@@ -105,6 +111,13 @@ class CustomObjectController extends ApiController
      * )
      *
      * @SWG\Parameter(
+     *     name="limit",
+     *     in="query",
+     *     type="integer",
+     *     description="The number of results to return per page (leave empty to default to all)"
+     * )
+     *
+     * @SWG\Parameter(
      *     name="XDEBUG_SESSION_START",
      *     in="query",
      *     type="string",
@@ -137,13 +150,18 @@ class CustomObjectController extends ApiController
         $version = $request->headers->get('X-Accept-Version');
 
         $page = $request->query->get('page', 1);
+        $limit = $request->query->get('limit', null);
 
         $qb = $this->customObjectRepository->findAllQueryBuilder($user->getPortal());
 
         $adapter = new DoctrineORMAdapter($qb);
         $pagerfanta = new Pagerfanta($adapter);
         $pagerfanta->setAllowOutOfRangePages(true);
-        $pagerfanta->setMaxPerPage(10);
+
+        if($limit) {
+            $pagerfanta->setMaxPerPage($limit);
+        }
+
         $pagerfanta->setCurrentPage($page);
 
         $customObjects = [];
@@ -262,12 +280,13 @@ class CustomObjectController extends ApiController
      * @Security(name="Bearer")
      *
      * @param Request $request
+     * @param AclProviderInterface $aclProvider
      * @return ApiErrorResponse|ApiResponse
+     * @throws \App\Exception\DataTransformerNotFoundException
      * @throws \App\Exception\DtoNotFoundException
      * @throws \ReflectionException
-     * @throws \App\Exception\DataTransformerNotFoundException
      */
-    public function new(Request $request) {
+    public function new(Request $request, AclProviderInterface $aclProvider ) {
 
         /** @var User $user */
         $user = $this->getUser();
@@ -302,6 +321,22 @@ class CustomObjectController extends ApiController
         $customObject->setPortal($user->getPortal());
         $this->entityManager->persist($customObject);
         $this->entityManager->flush();
+
+        $attributeIdentity = new AttributeIdentity('CUSTOM_OBJECT');
+        $acl = $aclProvider->createAcl($attributeIdentity);
+
+        // creating the ACL
+        /*$objectIdentity = ObjectIdentity::fromDomainObject($customObject);
+        $acl = $aclProvider->createAcl($objectIdentity);*/
+
+        // retrieving the security identity of the currently logged-in user
+        $tokenStorage = $this->get('security.token_storage');
+        $user = $tokenStorage->getToken()->getUser();
+        $securityIdentity = UserSecurityIdentity::fromAccount($user);
+
+        // grant owner access
+        $acl->insertObjectAce($securityIdentity, MaskBuilder::MASK_OWNER);
+        $aclProvider->updateAcl($acl);
 
         $json = $this->serializer->serialize(
             $dataTransformer->transform($customObject),
@@ -397,12 +432,20 @@ class CustomObjectController extends ApiController
      *
      * @param Request $request
      * @param CustomObject $customObject
+     * @param AclProviderInterface $aclProvider
      * @return ApiErrorResponse|ApiResponse
+     * @throws \App\Exception\DataTransformerNotFoundException
      * @throws \App\Exception\DtoNotFoundException
      * @throws \ReflectionException
-     * @throws \App\Exception\DataTransformerNotFoundException
      */
-    public function view(Request $request, CustomObject $customObject) {
+    public function view(Request $request, CustomObject $customObject, AclProviderInterface $aclProvider) {
+
+        $authorizationChecker = $this->get('security.authorization_checker');
+
+        // check for edit access
+        if (false === $authorizationChecker->isGranted('EDIT', new AttributeIdentity('CUSTOM_OBJECT'))) {
+            throw new AccessDeniedException();
+        }
 
         /** @var User $user */
         $user = $this->getUser();

@@ -25,6 +25,7 @@ use App\Repository\UserRepository;
 use App\Repository\WorkflowRepository;
 use App\Http\SAML\IdpProvider;
 use App\Http\SAML\IdpTools;
+use App\Security\Auth\PermissionManager;
 use App\Security\Auth0Service;
 use App\Security\LoginFormAuthenticator;
 use App\Service\GmailProvider;
@@ -283,6 +284,10 @@ trait ServiceHelper
      */
     private $dataTransformerFactory;
 
+    /**
+     * @var PermissionManager
+     */
+    private $permissionManager;
 
     /**
      * ServiceHelper constructor.
@@ -333,6 +338,7 @@ trait ServiceHelper
      * @param Auth0Service $auth0Service
      * @param DtoFactory $dtoFactory
      * @param DataTransformerFactory $dataTransformerFactory
+     * @param PermissionManager $permissionManager
      */
     public function __construct(
         EntityManagerInterface $entityManager,
@@ -381,7 +387,8 @@ trait ServiceHelper
         IdpTools $idpTools,
         Auth0Service $auth0Service,
         DtoFactory $dtoFactory,
-        DataTransformerFactory $dataTransformerFactory
+        DataTransformerFactory $dataTransformerFactory,
+        PermissionManager $permissionManager
     ) {
         $this->entityManager = $entityManager;
         $this->assetsManager = $assetsManager;
@@ -430,8 +437,8 @@ trait ServiceHelper
         $this->auth0Service = $auth0Service;
         $this->dtoFactory = $dtoFactory;
         $this->dataTransformerFactory = $dataTransformerFactory;
+        $this->permissionManager = $permissionManager;
     }
-
 
     /**
      * Returns the site url

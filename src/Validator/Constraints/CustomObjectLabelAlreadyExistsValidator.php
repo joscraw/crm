@@ -29,6 +29,7 @@ class CustomObjectLabelAlreadyExistsValidator extends ConstraintValidator
      */
     public function validate($protocol, Constraint $constraint)
     {
+        return;
         $label = $protocol->getLabel();
         $portal = $protocol->getPortal();
         $customObject = $this->customObjectRepository->findByLabelAndPortal($label, $portal);

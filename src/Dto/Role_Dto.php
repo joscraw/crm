@@ -13,41 +13,39 @@ use App\Annotation\Identifier;
 use App\Validator\Constraints as CustomAssert;
 
 /**
- * Class CustomObject_Dto
+ * Class Role_Dto
  * @package App\Dto
  *
- * @CustomAssert\CustomObjectLabelAlreadyExists(groups={Dto::GROUP_CREATE, Dto::GROUP_UPDATE})
- *
  * @ApiVersion({Api::VERSION_1})
- * @Identifier({DtoFactory::CUSTOM_OBJECT})
+ * @Identifier({DtoFactory::ROLE})
  *
  *
  * @Link(
  *  rel= Api::LINK_NEW,
- *  href = "'/custom-objects/new'",
+ *  href = "'/roles/new'",
  *  scopes={"private"}
  * )
  *
  * @Link(
  *  rel= Api::LINK_VIEW,
- *  href = "'/custom-objects/' ~ object.getId() ~ '/view'",
+ *  href = "'/roles/' ~ object.getId() ~ '/view'",
  *  scopes={"private"}
  * )
  *
  * @Link(
  *  rel= Api::LINK_EDIT,
- *  href = "'/custom-objects/' ~ object.getId() ~ '/edit'",
+ *  href = "'/roles/' ~ object.getId() ~ '/edit'",
  *  scopes={"private"}
  * )
  *
  * @Link(
  *  rel= Api::LINK_DELETE,
- *  href = "'/custom-objects/' ~ object.getId() ~ '/delete'",
+ *  href = "'/roles/' ~ object.getId() ~ '/delete'",
  *  scopes={"private"}
  * )
  *
  */
-class CustomObject_Dto extends Dto
+class Role_Dto extends Dto
 {
     /**
      * @Groups({Dto::GROUP_DEFAULT})
@@ -59,23 +57,13 @@ class CustomObject_Dto extends Dto
     /**
      *
      * @Groups({Dto::GROUP_CREATE, Dto::GROUP_UPDATE, Dto::GROUP_DEFAULT})
-     * @Assert\NotBlank(message="Don't forget a label for your custom object.", groups={Dto::GROUP_CREATE, Dto::GROUP_UPDATE})
+     * @Assert\NotBlank(message="Don't forget a name for your role.", groups={Dto::GROUP_CREATE, Dto::GROUP_UPDATE})
      * @Assert\Regex("/^[a-zA-Z0-9_\s]*$/", message="Please only use letters, numbers, underscores and spaces.", groups={Dto::GROUP_CREATE, Dto::GROUP_UPDATE})
      *
      * @var string
      */
-    private $label;
+    private $name;
 
-    /**
-     * @Groups({Dto::GROUP_CREATE, Dto::GROUP_DEFAULT})
-     *
-     * internal name
-     *
-     * @Assert\Regex("/^[a-zA-Z0-9_]*$/", message="Please only use letters numbers and underscores.", groups={Dto::GROUP_CREATE, Dto::GROUP_UPDATE})
-     *
-     * @var string
-     */
-    private $internalName;
 
     private $portal;
 

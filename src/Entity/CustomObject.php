@@ -20,14 +20,18 @@ use Symfony\Component\Serializer\Annotation\Groups;
  * @CustomAssert\CustomObjectDeletion(groups={"DELETE"})
  * @CustomAssert\SystemDefined(groups={"FIRST"})
  */
-class CustomObject /*implements \JsonSerializable*/
+class CustomObject
 {
 
     use TimestampableEntity;
     use RandomStringGenerator;
 
+    const MASK_CREATE_RECORDS = 16;
+    const MASK_VIEW_RECORDS = 32;
+    const MASK_EDIT_RECORDS = 64;
+    const MASK_DELETE_RECORDS = 128;
+
     /**
-     * @Groups({"PROPERTY_FIELD_NORMALIZER", "PROPERTIES_FOR_FILTER", "CUSTOM_OBJECTS_FOR_FILTER", "REPORT", "LIST", "FORMS", "WORKFLOW_TRIGGER_DATA", "TRIGGER", "WORKFLOW", "v1"})
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
@@ -480,5 +484,4 @@ class CustomObject /*implements \JsonSerializable*/
 
         return $this;
     }
-
 }
