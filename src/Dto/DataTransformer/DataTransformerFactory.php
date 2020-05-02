@@ -42,7 +42,8 @@ class DataTransformerFactory implements ServiceSubscriberInterface
     public static function getSubscribedServices()
     {
         return [
-            CustomObject_DtoTransformer::class
+            CustomObject_DtoTransformer::class,
+            Role_DtoTransformer::class,
         ];
     }
 

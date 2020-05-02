@@ -3,14 +3,14 @@
 namespace App\Dto;
 
 use App\Annotation\Link;
-use App\Dto\DataTransformer\CustomObject_DtoTransformer;
+use App\Dto\DataTransformer\Role_DtoTransformer;
 use App\Entity\Portal;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 use App\Http\Api;
 use App\Annotation\ApiVersion;
 use App\Annotation\Identifier;
-use App\Validator\Constraints as CustomAssert;
+use Swagger\Annotations as SWG;
 
 /**
  * Class Role_Dto
@@ -50,11 +50,15 @@ class Role_Dto extends Dto
     /**
      * @Groups({Dto::GROUP_DEFAULT})
      *
-     * @var string
+     * @var integer
+     *
+     * @SWG\Property(property="id", type="integer", example=1)
      */
     public $id;
 
     /**
+     *
+     * @SWG\Property(property="name", type="string", example="My Custom Role")
      *
      * @Groups({Dto::GROUP_CREATE, Dto::GROUP_UPDATE, Dto::GROUP_DEFAULT})
      * @Assert\NotBlank(message="Don't forget a name for your role.", groups={Dto::GROUP_CREATE, Dto::GROUP_UPDATE})
@@ -64,11 +68,35 @@ class Role_Dto extends Dto
      */
     private $name;
 
+    /**
+     * @SWG\Property(property="permissions", type="object",
+     *      @SWG\Property(property="portal_*", type="integer", example=16),
+     *      @SWG\Property(property="portal_1_customobject_*", type="integer", example=2)
+     *
+     *  )
+     *
+     * @Groups({Dto::GROUP_CREATE, Dto::GROUP_UPDATE, Dto::GROUP_DEFAULT})
+     */
+    private $permissions = [];
+
+    /**
+     * @Groups({Dto::GROUP_DEFAULT})
+     *
+     * @SWG\Property(property="_links", type="object",
+     *      @SWG\Property(property="new", type="string", example="/api/v1/private/roles/new"),
+     *      @SWG\Property(property="view", type="string", example="/api/v1/private/roles/1/view"),
+     *      @SWG\Property(property="edit", type="string", example="/api/v1/private/roles/1/edit"),
+     *      @SWG\Property(property="delete", type="string", example="/api/v1/private/roles/1/delete")
+     *
+     *  )
+     */
+    protected $_links = [];
+
 
     private $portal;
 
     /**
-     * @return string
+     * @return integer
      */
     public function getId()
     {
@@ -76,8 +104,8 @@ class Role_Dto extends Dto
     }
 
     /**
-     * @param string $id
-     * @return CustomObject_Dto
+     * @param integer $id
+     * @return Role_Dto
      */
     public function setId($id)
     {
@@ -87,48 +115,17 @@ class Role_Dto extends Dto
     }
 
     /**
-     * @return string
+     * @return Portal|null
      */
-    public function getLabel()
-    {
-        return $this->label;
-    }
-
-    /**
-     * @param string $label
-     * @return CustomObject_Dto
-     */
-    public function setLabel($label)
-    {
-        $this->label = $label;
-
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public function getInternalName()
-    {
-        return $this->internalName;
-    }
-
-    /**
-     * @param string $internalName
-     * @return CustomObject_Dto
-     */
-    public function setInternalName($internalName)
-    {
-        $this->internalName = $internalName;
-
-        return $this;
-    }
-
     public function getPortal(): ?Portal
     {
         return $this->portal;
     }
 
+    /**
+     * @param Portal $portal
+     * @return Role_Dto
+     */
     public function setPortal(Portal $portal): self
     {
         $this->portal = $portal;
@@ -136,8 +133,42 @@ class Role_Dto extends Dto
         return $this;
     }
 
+    /**
+     * @return string
+     */
+    public function getName(): string
+    {
+        return $this->name;
+    }
+
+    /**
+     * @param string $name
+     * @return Role_Dto
+     */
+    public function setName(string $name): Role_Dto
+    {
+        $this->name = $name;
+
+        return $this;
+    }
+
+    public function getPermissions(): ?array
+    {
+        return $this->permissions;
+    }
+
+    public function setPermissions(?array $permissions): self
+    {
+        $this->permissions = $permissions;
+
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
     public function getDataTransformer()
     {
-        return CustomObject_DtoTransformer::class;
+        return Role_DtoTransformer::class;
     }
 }

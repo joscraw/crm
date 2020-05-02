@@ -7,7 +7,6 @@ use App\Entity\Portal;
 use App\Entity\Property;
 use App\Entity\PropertyGroup;
 use App\Entity\Record;
-use App\Exception\PermissionKeyNotFoundException;
 
 class PermissionManager
 {
@@ -32,25 +31,25 @@ class PermissionManager
      */
     public static $templates = [
 
-        Portal::class => [
+        'portal' => [
             'portal_*', // grants applied to all portals
             'portal_:portalid', // grants applied to a specific portal
         ],
 
-        CustomObject::class => [
+        'custom_object' => [
             'customobject_*', // grants applied to all custom objects
             'customobject_:customobjectid', // grants applied to a specific custom object
             'portal_:portalid_customobject_*', // grants applied to all custom objects in a specific portal
         ],
 
-        PropertyGroup::class => [
+        'property_group' => [
             'propertygroup_*', // grants applied to all property groups
             'propertygroup_:propertygroupid', // grants applied to a specific property group
             'portal_:portalid_propertygroup_*', // grants applied to all property groups in a specific portal
             'customobject_:customobjectid_propertygroup_*', // grants applied to all property groups in a specific custom object
         ],
 
-        Property::class => [
+        'property' => [
             'property_*', // grants applied to all properties
             'property_:propertyid', // grants applied to a specific property
             'portal_:portalid_property_*', // grants applied to all properties in a specific portal
@@ -58,7 +57,7 @@ class PermissionManager
             'propertygroup_:propertygroupid_property_*', // grants applied to all properties in a specific property group
         ],
 
-        Record::class => [
+        'record' => [
             'record_*', // grants applied to all records
             'record_:recordid', // grants applied to a specific record
             'portal_:portalid_record_*', // grants applied to all records in a specific portal
@@ -106,8 +105,6 @@ class PermissionManager
      *
      * @param null $object
      * @return mixed|string
-     * @throws PermissionKeyNotFoundException
-     * @throws \ReflectionException
      */
     public function getKeys($object = null) {
 
@@ -121,35 +118,32 @@ class PermissionManager
 
         if($object instanceof Portal) {
             $context['portalId'] = $object->getId();
+            $templates = self::$templates['portal'];
         } else if($object instanceof CustomObject) {
             $context['portalId'] = $object->getPortal()->getId();
             $context['customObjectId'] = $object->getId();
+            $templates = self::$templates['custom_object'];
         } else if($object instanceof PropertyGroup) {
             $context['portalId'] = $object->getCustomObject()->getPortal()->getId();
             $context['customObjectId'] = $object->getCustomObject()->getId();
             $context['propertyGroupId'] = $object->getId();
+            $templates = self::$templates['property_group'];
         } else if($object instanceof Property) {
             $context['portalId'] = $object->getPropertyGroup()->getCustomObject()->getPortal()->getId();
             $context['customObjectId'] = $object->getPropertyGroup()->getCustomObject()->getId();
             $context['propertyGroupId'] = $object->getPropertyGroup()->getId();
             $context['propertyId'] = $object->getId();
+            $templates = self::$templates['property'];
         } else if($object instanceof Record) {
             $context['portalId'] = $object->getCustomObject()->getPortal()->getId();
             $context['customObjectId'] = $object->getCustomObject()->getId();
             $context['recordId'] = $object->getId();
+            $templates = self::$templates['record'];
         } else if(is_string($object)) {
             return str_replace(" ", "_", $object);
         } else {
-            throw new PermissionKeyNotFoundException('Permissions keys not found for: $object');
+            return [];
         }
-
-        $reflectionClass = new \ReflectionClass($object);
-
-        if(!isset(self::$templates[$reflectionClass->getName()])) {
-            throw new PermissionKeyNotFoundException('Permissions keys not found for: $object');
-        }
-
-        $templates = self::$templates[$reflectionClass->getName()];
 
         $keys = [];
         foreach($templates as $template) {
@@ -241,17 +235,41 @@ class PermissionManager
 
     /**
      * Determines whether or not a permission set allows authorization for a given bit
-     *
-     * @param string $key
+     * @param $keys
      * @param int $bit
      * @param array $permissions
+     * @param bool $matchAll
      * @return bool
      */
-    public function isAuthorized(string $key, int $bit, array $permissions): bool {
-        if (is_array($permissions) && array_key_exists($key, $permissions)) {
-            return ($permissions[$key] & $bit) == $bit;
+    public function isAuthorized($keys, int $bit, array $permissions, $matchAll = true): bool {
+
+        $keys = is_array($keys) ? $keys : [$keys];
+
+        if($matchAll) {
+
+            foreach($keys as $key) {
+                if (!array_key_exists($key, $permissions)) {
+                    return false;
+                }
+
+                if (($permissions[$key] & $bit) != $bit) {
+                    return false;
+                }
+            }
+
+            return true;
+        } else {
+
+            foreach($keys as $key) {
+                if (array_key_exists($key, $permissions)) {
+                    if (($permissions[$key] & $bit) == $bit) {
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
-        return false;
+
     }
 
 }
