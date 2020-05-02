@@ -16,6 +16,7 @@ use App\Repository\GmailMessageRepository;
 use App\Repository\GmailAccountRepository;
 use App\Repository\GmailThreadRepository;
 use App\Repository\MarketingListRepository;
+use App\Repository\PortalRepository;
 use App\Repository\PropertyGroupRepository;
 use App\Repository\PropertyRepository;
 use App\Repository\RecordRepository;
@@ -25,11 +26,13 @@ use App\Repository\UserRepository;
 use App\Repository\WorkflowRepository;
 use App\Http\SAML\IdpProvider;
 use App\Http\SAML\IdpTools;
+use App\Security\Auth\PermissionManager;
 use App\Security\Auth0Service;
 use App\Security\LoginFormAuthenticator;
 use App\Service\GmailProvider;
 use App\Service\ImageCacheGenerator;
 use App\Service\PhpSpreadsheetHelper;
+use App\Service\PortalResolver;
 use App\Service\SessionStore;
 use App\Service\UploaderHelper;
 use Doctrine\ORM\EntityManagerInterface;
@@ -52,237 +55,251 @@ trait ServiceHelper
     /**
      * @var EntityManagerInterface
      */
-    private $entityManager;
+    protected $entityManager;
 
     /**
      * @var Packages
      */
-    private $assetsManager;
+    protected $assetsManager;
 
     /**
      * @var UserRepository
      */
-    private $userRepository;
+    protected $userRepository;
 
     /**
      * @var RouterInterface
      */
-    private $router;
+    protected $router;
 
     /**
      * @var ValidatorInterface $validator
      */
-    private $validator;
+    protected $validator;
 
     /**
      * @var GuardAuthenticatorHandler $guardHandler,
      */
-    private $guardHandler;
+    protected $guardHandler;
 
     /**
      * @var LoginFormAuthenticator $authenticator
      */
-    private $authenticator;
+    protected $authenticator;
 
     /**
      * @var Environment
      */
-    private $twig;
+    protected $twig;
 
     /**
      * @var TokenStorageInterface
      */
-    private $securityToken;
+    protected $securityToken;
 
     /**
      * @var SerializerInterface
      */
-    private $serializer;
+    protected $serializer;
 
     /**
      * @var UserPasswordEncoderInterface
      */
-    private $passwordEncoder;
+    protected $passwordEncoder;
 
     /**
      * @var UploaderHelper
      */
-    private $uploaderHelper;
+    protected $uploaderHelper;
 
     /**
      * @var RecordRepository
      */
-    private $recordRepository;
+    protected $recordRepository;
 
     /**
      * @var KernelInterface
      */
-    private $appKernel;
+    protected $appKernel;
 
     /**
      * @var CustomObjectRepository
      */
-    private $customObjectRepository;
+    protected $customObjectRepository;
 
     /**
      * @var PropertyRepository
      */
-    private $propertyRepository;
+    protected $propertyRepository;
 
     /**
      * @var PropertyGroupRepository
      */
-    private $propertyGroupRepository;
+    protected $propertyGroupRepository;
 
     /**
      * @var GmailProvider
      */
-    private $gmailProvider;
+    protected $gmailProvider;
     /**
      * @var SessionInterface
      */
-    private $session;
+    protected $session;
 
     /**
      * @var string
      */
-    private $uploadsPath;
+    protected $uploadsPath;
 
     /**
      * @var GmailAccountRepository
      */
-    private $gmailRepository;
+    protected $gmailRepository;
 
     /**
      * @var GmailThreadRepository
      */
-    private $gmailThreadRepository;
+    protected $gmailThreadRepository;
 
     /**
      * @var GmailMessageRepository
      */
-    private $gmailMessageRepository;
+    protected $gmailMessageRepository;
 
     /**
      * @var GmailAttachmentRepository
      */
-    private $gmailAttachmentRepository;
+    protected $gmailAttachmentRepository;
 
     /**
      * @var ApiTokenRepository
      */
-    private $apiTokenRepo;
+    protected $apiTokenRepo;
 
     /**
      * @var ImageCacheGenerator
      */
-    private $imageCacheGenerator;
+    protected $imageCacheGenerator;
 
     /**
      * @var CacheManager
      */
-    private $cacheManager;
+    protected $cacheManager;
 
     /**
      * @var PermissionAuthorizationHandler
      */
-    private $permissionAuthorizationHandler;
+    protected $permissionAuthorizationHandler;
 
     /**
      * @var FilterRepository
      */
-    private $filterRepository;
+    protected $filterRepository;
 
     /**
      * @var MessageBusInterface $bus
      */
-    private $bus;
+    protected $bus;
 
     /**
      * @var PhpSpreadsheetHelper;
      */
-    private $phpSpreadsheetHelper;
+    protected $phpSpreadsheetHelper;
 
     /**
      * @var UploaderHelper
      */
-    private $uploadHelper;
+    protected $uploadHelper;
 
     /**
      * @var ReportRepository
      */
-    private $reportRepository;
+    protected $reportRepository;
 
     /**
      * @var MarketingListRepository
      */
-    private $marketingListRepository;
+    protected $marketingListRepository;
 
     /**
      * @var FolderRepository
      */
-    private $folderRepository;
+    protected $folderRepository;
 
     /**
      * @var ListFolderBreadcrumbs
      */
-    private $folderBreadcrumbs;
+    protected $folderBreadcrumbs;
 
     /**
      * @var FormRepository
      */
-    private $formRepository;
+    protected $formRepository;
 
     /**
      * @var DenormalizerInterface
      */
-    private $denormalizer;
+    protected $denormalizer;
 
     /**
      * @var RoleRepository
      */
-    private $roleRepository;
+    protected $roleRepository;
 
     /**
      * @var WorkflowRepository
      */
-    private $workflowRepository;
+    protected $workflowRepository;
 
     /**
      * @var ResetPasswordMailer
      */
-    private $resetPasswordMailer;
+    protected $resetPasswordMailer;
 
     /**
      * @var SessionStore
      */
-    private $sessionStore;
+    protected $sessionStore;
 
     /**
      * @var IdpProvider
      */
-    private $idpProvider;
+    protected $idpProvider;
 
     /**
      * @var IdpTools
      */
-    private $idpTools;
+    protected $idpTools;
 
     /**
      * @var Auth0Service
      */
-    private $auth0Service;
+    protected $auth0Service;
 
     /**
      * @var DtoFactory
      */
-    private $dtoFactory;
+    protected $dtoFactory;
 
     /**
      * @var DataTransformerFactory
      */
-    private $dataTransformerFactory;
+    protected $dataTransformerFactory;
 
+    /**
+     * @var PermissionManager
+     */
+    protected $permissionManager;
+
+    /**
+     * @var PortalRepository
+     */
+    protected $portalRepository;
+
+    /**
+     * @var PortalResolver
+     */
+    protected $portalResolver;
 
     /**
      * ServiceHelper constructor.
@@ -333,6 +350,9 @@ trait ServiceHelper
      * @param Auth0Service $auth0Service
      * @param DtoFactory $dtoFactory
      * @param DataTransformerFactory $dataTransformerFactory
+     * @param PermissionManager $permissionManager
+     * @param PortalRepository $portalRepository
+     * @param PortalResolver $portalResolver
      */
     public function __construct(
         EntityManagerInterface $entityManager,
@@ -381,7 +401,10 @@ trait ServiceHelper
         IdpTools $idpTools,
         Auth0Service $auth0Service,
         DtoFactory $dtoFactory,
-        DataTransformerFactory $dataTransformerFactory
+        DataTransformerFactory $dataTransformerFactory,
+        PermissionManager $permissionManager,
+        PortalRepository $portalRepository,
+        PortalResolver $portalResolver
     ) {
         $this->entityManager = $entityManager;
         $this->assetsManager = $assetsManager;
@@ -430,6 +453,9 @@ trait ServiceHelper
         $this->auth0Service = $auth0Service;
         $this->dtoFactory = $dtoFactory;
         $this->dataTransformerFactory = $dataTransformerFactory;
+        $this->permissionManager = $permissionManager;
+        $this->portalRepository = $portalRepository;
+        $this->portalResolver = $portalResolver;
     }
 
 
@@ -448,7 +474,7 @@ trait ServiceHelper
         );
     }
 
-    private function createLinkUrl($targetPage, $route, $routeParams) {
+    protected function createLinkUrl($targetPage, $route, $routeParams) {
         return $this->router->generate($route, array_merge(
             $routeParams,
             array('page' => $targetPage)

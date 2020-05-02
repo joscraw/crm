@@ -46,7 +46,11 @@ class UserConverter implements ParamConverterInterface
     {
         $userId = $request->attributes->get('userId');
 
-        $user = $this->userRepository->find($userId);
+        if($userId) {
+            $user = $this->userRepository->find($userId);
+        } else {
+            return false;
+        }
 
         if(!$user) {
             return false;

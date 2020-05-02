@@ -3,6 +3,7 @@
 namespace App\Http;
 
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
 
 class ApiResponse extends JsonResponse
 {
@@ -18,7 +19,7 @@ class ApiResponse extends JsonResponse
      */
     public function __construct(string $message = null, $data = null, int $status = 200, array $headers = [], bool $json = false)
     {
-        parent::__construct($this->format($message, $data, $json), $status, $headers, $json);
+        parent::__construct($status !== Response::HTTP_NO_CONTENT ? $this->format($message, $data, $json) : null, $status, $headers, $json);
     }
 
     /**

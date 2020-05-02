@@ -92,6 +92,21 @@ class Portal
     private $systemDefined = false;
 
     /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $name;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Portal", inversedBy="childPortals")
+     */
+    private $parentPortal;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Portal", mappedBy="parentPortal")
+     */
+    private $childPortals;
+    
+    /**
      * @ORM\PrePersist
      */
     public function setInternalIdentifierValue()
@@ -119,6 +134,7 @@ class Portal
         $this->forms = new ArrayCollection();
         $this->workflows = new ArrayCollection();
         $this->gmailAttachments = new ArrayCollection();
+        $this->childPortals = new ArrayCollection();
     }
 
     /**
@@ -479,4 +495,58 @@ class Portal
         return $this;
     }
 
+    public function getName(): ?string
+    {
+        return $this->name;
+    }
+
+    public function setName(?string $name): self
+    {
+        $this->name = $name;
+
+        return $this;
+    }
+
+    public function getParentPortal(): ?self
+    {
+        return $this->parentPortal;
+    }
+
+    public function setParentPortal(?self $parentPortal): self
+    {
+        $this->parentPortal = $parentPortal;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|self[]
+     */
+    public function getChildPortals(): Collection
+    {
+        return $this->childPortals;
+    }
+
+    public function addChildPortal(self $childPortal): self
+    {
+        if (!$this->childPortals->contains($childPortal)) {
+            $this->childPortals[] = $childPortal;
+            $childPortal->setParentPortal($this);
+        }
+
+        return $this;
+    }
+
+    public function removeChildPortal(self $childPortal): self
+    {
+        if ($this->childPortals->contains($childPortal)) {
+            $this->childPortals->removeElement($childPortal);
+            // set the owning side to null (unless already changed)
+            if ($childPortal->getParentPortal() === $this) {
+                $childPortal->setParentPortal(null);
+            }
+        }
+
+        return $this;
+    }
 }

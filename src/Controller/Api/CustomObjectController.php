@@ -105,6 +105,13 @@ class CustomObjectController extends ApiController
      * )
      *
      * @SWG\Parameter(
+     *     name="limit",
+     *     in="query",
+     *     type="integer",
+     *     description="The number of results to return per page (leave empty to default to all)"
+     * )
+     *
+     * @SWG\Parameter(
      *     name="XDEBUG_SESSION_START",
      *     in="query",
      *     type="string",
@@ -136,14 +143,22 @@ class CustomObjectController extends ApiController
 
         $version = $request->headers->get('X-Accept-Version');
 
-        $page = $request->query->get('page', 1);
+        /** @var Portal $portal */
+        $portal = $this->portalResolver->resolve();
 
-        $qb = $this->customObjectRepository->findAllQueryBuilder($user->getPortal());
+        $page = $request->query->get('page', 1);
+        $limit = $request->query->get('limit', null);
+
+        $qb = $this->customObjectRepository->findAllQueryBuilder($portal);
 
         $adapter = new DoctrineORMAdapter($qb);
         $pagerfanta = new Pagerfanta($adapter);
         $pagerfanta->setAllowOutOfRangePages(true);
-        $pagerfanta->setMaxPerPage(10);
+
+        if($limit) {
+            $pagerfanta->setMaxPerPage($limit);
+        }
+
         $pagerfanta->setCurrentPage($page);
 
         $customObjects = [];
@@ -263,9 +278,9 @@ class CustomObjectController extends ApiController
      *
      * @param Request $request
      * @return ApiErrorResponse|ApiResponse
+     * @throws \App\Exception\DataTransformerNotFoundException
      * @throws \App\Exception\DtoNotFoundException
      * @throws \ReflectionException
-     * @throws \App\Exception\DataTransformerNotFoundException
      */
     public function new(Request $request) {
 
@@ -273,6 +288,9 @@ class CustomObjectController extends ApiController
         $user = $this->getUser();
 
         $version = $request->headers->get('X-Accept-Version');
+
+        /** @var Portal $portal */
+        $portal = $this->portalResolver->resolve();
 
         $dto = $this->dtoFactory->create(DtoFactory::CUSTOM_OBJECT, $version);
 
@@ -299,7 +317,7 @@ class CustomObjectController extends ApiController
         $dataTransformer = $this->dataTransformerFactory->get($dto->getDataTransformer());
         /** @var CustomObject $customObject */
         $customObject = $dataTransformer->reverseTransform($dto);
-        $customObject->setPortal($user->getPortal());
+        $customObject->setPortal($portal);
         $this->entityManager->persist($customObject);
         $this->entityManager->flush();
 
@@ -398,9 +416,9 @@ class CustomObjectController extends ApiController
      * @param Request $request
      * @param CustomObject $customObject
      * @return ApiErrorResponse|ApiResponse
+     * @throws \App\Exception\DataTransformerNotFoundException
      * @throws \App\Exception\DtoNotFoundException
      * @throws \ReflectionException
-     * @throws \App\Exception\DataTransformerNotFoundException
      */
     public function view(Request $request, CustomObject $customObject) {
 
@@ -491,6 +509,17 @@ class CustomObjectController extends ApiController
      *              @SWG\Property(property="message", type="string", example="JWT expired. Please request a refresh.")
      *          )
      *     ),
+     *
+     *     @SWG\Response(
+     *         response=404,
+     *         description="Not found",
+     *         @SWG\Schema(
+     *              type="object",
+     *              format="json",
+     *              @SWG\Property(property="message", type="string", example="Not found.")
+     *         )
+     *     ),
+     *
      *     @SWG\Response(
      *          response=500,
      *          description="Internal Server Error",

@@ -26,6 +26,23 @@ class Api
     back like this: 'Your custom object was successfully created'. 
     These is what status codes are for.";
 
+    /**
+     * You could create separate description properties for each
+     * Section if you wanted as well if you don't want to be so repetitive
+     * @var string
+     */
+    public const PERMISSION_DESCRIPTION = "Returns all the avialable permissions in the platform.
+    NOTE: This example response is NOT all inclusive, sp please call this endpoint to get a full list of templates.
+    (*) - refers to all resources of that class. (:resourceId) - refers to a specific resource of that class. 
+    Classes are denoted by 2 underscores. One prepended and one appended onto the class name itself. 
+    The response is sectioned off into groups to help the end user mentally categorize the templates. 
+    Templates under the portal/custom_object,etc keys are templates that can be used for portal/custom_object,etc resources only. 
+    Templates under object_specific are templates that can be used for objects only. 
+    Templates under class_specific are templates that can only be used for classes. Templates under hybrid are 
+    almost a hybrid of object_specific and class specific and make use of both * and :resourceId. Templates
+    under attribute_specific are not connected to resources at all and are used as more of a boolean permission. 
+    can_login, can_manage_permissions, etc";
+
 
     public const VERSION_1 = 'v1';
     public const VERSION_2 = 'v2';

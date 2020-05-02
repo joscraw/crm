@@ -11,9 +11,10 @@ use App\Http\Api;
 use App\Annotation\ApiVersion;
 use App\Annotation\Identifier;
 use App\Validator\Constraints as CustomAssert;
+use Swagger\Annotations as SWG;
 
 /**
- * Class CustomObject
+ * Class CustomObject_Dto
  * @package App\Dto
  *
  * @CustomAssert\CustomObjectLabelAlreadyExists(groups={Dto::GROUP_CREATE, Dto::GROUP_UPDATE})
@@ -50,6 +51,8 @@ use App\Validator\Constraints as CustomAssert;
 class CustomObject_Dto extends Dto
 {
     /**
+     * @SWG\Property(property="id", type="integer", example=1)
+     *
      * @Groups({Dto::GROUP_DEFAULT})
      *
      * @var string
@@ -57,6 +60,8 @@ class CustomObject_Dto extends Dto
     public $id;
 
     /**
+     *
+     * @SWG\Property(property="label", type="string", example="My Custom Object")
      *
      * @Groups({Dto::GROUP_CREATE, Dto::GROUP_UPDATE, Dto::GROUP_DEFAULT})
      * @Assert\NotBlank(message="Don't forget a label for your custom object.", groups={Dto::GROUP_CREATE, Dto::GROUP_UPDATE})
@@ -67,6 +72,8 @@ class CustomObject_Dto extends Dto
     private $label;
 
     /**
+     * @SWG\Property(property="internalName", type="string", example="my_custom_object")
+     *
      * @Groups({Dto::GROUP_CREATE, Dto::GROUP_DEFAULT})
      *
      * internal name
@@ -136,11 +143,18 @@ class CustomObject_Dto extends Dto
         return $this;
     }
 
+    /**
+     * @return Portal|null
+     */
     public function getPortal(): ?Portal
     {
         return $this->portal;
     }
 
+    /**
+     * @param Portal $portal
+     * @return CustomObject_Dto
+     */
     public function setPortal(Portal $portal): self
     {
         $this->portal = $portal;
@@ -148,6 +162,9 @@ class CustomObject_Dto extends Dto
         return $this;
     }
 
+    /**
+     * @return string
+     */
     public function getDataTransformer()
     {
         return CustomObject_DtoTransformer::class;

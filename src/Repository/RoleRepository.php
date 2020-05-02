@@ -49,6 +49,18 @@ class RoleRepository extends ServiceEntityRepository
     }
     */
 
+    public function findAllQueryBuilder(Portal $portal = null)
+    {
+        $queryBuilder = $this->createQueryBuilder('role');
+
+        if($portal) {
+            $queryBuilder->where('role.portal = :portal')
+                ->setParameter('portal', $portal);
+        }
+
+        return $queryBuilder;
+    }
+
     /**
      * @param Portal $portal
      * @return mixed

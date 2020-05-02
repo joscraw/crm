@@ -50,24 +50,6 @@ class UserController extends ApiController
             ]
         );
 
-        if($form->isSubmitted()) {
-
-            $hasPermission = $this->permissionAuthorizationHandler->isAuthorized(
-                $this->getUser(),
-                Role::CREATE_USER,
-                Role::SYSTEM_PERMISSION
-            );
-
-            if(!$hasPermission) {
-                return new JsonResponse(
-                    [
-                        'success' => false,
-                    ], Response::HTTP_UNAUTHORIZED
-                );
-            }
-
-        }
-
         if ($form->isSubmitted() && !$form->isValid()) {
 
 
@@ -127,23 +109,6 @@ class UserController extends ApiController
             ]
         );
 
-        if($form->isSubmitted()) {
-
-            $hasPermission = $this->permissionAuthorizationHandler->isAuthorized(
-                $this->getUser(),
-                Role::EDIT_USER,
-                Role::SYSTEM_PERMISSION
-            );
-
-            if(!$hasPermission) {
-                return new JsonResponse(
-                    [
-                        'success' => false,
-                    ], Response::HTTP_UNAUTHORIZED
-                );
-            }
-
-        }
 
         if ($form->isSubmitted() && !$form->isValid()) {
 

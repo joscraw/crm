@@ -46,11 +46,17 @@ class RoleConverter implements ParamConverterInterface
     {
         $roleId = $request->attributes->get('roleId');
 
-        $role = $this->roleRepository->find($roleId);
+        if($roleId) {
+            $role = $this->roleRepository->find($roleId);
 
-        if(!$role) {
+            if(!$role) {
+                return false;
+            }
+
+        } else {
             return false;
         }
+
 
         $request->attributes->set($configuration->getName(), $role);
 

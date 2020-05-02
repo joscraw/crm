@@ -67,11 +67,14 @@ class CustomObjectConverter implements ParamConverterInterface
         $portalInternalIdentifier = $request->attributes->get('internalIdentifier');
         $customObjectInternalName = $request->attributes->get('internalName');
 
-
-        $customObject = $this->customObjectRepository->findByInternalNameAndPortalInternalIdentifier(
-            $customObjectInternalName,
-            $portalInternalIdentifier
-        );
+        if($portalInternalIdentifier && $customObjectInternalName) {
+            $customObject = $this->customObjectRepository->findByInternalNameAndPortalInternalIdentifier(
+                $customObjectInternalName,
+                $portalInternalIdentifier
+            );
+        } else {
+            return false;
+        }
 
         if(!$customObject) {
             return false;
