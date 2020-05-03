@@ -4,6 +4,13 @@
 7. install messenger component https://symfony.com/doc/current/messenger.html
 
 
+Make sure to add
+
+127.0.0.1 crm.dev
+127.0.0.1 www.crm.dev
+into your vagrant /etc/hosts for curl requests to work from inside your app to your own app
+as you do with phpunit testing to test your api routes.
+
 
     Make sure you setup nscs/nscs-bundle as a private repo 
     https://getcomposer.org/doc/05-repositories.md#using-private-repositories

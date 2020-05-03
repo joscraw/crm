@@ -85,6 +85,7 @@ class Auth {
 
     logIn() {
         debugger;
+        // this is referred to as an implicit grant/implicit flow
         this.auth0.authorize({
             connection: AUTH0_CONNECTION
         });
