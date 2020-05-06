@@ -15,6 +15,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
  */
 class Portal
 {
+    use TimestampableEntity;
     use RandomStringGenerator;
 
     /**
@@ -96,16 +97,6 @@ class Portal
      */
     private $name;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Portal", inversedBy="childPortals")
-     */
-    private $parentPortal;
-
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Portal", mappedBy="parentPortal")
-     */
-    private $childPortals;
-    
     /**
      * @ORM\PrePersist
      */
@@ -503,49 +494,6 @@ class Portal
     public function setName(?string $name): self
     {
         $this->name = $name;
-
-        return $this;
-    }
-
-    public function getParentPortal(): ?self
-    {
-        return $this->parentPortal;
-    }
-
-    public function setParentPortal(?self $parentPortal): self
-    {
-        $this->parentPortal = $parentPortal;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|self[]
-     */
-    public function getChildPortals(): Collection
-    {
-        return $this->childPortals;
-    }
-
-    public function addChildPortal(self $childPortal): self
-    {
-        if (!$this->childPortals->contains($childPortal)) {
-            $this->childPortals[] = $childPortal;
-            $childPortal->setParentPortal($this);
-        }
-
-        return $this;
-    }
-
-    public function removeChildPortal(self $childPortal): self
-    {
-        if ($this->childPortals->contains($childPortal)) {
-            $this->childPortals->removeElement($childPortal);
-            // set the owning side to null (unless already changed)
-            if ($childPortal->getParentPortal() === $this) {
-                $childPortal->setParentPortal(null);
-            }
-        }
 
         return $this;
     }

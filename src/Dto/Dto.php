@@ -12,34 +12,24 @@ abstract class Dto
     public const GROUP_UPDATE = 'update';
     public const GROUP_DELETE = 'delete';
 
-    /**
-     * @Groups({Dto::GROUP_DEFAULT})
-     *
-     * @SWG\Property(property="_links", type="object",
-     *      @SWG\Property(property="new", type="string", example="/api/v1/private/custom-objects/new"),
-     *      @SWG\Property(property="view", type="string", example="/api/v1/private/custom-objects/1/view"),
-     *      @SWG\Property(property="edit", type="string", example="/api/v1/private/custom-objects/1/edit"),
-     *      @SWG\Property(property="delete", type="string", example="/api/v1/private/custom-objects/1/delete")
-     *
-     *  )
-     */
-    protected $_links = [];
-
     abstract public function getDataTransformer();
 
+    protected $_links = [];
+
+    /**
+     * @return mixed
+     */
     public function getLinks()
     {
         return $this->_links;
     }
 
     /**
-     * @param $links
-     * @return Dto
+     * @param mixed $links
      */
-    public function setLinks($links)
+    public function setLinks($links): void
     {
         $this->_links = $links;
-
-        return $this;
     }
+
 }

@@ -4,13 +4,13 @@ namespace App\Dto;
 
 use App\Annotation\Link;
 use App\Dto\DataTransformer\Role_DtoTransformer;
-use App\Entity\Portal;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 use App\Http\Api;
 use App\Annotation\ApiVersion;
 use App\Annotation\Identifier;
 use Swagger\Annotations as SWG;
+use App\Validator\Constraints as CustomAssert;
 
 /**
  * Class Role_Dto
@@ -58,26 +58,25 @@ class Role_Dto extends Dto
 
     /**
      *
-     * @SWG\Property(property="name", type="string", example="My Custom Role")
+     * @SWG\Property(property="name", type="string", example="Accountant")
      *
      * @Groups({Dto::GROUP_CREATE, Dto::GROUP_UPDATE, Dto::GROUP_DEFAULT})
      * @Assert\NotBlank(message="Don't forget a name for your role.", groups={Dto::GROUP_CREATE, Dto::GROUP_UPDATE})
-     * @Assert\Regex("/^[a-zA-Z0-9_\s]*$/", message="Please only use letters, numbers, underscores and spaces.", groups={Dto::GROUP_CREATE, Dto::GROUP_UPDATE})
      *
      * @var string
      */
     private $name;
 
     /**
-     * @SWG\Property(property="permissions", type="object",
-     *      @SWG\Property(property="portal_*", type="integer", example=16),
-     *      @SWG\Property(property="portal_1_customobject_*", type="integer", example=2)
      *
-     *  )
+     * @SWG\Property(property="description", type="string", example="Read only access to invoice objects.")
      *
      * @Groups({Dto::GROUP_CREATE, Dto::GROUP_UPDATE, Dto::GROUP_DEFAULT})
+     *
+     * @var string
      */
-    private $permissions = [];
+    private $description;
+
 
     /**
      * @Groups({Dto::GROUP_DEFAULT})
@@ -93,7 +92,16 @@ class Role_Dto extends Dto
     protected $_links = [];
 
 
-    private $portal;
+    /**
+     * @SWG\Property(property="internalIdentifier", type="integer", example=9874561920)
+     *
+     * @Groups({Dto::GROUP_CREATE, Dto::GROUP_DEFAULT})
+     *
+     * @CustomAssert\PortalNotFoundForInternalIdentifier(groups={Dto::GROUP_CREATE})
+     *
+     * @var integer
+     */
+    private $internalIdentifier;
 
     /**
      * @return integer
@@ -110,25 +118,6 @@ class Role_Dto extends Dto
     public function setId($id)
     {
         $this->id = $id;
-
-        return $this;
-    }
-
-    /**
-     * @return Portal|null
-     */
-    public function getPortal(): ?Portal
-    {
-        return $this->portal;
-    }
-
-    /**
-     * @param Portal $portal
-     * @return Role_Dto
-     */
-    public function setPortal(Portal $portal): self
-    {
-        $this->portal = $portal;
 
         return $this;
     }
@@ -152,16 +141,36 @@ class Role_Dto extends Dto
         return $this;
     }
 
-    public function getPermissions(): ?array
+    /**
+     * @return string
+     */
+    public function getDescription(): ?string
     {
-        return $this->permissions;
+        return $this->description;
     }
 
-    public function setPermissions(?array $permissions): self
+    /**
+     * @param string $description
+     */
+    public function setDescription(?string $description): void
     {
-        $this->permissions = $permissions;
+        $this->description = $description;
+    }
 
-        return $this;
+    /**
+     * @return int
+     */
+    public function getInternalIdentifier(): ?int
+    {
+        return $this->internalIdentifier;
+    }
+
+    /**
+     * @param int $internalIdentifier
+     */
+    public function setInternalIdentifier(?int $internalIdentifier): void
+    {
+        $this->internalIdentifier = $internalIdentifier;
     }
 
     /**

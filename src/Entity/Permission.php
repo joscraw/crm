@@ -2,48 +2,17 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Gedmo\Timestampable\Traits\TimestampableEntity;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\PermissionRepository")
  */
 class Permission
 {
-
-    const CREATE = 1;
-    const VIEW = 2;
-    const EDIT = 4;
-    const DELETE = 8;
-    const ALL = 16;
-
-    public static $attributePermissions = [
-        'Can Login'
-    ];
-
-    public static $permissionKeyMap = [
-        [
-            'key' => 'custom_object',
-            'description' => 'Custom object permissions.',
-            'bits' => [
-                  ['grant' => 'CREATE', 'bit' => self::CREATE],
-                  ['grant' => 'VIEW', 'bit' => self::VIEW],
-                  ['grant' => 'EDIT', 'bit' => self::EDIT],
-                  ['grant' => 'DELETE', 'bit' => self::DELETE],
-                  ['grant' => 'ALL', 'bit' => self::ALL],
-          ]
-      ],
-        [
-            'key' => 'property',
-            'description' => 'Property permissions.',
-            'bits' => [
-                ['grant' => 'CREATE', 'bit' => self::CREATE],
-                ['grant' => 'VIEW', 'bit' => self::VIEW],
-                ['grant' => 'EDIT', 'bit' => self::EDIT],
-                ['grant' => 'DELETE', 'bit' => self::DELETE],
-                ['grant' => 'ALL', 'bit' => self::ALL],
-            ]
-        ]
-    ];
+    use TimestampableEntity;
 
     /**
      * @ORM\Id()
@@ -53,32 +22,80 @@ class Permission
     private $id;
 
     /**
-     * @ORM\Column(type="json", nullable=true)
+     * @ORM\Column(type="string", length=255)
      */
-    private $data = [];
+    private $scope;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $description;
+
+    /**
+     * @ORM\ManyToMany(targetEntity="App\Entity\Role", mappedBy="permissions")
+     */
+    private $roles;
+
+    public function __construct()
+    {
+        $this->roles = new ArrayCollection();
+    }
+    
 
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getData(): ?array
+    public function getScope(): ?string
     {
-        return $this->data;
+        return $this->scope;
     }
 
-    public function setData(?array $data): self
+    public function setScope(string $scope): self
     {
-        $this->data = $data;
+        $this->scope = $scope;
 
         return $this;
     }
 
-    public function getBit(string $key, int $bit): bool {
-        if (is_array($this->data) && array_key_exists($key, $this->data)) {
-            return ($this->data[$key] & $bit) == $bit;
-        }
-        return false;
+    public function getDescription(): ?string
+    {
+        return $this->description;
     }
 
+    public function setDescription(?string $description): self
+    {
+        $this->description = $description;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Role[]
+     */
+    public function getRoles(): Collection
+    {
+        return $this->roles;
+    }
+
+    public function addRole(Role $role): self
+    {
+        if (!$this->roles->contains($role)) {
+            $this->roles[] = $role;
+            $role->addPermission($this);
+        }
+
+        return $this;
+    }
+
+    public function removeRole(Role $role): self
+    {
+        if ($this->roles->contains($role)) {
+            $this->roles->removeElement($role);
+            $role->removePermission($this);
+        }
+
+        return $this;
+    }
 }

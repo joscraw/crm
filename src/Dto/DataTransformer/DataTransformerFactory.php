@@ -44,6 +44,9 @@ class DataTransformerFactory implements ServiceSubscriberInterface
         return [
             CustomObject_DtoTransformer::class,
             Role_DtoTransformer::class,
+            User_DtoTransformer::class,
+            Portal_DtoTransformer::class,
+            Permission_DtoTransformer:: class
         ];
     }
 

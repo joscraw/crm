@@ -1,2 +1,2 @@
 hautelook_alice:
-    fixtures_path: src/DataFixtures/Nelmio
+  fixtures_path: src/DataFixtures/Nelmio

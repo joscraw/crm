@@ -5,6 +5,7 @@ namespace App\Http\Request;
 use App\Annotation\ApiVersion;
 use App\Http\Api;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class RequestListener
 {

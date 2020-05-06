@@ -7,6 +7,7 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
+use Symfony\Contracts\HttpClient\Exception\HttpExceptionInterface;
 
 class ApiExceptionSubscriber implements EventSubscriberInterface
 {
@@ -35,6 +36,8 @@ class ApiExceptionSubscriber implements EventSubscriberInterface
         // If they do not have their own, fall back to a plain old 500
         if(method_exists($e, 'getStatusCode')) {
             $statusCode = $e->getStatusCode();
+        } else if ($e instanceof HttpExceptionInterface) {
+            $statusCode = $e->getCode();
         } else {
             $statusCode = Response::HTTP_INTERNAL_SERVER_ERROR;
         }

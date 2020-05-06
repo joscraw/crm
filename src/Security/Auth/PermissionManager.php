@@ -7,6 +7,9 @@ use App\Entity\Portal;
 use App\Entity\Property;
 use App\Entity\PropertyGroup;
 use App\Entity\Record;
+use App\Entity\Role;
+use App\Repository\PermissionRepository;
+use App\Repository\PortalRepository;
 
 class PermissionManager
 {
@@ -97,6 +100,20 @@ class PermissionManager
         ]
 
     ];
+
+    /**
+     * @var PermissionRepository
+     */
+    private $permissionRepository;
+
+    /**
+     * PermissionManager constructor.
+     * @param PermissionRepository $permissionRepository
+     */
+    public function __construct(PermissionRepository $permissionRepository)
+    {
+        $this->permissionRepository = $permissionRepository;
+    }
 
     /**
      * Return the key used in the permission mapping. The key itself
@@ -270,6 +287,28 @@ class PermissionManager
             return false;
         }
 
+    }
+
+    /**
+     * @param Portal $portal
+     * @return Role
+     */
+    public function configureSuperAdminRole(?Portal $portal = null): Role {
+
+        $role = new Role();
+        $role->setName('ROLE_SUPER_ADMIN')
+            ->setDescription('Super Admin Role');
+
+        if($portal) {
+            $role->setPortal($portal);
+        }
+
+        $permissions = $this->permissionRepository->findAll();
+        foreach($permissions as $permission) {
+            $role->addPermission($permission);
+        }
+
+        return $role;
     }
 
 }

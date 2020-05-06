@@ -8,8 +8,8 @@ use Symfony\Component\Validator\Constraint;
 /**
  * @Annotation
  */
-class EmailExists extends Constraint
+class EmailAlreadyExists extends Constraint
 {
-    public $message = 'Please enter a valid email address.';
+    public $message = 'Email is already in use by another user.';
 
 }

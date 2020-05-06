@@ -6,7 +6,6 @@ use App\AuthorizationHandler\PermissionAuthorizationHandler;
 use App\Dto\DataTransformer\DataTransformerFactory;
 use App\Dto\DtoFactory;
 use App\Mailer\ResetPasswordMailer;
-use App\Repository\ApiTokenRepository;
 use App\Repository\CustomObjectRepository;
 use App\Repository\FilterRepository;
 use App\Repository\FolderRepository;
@@ -16,6 +15,7 @@ use App\Repository\GmailMessageRepository;
 use App\Repository\GmailAccountRepository;
 use App\Repository\GmailThreadRepository;
 use App\Repository\MarketingListRepository;
+use App\Repository\PermissionRepository;
 use App\Repository\PortalRepository;
 use App\Repository\PropertyGroupRepository;
 use App\Repository\PropertyRepository;
@@ -27,7 +27,9 @@ use App\Repository\WorkflowRepository;
 use App\Http\SAML\IdpProvider;
 use App\Http\SAML\IdpTools;
 use App\Security\Auth\PermissionManager;
+use App\Security\Auth0MgmtApi;
 use App\Security\Auth0Service;
+use App\Security\AuthenticationApi;
 use App\Security\LoginFormAuthenticator;
 use App\Service\GmailProvider;
 use App\Service\ImageCacheGenerator;
@@ -172,11 +174,6 @@ trait ServiceHelper
     protected $gmailAttachmentRepository;
 
     /**
-     * @var ApiTokenRepository
-     */
-    protected $apiTokenRepo;
-
-    /**
      * @var ImageCacheGenerator
      */
     protected $imageCacheGenerator;
@@ -302,6 +299,21 @@ trait ServiceHelper
     protected $portalResolver;
 
     /**
+     * @var Auth0MgmtApi
+     */
+    protected $auth0MgmtApi;
+
+    /**
+     * @var AuthenticationApi
+     */
+    protected $authenticationApi;
+
+    /**
+     * @var PermissionRepository
+     */
+    protected $permissionRepository;
+
+    /**
      * ServiceHelper constructor.
      * @param EntityManagerInterface $entityManager
      * @param Packages $assetsManager
@@ -327,7 +339,6 @@ trait ServiceHelper
      * @param GmailThreadRepository $gmailThreadRepository
      * @param GmailMessageRepository $gmailMessageRepository
      * @param GmailAttachmentRepository $gmailAttachmentRepository
-     * @param ApiTokenRepository $apiTokenRepo
      * @param ImageCacheGenerator $imageCacheGenerator
      * @param CacheManager $cacheManager
      * @param PermissionAuthorizationHandler $permissionAuthorizationHandler
@@ -353,6 +364,9 @@ trait ServiceHelper
      * @param PermissionManager $permissionManager
      * @param PortalRepository $portalRepository
      * @param PortalResolver $portalResolver
+     * @param Auth0MgmtApi $auth0MgmtApi
+     * @param AuthenticationApi $authenticationApi
+     * @param PermissionRepository $permissionRepository
      */
     public function __construct(
         EntityManagerInterface $entityManager,
@@ -379,7 +393,6 @@ trait ServiceHelper
         GmailThreadRepository $gmailThreadRepository,
         GmailMessageRepository $gmailMessageRepository,
         GmailAttachmentRepository $gmailAttachmentRepository,
-        ApiTokenRepository $apiTokenRepo,
         ImageCacheGenerator $imageCacheGenerator,
         CacheManager $cacheManager,
         PermissionAuthorizationHandler $permissionAuthorizationHandler,
@@ -404,7 +417,10 @@ trait ServiceHelper
         DataTransformerFactory $dataTransformerFactory,
         PermissionManager $permissionManager,
         PortalRepository $portalRepository,
-        PortalResolver $portalResolver
+        PortalResolver $portalResolver,
+        Auth0MgmtApi $auth0MgmtApi,
+        AuthenticationApi $authenticationApi,
+        PermissionRepository $permissionRepository
     ) {
         $this->entityManager = $entityManager;
         $this->assetsManager = $assetsManager;
@@ -430,7 +446,6 @@ trait ServiceHelper
         $this->gmailThreadRepository = $gmailThreadRepository;
         $this->gmailMessageRepository = $gmailMessageRepository;
         $this->gmailAttachmentRepository = $gmailAttachmentRepository;
-        $this->apiTokenRepo = $apiTokenRepo;
         $this->imageCacheGenerator = $imageCacheGenerator;
         $this->cacheManager = $cacheManager;
         $this->permissionAuthorizationHandler = $permissionAuthorizationHandler;
@@ -456,8 +471,10 @@ trait ServiceHelper
         $this->permissionManager = $permissionManager;
         $this->portalRepository = $portalRepository;
         $this->portalResolver = $portalResolver;
+        $this->auth0MgmtApi = $auth0MgmtApi;
+        $this->authenticationApi = $authenticationApi;
+        $this->permissionRepository = $permissionRepository;
     }
-
 
     /**
      * Returns the site url

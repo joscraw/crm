@@ -1,0 +1,28 @@
+# In the future when you migrate these to production applications
+# you should create a migration class to add the permissions
+# as fixtures should not be run in production
+App\Entity\Permission:
+    permission_1:
+        scope: 'create:custom_objects'
+        description: 'create custom objects'
+    permission_2:
+      scope: 'update:custom_objects'
+      description: 'update custom objects'
+    permission_3:
+      scope: 'read:custom_objects'
+      description: 'read custom objects'
+    permission_4:
+      scope: 'delete:custom_objects'
+      description: 'delete custom objects'
+    permission_5:
+      scope: 'create:scopes'
+      description: 'create scopes'
+    permission_6:
+      scope: 'update:scopes'
+      description: 'update scopes'
+    permission_7:
+      scope: 'read:scopes'
+      description: 'read scopes'
+    permission_8:
+      scope: 'delete:scopes'
+      description: 'delete scopes'

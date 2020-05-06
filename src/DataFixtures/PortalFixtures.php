@@ -5,7 +5,7 @@ namespace App\DataFixtures;
 use App\Entity\Folder;
 use App\Entity\Portal;
 use Doctrine\Bundle\FixturesBundle\Fixture;
-use Doctrine\Common\Persistence\ObjectManager;
+use Doctrine\Persistence\ObjectManager;
 
 class PortalFixtures extends Fixture
 {

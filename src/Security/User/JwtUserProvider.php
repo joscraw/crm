@@ -41,7 +41,8 @@ class JwtUserProvider implements JWTUserProviderInterface
             $user->setToken($jwt['token']);
         }
 
-        $user->addRoles($this->getRoles($jwt));
+        // Most of the secured api routes require this role.
+        $user->addRole('ROLE_ADMIN_USER');
 
         return $user;
 
@@ -54,53 +55,11 @@ class JwtUserProvider implements JWTUserProviderInterface
 
     public function refreshUser(UserInterface $user)
     {
-        // our api is stateless, so there will be no serializing/refreshing user object to/from the session
-        throw new UnsupportedUserException();
+        return $user;
     }
 
     public function supportsClass($class)
     {
         return $class === User::class;
-    }
-
-    /**
-     * Returns the roles for the user.
-     *
-     * @param array $jwt
-     * @return array
-     */
-    private function getRoles(array $jwt)
-    {
-        return array_merge(
-            [
-                'ROLE_JWT_AUTHENTICATED',
-            ],
-            $this->getScopesFromJwtAsRoles($jwt)
-        );
-    }
-
-    /**
-     * Returns the scopes from the JSON Web Token as Symfony roles prefixed with 'ROLE_JWT_SCOPE_'.
-     *
-     * @param array $jwt
-     * @return array
-     */
-    private function getScopesFromJwtAsRoles(array $jwt)
-    {
-        if (!isset($jwt['scope'])) {
-            return [];
-        }
-
-        $scopes = explode(' ', $jwt['scope']);
-        $roles = array_map(
-            function ($scope) {
-                $roleSuffix = strtoupper(str_replace([':', '-'], '_', $scope));
-
-                return sprintf('ROLE_JWT_SCOPE_%s', $roleSuffix);
-            },
-            $scopes
-        );
-
-        return $roles;
     }
 }

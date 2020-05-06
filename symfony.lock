@@ -104,15 +104,6 @@
     "egulias/email-validator": {
         "version": "2.1.7"
     },
-    "excelwebzone/recaptcha-bundle": {
-        "version": "1.5",
-        "recipe": {
-            "repo": "github.com/symfony/recipes-contrib",
-            "branch": "master",
-            "version": "1.5",
-            "ref": "fd4da7bc71749db65bc83abf5d164bfa9c839cf4"
-        }
-    },
     "exsyst/swagger": {
         "version": "v0.4.1"
     },
@@ -167,15 +158,6 @@
     "google/auth": {
         "version": "v1.6.1"
     },
-    "google/recaptcha": {
-        "version": "1.1",
-        "recipe": {
-            "repo": "github.com/symfony/recipes-contrib",
-            "branch": "master",
-            "version": "1.1",
-            "ref": "155d19cc6b4fddd9393064f553bdbe3f2f16c918"
-        }
-    },
     "guzzlehttp/guzzle": {
         "version": "6.5.2"
     },
@@ -214,6 +196,18 @@
     "lexik/form-filter-bundle": {
         "version": "v5.0.7"
     },
+    "lexik/jwt-authentication-bundle": {
+        "version": "2.5",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "master",
+            "version": "2.5",
+            "ref": "5b2157bcd5778166a5696e42f552ad36529a07a6"
+        },
+        "files": [
+            "config/packages/lexik_jwt_authentication.yaml"
+        ]
+    },
     "lightsaml/lightsaml": {
         "version": "1.4.1"
     },
@@ -241,6 +235,9 @@
     },
     "myclabs/deep-copy": {
         "version": "1.9.5"
+    },
+    "namshi/jose": {
+        "version": "7.2.3"
     },
     "nelmio/alice": {
         "version": "3.2",

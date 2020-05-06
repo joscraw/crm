@@ -41,7 +41,17 @@ class Api
     Templates under class_specific are templates that can only be used for classes. Templates under hybrid are 
     almost a hybrid of object_specific and class specific and make use of both * and :resourceId. Templates
     under attribute_specific are not connected to resources at all and are used as more of a boolean permission. 
-    can_login, can_manage_permissions, etc";
+    can_login, can_manage_permissions, etc.";
+
+    public const SECURITY_CONTROLLER_SIGN_UP = "Sign up a user. This adds them to a given portal and the default 
+    auth0 connection for the application. If the portalInternalIdentifier is excluded from the call, 
+    the user will be granted access to all portals in the application.";
+
+    public const PERMISSION_CONTROLLER_ROLE_NEW = "Creates a new role in the platform.";
+
+    public const PERMISSION_CONTROLLER_ROLE_EDIT = "Edits a role in the platform.";
+
+    public const PERMISSION_CONTROLLER_ROLE_PERMISSIONS_ADD = "Add permissions to a role in the platform.";
 
 
     public const VERSION_1 = 'v1';
@@ -49,6 +59,7 @@ class Api
 
     public const SCOPE_PRIVATE = 'private';
     public const SCOPE_PUBLIC = 'public';
+    public const SCOPE_MARKETING = 'marketing';
 
     public const LINK_VIEW = 'view';
     public const LINK_EDIT = 'edit';
@@ -62,6 +73,7 @@ class Api
 
     public static $scopes = [
         self::SCOPE_PRIVATE,
-        self::SCOPE_PUBLIC
+        self::SCOPE_PUBLIC,
+        self::SCOPE_MARKETING
     ];
 }

@@ -2,8 +2,6 @@
 
 namespace App\Entity;
 
-use App\Model\FieldCatalog;
-use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -11,22 +9,15 @@ use Gedmo\Timestampable\Traits\TimestampableEntity;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 use App\Validator\Constraints as CustomAssert;
-use App\Validator\Constraints\PasswordsMustMatch;
 use Symfony\Component\Serializer\Annotation\Groups;
-use Rollerworks\Component\PasswordStrength\Validator\Constraints as RollerworksPassword;
-
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\UserRepository")
- * @CustomAssert\PasswordsMustMatch(groups={"CREATE", "EDIT"})
  */
 class User implements UserInterface
 {
 
     use TimestampableEntity;
-
-    const ROLE_ADMIN_USER = 'ROLE_ADMIN_USER';
-
 
     /**
      * @Groups({"USERS_FOR_DATATABLE"})
@@ -45,48 +36,6 @@ class User implements UserInterface
     private $email;
 
     /**
-     * @ORM\Column(type="json")
-     */
-    private $roles = [];
-
-    /**
-     * @RollerworksPassword\PasswordRequirements(requireLetters=true, requireNumbers=true, requireCaseDiff=true, requireSpecialCharacter= true, minLength = "6", groups={"CREATE", "EDIT"})
-     * @Assert\NotBlank(message="Don't forget a password for your user!", groups={"CREATE"})
-     *
-     * @var string The hashed password
-     * @ORM\Column(type="string", nullable=true)
-     */
-    private $password;
-
-    /**
-     * isActive
-     *
-     * Flag indicating whether the user is active.
-     *
-     * @Groups({"USERS_FOR_DATATABLE"})
-     *
-     * @ORM\Column(name="is_active", type="boolean", nullable=false)
-     */
-    private $isActive = false;
-
-    /**
-     * isActive
-     *
-     * Flag indicating whether the user is an admin user
-     *
-     * @Groups({"USERS_FOR_DATATABLE"})
-     *
-     * @ORM\Column(name="is_admin_user", type="boolean", nullable=false)
-     */
-    private $isAdminUser = false;
-
-    /**
-     * @Assert\NotBlank(message="Don't forget the password repeat field!", groups={"CREATE"})
-     * @var string password repeat
-     */
-    private $passwordRepeat;
-
-    /**
      * @Groups({"USERS_FOR_DATATABLE"})
      * @Assert\NotBlank(message="Don't forget a first name for your user!", groups={"CREATE", "EDIT"})
      *
@@ -103,41 +52,14 @@ class User implements UserInterface
     private $lastName;
 
     /**
-     * @ORM\Column(type="string", length=64, nullable=true)
-     */
-    private $passwordResetToken;
-
-    /**
-     * @ORM\Column(type="datetime", nullable=true)
-     */
-    private $passwordResetTokenTimestamp;
-
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Portal", inversedBy="users")
-     * @ORM\JoinColumn(nullable=true)
-     */
-    private $portal;
-
-    /**
      *
      * @Groups({"USERS_FOR_DATATABLE"})
      *
      * @Assert\Count(min = 1, minMessage = "You must select at least one role!", groups={"CREATE", "EDIT"})
      *
-     * @ORM\ManyToMany(targetEntity="App\Entity\Role", inversedBy="users")
+     * @ORM\ManyToMany(targetEntity="App\Entity\Role", inversedBy="users", cascade={"persist"})
      */
     private $customRoles;
-
-    /**
-     * @ORM\Column(type="boolean")
-     */
-    private $emailVerified;
-
-    /**
-     * @RollerworksPassword\PasswordRequirements(requireLetters=true, requireNumbers=true, requireCaseDiff=true, requireSpecialCharacter= true, minLength = "6", groups={"CREATE", "EDIT"})
-     * @Assert\NotBlank(message="Don't forget a password for your user!", groups={"CREATE"})
-     */
-    private $plainPassword;
 
     /**
      * This is the auth0 user id
@@ -152,13 +74,19 @@ class User implements UserInterface
     private $token;
 
     /**
-     * @ORM\Column(type="array", nullable=true)
+     * @var array
      */
-    private $permissions = [];
+    private $roles = [];
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\AclSecurityIdentity", mappedBy="user")
+     */
+    private $aclSecurityIdentities;
 
     public function __construct()
     {
         $this->customRoles = new ArrayCollection();
+        $this->aclSecurityIdentities = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -179,64 +107,16 @@ class User implements UserInterface
     }
 
     /**
-     * A visual identifier that represents this user.
+     * Returns the password used to authenticate the user.
      *
-     * @see UserInterface
+     * This should be the encoded password. On authentication, a plain-text
+     * password will be salted, encoded, and then compared to this value.
+     *
+     * @return string|null The encoded password if any
      */
-    public function getUsername(): string
+    public function getPassword()
     {
-        return (string) $this->email;
-    }
-
-    /**
-     * @see UserInterface
-     */
-    public function getRoles(): array
-    {
-        $roles = $this->roles;
-        // guarantee every user at least has ROLE_USER
-        $roles[] = 'ROLE_USER';
-
-        return array_unique($roles);
-    }
-
-    /**
-     * @param $roles
-     * @return User
-     */
-    public function addRoles($roles)
-    {
-        $roles = !is_array($roles) ? [$roles] : $roles;
-
-        foreach($roles as $role) {
-            $this->roles[] = $role;
-        }
-
-        $this->roles = array_unique($this->roles);
-
-        return $this;
-    }
-
-    public function setRoles(array $roles): self
-    {
-        $this->roles = $roles;
-
-        return $this;
-    }
-
-    /**
-     * @see UserInterface
-     */
-    public function getPassword(): string
-    {
-        return (string) $this->password;
-    }
-
-    public function setPassword(?string $password): self
-    {
-        $this->password = $password;
-
-        return $this;
+        return null;
     }
 
     /**
@@ -244,7 +124,50 @@ class User implements UserInterface
      */
     public function getSalt()
     {
-        // not needed when using the "bcrypt" algorithm in security.yaml
+        return null;
+    }
+
+    /**
+     * A visual identifier that represents this user.
+     *
+     * @see UserInterface
+     */
+    public function getUsername(): string
+    {
+        // todo follow this https://auth0.com/blog/developing-modern-apps-with-symfony-and-react/
+        // todo and implement equitable interface.
+
+        return (string) $this->email;
+    }
+
+    /**
+     * We use dynamic roles from the db so we proxy those from customRoles
+     *
+     * @see UserInterface
+     */
+    public function getRoles(): array
+    {
+        $roles = $this->customRoles->map(function(Role $role) {
+            return $role->getName();
+        });
+
+        $roles = $roles->toArray();
+
+        // guarantee every user at least has ROLE_USER
+        $roles[] = 'ROLE_USER';
+
+        $roles = array_merge($this->roles, $roles);
+
+        return array_unique($roles);
+    }
+
+    public function addRole($role) {
+
+        if(!in_array($role, $this->roles)) {
+            $this->roles[] = $role;
+        }
+
+        return $this;
     }
 
     /**
@@ -281,95 +204,6 @@ class User implements UserInterface
     }
 
     /**
-     * @return string
-     */
-    public function getPasswordRepeat(): ?string
-    {
-        return $this->passwordRepeat;
-    }
-
-    /**
-     * @param string $passwordRepeat
-     */
-    public function setPasswordRepeat(?string $passwordRepeat): void
-    {
-        $this->passwordRepeat = $passwordRepeat;
-    }
-
-    public function getPasswordResetToken(): ?string
-    {
-        return $this->passwordResetToken;
-    }
-
-    /**
-     * @param string $passwordResetToken
-     * @return User
-     * @throws \Exception
-     */
-    public function setPasswordResetToken($passwordResetToken = null)
-    {
-        if (empty($passwordResetToken)) {
-            $passwordResetToken = bin2hex(random_bytes(32));
-        }
-
-        if (strlen($passwordResetToken) !== 64) {
-            throw new \InvalidArgumentException('Reset token must be 64 characters in length');
-        }
-
-        $this->passwordResetToken = $passwordResetToken;
-
-        $this->setPasswordResetTokenTimestamp();
-
-        return $this;
-    }
-
-    public function getPasswordResetTokenTimestamp(): ?\DateTimeInterface
-    {
-        return $this->passwordResetTokenTimestamp;
-    }
-
-    /**
-     * @param DateTime $passwordResetTokenTimestamp
-     * @return User
-     * @throws \Exception
-     */
-    public function setPasswordResetTokenTimestamp(DateTime $passwordResetTokenTimestamp = null)
-    {
-        if (empty($passwordResetTokenTimestamp)) {
-            $passwordResetTokenTimestamp = new DateTime();
-        }
-
-        $this->passwordResetTokenTimestamp = $passwordResetTokenTimestamp;
-
-        return $this;
-    }
-
-    /**
-     * Clear out password reset token related fields
-     *
-     * @return User
-     */
-    public function clearPasswordResetToken()
-    {
-        $this->passwordResetToken          = null;
-        $this->passwordResetTokenTimestamp = null;
-
-        return $this;
-    }
-
-    public function getPortal(): ?Portal
-    {
-        return $this->portal;
-    }
-
-    public function setPortal(?Portal $portal): self
-    {
-        $this->portal = $portal;
-
-        return $this;
-    }
-
-    /**
      * @return Collection|Role[]
      */
     public function getCustomRoles(): Collection
@@ -391,96 +225,6 @@ class User implements UserInterface
         if ($this->customRoles->contains($customRole)) {
             $this->customRoles->removeElement($customRole);
         }
-
-        return $this;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function isActive()
-    {
-        return $this->isActive;
-    }
-
-    /**
-     * @param mixed $isActive
-     */
-    public function setIsActive($isActive): void
-    {
-        $this->isActive = $isActive;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function isAdminUser()
-    {
-        return $this->isAdminUser;
-    }
-
-    /**
-     * @param mixed $isAdminUser
-     */
-    public function setIsAdminUser($isAdminUser): void
-    {
-        $this->isAdminUser = $isAdminUser;
-    }
-
-    /**
-     * We check here for existence of a permission on a user
-     *
-     * @param $permission
-     * @param $permissionType
-     * @return bool
-     */
-    public function hasPermission($permission, $permissionType) {
-
-        foreach($this->getCustomRoles() as $customRole) {
-
-            switch ($permissionType) {
-
-                case Role::OBJECT_PERMISSION:
-                    $permissions = new ArrayCollection($customRole->getObjectPermissions());
-                    break;
-
-                case Role::SYSTEM_PERMISSION:
-                    $permissions = new ArrayCollection($customRole->getSystemPermissions());
-                    break;
-            }
-
-            $exists =  $permissions->exists(function($key, $element) use ($permission){
-                return $element === $permission || $element === 'ALL';
-            });
-
-            if($exists) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    public function getEmailVerified(): ?bool
-    {
-        return $this->emailVerified;
-    }
-
-    public function setEmailVerified(?bool $emailVerified): self
-    {
-        $this->emailVerified = $emailVerified;
-
-        return $this;
-    }
-
-    public function getPlainPassword(): ?string
-    {
-        return $this->plainPassword;
-    }
-
-    public function setPlainPassword(?string $plainPassword): self
-    {
-        $this->plainPassword = $plainPassword;
 
         return $this;
     }
@@ -513,14 +257,33 @@ class User implements UserInterface
         $this->token = $token;
     }
 
-    public function getPermissions(): ?array
+    /**
+     * @return Collection|AclSecurityIdentity[]
+     */
+    public function getAclSecurityIdentities(): Collection
     {
-        return $this->permissions;
+        return $this->aclSecurityIdentities;
     }
 
-    public function setPermissions(?array $permissions): self
+    public function addAclSecurityIdentity(AclSecurityIdentity $aclSecurityIdentity): self
     {
-        $this->permissions = $permissions;
+        if (!$this->aclSecurityIdentities->contains($aclSecurityIdentity)) {
+            $this->aclSecurityIdentities[] = $aclSecurityIdentity;
+            $aclSecurityIdentity->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAclSecurityIdentity(AclSecurityIdentity $aclSecurityIdentity): self
+    {
+        if ($this->aclSecurityIdentities->contains($aclSecurityIdentity)) {
+            $this->aclSecurityIdentities->removeElement($aclSecurityIdentity);
+            // set the owning side to null (unless already changed)
+            if ($aclSecurityIdentity->getUser() === $this) {
+                $aclSecurityIdentity->setUser(null);
+            }
+        }
 
         return $this;
     }

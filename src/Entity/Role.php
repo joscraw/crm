@@ -30,25 +30,40 @@ class Role
     private $name;
 
     /**
+     * When this is null the role applies to every portal in the application
+     *
      * @ORM\ManyToOne(targetEntity="App\Entity\Portal", inversedBy="roles")
-     * @ORM\JoinColumn(nullable=false)
+     * @ORM\JoinColumn(nullable=true)
      */
     private $portal;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\User", mappedBy="customRoles")
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $description;
+
+    /**
+     * @ORM\ManyToMany(targetEntity="App\Entity\User", mappedBy="roles")
      */
     private $users;
 
     /**
-     * @ORM\Column(type="array", nullable=true)
+     * @ORM\ManyToMany(targetEntity="App\Entity\Permission", inversedBy="roles")
      */
-    private $permissions = [];
+    private $permissions;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\AclSecurityIdentity", mappedBy="role")
+     */
+    private $aclSecurityIdentities;
 
     public function __construct()
     {
         $this->users = new ArrayCollection();
+        $this->permissions = new ArrayCollection();
+        $this->aclSecurityIdentities = new ArrayCollection();
     }
+
 
     public function getId(): ?int
     {
@@ -75,6 +90,18 @@ class Role
     public function setPortal(?Portal $portal): self
     {
         $this->portal = $portal;
+
+        return $this;
+    }
+
+    public function getDescription(): ?string
+    {
+        return $this->description;
+    }
+
+    public function setDescription(?string $description): self
+    {
+        $this->description = $description;
 
         return $this;
     }
@@ -107,15 +134,61 @@ class Role
         return $this;
     }
 
-    public function getPermissions(): ?array
+    /**
+     * @return Collection|Permission[]
+     */
+    public function getPermissions(): Collection
     {
         return $this->permissions;
     }
 
-    public function setPermissions(?array $permissions): self
+    public function addPermission(Permission $permission): self
     {
-        $this->permissions = $permissions;
+        if (!$this->permissions->contains($permission)) {
+            $this->permissions[] = $permission;
+        }
 
         return $this;
     }
+
+    public function removePermission(Permission $permission): self
+    {
+        if ($this->permissions->contains($permission)) {
+            $this->permissions->removeElement($permission);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|AclSecurityIdentity[]
+     */
+    public function getAclSecurityIdentities(): Collection
+    {
+        return $this->aclSecurityIdentities;
+    }
+
+    public function addAclSecurityIdentity(AclSecurityIdentity $aclSecurityIdentity): self
+    {
+        if (!$this->aclSecurityIdentities->contains($aclSecurityIdentity)) {
+            $this->aclSecurityIdentities[] = $aclSecurityIdentity;
+            $aclSecurityIdentity->setRole($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAclSecurityIdentity(AclSecurityIdentity $aclSecurityIdentity): self
+    {
+        if ($this->aclSecurityIdentities->contains($aclSecurityIdentity)) {
+            $this->aclSecurityIdentities->removeElement($aclSecurityIdentity);
+            // set the owning side to null (unless already changed)
+            if ($aclSecurityIdentity->getRole() === $this) {
+                $aclSecurityIdentity->setRole(null);
+            }
+        }
+
+        return $this;
+    }
+
 }

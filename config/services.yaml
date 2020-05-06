@@ -5,7 +5,6 @@
 # https://symfony.com/doc/current/best_practices/configuration.html#application-related-configuration
 parameters:
     locale: 'en'
-    google_recaptcha_site_key: '%env(GOOGLE_RECAPTCHA_SITE_KEY)%'
     uploads_dir_name: 'uploads'
     uploads_base_url: '%env(SITE_BASE_URL)%/%uploads_dir_name%'
     site_base_url: '%env(SITE_BASE_URL)%'
@@ -15,6 +14,10 @@ parameters:
     auth0_domain: '%env(AUTH0_DOMAIN)%'
     auth0_connection: '%env(AUTH0_CONNECTION)%'
     auth0_audience: '%env(AUTH0_AUDIENCE)%'
+    auth0_management_client_id: '%env(AUTH0_MANAGEMENT_CLIENT_ID)%'
+    auth0_management_client_secret: '%env(AUTH0_MANAGEMENT_CLIENT_SECRET)%'
+    auth0_management_audience: '%env(AUTH0_MANAGEMENT_AUDIENCE)%'
+
 
 services:
     # default configuration for services in *this* file
@@ -37,6 +40,9 @@ services:
           $auth0Domain: '%auth0_domain%'
           $auth0Connection: '%auth0_connection%'
           $auth0Audience: '%auth0_audience%'
+          $auth0ManagementClientId: '%auth0_management_client_id%'
+          $auth0ManagementClientSecret: '%auth0_management_client_secret%'
+          $auth0ManagementAudience: '%auth0_management_audience%'
 
     # makes classes in src/ available to be used as services
     # this creates a service per class whose id is the fully-qualified class name
@@ -95,6 +101,7 @@ services:
 
     app.security.private_api_request_matcher: '@App\Security\PrivateApiRequestMatcher'
     app.security.main_request_matcher: '@App\Security\MainRequestMatcher'
+    app.security.marketing_request_matcher: '@App\Security\MarketingRequestMatcher'
 
     app.user_repository:
       class: Doctrine\ORM\EntityRepository
@@ -115,6 +122,17 @@ services:
       class: App\Security\JWTGuardAuthenticator
       arguments:
         - "@app.auth0_service"
+
+    app.api_key_user_provider:
+      class: App\Security\User\ApiKeyUserProvider
+      arguments:
+        - "@app.auth0_service"
+        - "@app.user_repository"
+
+    app.api_key_guard_authenticator:
+      class: App\Security\ApiKeyGuardAuthenticator
+      arguments:
+        - "@lexik_jwt_authentication.encoder.lcobucci"
 
     App\Http\Routing\ApiLoader:
       tags: [routing.loader]

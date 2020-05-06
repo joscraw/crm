@@ -8,7 +8,9 @@ class CustomObjectControllerTest extends ApiTestCase
 {
     public function testNewCustomObject() {
 
-        self::bootKernel();
+
+        // test accessing this endpoint without property permissions and with proper permissions as well
+
 
         // returns the real and unchanged service container
         /*$container = self::$kernel->getContainer();*/
@@ -16,9 +18,8 @@ class CustomObjectControllerTest extends ApiTestCase
         // gets the special container that allows fetching private services
         $clientId = self::$container->getParameter('auth0_client_id');
 
-        die($clientId);
+        //die($clientId);
 
-        $accessToken = $this->getAccessToken();
 
        /* echo $accessToken;
 
@@ -44,7 +45,7 @@ class CustomObjectControllerTest extends ApiTestCase
         $response = $client->post('/api/v1/private/custom-objects/new?verbosity=fddsds', [
             'body' => json_encode($data),
             'headers' => [
-                'Authorization' => 'Bearer ' . $accessToken,
+                'Authorization' => 'Bearer ' . $this->userAccessToken,
                 'Accept'        => 'application/json',
             ]
         ]);

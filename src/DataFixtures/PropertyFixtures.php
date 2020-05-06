@@ -7,7 +7,7 @@ use App\Model\FieldCatalog;
 use App\Model\SingleLineTextField;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
-use Doctrine\Common\Persistence\ObjectManager;
+use Doctrine\Persistence\ObjectManager;
 
 class PropertyFixtures extends Fixture implements DependentFixtureInterface
 {

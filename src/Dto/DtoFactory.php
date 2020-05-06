@@ -22,6 +22,10 @@ class DtoFactory
      */
     const CUSTOM_OBJECT = 'custom_object';
     const ROLE = 'role';
+    const USER = 'user';
+    const PORTAL = 'portal';
+    const SIGN_UP = 'sign_up';
+    const PERMISSION = 'permission';
     /**#@-*/
 
     /**
@@ -70,6 +74,10 @@ class DtoFactory
         switch ($identifier) {
             case self::CUSTOM_OBJECT:
             case self::ROLE:
+            case self::USER:
+            case self::PORTAL:
+            case self::SIGN_UP:
+            case self::PERMISSION:
                 $dto = $this->fetchDtoFromIdentifierAndVersion($identifier, $version, $instantiate);
                 break;
             default:

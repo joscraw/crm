@@ -87,6 +87,19 @@ class CustomObject_Dto extends Dto
     private $portal;
 
     /**
+     * @Groups({Dto::GROUP_DEFAULT})
+     *
+     * @SWG\Property(property="_links", type="object",
+     *      @SWG\Property(property="new", type="string", example="/api/v1/private/custom-objects/new"),
+     *      @SWG\Property(property="view", type="string", example="/api/v1/private/custom-objects/1/view"),
+     *      @SWG\Property(property="edit", type="string", example="/api/v1/private/custom-objects/1/edit"),
+     *      @SWG\Property(property="delete", type="string", example="/api/v1/private/custom-objects/1/delete")
+     *
+     *  )
+     */
+    protected $_links = [];
+
+    /**
      * @return string
      */
     public function getId()

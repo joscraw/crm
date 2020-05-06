@@ -16,19 +16,184 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Response;
 
+
+use App\Annotation\ApiRoute;
+use App\Dto\CustomObject_Dto;
+use App\Dto\Dto;
+use App\Dto\DtoFactory;
+use App\Http\ApiErrorResponse;
+use App\Http\ApiResponse;
+use App\Model\CustomObjectField;
+use App\Model\Pagination\PaginationCollection;
+use Pagerfanta\Adapter\DoctrineORMAdapter;
+use Pagerfanta\Pagerfanta;
+use Symfony\Component\Form\DataTransformerInterface;
+use Swagger\Annotations as SWG;
+use Nelmio\ApiDocBundle\Annotation\Model;
+use Nelmio\ApiDocBundle\Annotation\Security;
+use App\Entity\CustomObject;
+use App\Http\Api;
+use App\Dto\User_Dto;
+
 /**
  * Class UserController
  * @package App\Controller\Api
  *
- * @Route("{internalIdentifier}/api/users")
- *
  */
 class UserController extends ApiController
 {
-    use ServiceHelper;
 
     /**
-     * @Route("/create", name="create_user", methods={"GET", "POST"}, options = { "expose" = true })
+     * Creates a User
+     *
+     * Creates a user in the platform and in auth0.
+     *
+     * @ApiRoute("/users/new", name="user_new", methods={"POST"}, versions={"v1"}, scopes={"private"})
+     *
+     * @SWG\Post(
+     *     description=Api::DESCRIPTION,
+     *     consumes={"application/json"},
+     *     produces={"application/json"},
+     *
+     *     @SWG\Parameter(
+     *         name="body",
+     *         in="body",
+     *         required=true,
+     *         description="JSON payload",
+     *         format="application/json",
+     *         @Model(type=User_Dto::class, groups={Dto::GROUP_CREATE})
+     *     ),
+     *
+     *    @SWG\Parameter(
+     *     name="XDEBUG_SESSION_START",
+     *     in="query",
+     *     type="string",
+     *     description="Triggers an Xdebug Session",
+     *     default="PHPSTORM"
+     *    ),
+     *
+     *    @SWG\Parameter(
+     *     name="verbosity",
+     *     in="query",
+     *     type="string",
+     *     description="Set any value here for a more descriptive error message in the response. Should only be used for debugging purposes only and never in production!"
+     *    ),
+     *
+     *     @SWG\Response(
+     *          response=201,
+     *          description="Returns a newly created user",
+     *          @SWG\Schema(
+     *              type="object",
+     *              @SWG\Property(property="data", ref=@Model(type=User_Dto::class, groups={Dto::GROUP_DEFAULT}))
+     *          ),
+     *          @SWG\Header(
+     *              header="Location",
+     *              description="The location to the newly created resource",
+     *              type="string"
+     *          )
+     *     ),
+     *
+     *     @SWG\Response(
+     *         response=400,
+     *         description="Validation errors.",
+     *         @SWG\Schema(
+     *              type="object",
+     *              @SWG\Property(property="message", type="string", example="There was a validation error"),
+     *              @SWG\Property(property="code", type="string", example="validation_error"),
+     *              @SWG\Property(property="errors", type="object",
+     *                    @SWG\Property(property="label", type="array",
+     *                          @SWG\Items(type="string", example="Please don't forget a label for your custom object.")
+     *                     ),
+     *                     @SWG\Property(property="internal_name", type="array",
+     *                          @SWG\Items(type="string", example="Please don't forget to add an internal name for your custom object.")
+     *                     )
+     *              )
+     *         )
+     *     ),
+     *
+     *     @SWG\Response(
+     *          response=401,
+     *          description="Unauthorized",
+     *          @SWG\Schema(
+     *              type="object",
+     *              format="json",
+     *              @SWG\Property(property="message", type="string", example="JWT expired. Please request a refresh.")
+     *          )
+     *     ),
+     *     @SWG\Response(
+     *          response=500,
+     *          description="Internal Server Error",
+     *          @SWG\Schema(
+     *              type="object",
+     *              format="json",
+     *              @SWG\Property(property="message", type="string", example="Internal server error. Infinite recursion detected.")
+     *          )
+     *    )
+     *
+     * )
+     *
+     *
+     * @SWG\Tag(name="Users")
+     * @Security(name="Bearer")
+     *
+     * @param Request $request
+     * @return ApiErrorResponse|ApiResponse
+     * @throws \App\Exception\DataTransformerNotFoundException
+     * @throws \App\Exception\DtoNotFoundException
+     * @throws \ReflectionException
+     */
+    public function new(Request $request) {
+
+        /** @var User $user */
+        $user = $this->getUser();
+
+        $version = $request->headers->get('X-Accept-Version');
+
+        /** @var Portal $portal */
+        $portal = $this->portalResolver->resolve();
+
+        $dto = $this->dtoFactory->create(DtoFactory::CUSTOM_OBJECT, $version);
+
+        /** @var CustomObject_Dto $dto */
+        $dto = $this->serializer->deserialize(
+            $request->getContent(),
+            $dto,
+            'json',
+            ['groups' => Dto::GROUP_CREATE]
+        );
+
+        $validationErrors = $this->validator->validate($dto, null, [Dto::GROUP_CREATE]);
+
+        if (count($validationErrors) > 0) {
+            return new ApiErrorResponse(
+                null,
+                ApiErrorResponse::TYPE_VALIDATION_ERROR,
+                $this->getErrorsFromValidator($validationErrors),
+                Response::HTTP_BAD_REQUEST
+            );
+        }
+
+        /** @var DataTransformerInterface $dataTransformer */
+        $dataTransformer = $this->dataTransformerFactory->get($dto->getDataTransformer());
+        /** @var CustomObject $customObject */
+        $customObject = $dataTransformer->reverseTransform($dto);
+        $customObject->setPortal($portal);
+        $this->entityManager->persist($customObject);
+        $this->entityManager->flush();
+
+        $json = $this->serializer->serialize(
+            $dataTransformer->transform($customObject),
+            'json',
+            ['groups' => [Dto::GROUP_DEFAULT]]);
+
+        return new ApiResponse(null, $json,Response::HTTP_CREATED, [
+            'Location' => !empty(json_decode($json, true)['_links']['view']) ? json_decode($json, true)['_links']['view'] : ''
+        ], true);
+    }
+
+
+    /**
+     * @Route("/{internalIdentifier}/api/users/create", name="create_user", methods={"GET", "POST"}, options = { "expose" = true })
      * @param Portal $portal
      * @param Request $request
      * @return JsonResponse
@@ -86,7 +251,7 @@ class UserController extends ApiController
     }
 
     /**
-     * @Route("/{userId}/edit", name="edit_user", methods={"GET", "POST"}, options = { "expose" = true })
+     * @Route("/{internalIdentifier}/api/users/{userId}/edit", name="edit_user", methods={"GET", "POST"}, options = { "expose" = true })
      * @param Portal $portal
      * @param User $user
      * @param Request $request
@@ -149,7 +314,7 @@ class UserController extends ApiController
     }
 
     /**
-     * @Route("/{userId}/delete-form", name="delete_user_form", methods={"GET"}, options = { "expose" = true })
+     * @Route("/{internalIdentifier}/api/users/{userId}/delete-form", name="delete_user_form", methods={"GET"}, options = { "expose" = true })
      * @param Portal $portal
      * @param User $user
      * @return JsonResponse
@@ -175,7 +340,7 @@ class UserController extends ApiController
     }
 
     /**
-     * @Route("/{userId}/delete", name="delete_user", methods={"POST"}, options={"expose" = true})
+     * @Route("/{internalIdentifier}/api/users/{userId}/delete", name="delete_user", methods={"POST"}, options={"expose" = true})
      * @param Portal $portal
      * @param User $user
      * @param Request $request
@@ -233,7 +398,7 @@ class UserController extends ApiController
     }
 
     /**
-     * @Route("/get-for-datatable", name="users_for_datatable", methods={"POST"}, options = { "expose" = true })
+     * @Route("/{internalIdentifier}/api/users/get-for-datatable", name="users_for_datatable", methods={"POST"}, options = { "expose" = true })
      * @param Portal $portal
      * @param Request $request
      * @return JsonResponse
@@ -270,7 +435,7 @@ class UserController extends ApiController
     }
 
     /**
-     * @Route("/get-properties-for-filter/{internalName}", name="user_properties_for_filter", methods={"GET"}, options = { "expose" = true })
+     * @Route("/{internalIdentifier}/api/users/get-properties-for-filter/{internalName}", name="user_properties_for_filter", methods={"GET"}, options = { "expose" = true })
      * @param Portal $portal
      * @param $internalName
      * @param Request $request

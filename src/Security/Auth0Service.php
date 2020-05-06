@@ -183,4 +183,18 @@ class Auth0Service
 
         return $this->authenticationApi->client_credentials($config);
     }
+
+    public function createClient($accessToken) {
+
+        $mgmtApi = new Management($accessToken, $this->auth0Domain);
+
+        $data = [
+            'name' => 'crm-test',
+            'app_type' => 'Machine To Machine'
+
+        ];
+
+        return $mgmtApi->clients()->create($data);
+
+    }
 }

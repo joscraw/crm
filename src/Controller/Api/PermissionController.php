@@ -11,7 +11,6 @@ use App\Http\ApiErrorResponse;
 use App\Http\ApiResponse;
 use App\Model\Pagination\PaginationCollection;
 use App\Security\Auth\PermissionManager;
-use App\Utils\ServiceHelper;
 use Doctrine\Common\Collections\ArrayCollection;
 use Nelmio\ApiDocBundle\Annotation\Model;
 use Pagerfanta\Adapter\DoctrineORMAdapter;
@@ -21,15 +20,11 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Swagger\Annotations as SWG;
 use Nelmio\ApiDocBundle\Annotation\Security;
-use App\Entity\CustomObject;
 use App\Http\Api;
 use App\Dto\Dto;
 use App\Dto\Role_Dto;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
-use Symfony\Component\Serializer\Encoder\JsonEncoder;
-use Symfony\Component\Serializer\Normalizer\ArrayDenormalizer;
-use Symfony\Component\Serializer\Normalizer\GetSetMethodNormalizer;
-use Symfony\Component\Serializer\Serializer;
+use App\Dto\Permission_Dto;
 
 
 /**
@@ -38,91 +33,6 @@ use Symfony\Component\Serializer\Serializer;
  */
 class PermissionController extends ApiController
 {
-
-    /**
-     * Get permission templates
-     *
-     * Lists all of the available permission templates in the platform
-     *
-     *
-     * @ApiRoute("/permission-templates", name="permission_templates", methods={"GET"}, versions={"v1"}, scopes={"private"})
-     *
-     * @SWG\Get(
-     *     description=Api::DESCRIPTION,
-     *     produces={"application/json"},
-     *
-     *    @SWG\Response(
-     *          response=200,
-     *          description=Api::PERMISSION_DESCRIPTION,
-     *          @SWG\Schema(
-     *              type="object",
-     *              @SWG\Property(property="data", type="object",
-     *                      @SWG\Property(property="portal", type="array", example={"portal_*", "portal_:portalid"}, @SWG\Items(type="string")),
-     *                      @SWG\Property(property="custom_object", type="array", example={"customobject_:customobjectid","portal_:portalid_customobject_*"}, @SWG\Items(type="string")),
-     *                      @SWG\Property(property="property_group", type="array", example={"propertygroup_*", "customobject_:customobjectid_propertygroup_*"}, @SWG\Items(type="string")),
-     *                      @SWG\Property(property="property", type="array", example={"property_*", "property_:propertyid"}, @SWG\Items(type="string")),
-     *                      @SWG\Property(property="record", type="array", example={"portal_:portalid_record_*", "customobject_:customobjectid_record_*"}, @SWG\Items(type="string")),
-     *                      @SWG\Property(property="class_specific", type="array", example={"portal_*", "customobject_*"}, @SWG\Items(type="string")),
-     *                      @SWG\Property(property="object_specific", type="array", example={"portal_:portalid", "customobject_:customobjectid"}, @SWG\Items(type="string")),
-     *                      @SWG\Property(property="hybrid", type="array", example={"portal_:portalid_customobject_*", "portal_:portalid_propertygroup_*"}, @SWG\Items(type="string")),
-     *                      @SWG\Property(property="attribute_specific", type="array", example={"can_login", "can_configure_roles_and_permissions"}, @SWG\Items(type="string"))
-     *              )
-     *          )
-     *    ),
-     *
-     *    @SWG\Response(
-     *          response=401,
-     *          description="Unauthorized",
-     *          @SWG\Schema(
-     *              type="object",
-     *              format="json",
-     *              @SWG\Property(property="message", type="string", example="JWT expired. Please request a refresh.")
-     *          )
-     *     ),
-     *
-     *     @SWG\Response(
-     *          response=500,
-     *          description="Internal Server Error",
-     *          @SWG\Schema(
-     *              type="object",
-     *              format="json",
-     *              @SWG\Property(property="message", type="string", example="Internal server error. Infinite recursion detected.")
-     *          )
-     *    )
-     *
-     * )
-     *
-     *
-     * @SWG\Parameter(
-     *     name="XDEBUG_SESSION_START",
-     *     in="query",
-     *     type="string",
-     *     description="Triggers an Xdebug Session",
-     *     default="PHPSTORM"
-     * )
-     *
-     * @SWG\Parameter(
-     *     name="verbosity",
-     *     in="query",
-     *     type="string",
-     *     description="Set any value here for a more descriptive error message in the response. Should only be used for debugging purposes only and never in production!"
-     * )
-     *
-     *
-     * @SWG\Tag(name="Permissions")
-     * @Security(name="Bearer")
-     *
-     * @param Request $request
-     * @return ApiResponse
-     * @throws \ReflectionException
-     */
-    public function permissionTemplates(Request $request)
-    {
-        /** @var User $user */
-        $user = $this->getUser();
-
-        return new ApiResponse(null, PermissionManager::$templates, Response::HTTP_OK, []);
-    }
 
     /**
      * Edit permissions for a user
@@ -212,6 +122,8 @@ class PermissionController extends ApiController
      * @return ApiErrorResponse|ApiResponse
      */
     public function editUserPermissions(Request $request, User $user) {
+
+        // todo consider removing this.
 
         /** @var User $loggedInUser */
         $loggedInUser = $this->getUser();
@@ -334,6 +246,11 @@ class PermissionController extends ApiController
      */
     public function index(Request $request)
     {
+
+        // todo add query parameter here to limit scope of roles returned by a given portal
+        // todo add query parameter to limit scope of roles returned by a given user
+
+
         /** @var User $user */
         $user = $this->getUser();
         $version = $request->headers->get('X-Accept-Version');
@@ -379,14 +296,113 @@ class PermissionController extends ApiController
     }
 
     /**
+     * Get Permissions
+     *
+     * Lists the permissions in the platform
+     *
+     * @ApiRoute("/permissions", name="roles", methods={"GET"}, versions={"v1"}, scopes={"public"})
+     *
+     * @SWG\Get(
+     *     description=Api::DESCRIPTION,
+     *     produces={"application/json"}
+     * )
+     *
+     * @SWG\Response(
+     *     response=200,
+     *     description="Returns the permissions in the platform",
+     *     @SWG\Schema(
+     *          type="object",
+     *          @SWG\Property(property="data", type="array", @Model(type=Permission_Dto::class, groups={Dto::GROUP_DEFAULT}))
+     *     )
+     * )
+     *
+     * @SWG\Response(
+     *     response=400,
+     *     description="Bad Request",
+     *     @SWG\Schema(
+     *              type="object",
+     *              format="json",
+     *              @SWG\Property(property="message", type="string", example="Invalid Request format.")
+     *      )
+     * )
+     *
+     * @SWG\Response(
+     *     response=401,
+     *     description="Unauthorized",
+     *     @SWG\Schema(
+     *              type="object",
+     *              format="json",
+     *              @SWG\Property(property="message", type="string", example="JWT expired. Please request a refresh.")
+     *      )
+     * )
+     *
+     * @SWG\Response(
+     *     response=500,
+     *     description="Internal Server Error",
+     *     @SWG\Schema(
+     *              type="object",
+     *              format="json",
+     *              @SWG\Property(property="message", type="string", example="Internal server error. Infinite recursion detected.")
+     *      )
+     * )
+     *
+     * @SWG\Parameter(
+     *     name="XDEBUG_SESSION_START",
+     *     in="query",
+     *     type="string",
+     *     description="Triggers an Xdebug Session",
+     *     default="PHPSTORM"
+     * )
+     *
+     * @SWG\Parameter(
+     *     name="verbosity",
+     *     in="query",
+     *     type="string",
+     *     description="Set any value here for a more descriptive error message in the response. Should only be used for debugging purposes only and never in production!"
+     * )
+     *
+     *
+     * @SWG\Tag(name="Permissions")
+     *
+     * @param Request $request
+     * @return ApiResponse
+     * @throws \App\Exception\DataTransformerNotFoundException
+     * @throws \App\Exception\DtoNotFoundException
+     * @throws \ReflectionException
+     */
+    public function permissions(Request $request) {
+
+        /** @var User $user */
+        $user = $this->getUser();
+
+        $version = $request->headers->get('X-Accept-Version');
+
+        $permissions = $this->permissionRepository->findAll();
+
+        // we need to proxy all these custom objects through our transformer.
+        $dto = $this->dtoFactory->create(DtoFactory::PERMISSION, $version, true);
+        /** @var DataTransformerInterface $dataTransformer */
+        $dataTransformer = $this->dataTransformerFactory->get($dto->getDataTransformer());
+        $dtos = [];
+        foreach ($permissions as $permission) {
+            /** @var Dto $dto */
+            $dtos[] = $dataTransformer->transform($permission);
+        }
+
+        $json = $this->serializer->serialize($dtos, 'json', ['groups' => [Dto::GROUP_DEFAULT]]);
+
+        return new ApiResponse(null, $json, Response::HTTP_OK, [], true);
+    }
+
+    /**
      * Create a Role
      *
-     * Creates a user defined role in the platform.
+     * Creates a role in the platform.
      *
      * @ApiRoute("/roles/new", name="role_new", methods={"POST"}, versions={"v1"}, scopes={"private"})
      *
      * @SWG\Post(
-     *     description=Api::DESCRIPTION,
+     *     description=Api::PERMISSION_CONTROLLER_ROLE_NEW,
      *     consumes={"application/json"},
      *     produces={"application/json"},
      *
@@ -403,7 +419,7 @@ class PermissionController extends ApiController
      *     name="internalIdentifier",
      *     in="query",
      *     type="string",
-     *     description="The portal internal identifier. If not specified will always default to the portal attached to the user object. This is almost always the portal the user was initially created under."
+     *     description="The portal internal identifier. If not specified the role will be created at the global level and apply to all portals in the application."
      *    ),
      *
      *    @SWG\Parameter(
@@ -490,10 +506,6 @@ class PermissionController extends ApiController
         /** @var Portal $portal */
         $portal = $this->portalResolver->resolve();
 
-        if(false === $this->permissionManager->isAuthorized('can_configure_roles_and_permissions',PermissionManager::MASK_ENABLED, $user->getPermissions())) {
-            throw new AccessDeniedHttpException("You do not have valid permissions to be modifying user roles.");
-        }
-
         $dto = $this->dtoFactory->create(DtoFactory::ROLE, $version);
 
         /** @var Role_Dto $dto */
@@ -536,12 +548,12 @@ class PermissionController extends ApiController
     /**
      * Edit a Role
      *
-     * Edits a user defined role in the platform.
+     * Edits a role in the platform.
      *
      * @ApiRoute("/roles/{id}/edit", name="role_edit", methods={"PATCH"}, versions={"v1"}, scopes={"private"})
      *
      * @SWG\Patch(
-     *     description=Api::DESCRIPTION,
+     *     description=Api::PERMISSION_CONTROLLER_ROLE_EDIT,
      *     consumes={"application/json"},
      *     produces={"application/json"},
      *
@@ -688,6 +700,150 @@ class PermissionController extends ApiController
             ['groups' => [Dto::GROUP_DEFAULT]]);
 
         return new ApiResponse(null, $json,Response::HTTP_OK, [], true);
+    }
+
+    /**
+     * Add Role Permissions
+     *
+     * Add permissions to a role.
+     *
+     * @ApiRoute("/roles/{id}/permissions/add", name="role_permissions_add", methods={"POST"}, versions={"v1"}, scopes={"private"})
+     *
+     * @SWG\Post(
+     *     description=Api::PERMISSION_CONTROLLER_ROLE_PERMISSIONS_ADD,
+     *     consumes={"application/json"},
+     *     produces={"application/json"},
+     *
+     *     @SWG\Parameter(
+     *         name="body",
+     *         in="body",
+     *         required=true,
+     *         description="JSON payload",
+     *         format="application/json",
+     *         @SWG\Schema(
+     *              type="object",
+     *              @SWG\Property(property="permissions", type="array", example={19,20},
+     *                    @SWG\Items(type="integer")
+     *              )
+     *         )
+     *     ),
+     *
+     *    @SWG\Parameter(
+     *     name="XDEBUG_SESSION_START",
+     *     in="query",
+     *     type="string",
+     *     description="Triggers an Xdebug Session",
+     *     default="PHPSTORM"
+     *    ),
+     *
+     *    @SWG\Parameter(
+     *     name="verbosity",
+     *     in="query",
+     *     type="string",
+     *     description="Set any value here for a more descriptive error message in the response. Should only be used for debugging purposes only and never in production!"
+     *    ),
+     *
+     *    @SWG\Response(
+     *          response=200,
+     *          description="Returns the newly added permissions.",
+     *          @SWG\Schema(
+     *              type="object",
+     *              @SWG\Property(property="data", type="array", @Model(type=Permission_Dto::class, groups={Dto::GROUP_DEFAULT}))
+     *          )
+     *     ),
+     *
+     *     @SWG\Response(
+     *          response=400,
+     *          description="Error: Bad Request",
+     *          @SWG\Schema(
+     *              type="object",
+     *              format="json",
+     *              @SWG\Property(property="message", type="string", example="Invalid Request format.")
+     *          )
+     *     ),
+     *
+     *     @SWG\Response(
+     *          response=401,
+     *          description="Unauthorized",
+     *          @SWG\Schema(
+     *              type="object",
+     *              format="json",
+     *              @SWG\Property(property="message", type="string", example="JWT expired. Please request a refresh.")
+     *          )
+     *     ),
+     *
+     *     @SWG\Response(
+     *         response=404,
+     *         description="Not found",
+     *         @SWG\Schema(
+     *              type="object",
+     *              format="json",
+     *              @SWG\Property(property="message", type="string", example="Not found.")
+     *         )
+     *     ),
+     *
+     *     @SWG\Response(
+     *          response=500,
+     *          description="Internal Server Error",
+     *          @SWG\Schema(
+     *              type="object",
+     *              format="json",
+     *              @SWG\Property(property="message", type="string", example="Internal server error. Infinite recursion detected.")
+     *          )
+     *    )
+     *
+     * )
+     *
+     *
+     * @SWG\Tag(name="Permissions")
+     * @Security(name="Bearer")
+     *
+     * @param Request $request
+     * @param Role $role
+     * @return ApiErrorResponse|ApiResponse
+     * @throws \App\Exception\DataTransformerNotFoundException
+     * @throws \App\Exception\DtoNotFoundException
+     * @throws \ReflectionException
+     */
+    public function addRolePermissions(Request $request, Role $role) {
+
+        // todo this needs to still be behind a private firewall
+        // todo even though we are using
+        /** @var User $user */
+        $user = $this->getUser();
+        $version = $request->headers->get('X-Accept-Version');
+
+        /** @var Portal $portal */
+        //$portal = $this->portalResolver->resolve();
+
+        $permissionIds = $request->request->get('permissions', []);
+
+        $permissions = $this->permissionRepository->findBy([
+            'id' => $permissionIds
+        ]);
+
+
+        foreach($permissions as $permission) {
+            $role->addPermission($permission);
+        }
+
+        $this->entityManager->persist($role);
+        $this->entityManager->flush();
+
+        // we need to proxy all these custom objects through our transformer.
+        $dto = $this->dtoFactory->create(DtoFactory::PERMISSION, $version, true);
+        /** @var DataTransformerInterface $dataTransformer */
+        $dataTransformer = $this->dataTransformerFactory->get($dto->getDataTransformer());
+        $dtos = [];
+        foreach ($permissions as $permission) {
+            /** @var Dto $dto */
+            $dtos[] = $dataTransformer->transform($permission);
+        }
+
+        $json = $this->serializer->serialize($dtos, 'json', ['groups' => [Dto::GROUP_DEFAULT]]);
+
+        return new ApiResponse(null, $json, Response::HTTP_OK, [], true);
+
     }
 
     /**
@@ -926,6 +1082,10 @@ class PermissionController extends ApiController
      */
     public function editUserRoles(Request $request, User $user) {
 
+        // todo I feel like you can get rid of this endpoint
+        // todo and modify the roles for a user in the User
+        // todo Sections i.e. user/edit endpoints.
+
         /** @var User $loggedInUser */
         $loggedInUser = $this->getUser();
         $version = $request->headers->get('X-Accept-Version');
@@ -965,7 +1125,7 @@ class PermissionController extends ApiController
     /**
      * Delete a role
      *
-     * Delete a user defined role in the platform.
+     * Delete a role in the platform.
      *
      * @ApiRoute("/roles/{id}/delete", name="role_delete", methods={"DELETE"}, versions={"v1"}, scopes={"private"})
      *
@@ -1177,6 +1337,9 @@ class PermissionController extends ApiController
      * @throws \ReflectionException
      */
     public function viewRole(Request $request, Role $role) {
+
+        // todo add query parameter here to fetch it's connected permissions if the end user wants
+
 
         /** @var User $user */
         $user = $this->getUser();

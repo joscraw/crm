@@ -117,7 +117,7 @@ class DtoNormalizer implements NormalizerInterface, NormalizationAwareInterface
             }
         }
 
-        if($links) {
+        if(!empty($links)) {
             $data['_links'] = $links;
         }
 

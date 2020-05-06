@@ -34,7 +34,6 @@ use App\Http\Api;
  */
 class CustomObjectController extends ApiController
 {
-    use ServiceHelper;
 
     /**
      * Get Custom Objects
@@ -68,7 +67,7 @@ class CustomObjectController extends ApiController
      *
      * @SWG\Response(
      *     response=400,
-     *     description="Bad Request",
+     *     description="Error: Bad Request",
      *     @SWG\Schema(
      *              type="object",
      *              format="json",
@@ -85,6 +84,16 @@ class CustomObjectController extends ApiController
      *              @SWG\Property(property="message", type="string", example="JWT expired. Please request a refresh.")
      *      )
      * )
+     *
+     * @SWG\Response(
+     *          response=403,
+     *          description="Forbidden",
+     *          @SWG\Schema(
+     *              type="object",
+     *              format="json",
+     *              @SWG\Property(property="message", type="string", example="No Permission to Access.")
+     *          )
+     *     )
      *
      * @SWG\Response(
      *     response=500,
@@ -235,7 +244,7 @@ class CustomObjectController extends ApiController
      *
      *     @SWG\Response(
      *         response=400,
-     *         description="Validation errors.",
+     *         description="Error: Bad Request",
      *         @SWG\Schema(
      *              type="object",
      *              @SWG\Property(property="message", type="string", example="There was a validation error"),
@@ -260,6 +269,17 @@ class CustomObjectController extends ApiController
      *              @SWG\Property(property="message", type="string", example="JWT expired. Please request a refresh.")
      *          )
      *     ),
+     *
+     *    @SWG\Response(
+     *          response=403,
+     *          description="Forbidden",
+     *          @SWG\Schema(
+     *              type="object",
+     *              format="json",
+     *              @SWG\Property(property="message", type="string", example="No Permission to Access.")
+     *          )
+     *     ),
+     *
      *     @SWG\Response(
      *          response=500,
      *          description="Internal Server Error",
@@ -368,7 +388,7 @@ class CustomObjectController extends ApiController
      *
      *    @SWG\Response(
      *      response=400,
-     *      description="Bad Request.",
+     *      description="Error: Bad Request.",
      *      @SWG\Schema(
      *              type="object",
      *              format="json",
@@ -383,6 +403,16 @@ class CustomObjectController extends ApiController
      *              type="object",
      *              format="json",
      *              @SWG\Property(property="message", type="string", example="JWT expired. Please request a refresh.")
+     *          )
+     *     ),
+     *
+     *    @SWG\Response(
+     *          response=403,
+     *          description="Forbidden",
+     *          @SWG\Schema(
+     *              type="object",
+     *              format="json",
+     *              @SWG\Property(property="message", type="string", example="No Permission to Access.")
      *          )
      *     ),
      *
@@ -487,7 +517,7 @@ class CustomObjectController extends ApiController
      *
      *     @SWG\Response(
      *         response=400,
-     *         description="Validation errors.",
+     *         description="Error: Bad Request.",
      *         @SWG\Schema(
      *              type="object",
      *              @SWG\Property(property="message", type="string", example="There was a validation error"),
@@ -507,6 +537,16 @@ class CustomObjectController extends ApiController
      *              type="object",
      *              format="json",
      *              @SWG\Property(property="message", type="string", example="JWT expired. Please request a refresh.")
+     *          )
+     *     ),
+     *
+     *    @SWG\Response(
+     *          response=403,
+     *          description="Forbidden",
+     *          @SWG\Schema(
+     *              type="object",
+     *              format="json",
+     *              @SWG\Property(property="message", type="string", example="No Permission to Access.")
      *          )
      *     ),
      *
@@ -626,9 +666,9 @@ class CustomObjectController extends ApiController
      *          )
      *     ),
      *
-     *    @SWG\Response(
+     *     @SWG\Response(
      *      response=400,
-     *      description="Bad Request.",
+     *      description="Error: Bad Request.",
      *      @SWG\Schema(
      *              type="object",
      *              format="json",
@@ -643,6 +683,16 @@ class CustomObjectController extends ApiController
      *              type="object",
      *              format="json",
      *              @SWG\Property(property="message", type="string", example="JWT expired. Please request a refresh.")
+     *          )
+     *     ),
+     *
+     *    @SWG\Response(
+     *          response=403,
+     *          description="Forbidden",
+     *          @SWG\Schema(
+     *              type="object",
+     *              format="json",
+     *              @SWG\Property(property="message", type="string", example="No Permission to Access.")
      *          )
      *     ),
      *

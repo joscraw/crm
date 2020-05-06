@@ -2,25 +2,25 @@
 
 namespace App\Repository;
 
-use App\Entity\ApiToken;
+use App\Entity\AclObjectIdentity;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Common\Persistence\ManagerRegistry;
 
 /**
- * @method ApiToken|null find($id, $lockMode = null, $lockVersion = null)
- * @method ApiToken|null findOneBy(array $criteria, array $orderBy = null)
- * @method ApiToken[]    findAll()
- * @method ApiToken[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method AclObjectIdentity|null find($id, $lockMode = null, $lockVersion = null)
+ * @method AclObjectIdentity|null findOneBy(array $criteria, array $orderBy = null)
+ * @method AclObjectIdentity[]    findAll()
+ * @method AclObjectIdentity[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class ApiTokenRepository extends ServiceEntityRepository
+class AclObjectIdentityRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, ApiToken::class);
+        parent::__construct($registry, AclObjectIdentity::class);
     }
 
     // /**
-    //  * @return ApiToken[] Returns an array of ApiToken objects
+    //  * @return AclObjectIdentity[] Returns an array of AclObjectIdentity objects
     //  */
     /*
     public function findByExampleField($value)
@@ -37,7 +37,7 @@ class ApiTokenRepository extends ServiceEntityRepository
     */
 
     /*
-    public function findOneBySomeField($value): ?ApiToken
+    public function findOneBySomeField($value): ?AclObjectIdentity
     {
         return $this->createQueryBuilder('a')
             ->andWhere('a.exampleField = :val')
