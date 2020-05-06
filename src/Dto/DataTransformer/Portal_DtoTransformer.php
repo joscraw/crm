@@ -49,7 +49,7 @@ class Portal_DtoTransformer implements DataTransformerInterface
         if($dto->getId()) {
             $object = $this->portalRepository->find($dto->getId());
             if(!$object) {
-                throw new TransformationFailedException('object with dto id not found');
+                throw new TransformationFailedException('Portal with dto id not found');
             }
         } else {
             $object = new Portal();

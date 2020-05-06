@@ -53,6 +53,14 @@ class Api
 
     public const PERMISSION_CONTROLLER_ROLE_PERMISSIONS_ADD = "Add permissions to a role in the platform.";
 
+    public const PERMISSION_CONTROLLER_ROLE_PERMISSIONS_REMOVE = "Remove permissions from a role in the platform.";
+
+    public const USER_CONTROLLER_USER_ROLES_ADD = "Add roles to a user in the platform.";
+
+    public const USER_CONTROLLER_USER_ROLES_REMOVE = "Remove roles from a user in the platform.";
+
+    public const USER_CONTROLLER_USER_ROLES_VIEW = "View roles from a user in the platform.";
+
 
     public const VERSION_1 = 'v1';
     public const VERSION_2 = 'v2';

@@ -9,24 +9,20 @@ use App\Form\DeleteUserType;
 use App\Form\EditUserType;
 use App\Form\UserType;
 use App\Model\FieldCatalog;
-use App\Utils\ServiceHelper;
+use App\Model\Pagination\PaginationCollection;
+use Pagerfanta\Adapter\DoctrineORMAdapter;
+use Pagerfanta\Pagerfanta;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Response;
-
-
 use App\Annotation\ApiRoute;
 use App\Dto\CustomObject_Dto;
 use App\Dto\Dto;
 use App\Dto\DtoFactory;
 use App\Http\ApiErrorResponse;
 use App\Http\ApiResponse;
-use App\Model\CustomObjectField;
-use App\Model\Pagination\PaginationCollection;
-use Pagerfanta\Adapter\DoctrineORMAdapter;
-use Pagerfanta\Pagerfanta;
 use Symfony\Component\Form\DataTransformerInterface;
 use Swagger\Annotations as SWG;
 use Nelmio\ApiDocBundle\Annotation\Model;
@@ -34,6 +30,7 @@ use Nelmio\ApiDocBundle\Annotation\Security;
 use App\Entity\CustomObject;
 use App\Http\Api;
 use App\Dto\User_Dto;
+use App\Dto\Role_Dto;
 
 /**
  * Class UserController
@@ -191,6 +188,416 @@ class UserController extends ApiController
         ], true);
     }
 
+    /**
+     * Assign roles to a user
+     *
+     * Assign roles to a user in the platform.
+     *
+     * @ApiRoute("/users/{id}/roles/add", name="user_roles_add", methods={"POST"}, versions={"v1"}, scopes={"private"})
+     *
+     * @SWG\Post(
+     *     description=Api::USER_CONTROLLER_USER_ROLES_ADD,
+     *     consumes={"application/json"},
+     *     produces={"application/json"},
+     *
+     *     @SWG\Parameter(
+     *         name="body",
+     *         in="body",
+     *         required=true,
+     *         format="application/json",
+     *         @SWG\Schema(
+     *              type="object",
+     *              @SWG\Property(property="roles", type="array", example={19,20},
+     *                    @SWG\Items(type="integer")
+     *              )
+     *         )
+     *     ),
+     *
+     *    @SWG\Parameter(
+     *     name="XDEBUG_SESSION_START",
+     *     in="query",
+     *     type="string",
+     *     description="Triggers an Xdebug Session",
+     *     default="PHPSTORM"
+     *    ),
+     *
+     *    @SWG\Parameter(
+     *     name="verbosity",
+     *     in="query",
+     *     type="string",
+     *     description="Set any value here for a more descriptive error message in the response. Should only be used for debugging purposes only and never in production!"
+     *    ),
+     *
+     *    @SWG\Response(
+     *          response=200,
+     *          description="Returns the newly assigned roles.",
+     *          @SWG\Schema(
+     *              type="object",
+     *              @SWG\Property(property="data", type="array", @Model(type=Role_Dto::class, groups={Dto::GROUP_DEFAULT}))
+     *          )
+     *     ),
+     *
+     *     @SWG\Response(
+     *          response=401,
+     *          description="Unauthorized",
+     *          @SWG\Schema(
+     *              type="object",
+     *              format="json",
+     *              @SWG\Property(property="message", type="string", example="JWT expired. Please request a refresh.")
+     *          )
+     *     ),
+     *
+     *      @SWG\Response(
+     *         response=404,
+     *         description="Not found",
+     *         @SWG\Schema(
+     *              type="object",
+     *              format="json",
+     *              @SWG\Property(property="message", type="string", example="Not found.")
+     *         )
+     *     ),
+     *
+     *     @SWG\Response(
+     *          response=500,
+     *          description="Internal Server Error",
+     *          @SWG\Schema(
+     *              type="object",
+     *              format="json",
+     *              @SWG\Property(property="message", type="string", example="Internal server error. Infinite recursion detected.")
+     *          )
+     *    )
+     *
+     * )
+     *
+     *
+     * @SWG\Tag(name="Users")
+     * @Security(name="Bearer")
+     *
+     * @param Request $request
+     * @param User $user
+     * @return ApiErrorResponse|ApiResponse
+     * @throws \App\Exception\DataTransformerNotFoundException
+     * @throws \App\Exception\DtoNotFoundException
+     * @throws \ReflectionException
+     */
+    public function addUserRoles(Request $request, User $user) {
+
+        /** @var User $loggedInUser */
+        $loggedInUser = $this->getUser();
+        $version = $request->headers->get('X-Accept-Version');
+
+        $roleIds = $request->request->get('roles', []);
+
+        $roles = $this->roleRepository->findBy([
+            'id' => $roleIds
+        ]);
+
+        foreach($roles as $role) {
+            $user->addCustomRole($role);
+        }
+
+        $this->entityManager->persist($user);
+        $this->entityManager->flush();
+
+        // we need to proxy all these custom objects through our transformer.
+        $dto = $this->dtoFactory->create(DtoFactory::ROLE, $version, true);
+        /** @var DataTransformerInterface $dataTransformer */
+        $dataTransformer = $this->dataTransformerFactory->get($dto->getDataTransformer());
+        $dtos = [];
+        foreach ($roles as $role) {
+            /** @var Dto $dto */
+            $dtos[] = $dataTransformer->transform($role);
+        }
+
+        $json = $this->serializer->serialize($dtos, 'json', ['groups' => [Dto::GROUP_DEFAULT]]);
+
+        return new ApiResponse(null, $json, Response::HTTP_OK, [], true);
+    }
+
+    /**
+     * Remove roles from a user
+     *
+     * Remove roles from a user in the platform.
+     *
+     * @ApiRoute("/users/{id}/roles/remove", name="user_roles_remove", methods={"DELETE"}, versions={"v1"}, scopes={"private"})
+     *
+     * @SWG\Delete(
+     *     description=Api::USER_CONTROLLER_USER_ROLES_REMOVE,
+     *     consumes={"application/json"},
+     *     produces={"application/json"},
+     *
+     *     @SWG\Parameter(
+     *         name="body",
+     *         in="body",
+     *         required=true,
+     *         description="JSON payload",
+     *         format="application/json",
+     *         @SWG\Schema(
+     *              type="object",
+     *              @SWG\Property(property="roles", type="array", example={19,20},
+     *                    @SWG\Items(type="integer")
+     *              )
+     *         )
+     *     ),
+     *
+     *    @SWG\Parameter(
+     *     name="XDEBUG_SESSION_START",
+     *     in="query",
+     *     type="string",
+     *     description="Triggers an Xdebug Session",
+     *     default="PHPSTORM"
+     *    ),
+     *
+     *    @SWG\Parameter(
+     *     name="verbosity",
+     *     in="query",
+     *     type="string",
+     *     description="Set any value here for a more descriptive error message in the response. Should only be used for debugging purposes only and never in production!"
+     *    ),
+     *
+     *    @SWG\Response(
+     *          response=200,
+     *          description="Returns the removed roles.",
+     *          @SWG\Schema(
+     *              type="object",
+     *              @SWG\Property(property="data", type="array", @Model(type=Role_Dto::class, groups={Dto::GROUP_DEFAULT}))
+     *          )
+     *     ),
+     *
+     *     @SWG\Response(
+     *          response=400,
+     *          description="Error: Bad Request",
+     *          @SWG\Schema(
+     *              type="object",
+     *              format="json",
+     *              @SWG\Property(property="message", type="string", example="Invalid Request format.")
+     *          )
+     *     ),
+     *
+     *     @SWG\Response(
+     *          response=401,
+     *          description="Unauthorized",
+     *          @SWG\Schema(
+     *              type="object",
+     *              format="json",
+     *              @SWG\Property(property="message", type="string", example="JWT expired. Please request a refresh.")
+     *          )
+     *     ),
+     *
+     *     @SWG\Response(
+     *         response=404,
+     *         description="Not found",
+     *         @SWG\Schema(
+     *              type="object",
+     *              format="json",
+     *              @SWG\Property(property="message", type="string", example="Not found.")
+     *         )
+     *     ),
+     *
+     *     @SWG\Response(
+     *          response=500,
+     *          description="Internal Server Error",
+     *          @SWG\Schema(
+     *              type="object",
+     *              format="json",
+     *              @SWG\Property(property="message", type="string", example="Internal server error. Infinite recursion detected.")
+     *          )
+     *    )
+     *
+     * )
+     *
+     *
+     * @SWG\Tag(name="Users")
+     * @Security(name="Bearer")
+     *
+     * @param Request $request
+     * @param User $user
+     * @return ApiErrorResponse|ApiResponse
+     * @throws \App\Exception\DataTransformerNotFoundException
+     * @throws \App\Exception\DtoNotFoundException
+     * @throws \ReflectionException
+     */
+    public function removeUserRoles(Request $request, User $user) {
+
+        /** @var User $loggedInUser */
+        $loggedInUser = $this->getUser();
+        $version = $request->headers->get('X-Accept-Version');
+
+        $roleIds = $request->request->get('roles', []);
+
+        $roles = $this->roleRepository->findBy([
+            'id' => $roleIds
+        ]);
+
+        foreach($roles as $role) {
+            $user->removeCustomRole($role);
+        }
+
+        $this->entityManager->persist($user);
+        $this->entityManager->flush();
+
+        // we need to proxy all these custom objects through our transformer.
+        $dto = $this->dtoFactory->create(DtoFactory::ROLE, $version, true);
+        /** @var DataTransformerInterface $dataTransformer */
+        $dataTransformer = $this->dataTransformerFactory->get($dto->getDataTransformer());
+        $dtos = [];
+        foreach ($roles as $role) {
+            /** @var Dto $dto */
+            $dtos[] = $dataTransformer->transform($role);
+        }
+
+        $json = $this->serializer->serialize($dtos, 'json', ['groups' => [Dto::GROUP_DEFAULT]]);
+
+        return new ApiResponse(null, $json, Response::HTTP_OK, [], true);
+
+    }
+
+    /**
+     * Get Roles for a user
+     *
+     * Lists the roles for a user in the platform
+     *
+     * @ApiRoute("/users/{id}/roles/view", name="user_roles_view", methods={"GET"}, versions={"v1"}, scopes={"private"})
+     *
+     * @SWG\Get(
+     *     description=Api::DESCRIPTION,
+     *     produces={"application/json"}
+     * )
+     *
+     * @SWG\Response(
+     *     response=200,
+     *     description="Returns the roles for a user in the platform",
+     *     @SWG\Schema(
+     *          type="object",
+     *          @SWG\Property(property="total", type="integer", example=135, description="Total count of all items."),
+     *          @SWG\Property(property="count", type="integer", example=12, description="Count of items returned in response."),
+     *          @SWG\Property(property="data", type="array", @Model(type=Role_Dto::class, groups={Dto::GROUP_DEFAULT})),
+     *          @SWG\Property(property="_links", type="object",
+     *              @SWG\Property(property="self", type="string", example="/api/v1/private/users/1/roles/view?page=3"),
+     *              @SWG\Property(property="first", type="string", example="/api/v1/private/users/1/roles/view?page=1"),
+     *              @SWG\Property(property="last", type="string", example="/api/v1/private/users/1/roles/view?page=8"),
+     *              @SWG\Property(property="next", type="string", example="/api/v1/private/users/1/roles/view?page=4"),
+     *              @SWG\Property(property="prev", type="string", example="/api/v1/private/users/1/roles/view?page=2")
+     *          )
+     *     )
+     * )
+     *
+     * @SWG\Response(
+     *     response=400,
+     *     description="Bad Request",
+     *     @SWG\Schema(
+     *              type="object",
+     *              format="json",
+     *              @SWG\Property(property="message", type="string", example="Invalid Request format.")
+     *      )
+     * )
+     *
+     * @SWG\Response(
+     *     response=401,
+     *     description="Unauthorized",
+     *     @SWG\Schema(
+     *              type="object",
+     *              format="json",
+     *              @SWG\Property(property="message", type="string", example="JWT expired. Please request a refresh.")
+     *      )
+     * )
+     *
+     * @SWG\Response(
+     *     response=500,
+     *     description="Internal Server Error",
+     *     @SWG\Schema(
+     *              type="object",
+     *              format="json",
+     *              @SWG\Property(property="message", type="string", example="Internal server error. Infinite recursion detected.")
+     *      )
+     * )
+     *
+     *
+     * @SWG\Parameter(
+     *     name="page",
+     *     in="query",
+     *     type="integer",
+     *     description="The page you want to return"
+     * )
+     *
+     * @SWG\Parameter(
+     *     name="limit",
+     *     in="query",
+     *     type="integer",
+     *     description="The number of results to return per page (leave empty to default to all)"
+     * )
+     *
+     * @SWG\Parameter(
+     *     name="XDEBUG_SESSION_START",
+     *     in="query",
+     *     type="string",
+     *     description="Triggers an Xdebug Session",
+     *     default="PHPSTORM"
+     * )
+     *
+     * @SWG\Parameter(
+     *     name="verbosity",
+     *     in="query",
+     *     type="string",
+     *     description="Set any value here for a more descriptive error message in the response. Should only be used for debugging purposes only and never in production!"
+     * )
+     *
+     *
+     * @SWG\Tag(name="Users")
+     * @Security(name="Bearer")
+     *
+     * @param Request $request
+     * @param User $user
+     * @return ApiResponse
+     * @throws \App\Exception\DataTransformerNotFoundException
+     * @throws \App\Exception\DtoNotFoundException
+     * @throws \ReflectionException
+     */
+    public function getUserRoles(Request $request, User $user)
+    {
+        /** @var User $loggedInUser */
+        $loggedInUser = $this->getUser();
+        $version = $request->headers->get('X-Accept-Version');
+
+        $page = $request->query->get('page', 1);
+        $limit = $request->query->get('limit', null);
+
+        $qb = $this->roleRepository->findAllQueryBuilder()
+            ->innerJoin('role.users', 'users')
+            ->andWhere('users.id = :id')
+            ->setParameter('id', $user->getId());
+
+        $adapter = new DoctrineORMAdapter($qb);
+        $pagerfanta = new Pagerfanta($adapter);
+        $pagerfanta->setAllowOutOfRangePages(true);
+
+        if($limit) {
+            $pagerfanta->setMaxPerPage($limit);
+        }
+
+        $pagerfanta->setCurrentPage($page);
+
+        $roles = [];
+        foreach ($pagerfanta->getCurrentPageResults() as $result) {
+            $roles[] = $result;
+        }
+
+        // we need to proxy all these custom objects through our transformer.
+        $dto = $this->dtoFactory->create(DtoFactory::ROLE, $version, true);
+        /** @var DataTransformerInterface $dataTransformer */
+        $dataTransformer = $this->dataTransformerFactory->get($dto->getDataTransformer());
+        $dtos = [];
+        foreach ($roles as $role) {
+            /** @var Dto $dto */
+            $dtos[] = $dataTransformer->transform($role);
+        }
+
+        $paginationCollection = new PaginationCollection($dtos, $pagerfanta);
+
+        $json = $this->serializer->serialize($paginationCollection, 'json', ['groups' => [Dto::GROUP_DEFAULT]]);
+
+        return new ApiResponse(null, $json, Response::HTTP_OK, [], true);
+    }
 
     /**
      * @Route("/{internalIdentifier}/api/users/create", name="create_user", methods={"GET", "POST"}, options = { "expose" = true })

@@ -10,7 +10,7 @@ use App\Annotation\Identifier;
 use Swagger\Annotations as SWG;
 
 /**
- * Class Role_Dto
+ * Class Permission_Dto
  * @package App\Dto
  *
  * @ApiVersion({Api::VERSION_1})

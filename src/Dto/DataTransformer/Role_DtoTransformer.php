@@ -7,6 +7,7 @@ use App\Dto\Role_Dto;
 use App\Entity\CustomObject;
 use App\Entity\Role;
 use App\Repository\CustomObjectRepository;
+use App\Repository\PortalRepository;
 use App\Repository\RoleRepository;
 use Symfony\Component\Form\DataTransformerInterface;
 use Symfony\Component\Form\Exception\TransformationFailedException;
@@ -19,12 +20,19 @@ class Role_DtoTransformer implements DataTransformerInterface
     private $roleRepository;
 
     /**
-     * CustomObject_DtoTransformer constructor.
-     * @param RoleRepository $roleRepository
+     * @var PortalRepository
      */
-    public function __construct(RoleRepository $roleRepository)
+    private $portalRepository;
+
+    /**
+     * Role_DtoTransformer constructor.
+     * @param RoleRepository $roleRepository
+     * @param PortalRepository $portalRepository
+     */
+    public function __construct(RoleRepository $roleRepository, PortalRepository $portalRepository)
     {
         $this->roleRepository = $roleRepository;
+        $this->portalRepository = $portalRepository;
     }
 
     public function transform($role)
@@ -33,11 +41,19 @@ class Role_DtoTransformer implements DataTransformerInterface
             throw new TransformationFailedException(sprintf("Object to transform must be an instance of %s", Role::class));
         }
 
-        return (new Role_Dto())
-            ->setId($role->getId())
+        $dto = new Role_Dto();
+
+        $dto->setId($role->getId())
             ->setName($role->getName())
-            ->setPermissions($role->getPermissions());
+            ->setDescription($role->getDescription());
+
+        if($portal = $role->getPortal()) {
+            $dto->setInternalIdentifier($portal->getInternalIdentifier());
+        }
+
+        return $dto;
     }
+
     public function reverseTransform($dto)
     {
         if(!$dto instanceof Role_Dto) {
@@ -53,8 +69,17 @@ class Role_DtoTransformer implements DataTransformerInterface
             $role = new Role();
         }
 
-        $role->setName($dto->getName())
-            ->setPermissions($dto->getPermissions());
+        if($internalIdentifier = $dto->getInternalIdentifier()) {
+            $portal = $this->portalRepository->findOneBy([
+                'internalIdentifier' => $internalIdentifier
+            ]);
+
+            if($portal) {
+                $role->setPortal($portal);
+            }
+        }
+
+        $role->setName($dto->getName());
 
         return $role;
     }

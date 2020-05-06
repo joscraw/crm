@@ -43,7 +43,7 @@ class Role
     private $description;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\User", mappedBy="roles")
+     * @ORM\ManyToMany(targetEntity="App\Entity\User", mappedBy="customRoles")
      */
     private $users;
 
@@ -52,16 +52,10 @@ class Role
      */
     private $permissions;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\AclSecurityIdentity", mappedBy="role")
-     */
-    private $aclSecurityIdentities;
-
     public function __construct()
     {
         $this->users = new ArrayCollection();
         $this->permissions = new ArrayCollection();
-        $this->aclSecurityIdentities = new ArrayCollection();
     }
 
 
@@ -159,36 +153,4 @@ class Role
 
         return $this;
     }
-
-    /**
-     * @return Collection|AclSecurityIdentity[]
-     */
-    public function getAclSecurityIdentities(): Collection
-    {
-        return $this->aclSecurityIdentities;
-    }
-
-    public function addAclSecurityIdentity(AclSecurityIdentity $aclSecurityIdentity): self
-    {
-        if (!$this->aclSecurityIdentities->contains($aclSecurityIdentity)) {
-            $this->aclSecurityIdentities[] = $aclSecurityIdentity;
-            $aclSecurityIdentity->setRole($this);
-        }
-
-        return $this;
-    }
-
-    public function removeAclSecurityIdentity(AclSecurityIdentity $aclSecurityIdentity): self
-    {
-        if ($this->aclSecurityIdentities->contains($aclSecurityIdentity)) {
-            $this->aclSecurityIdentities->removeElement($aclSecurityIdentity);
-            // set the owning side to null (unless already changed)
-            if ($aclSecurityIdentity->getRole() === $this) {
-                $aclSecurityIdentity->setRole(null);
-            }
-        }
-
-        return $this;
-    }
-
 }

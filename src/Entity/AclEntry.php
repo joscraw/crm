@@ -17,18 +17,6 @@ class AclEntry
     private $id;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\AclObjectIdentity", inversedBy="aclEntries")
-     * @ORM\JoinColumn(nullable=false)
-     */
-    private $objectIdentity;
-
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\AclSecurityIdentity", inversedBy="aclEntries")
-     * @ORM\JoinColumn(nullable=false)
-     */
-    private $securityIdentity;
-
-    /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $fieldName;
@@ -41,40 +29,31 @@ class AclEntry
     /**
      * @ORM\Column(type="boolean")
      */
-    private $granting;
+    private $granting = true;
 
     /**
      * @ORM\Column(type="array")
      */
     private $grantingStrategy = [];
 
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private $objectIdentifier;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $classType;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $securityIdentity;
+
     public function getId(): ?int
     {
         return $this->id;
-    }
-
-    public function getObjectIdentity(): ?AclObjectIdentity
-    {
-        return $this->objectIdentity;
-    }
-
-    public function setObjectIdentity(?AclObjectIdentity $objectIdentity): self
-    {
-        $this->objectIdentity = $objectIdentity;
-
-        return $this;
-    }
-
-    public function getSecurityIdentity(): ?AclSecurityIdentity
-    {
-        return $this->securityIdentity;
-    }
-
-    public function setSecurityIdentity(?AclSecurityIdentity $securityIdentity): self
-    {
-        $this->securityIdentity = $securityIdentity;
-
-        return $this;
     }
 
     public function getFieldName(): ?string
@@ -121,6 +100,42 @@ class AclEntry
     public function setGrantingStrategy(array $grantingStrategy): self
     {
         $this->grantingStrategy = $grantingStrategy;
+
+        return $this;
+    }
+
+    public function getObjectIdentifier(): ?int
+    {
+        return $this->objectIdentifier;
+    }
+
+    public function setObjectIdentifier(?int $objectIdentifier): self
+    {
+        $this->objectIdentifier = $objectIdentifier;
+
+        return $this;
+    }
+
+    public function getClassType(): ?string
+    {
+        return $this->classType;
+    }
+
+    public function setClassType(?string $classType): self
+    {
+        $this->classType = $classType;
+
+        return $this;
+    }
+
+    public function getSecurityIdentity(): ?string
+    {
+        return $this->securityIdentity;
+    }
+
+    public function setSecurityIdentity(?string $securityIdentity): self
+    {
+        $this->securityIdentity = $securityIdentity;
 
         return $this;
     }

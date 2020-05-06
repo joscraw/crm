@@ -25,6 +25,8 @@ class DtoFactory
     const USER = 'user';
     const PORTAL = 'portal';
     const SIGN_UP = 'sign_up';
+    const ACL_ENTRY = 'acl_entry';
+    const ACL_LOCK = 'acl_lock';
     const PERMISSION = 'permission';
     /**#@-*/
 
@@ -51,7 +53,7 @@ class DtoFactory
     /**
      * Constructor
      *
-     * @param Container $container
+     * @param ContainerInterface $container
      * @param Reader $annotationReader
      * @param $projectDirectory
      */
@@ -78,6 +80,8 @@ class DtoFactory
             case self::PORTAL:
             case self::SIGN_UP:
             case self::PERMISSION:
+            case self::ACL_ENTRY:
+            case self::ACL_LOCK:
                 $dto = $this->fetchDtoFromIdentifierAndVersion($identifier, $version, $instantiate);
                 break;
             default:

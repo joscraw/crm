@@ -78,15 +78,9 @@ class User implements UserInterface
      */
     private $roles = [];
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\AclSecurityIdentity", mappedBy="user")
-     */
-    private $aclSecurityIdentities;
-
     public function __construct()
     {
         $this->customRoles = new ArrayCollection();
-        $this->aclSecurityIdentities = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -257,35 +251,7 @@ class User implements UserInterface
         $this->token = $token;
     }
 
-    /**
-     * @return Collection|AclSecurityIdentity[]
-     */
-    public function getAclSecurityIdentities(): Collection
-    {
-        return $this->aclSecurityIdentities;
+    public function hasRole(Role $role) {
+        return $this->customRoles->contains($role);
     }
-
-    public function addAclSecurityIdentity(AclSecurityIdentity $aclSecurityIdentity): self
-    {
-        if (!$this->aclSecurityIdentities->contains($aclSecurityIdentity)) {
-            $this->aclSecurityIdentities[] = $aclSecurityIdentity;
-            $aclSecurityIdentity->setUser($this);
-        }
-
-        return $this;
-    }
-
-    public function removeAclSecurityIdentity(AclSecurityIdentity $aclSecurityIdentity): self
-    {
-        if ($this->aclSecurityIdentities->contains($aclSecurityIdentity)) {
-            $this->aclSecurityIdentities->removeElement($aclSecurityIdentity);
-            // set the owning side to null (unless already changed)
-            if ($aclSecurityIdentity->getUser() === $this) {
-                $aclSecurityIdentity->setUser(null);
-            }
-        }
-
-        return $this;
-    }
-
 }

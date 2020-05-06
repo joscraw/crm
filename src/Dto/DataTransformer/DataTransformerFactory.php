@@ -46,7 +46,9 @@ class DataTransformerFactory implements ServiceSubscriberInterface
             Role_DtoTransformer::class,
             User_DtoTransformer::class,
             Portal_DtoTransformer::class,
-            Permission_DtoTransformer:: class
+            Permission_DtoTransformer:: class,
+            AclEntry_DtoTransformer::class,
+            AclLock_DtoTransformer::class
         ];
     }
 
