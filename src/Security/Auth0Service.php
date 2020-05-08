@@ -2,10 +2,13 @@
 
 namespace App\Security;
 
+use App\Exception\ApiException;
+use App\Http\ApiErrorResponse;
 use Auth0\SDK\Helpers\JWKFetcher;
 use Auth0\SDK\Helpers\Tokens\AsymmetricVerifier;
 use Auth0\SDK\Helpers\Tokens\TokenVerifier;
 use Firebase\JWT\JWT;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Auth0\SDK\Auth0;
 use Auth0\SDK\API\Authentication;
@@ -93,64 +96,6 @@ class Auth0Service
             'response_mode' => 'form_post'
             // todo response mode needs to be set here to something different when using response type token
         ]);*/
-
-        $this->authenticationApi = new Authentication(
-            $auth0Domain,
-            $auth0ClientId
-        );
-    }
-
-    /**
-     * @param array $params
-     * @return string
-     */
-    public function getLoginUrl($params = []) {
-        $params['connection'] = $this->auth0Connection;
-        return $this->auth0Api->getLoginUrl($params);
-    }
-
-    public function logout() {
-        $this->auth0Api->logout();
-    }
-
-    /**
-     * @return string
-     */
-    public function getLogoutLink() {
-        return $this->authenticationApi->get_logout_link(
-            $this->router->generate('logout', [], UrlGeneratorInterface::ABSOLUTE_URL),
-            $this->auth0ClientId,
-            true
-        );
-    }
-
-    /**
-     * @return array|null
-     * @throws \Auth0\SDK\Exception\ApiException
-     * @throws \Auth0\SDK\Exception\CoreException
-     */
-    public function getUser() {
-        return $this->auth0Api->getUser();
-    }
-
-    /**
-     * @param $jwt
-     * @return array
-     */
-    public function getUserProfileByJwt($jwt)
-    {
-        return $this->authenticationApi->userinfo($jwt);
-    }
-
-    /**
-     * @param $jwt
-     * @param $sub
-     * @return mixed
-     * @throws \Exception
-     */
-    public function getUserBySub($jwt, $sub) {
-        $mgmtApi = new Management($jwt, $this->auth0Domain);
-        return $mgmtApi->users()->get($sub);
     }
 
     /**
@@ -165,36 +110,7 @@ class Auth0Service
         $jwksUri      = $issuer . '.well-known/jwks.json';
         $jwksFetcher   = new JWKFetcher(null, [ 'base_uri' => $jwksUri ]);
         $sigVerifier   = new AsymmetricVerifier($jwksFetcher);
-        $tokenVerifier = new TokenVerifier($issuer, 'https://crm.dev/test-api', $sigVerifier);
+        $tokenVerifier = new TokenVerifier($issuer, $this->auth0Audience, $sigVerifier);
         return $tokenVerifier->verify($encToken);
-    }
-
-    /**
-     * @return array
-     * @throws \Auth0\SDK\Exception\ApiException
-     */
-    public function getAccessToken() {
-
-        $config = [
-            'client_secret' => $this->auth0ClientSecret,
-            'client_id' => $this->auth0ClientId,
-            'audience' => $this->auth0Audience,
-        ];
-
-        return $this->authenticationApi->client_credentials($config);
-    }
-
-    public function createClient($accessToken) {
-
-        $mgmtApi = new Management($accessToken, $this->auth0Domain);
-
-        $data = [
-            'name' => 'crm-test',
-            'app_type' => 'Machine To Machine'
-
-        ];
-
-        return $mgmtApi->clients()->create($data);
-
     }
 }

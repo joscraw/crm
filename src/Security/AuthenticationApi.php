@@ -86,16 +86,6 @@ class AuthenticationApi
         $this->auth0ManagementClientSecret = $auth0ManagementClientSecret;
         $this->auth0ManagementAudience = $auth0ManagementAudience;
 
-
-        // todo I don't know if they leeway is needed here for the AuthenticationApi
-        /**
-         * This is needed probably only on your local dev machine.
-         * If your server running the app is in a different timezone or the
-         * time is different then auth0's servers you will get an error.
-         * This provides extra time leniency between your server and theirs.
-         */
-        JWT::$leeway = 6000000000000000;
-
         $this->authenticationApi = new Authentication(
             $auth0Domain,
             $auth0ClientId
@@ -103,86 +93,32 @@ class AuthenticationApi
 
     }
 
-
     /**
+     * @param $data
      * @return array
      * @throws \Psr\Cache\InvalidArgumentException
      */
-    public function getManagementApiAccessToken() {
+    public function getAccessToken($data) {
 
         $cache = new FilesystemAdapter();
 
-        $accessToken = $cache->get('auth0_management_api_access_token', function (ItemInterface $item) {
+        $config = array_merge($config = array(
+            'client_id' => $this->auth0ClientId,
+            'client_secret' => $this->auth0ClientSecret,
+            'grant_type' => 'client_credentials',
+            'audience' => $this->auth0Audience
+        ), $data);
+
+        $key = md5(json_encode($config)) . '_auth0_access_token11';
+        $accessToken = $cache->get($key, function (ItemInterface $item) use($config) {
             // auth0 setting for expiration is 86400 seconds for access tokens issued by the /token endpoint.
             // keep an eye on this if you notice it expiring before this time and just adjust the seconds down here
             $item->expiresAfter(86400);
 
-            $config = [
-                'client_secret' => $this->auth0ManagementClientSecret,
-                'client_id' => $this->auth0ManagementClientId,
-                'audience' => $this->auth0ManagementAudience,
-            ];
-
-            $response = $this->authenticationApi->client_credentials($config);
-
+            $response = $this->authenticationApi->oauth_token($config);
             return $response['access_token'];
         });
 
         return $accessToken;
-    }
-
-    /**
-     * @param $username
-     * @param $password
-     * @param null $auth0ClientId
-     * @param null $auth0ClientSecret
-     * @param null $auth0Audience
-     * @return array
-     * @throws \Psr\Cache\InvalidArgumentException
-     */
-    public function getUserAccessToken($username, $password, $auth0ClientId = null, $auth0ClientSecret = null, $auth0Audience = null) {
-
-/*        $cache = new FilesystemAdapter();
-
-        $key = md5($username) . '_auth0_user_access_token22';
-        $accessToken = $cache->get($key, function (ItemInterface $item) use($username, $password, $auth0ClientId, $auth0ClientSecret, $auth0Audience) {
-            // auth0 setting for expiration is 86400 seconds for access tokens issued by the /token endpoint.
-            // keep an eye on this if you notice it expiring before this time and just adjust the seconds down here
-            $item->expiresAfter(86400);
-
-            //$httpClient = HttpClient::create();
-
-            $config = array(
-                'grant_type' => 'password',
-                'client_id' => $auth0ClientId ? $auth0ClientId : $this->auth0ClientId,
-                'client_secret' => $auth0ClientSecret ? $auth0ClientSecret : $this->auth0ClientSecret,
-                'username' => $username,
-                'password' => $password,
-                'scope' => 'openid profile email',
-                'audience' => $auth0Audience ? $auth0Audience : $this->auth0Audience
-            );
-
-            $response = $this->authenticationApi->client_credentials($config);
-
-            return $response['access_token'];
-        });*/
-
-
-        $config = array(
-            'grant_type' => 'password',
-            'client_id' => $auth0ClientId ? $auth0ClientId : $this->auth0ClientId,
-            'client_secret' => $auth0ClientSecret ? $auth0ClientSecret : $this->auth0ClientSecret,
-            'username' => $username,
-            'password' => $password,
-            'scope' => 'openid profile email',
-            'audience' => $auth0Audience ? $auth0Audience : $this->auth0Audience
-        );
-
-        $response = $this->authenticationApi->client_credentials($config);
-
-        return $response['access_token'];
-
-        return $accessToken;
-
     }
 }

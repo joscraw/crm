@@ -81,13 +81,10 @@ class ApiTestCase extends WebTestCase
             'http_errors' => false
         ]);
 
-
         self::$staticSymfonyClient = self::createClient([
             'environment' => 'test',
             //'debug'       => false,
         ]);
-
-        //self::bootKernel();
 
         $response = self::createTestAuth0Application();
         self::$staticTestAuth0ApplicationClientId = $response['client_id'];
@@ -127,8 +124,8 @@ class ApiTestCase extends WebTestCase
         $this->testAuth0ApiId = self::$staticTestAuth0ApiId;
 
         $this->purgeDatabase();
-
         $this->createPortal();
+
         $permissions = $this->createPermissions();
         $role = $this->createRole('ROLE_SUPER_ADMIN', 'Super Admin Role', null, $permissions);
 
@@ -137,57 +134,38 @@ class ApiTestCase extends WebTestCase
 
         $this->createDbUser($this->auth0UserId, [$role]);
 
-        $this->auth0UserAccessToken = $this->getUserAccessToken('phpunit@crm.dev', 'phpunit44!');
+        $this->auth0UserAccessToken = $this->getUserAccessToken();
     }
 
     /**
      * Run after each test
      */
     public function tearDown() {
-        //$this->deleteAuth0User($this->auth0UserId);
     }
 
     /**
      * Uses the password grant type to directly retrieve an access token for a
      * given user.
      *
-     * @param $username
-     * @param $password
      * @return mixed
      * @throws \Psr\Cache\InvalidArgumentException
      */
-    public function getUserAccessToken($username, $password) {
+    public function getUserAccessToken() {
 
-        //die($username . '-' . $password . '-' . $this->testAuth0ApplicationClientId . '-' . $this->testAuth0ApplicationClientSecret);
+        $container = self::$container;
+        /** @var AuthenticationApi $authenticationApi */
+        $authenticationApi = $container->get(AuthenticationApi::class);
 
-        $httpClient = HttpClient::create();
-
-        $data = array(
+        return $authenticationApi->getAccessToken([
             'grant_type' => 'http://auth0.com/oauth/grant-type/password-realm',
             'client_id' => $this->testAuth0ApplicationClientId,
             'client_secret' => $this->testAuth0ApplicationClientSecret,
-            'username' => $username,
-            'password' => $password,
+            'username' => 'phpunit@crm.dev',
+            'password' => 'phpunit44!',
             'scope' => 'openid profile email',
             'audience' => 'https://crm.dev/test-api',
             "realm" => "crm-test-user-pass"
-        );
-
-        try {
-            $response = $httpClient->request('POST', 'https://crm-development.auth0.com/oauth/token', [
-                'json' => $data,
-            ]);
-
-        } catch (\Exception $exception) {
-            die($exception->getMessage());
-        }
-
-        $data = $response->toArray();
-
-        //die(var_dump($data));
-
-        return $data['access_token'];
-
+        ]);
     }
 
     // todo need the endpoint to create the user as well.
@@ -352,13 +330,6 @@ class ApiTestCase extends WebTestCase
         /** @var Auth0MgmtApi $auth0MgmtApi */
         $auth0MgmtApi = $container->get(Auth0MgmtApi::class);
         return $auth0MgmtApi->createUser($data);
-    }
-
-    protected function deleteAuth0User($sub) {
-        $container = self::$container;
-        /** @var Auth0MgmtApi $auth0MgmtApi */
-        $auth0MgmtApi = $container->get(Auth0MgmtApi::class);
-        return $auth0MgmtApi->deleteUser($sub);
     }
 
     protected function createDbUser($sub = null, $roles = []) {

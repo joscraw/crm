@@ -76,7 +76,12 @@ class Auth0MgmtApi
         $this->auth0ManagementAudience = $auth0ManagementAudience;
         $this->authenticationApi = $authenticationApi;
 
-        $this->accessToken = $this->authenticationApi->getManagementApiAccessToken();
+        $this->accessToken = $this->authenticationApi->getAccessToken([
+            'client_secret' => $this->auth0ManagementClientSecret,
+            'client_id' => $this->auth0ManagementClientId,
+            'audience' => $this->auth0ManagementAudience,
+        ]);
+
     }
 
     /**

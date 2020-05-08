@@ -93,7 +93,7 @@ class JWTGuardAuthenticator extends AbstractGuardAuthenticator
         try {
             $jwt = $this->auth0Service->decodeJWT($credentials['jwt']);
         } catch (CoreException $exception) {
-            throw new ApiException(new ApiErrorResponse("11Authorization has been refused for those credentials." . $exception->getMessage(),
+            throw new ApiException(new ApiErrorResponse("Authorization has been refused for those credentials.",
                 null,
                 [],
                 Response::HTTP_UNAUTHORIZED
@@ -122,7 +122,7 @@ class JWTGuardAuthenticator extends AbstractGuardAuthenticator
     public function checkCredentials($credentials, UserInterface $user)
     {
         if(!$user) {
-            throw new ApiException(new ApiErrorResponse("22Authorization has been refused for those credentials.",
+            throw new ApiException(new ApiErrorResponse("Authorization has been refused for those credentials.",
                 null,
                 [],
                 Response::HTTP_UNAUTHORIZED
@@ -155,7 +155,7 @@ class JWTGuardAuthenticator extends AbstractGuardAuthenticator
      */
     public function onAuthenticationFailure(Request $request, AuthenticationException $exception)
     {
-        return new ApiErrorResponse($exception->getMessage() . '324223',
+        return new ApiErrorResponse($exception->getMessage(),
             null,
             [],
             Response::HTTP_UNAUTHORIZED
@@ -172,7 +172,7 @@ class JWTGuardAuthenticator extends AbstractGuardAuthenticator
      */
     public function start(Request $request, AuthenticationException $authenticationException = null)
     {
-        return new ApiErrorResponse('Authentication Required 898988',
+        return new ApiErrorResponse('Authentication Required',
             null,
             [],
             Response::HTTP_UNAUTHORIZED
