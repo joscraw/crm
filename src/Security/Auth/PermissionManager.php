@@ -3,13 +3,17 @@
 namespace App\Security\Auth;
 
 use App\Entity\AclEntry;
-use App\Entity\CustomObject;
 use App\Entity\Portal;
-use App\Entity\Property;
-use App\Entity\PropertyGroup;
-use App\Entity\Record;
 use App\Entity\Role;
 use App\Repository\PermissionRepository;
+use RecursiveArrayIterator;
+use RecursiveIteratorIterator;
+use Symfony\Component\Config\FileLocator;
+use Symfony\Component\Config\Loader\DelegatingLoader;
+use Symfony\Component\Config\Loader\LoaderResolver;
+use Symfony\Component\Finder\Finder;
+use Symfony\Component\Finder\SplFileInfo;
+use Symfony\Component\Yaml\Yaml;
 
 class PermissionManager
 {
@@ -114,6 +118,37 @@ class PermissionManager
         }
 
         return $role;
+    }
+
+    /**
+     * @return mixed
+     * @throws \Symfony\Component\Config\Exception\LoaderLoadException
+     */
+    public function load() {
+
+        $dir = __DIR__.'/permissions';
+        $finder = new Finder();
+        $finder->depth("< 3")->in($dir)->files()->name('*.yaml');
+        $configValues = [];
+        /** @var SplFileInfo $file */
+        foreach ($finder as $file) {
+            // make sure the file has yaml inside it
+            if(is_array(Yaml::parse($file->getContents()))) {
+                $configValues = array_merge($configValues, Yaml::parse($file->getContents()));
+            }
+        }
+        $yaml = Yaml::dump($configValues);
+        file_put_contents($dir . '/permissions.yaml', $yaml);
+
+        $configDirectories = [$dir];
+        $fileLocator = new FileLocator($configDirectories);
+        // Add additional Loaders here to pull in permissions from other sources instead of just .yaml files
+        $loaderResolver = new LoaderResolver([new YamlPermissionLoader($fileLocator)]);
+        $delegatingLoader = new DelegatingLoader($loaderResolver);
+
+        $configValues = $delegatingLoader->load($dir.'/permissions.yaml');
+
+        return $configValues;
     }
 
 }

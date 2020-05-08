@@ -11,7 +11,7 @@ class CustomObjectFixtures extends Fixture implements DependentFixtureInterface
 {
     public function load(ObjectManager $manager)
     {
-        $customObject = new CustomObject();
+        /*$customObject = new CustomObject();
         $customObject->setInternalName('contacts');
         $customObject->setLabel('Contact');
         $customObject->setPortal($this->getReference('portal_1'));
@@ -21,7 +21,7 @@ class CustomObjectFixtures extends Fixture implements DependentFixtureInterface
 
         $manager->persist($customObject);
 
-        $manager->flush();
+        $manager->flush();*/
     }
 
     /**
@@ -33,7 +33,7 @@ class CustomObjectFixtures extends Fixture implements DependentFixtureInterface
     public function getDependencies()
     {
         return array(
-            PortalFixtures::class,
+            /*PortalFixtures::class,*/
         );
     }
 }

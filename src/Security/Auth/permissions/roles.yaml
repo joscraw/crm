@@ -1,0 +1,13 @@
+roles:
+  permission_1:
+    scope: 'create:roles'
+    description: 'create roles'
+  permission_2:
+    scope: 'update:roles'
+    description: 'update roles'
+  permission_3:
+    scope: 'read:roles'
+    description: 'read roles'
+  permission_4:
+    scope: 'delete:roles'
+    description: 'delete roles'

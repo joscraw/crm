@@ -11,7 +11,7 @@ class PropertyGroupFixtures extends Fixture implements DependentFixtureInterface
 {
     public function load(ObjectManager $manager)
     {
-        $propertyGroup = new PropertyGroup();
+       /* $propertyGroup = new PropertyGroup();
         $propertyGroup->setInternalName('general_information');
         $propertyGroup->setName('General Information');
         $propertyGroup->getCustomObject();
@@ -21,7 +21,7 @@ class PropertyGroupFixtures extends Fixture implements DependentFixtureInterface
 
         $this->addReference('property_group_1', $propertyGroup);
 
-        $manager->flush();
+        $manager->flush();*/
     }
 
     /**
@@ -33,7 +33,7 @@ class PropertyGroupFixtures extends Fixture implements DependentFixtureInterface
     public function getDependencies()
     {
         return array(
-            CustomObjectFixtures::class,
+            /*CustomObjectFixtures::class,*/
         );
     }
 }

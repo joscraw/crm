@@ -13,7 +13,6 @@ use App\Http\ApiResponse;
 use App\Model\CustomObjectField;
 use App\Model\FieldCatalog;
 use App\Model\Pagination\PaginationCollection;
-use App\Utils\ServiceHelper;
 use Pagerfanta\Adapter\DoctrineORMAdapter;
 use Pagerfanta\Pagerfanta;
 use Symfony\Component\Form\DataTransformerInterface;

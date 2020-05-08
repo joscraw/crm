@@ -15,6 +15,7 @@ use Nelmio\ApiDocBundle\Annotation\Model;
 use Pagerfanta\Adapter\DoctrineORMAdapter;
 use Pagerfanta\Pagerfanta;
 use Symfony\Component\Form\DataTransformerInterface;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Swagger\Annotations as SWG;
@@ -25,6 +26,7 @@ use App\Dto\Role_Dto;
 use App\Dto\Permission_Dto;
 use App\Dto\AclEntry_Dto;
 use App\Dto\AclLock_Dto;
+use Symfony\Component\Routing\Annotation\Route;
 
 
 /**
@@ -33,6 +35,21 @@ use App\Dto\AclLock_Dto;
  */
 class PermissionController extends ApiController
 {
+
+    /**
+     * @Route("/haha/test", name="ha_ha_test", methods={"GET"}, options = { "expose" = true })
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getRecordFormAction(Request $request) {
+
+        return new JsonResponse(
+            [
+                'success' => true,
+            ],
+            Response::HTTP_OK
+        );
+    }
 
     /**
      * Get Roles
@@ -145,13 +162,10 @@ class PermissionController extends ApiController
         $user = $this->getUser();
         $version = $request->headers->get('X-Accept-Version');
 
-        /** @var Portal $portal */
-        $portal = $this->portalResolver->resolve();
-
         $page = $request->query->get('page', 1);
         $limit = $request->query->get('limit', null);
 
-        $qb = $this->roleRepository->findAllQueryBuilder($portal);
+        $qb = $this->roleRepository->findAllQueryBuilder();
 
         $adapter = new DoctrineORMAdapter($qb);
         $pagerfanta = new Pagerfanta($adapter);

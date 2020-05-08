@@ -8,6 +8,7 @@ use App\Dto\DtoFactory;
 use App\Entity\User;
 use App\Http\ApiErrorResponse;
 use App\Http\ApiResponse;
+use App\Security\Auth\PermissionManager;
 use App\Utils\ServiceHelper;
 use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 use Symfony\Component\HttpFoundation\Request;
@@ -122,6 +123,7 @@ class SecurityController extends ApiController
      * @param $auth0Audience
      * @return ApiErrorResponse|ApiResponse
      * @throws \Psr\Cache\InvalidArgumentException
+     * @throws \Symfony\Component\Config\Exception\LoaderLoadException
      */
     public function newToken(Request $request, $auth0ClientId, $auth0ClientSecret, $auth0Audience) {
 

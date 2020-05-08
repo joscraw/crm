@@ -20,7 +20,7 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
 
     public function load(ObjectManager $manager)
     {
-        $user = new User();
+        /*$user = new User();
 
         $user->setEmail('jcrawmer@edoutcome.com');
         $user->setFirstName('Josh');
@@ -38,7 +38,7 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
 
         $manager->persist($user);
 
-        $manager->flush();
+        $manager->flush();*/
     }
 
     /**
@@ -50,8 +50,8 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
     public function getDependencies()
     {
         return array(
-            PortalFixtures::class,
-            RoleFixtures::class
+           /* PortalFixtures::class,
+            RoleFixtures::class*/
         );
     }
 }

@@ -99,6 +99,19 @@ class Auth0MgmtApi
 
     /**
      * @param $clientId
+     * @param array $data
+     * @return mixed|string
+     * @throws \Exception
+     */
+    public function updateApplication($clientId, $data = []) {
+
+        $mgmtApi = new Management($this->accessToken, $this->auth0Domain);
+
+        return $mgmtApi->clients()->update($clientId, $data);
+    }
+
+    /**
+     * @param $clientId
      * @return mixed|string
      * @throws \Exception
      */
@@ -175,14 +188,15 @@ class Auth0MgmtApi
     /**
      * @param $clientId
      * @param $audience
+     * @param array $scopes
      * @return mixed
      * @throws \Auth0\SDK\Exception\CoreException
      */
-    public function createClientGrant($clientId, $audience) {
+    public function createClientGrant($clientId, $audience, $scopes = []) {
 
         $mgmtApi = new Management($this->accessToken, $this->auth0Domain);
 
-        return $mgmtApi->clientGrants()->create($clientId, $audience);
+        return $mgmtApi->clientGrants()->create($clientId, $audience, $scopes);
     }
 
     /**
@@ -199,6 +213,18 @@ class Auth0MgmtApi
         ], $data);
 
         return $mgmtApi->users()->create($data);
+    }
+
+    /**
+     * @param $sub
+     * @return mixed
+     * @throws \Exception
+     */
+    public function deleteUser($sub) {
+
+        $mgmtApi = new Management($this->accessToken, $this->auth0Domain);
+
+        return $mgmtApi->users()->delete($sub);
     }
 
     /**

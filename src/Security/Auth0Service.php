@@ -80,19 +80,19 @@ class Auth0Service
         $this->auth0Audience = $auth0Audience;
         $this->router = $router;
 
-        $this->auth0Api = new Auth0([
+ /*       $this->auth0Api = new Auth0([
             'audience' => $this->auth0Audience,
             'domain' => $auth0Domain,
             'client_id' => $auth0ClientId,
             'client_secret' => $auth0ClientSecret,
             'redirect_uri' => $this->router->generate('auth0_callback', [], UrlGeneratorInterface::ABSOLUTE_URL),
             'scope' => 'openid profile email',
-            /*'store' => $this->sessionStore,*/
+            //'store' => $this->sessionStore,
             'response_type' => 'token id_token', // todo maybe refactor this in the near future to allow picking betweeen "code" and "token" if we might need both.
             'store' => false,
             'response_mode' => 'form_post'
             // todo response mode needs to be set here to something different when using response type token
-        ]);
+        ]);*/
 
         $this->authenticationApi = new Authentication(
             $auth0Domain,
@@ -165,7 +165,7 @@ class Auth0Service
         $jwksUri      = $issuer . '.well-known/jwks.json';
         $jwksFetcher   = new JWKFetcher(null, [ 'base_uri' => $jwksUri ]);
         $sigVerifier   = new AsymmetricVerifier($jwksFetcher);
-        $tokenVerifier = new TokenVerifier($issuer, $this->auth0Audience, $sigVerifier);
+        $tokenVerifier = new TokenVerifier($issuer, 'https://crm.dev/test-api', $sigVerifier);
         return $tokenVerifier->verify($encToken);
     }
 

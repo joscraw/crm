@@ -5,6 +5,7 @@ namespace App\Security;
 use Auth0\SDK\API\Authentication;
 use Firebase\JWT\JWT;
 use Symfony\Component\Cache\Adapter\FilesystemAdapter;
+use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Contracts\Cache\ItemInterface;
 
 class AuthenticationApi
@@ -105,21 +106,6 @@ class AuthenticationApi
 
     /**
      * @return array
-     * @throws \Auth0\SDK\Exception\ApiException
-     */
-    public function getUserAccessToken() {
-
-        $config = [
-            'client_secret' => $this->auth0ClientSecret,
-            'client_id' => $this->auth0ClientId,
-            'audience' => $this->auth0Audience,
-        ];
-
-        return $this->authenticationApi->client_credentials($config);
-    }
-
-    /**
-     * @return array
      * @throws \Psr\Cache\InvalidArgumentException
      */
     public function getManagementApiAccessToken() {
@@ -143,5 +129,60 @@ class AuthenticationApi
         });
 
         return $accessToken;
+    }
+
+    /**
+     * @param $username
+     * @param $password
+     * @param null $auth0ClientId
+     * @param null $auth0ClientSecret
+     * @param null $auth0Audience
+     * @return array
+     * @throws \Psr\Cache\InvalidArgumentException
+     */
+    public function getUserAccessToken($username, $password, $auth0ClientId = null, $auth0ClientSecret = null, $auth0Audience = null) {
+
+/*        $cache = new FilesystemAdapter();
+
+        $key = md5($username) . '_auth0_user_access_token22';
+        $accessToken = $cache->get($key, function (ItemInterface $item) use($username, $password, $auth0ClientId, $auth0ClientSecret, $auth0Audience) {
+            // auth0 setting for expiration is 86400 seconds for access tokens issued by the /token endpoint.
+            // keep an eye on this if you notice it expiring before this time and just adjust the seconds down here
+            $item->expiresAfter(86400);
+
+            //$httpClient = HttpClient::create();
+
+            $config = array(
+                'grant_type' => 'password',
+                'client_id' => $auth0ClientId ? $auth0ClientId : $this->auth0ClientId,
+                'client_secret' => $auth0ClientSecret ? $auth0ClientSecret : $this->auth0ClientSecret,
+                'username' => $username,
+                'password' => $password,
+                'scope' => 'openid profile email',
+                'audience' => $auth0Audience ? $auth0Audience : $this->auth0Audience
+            );
+
+            $response = $this->authenticationApi->client_credentials($config);
+
+            return $response['access_token'];
+        });*/
+
+
+        $config = array(
+            'grant_type' => 'password',
+            'client_id' => $auth0ClientId ? $auth0ClientId : $this->auth0ClientId,
+            'client_secret' => $auth0ClientSecret ? $auth0ClientSecret : $this->auth0ClientSecret,
+            'username' => $username,
+            'password' => $password,
+            'scope' => 'openid profile email',
+            'audience' => $auth0Audience ? $auth0Audience : $this->auth0Audience
+        );
+
+        $response = $this->authenticationApi->client_credentials($config);
+
+        return $response['access_token'];
+
+        return $accessToken;
+
     }
 }

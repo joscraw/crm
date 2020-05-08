@@ -14,6 +14,41 @@ class Permission
 {
     use TimestampableEntity;
 
+    public static $permissions = [
+        [
+            'scope' => 'create:custom_objects',
+            'description' => 'create custom objects',
+        ],
+        [
+            'scope' => 'update:custom_objects',
+            'description' => 'update custom objects'
+        ],
+        [
+            'scope' => 'read:custom_objects',
+            'description' => 'read custom objects',
+        ],
+        [
+            'scope' => 'delete:custom_objects',
+            'description' => 'delete custom objects'
+        ],
+        [
+            'scope' => 'create:scopes',
+            'description' => 'create scopes'
+        ],
+        [
+            'scope' => 'update:scopes',
+            'description' => 'update scopes'
+        ],
+        [
+            'scope' => 'read:scopes',
+            'description' => 'read scopes'
+        ],
+        [
+            'scope' => 'delete:scopes',
+            'description' => 'delete scopes'
+        ]
+    ];
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()

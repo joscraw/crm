@@ -13,7 +13,7 @@ class PropertyFixtures extends Fixture implements DependentFixtureInterface
 {
     public function load(ObjectManager $manager)
     {
-        $property = new Property();
+        /*$property = new Property();
         $property->setInternalName('first_name');
         $property->setLabel('First Name');
         $property->setRequired(true);
@@ -53,7 +53,7 @@ class PropertyFixtures extends Fixture implements DependentFixtureInterface
 
         $manager->persist($property);
 
-        $manager->flush();
+        $manager->flush();*/
     }
 
     /**
@@ -65,8 +65,8 @@ class PropertyFixtures extends Fixture implements DependentFixtureInterface
     public function getDependencies()
     {
         return array(
-            PropertyGroupFixtures::class,
-            CustomObjectFixtures::class,
+            /*PropertyGroupFixtures::class,
+            CustomObjectFixtures::class,*/
         );
     }
 }

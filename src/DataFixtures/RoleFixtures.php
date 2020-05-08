@@ -10,23 +10,13 @@ use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 class RoleFixtures extends Fixture implements DependentFixtureInterface
 {
-
-    private $passwordEncoder;
-
-    public function __construct(UserPasswordEncoderInterface $passwordEncoder)
-    {
-        $this->passwordEncoder = $passwordEncoder;
-    }
-
     public function load(ObjectManager $manager)
     {
         $role = new Role();
-        $role->setName('ALL');
-        $role->setObjectPermissions(['ALL']);
-        $role->setSystemPermissions(['ALL']);
-        $role->setPortal($this->getReference('portal_1'));
+        $role->setName('ROLE_SUPER_ADMIN')
+            ->setDescription('Super Admin Role');
 
-        $this->addReference('role_1', $role);
+       // $this->addReference('role_super_admin', $role);
 
         $manager->persist($role);
 

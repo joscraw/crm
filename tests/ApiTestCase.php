@@ -2,26 +2,31 @@
 
 namespace App\Tests;
 
+use App\Entity\Permission;
+use App\Entity\Portal;
+use App\Entity\Role;
+use App\Entity\User;
+use App\Security\Auth\PermissionManager;
 use App\Security\Auth0MgmtApi;
-use App\Security\Auth0Service;
+use App\Security\AuthenticationApi;
+use App\Utils\ArrayHelper;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpClient\HttpClient;
-use Symfony\Component\Cache\Adapter\FilesystemAdapter;
-use Symfony\Contracts\Cache\ItemInterface;
 use GuzzleHttp\Client;
 use Doctrine\Common\DataFixtures\Purger\ORMPurger;
 
 class ApiTestCase extends WebTestCase
 {
 
+    use ArrayHelper;
+
     /**
      * @var HttpClient
      */
     private static $staticClient;
-    private static $staticUserAccessToken;
-    private static $staticMachineAccessToken;
+    private static $staticSymfonyClient;
     private static $staticTestAuth0ApplicationClientId;
+    private static $staticTestAuth0ApplicationClientSecret;
     private static $staticTestAuth0ConnectionId;
     private static $staticTestAuth0ApiId;
 
@@ -30,20 +35,17 @@ class ApiTestCase extends WebTestCase
      */
     protected $client;
 
-    /**
-     * @var string
-     */
-    protected $userAccessToken;
-
-    /**
-     * @var string
-     */
-    protected $machineAccessToken;
+    protected $symfonyClient;
 
     /**
      * @var string
      */
     protected $testAuth0ApplicationClientId;
+
+    /**
+     * @var string
+     */
+    protected $testAuth0ApplicationClientSecret;
 
     /**
      * @var string
@@ -54,6 +56,16 @@ class ApiTestCase extends WebTestCase
      * @var string
      */
     protected $testAuth0ApiId;
+
+    /**
+     * @var string
+     */
+    protected $auth0UserId;
+
+    /**
+     * @var string
+     */
+    protected $auth0UserAccessToken;
 
     /**
      * Instead of being called before every test,
@@ -69,15 +81,27 @@ class ApiTestCase extends WebTestCase
             'http_errors' => false
         ]);
 
-        self::bootKernel();
 
-        self::$staticMachineAccessToken = self::getMachineToMachineAccessToken();
-        self::$staticUserAccessToken = self::getUserAccessToken();
-        self::$staticTestAuth0ApplicationClientId = self::createTestAuth0Application();
-        self::$staticTestAuth0ConnectionId = self::createTestAuth0DatabaseConnection();
-        self::$staticTestAuth0ApiId = self::createTestAuth0Api();
+        self::$staticSymfonyClient = self::createClient([
+            'environment' => 'test',
+            //'debug'       => false,
+        ]);
+
+        //self::bootKernel();
+
+        $response = self::createTestAuth0Application();
+        self::$staticTestAuth0ApplicationClientId = $response['client_id'];
+        self::$staticTestAuth0ApplicationClientSecret = $response['client_secret'];
+
+        self::updateTestApplicationGrantTypes();
+
+        $response = self::createTestAuth0DatabaseConnection();
+        self::$staticTestAuth0ConnectionId = $response['id'];
+
+        $response = self::createTestAuth0Api();
+        self::$staticTestAuth0ApiId = $response['id'];
+
         self::authorizeTestApplicationToAccessTestApi();
-
     }
 
     /**
@@ -95,159 +119,76 @@ class ApiTestCase extends WebTestCase
      */
     public function setUp()
     {
+
         $this->client = self::$staticClient;
-        $this->machineAccessToken = self::$staticMachineAccessToken;
-        $this->userAccessToken = self::$staticUserAccessToken;
+        $this->symfonyClient = self::$staticSymfonyClient;
         $this->testAuth0ApplicationClientId = self::$staticTestAuth0ApplicationClientId;
+        $this->testAuth0ApplicationClientSecret = self::$staticTestAuth0ApplicationClientSecret;
         $this->testAuth0ApiId = self::$staticTestAuth0ApiId;
 
         $this->purgeDatabase();
+
+        $this->createPortal();
+        $permissions = $this->createPermissions();
+        $role = $this->createRole('ROLE_SUPER_ADMIN', 'Super Admin Role', null, $permissions);
+
+        $response = $this->createAuth0User();
+        $this->auth0UserId = $response['user_id'];
+
+        $this->createDbUser($this->auth0UserId, [$role]);
+
+        $this->auth0UserAccessToken = $this->getUserAccessToken('phpunit@crm.dev', 'phpunit44!');
     }
 
     /**
      * Run after each test
      */
     public function tearDown() {
+        //$this->deleteAuth0User($this->auth0UserId);
     }
 
     /**
      * Uses the password grant type to directly retrieve an access token for a
      * given user.
      *
+     * @param $username
+     * @param $password
      * @return mixed
-     * @throws \Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface
-     * @throws \Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface
-     * @throws \Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface
-     * @throws \Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface
-     * @throws \Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface
+     * @throws \Psr\Cache\InvalidArgumentException
      */
-    static public function getUserAccessToken() {
+    public function getUserAccessToken($username, $password) {
 
-        $cache = new FilesystemAdapter();
-
-/*        $accessToken = $cache->get('auth0_user_access_token', function (ItemInterface $item) {
-            // auth0 setting for expiration is 86400 seconds for access tokens issued by the /token endpoint.
-            // keep an eye on this if you notice it expiring before this time and just adjust the seconds down here
-            $item->expiresAfter(86400);
-
-            $httpClient = HttpClient::create();
-
-            $data = array(
-                'grant_type' => 'password',
-                'client_id' => 'Hhzjj4oe1CuKYcd9C0nbSjh5ltScR5oL',
-                'client_secret' => 'IYAPxnyXDlApji5FyIJ_QloJXzY938veaI2YuYaq8-QOyNzt8wCPP7noi0fkAmqX',
-                'username' => 'joshcrawmer4@yahoo.com',
-                'password' => 'Iluv2rap!',
-                'scope' => 'openid profile email',
-                'audience' => 'https://crm.dev/api'
-            );
-
-            $response = $httpClient->request('POST', 'https://crm-development.auth0.com/oauth/token', [
-                'json' => $data,
-            ]);
-
-            $data = $response->toArray();
-
-            return $data['access_token'];
-        });*/
+        //die($username . '-' . $password . '-' . $this->testAuth0ApplicationClientId . '-' . $this->testAuth0ApplicationClientSecret);
 
         $httpClient = HttpClient::create();
 
-        // todo pull from .env file if you even need to anymore cause you can use the mgmt service
-        // todo you need to get this access token after a user is created instead of before.
-        // todo you need to use the client id and secret generated from the test application setup
         $data = array(
-            'grant_type' => 'password',
-            'client_id' => 'Hhzjj4oe1CuKYcd9C0nbSjh5ltScR5oL',
-            'client_secret' => 'IYAPxnyXDlApji5FyIJ_QloJXzY938veaI2YuYaq8-QOyNzt8wCPP7noi0fkAmqX',
-            'username' => 'joshcrawmer4@yahoo.com',
-            'password' => 'Iluv2rap!',
+            'grant_type' => 'http://auth0.com/oauth/grant-type/password-realm',
+            'client_id' => $this->testAuth0ApplicationClientId,
+            'client_secret' => $this->testAuth0ApplicationClientSecret,
+            'username' => $username,
+            'password' => $password,
             'scope' => 'openid profile email',
-            'audience' => 'https://crm.dev/api'
+            'audience' => 'https://crm.dev/test-api',
+            "realm" => "crm-test-user-pass"
         );
 
-        $response = $httpClient->request('POST', 'https://crm-development.auth0.com/oauth/token', [
-            'json' => $data,
-        ]);
-
-        $data = $response->toArray();
-
-        return $data['access_token'];
-
-       // return $accessToken;
-
-    }
-
-    /**
-     * Uses the client credentials grant type to just use a client id and
-     * client secret for authentication into the management api.
-     *
-     * @return mixed
-     * @throws \Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface
-     * @throws \Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface
-     * @throws \Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface
-     * @throws \Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface
-     * @throws \Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface
-     */
-    static public function getMachineToMachineAccessToken() {
-
-        // todo re-add the cache. But you need to figure out how to actually
-        // todo clear this cache somehow. Cause it was caching old access tokens without
-        // todo the proper permissions yet.
-        // todo machine to machine client id and secret will be shared across all apps
-        // todo for each tenant. so you essentially will need to create 2 more. 1 for staging
-        // todo and production.
-/*        $cache = new FilesystemAdapter();
-
-        $accessToken = $cache->get('auth0_machine_access_token', function (ItemInterface $item) {
-            // auth0 setting for expiration is 86400 seconds for access tokens issued by the /token endpoint.
-            // keep an eye on this if you notice it expiring before this time and just adjust the seconds down here
-            $item->expiresAfter(86400);
-
-            $httpClient = HttpClient::create();
-
-            $data = array(
-                'grant_type' => 'client_credentials',
-                'client_id' => 'CVZvis3P0FWa7BxoCCA6rrphMzqlodTS',
-                'client_secret' => 'XgpO2H7rIFNYkrzKZK4EkbY338J4sTmW6g72AED8bopxC5RrSodo7Ta87plvaisZ',
-                'audience' => 'https://crm-development.auth0.com/api/v2/'
-            );
-
+        try {
             $response = $httpClient->request('POST', 'https://crm-development.auth0.com/oauth/token', [
                 'json' => $data,
             ]);
 
-            $data = $response->toArray();
-
-            return $data['access_token'];
-        });*/
-
-        $httpClient = HttpClient::create();
-
-        // todo pull from .env file if you even need to anymore cause you can use the mgmt service
-        $data = array(
-            'grant_type' => 'client_credentials',
-            'client_id' => 'CVZvis3P0FWa7BxoCCA6rrphMzqlodTS',
-            'client_secret' => 'XgpO2H7rIFNYkrzKZK4EkbY338J4sTmW6g72AED8bopxC5RrSodo7Ta87plvaisZ',
-            'audience' => 'https://crm-development.auth0.com/api/v2/'
-        );
-
-        $response = $httpClient->request('POST', 'https://crm-development.auth0.com/oauth/token', [
-            'json' => $data,
-        ]);
+        } catch (\Exception $exception) {
+            die($exception->getMessage());
+        }
 
         $data = $response->toArray();
 
-        die($data['access_token']);
+        //die(var_dump($data));
+
         return $data['access_token'];
 
-
-
-
-        //return $accessToken;
-
     }
-
 
     // todo need the endpoint to create the user as well.
     // todo then you can add this user to the test db so requests can authorize
@@ -259,25 +200,13 @@ class ApiTestCase extends WebTestCase
     // todo need to build the logic for creating a user in auth0
     // todo need to build in the logic to create user/portal
 
-    protected function createUser(string $email, string $password): User {
+    protected function createUser22(string $email, string $password): User {
 
         // todo implement this next. You need to create a user in auth0
         // todo and also create a user in the test db as well right?
         // todo we need a generic sign up endpoint right? And a create user endpoint?
         // todo need to think this one through a bit.
-        /*$user = new User();
-        $user->setEmail($email);
-        $user->setUsername(substr($email, 0, strpos($email, '@')));
 
-        $encoded = self::$container->get('security.password_encoder')
-            ->encodePassword($user, $password);
-        $user->setPassword($encoded);
-
-        $em = self::$container->get('doctrine')->getManager();
-        $em->persist($user);
-        $em->flush();
-
-        return $user;*/
     }
 
     private function purgeDatabase()
@@ -286,10 +215,26 @@ class ApiTestCase extends WebTestCase
         $purger->purge();
     }
 
+    /**
+     * Uses the real and unchanged service container to fetch services
+     *
+     * @param $id
+     * @return object|null
+     */
     protected function getService($id)
     {
         return self::$kernel->getContainer()
             ->get($id);
+    }
+
+    /**
+     * Uses a special container that allows fetching private services
+     * @param $id
+     * @return object|null
+     */
+    protected function getPrivateService($id)
+    {
+        return self::$container->get($id);
     }
 
     static public function createTestAuth0Application() {
@@ -301,15 +246,33 @@ class ApiTestCase extends WebTestCase
             'name' => 'crm-test',
         ];
 
-        $response = $auth0MgmtApi->createApplication(self::$staticMachineAccessToken, $data);
-        return $response['client_id'];
+        return $auth0MgmtApi->createApplication($data);
+    }
+
+    static public function updateTestApplicationGrantTypes() {
+        $container = self::$container;
+        /** @var Auth0MgmtApi $auth0MgmtApi */
+        $auth0MgmtApi = $container->get(Auth0MgmtApi::class);
+
+        $data = [
+            'grant_types' => [
+                'implicit',
+                'authorization_code',
+                'refresh_token',
+                'client_credentials',
+                'password',
+                'http://auth0.com/oauth/grant-type/password-realm'
+            ],
+        ];
+
+        return $auth0MgmtApi->updateApplication(self::$staticTestAuth0ApplicationClientId, $data);
     }
 
     static public function deleteTestAuth0Application() {
         $container = self::$container;
         /** @var Auth0MgmtApi $auth0MgmtApi */
         $auth0MgmtApi = $container->get(Auth0MgmtApi::class);
-        return $auth0MgmtApi->deleteApplication(self::$staticMachineAccessToken, self::$staticTestAuth0ApplicationClientId);
+        return $auth0MgmtApi->deleteApplication(self::$staticTestAuth0ApplicationClientId);
     }
 
     static public function createTestAuth0DatabaseConnection() {
@@ -326,37 +289,34 @@ class ApiTestCase extends WebTestCase
           ]
         ];
 
-        $response = $auth0MgmtApi->createConnection(self::$staticMachineAccessToken, $data);
-        return $response['id'];
+        return $auth0MgmtApi->createConnection($data);
     }
 
     static public function deleteTestAuth0DatabaseConnection() {
         $container = self::$container;
         /** @var Auth0MgmtApi $auth0MgmtApi */
         $auth0MgmtApi = $container->get(Auth0MgmtApi::class);
-        $auth0MgmtApi->deleteConnection(self::$staticMachineAccessToken, self::$staticTestAuth0ConnectionId);
+        $auth0MgmtApi->deleteConnection(self::$staticTestAuth0ConnectionId);
     }
 
     static public function createTestAuth0Api() {
         $container = self::$container;
         /** @var Auth0MgmtApi $auth0MgmtApi */
         $auth0MgmtApi = $container->get(Auth0MgmtApi::class);
-        // todo refactor all these static strings into the env file
         $identifier = 'https://crm.dev/test-api';
 
         $data = [
             'name' => 'crm-test'
         ];
 
-        $response = $auth0MgmtApi->createApi(self::$staticMachineAccessToken, $identifier, $data);
-        return $response['id'];
+        return $auth0MgmtApi->createApi($identifier, $data);
     }
 
     static public function deleteTestAuth0Api() {
         $container = self::$container;
         /** @var Auth0MgmtApi $auth0MgmtApi */
         $auth0MgmtApi = $container->get(Auth0MgmtApi::class);
-        $auth0MgmtApi->deleteApi(self::$staticMachineAccessToken, self::$staticTestAuth0ApiId);
+        $auth0MgmtApi->deleteApi(self::$staticTestAuth0ApiId);
     }
 
     static public function authorizeTestApplicationToAccessTestApi() {
@@ -364,6 +324,100 @@ class ApiTestCase extends WebTestCase
         /** @var Auth0MgmtApi $auth0MgmtApi */
         $auth0MgmtApi = $container->get(Auth0MgmtApi::class);
         $identifier = 'https://crm.dev/test-api';
-        $auth0MgmtApi->createClientGrant(self::$staticMachineAccessToken, self::$staticTestAuth0ApplicationClientId, $identifier);
+        $scopes = ['openid', 'profile', 'email'];
+        $auth0MgmtApi->createClientGrant(self::$staticTestAuth0ApplicationClientId, $identifier, $scopes);
     }
+
+    protected function createPortal() {
+        $portal = new Portal();
+        $portal->setInternalIdentifier('7810945509');
+        $portal->setName('PhpUnit Test Portal');
+        $portal->setSystemDefined(true);
+
+        $entityManager = $this->getService('doctrine.orm.default_entity_manager');
+        $entityManager->persist($portal);
+        $entityManager->flush();
+
+        return $portal;
+    }
+
+    protected function createAuth0User() {
+        $data = [
+            'email' => 'phpunit@crm.dev',
+            'name' => 'phpunit',
+            'password' => 'phpunit44!',
+            'connection' => 'crm-test-user-pass'
+        ];
+        $container = self::$container;
+        /** @var Auth0MgmtApi $auth0MgmtApi */
+        $auth0MgmtApi = $container->get(Auth0MgmtApi::class);
+        return $auth0MgmtApi->createUser($data);
+    }
+
+    protected function deleteAuth0User($sub) {
+        $container = self::$container;
+        /** @var Auth0MgmtApi $auth0MgmtApi */
+        $auth0MgmtApi = $container->get(Auth0MgmtApi::class);
+        return $auth0MgmtApi->deleteUser($sub);
+    }
+
+    protected function createDbUser($sub = null, $roles = []) {
+        $user = (new User())
+            ->setEmail('phpunit@crm.dev')
+            ->setFirstName('phpunit')
+            ->setLastName('phpunit');
+        if($sub) {
+            $user->setSub($sub);
+        }
+        foreach($roles as $role) {
+            $user->addCustomRole($role);
+        }
+        $entityManager = $this->getService('doctrine.orm.default_entity_manager');
+        $entityManager->persist($user);
+        $entityManager->flush();
+
+        return $user;
+    }
+
+    protected function createRole($name, $description, $forPortal = null, $permissions = []) {
+        $role = new Role();
+        $role->setName($name)
+            ->setDescription($description);
+
+        if($forPortal and $forPortal instanceof Portal) {
+            $role->setPortal($forPortal);
+        }
+
+        foreach ($permissions as $permission) {
+            $role->addPermission($permission);
+        }
+
+        $entityManager = $this->getService('doctrine.orm.default_entity_manager');
+        $entityManager->persist($role);
+        $entityManager->flush();
+
+        return $role;
+    }
+
+    protected function createPermissions() {
+        $entityManager = $this->getService('doctrine.orm.default_entity_manager');
+
+        $permissionManager = $this->getPrivateService(PermissionManager::class);
+        $permissions = $permissionManager->load();
+
+        $permissionObjs = [];
+        foreach($permissions as $key => $permissionSet) {
+            foreach($permissionSet as $permission) {
+                $permissionObj = new Permission();
+                $permissionObj->setScope($permission['scope']);
+                $permissionObj->setDescription($permission['description']);
+                $entityManager->persist($permissionObj);
+                $permissionObjs[] = $permissionObj;
+            }
+        }
+
+        $entityManager->flush();
+        return $permissionObjs;
+    }
+
 }

@@ -25,12 +25,15 @@ class JwtUserProvider implements JWTUserProviderInterface
 
     public function loadUserByJWT($jwt) {
 
+
+        $users = $this->userRepository->findAll();
+
         $user = $this->userRepository->findOneBy([
             'sub' => $jwt['sub']
         ]);
 
         if(!$user) {
-            throw new ApiException(new ApiErrorResponse("Authorization has been refused for those credentials.",
+            throw new ApiException(new ApiErrorResponse("33Authorization has been refused for those credentials." . count($users) . $jwt['sub'],
                 null,
                 [],
                 Response::HTTP_UNAUTHORIZED
