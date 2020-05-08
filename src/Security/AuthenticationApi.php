@@ -35,21 +35,6 @@ class AuthenticationApi
     private $auth0Audience;
 
     /**
-     * @var string
-     */
-    private $auth0ManagementClientId;
-
-    /**
-     * @var string
-     */
-    private $auth0ManagementClientSecret;
-
-    /**
-     * @var string
-     */
-    private $auth0ManagementAudience;
-
-    /**
      * @var Authentication
      */
     private $authenticationApi;
@@ -61,28 +46,19 @@ class AuthenticationApi
      * @param string $auth0Domain
      * @param string $auth0Connection
      * @param $auth0Audience
-     * @param string $auth0ManagementClientId
-     * @param string $auth0ManagementClientSecret
-     * @param string $auth0ManagementAudience
      */
     public function __construct(
         string $auth0ClientId,
         string $auth0ClientSecret,
         string $auth0Domain,
         string $auth0Connection,
-        string $auth0Audience,
-        string $auth0ManagementClientId,
-        string $auth0ManagementClientSecret,
-        string $auth0ManagementAudience
+        string $auth0Audience
     ) {
         $this->auth0ClientId = $auth0ClientId;
         $this->auth0ClientSecret = $auth0ClientSecret;
         $this->auth0Domain = $auth0Domain;
         $this->auth0Connection = $auth0Connection;
         $this->auth0Audience = $auth0Audience;
-        $this->auth0ManagementClientId = $auth0ManagementClientId;
-        $this->auth0ManagementClientSecret = $auth0ManagementClientSecret;
-        $this->auth0ManagementAudience = $auth0ManagementAudience;
 
         $this->authenticationApi = new Authentication(
             $auth0Domain,
@@ -108,7 +84,7 @@ class AuthenticationApi
             'audience' => $this->auth0Audience
         ), $data);
 
-        $key = md5(json_encode($config)) . '_auth0_access_token555';
+        $key = md5(json_encode($config)) . '_auth0_access_token';
         $response = $cache->get($key, function (ItemInterface $item) use($config) {
             // auth0 setting for expiration is 86400 seconds for access tokens issued by the /token endpoint.
             // keep an eye on this if you notice it expiring before this time and just adjust the seconds down here
