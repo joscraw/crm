@@ -127,7 +127,7 @@ class ApiTestCase extends WebTestCase
             'password' => 'phpunit44!',
             'scope' => 'openid profile email',
             'audience' => self::$container->getParameter('auth0_audience'),
-            "realm" => "crm-test-user-pass"
+            "realm" => self::$container->getParameter('auth0_connection')
         ]);
     }
 
@@ -203,7 +203,7 @@ class ApiTestCase extends WebTestCase
         $auth0MgmtApi = $container->get(Auth0MgmtApi::class);
 
         $data = [
-            'name' => 'crm-test-user-pass',
+            'name' => self::$container->getParameter('auth0_connection'),
             'strategy' => 'auth0',
             'enabled_clients' => [
                 self::$staticAuth0ApplicationClientId
@@ -266,7 +266,7 @@ class ApiTestCase extends WebTestCase
             'email' => 'phpunit@crm.dev',
             'name' => 'phpunit',
             'password' => 'phpunit44!',
-            'connection' => 'crm-test-user-pass'
+            'connection' => self::$container->getParameter('auth0_connection')
         ];
         $container = self::$container;
         /** @var Auth0MgmtApi $auth0MgmtApi */
