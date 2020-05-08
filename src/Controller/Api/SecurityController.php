@@ -123,41 +123,34 @@ class SecurityController extends ApiController
      * @param $auth0Audience
      * @return ApiErrorResponse|ApiResponse
      * @throws \Psr\Cache\InvalidArgumentException
-     * @throws \Symfony\Component\Config\Exception\LoaderLoadException
      */
-    public function newToken(Request $request, $auth0ClientId, $auth0ClientSecret, $auth0Audience) {
+    public function newToken(Request $request, $auth0ClientId, $auth0ClientSecret, $auth0Audience, $auth0Connection) {
 
         $username = $request->request->get('username');
         $password = $request->request->get('password');
 
-        $cache = new FilesystemAdapter();
+        // Let's make sure that this application has the password realm
+        // grant type whenever creating a token. This can eventually probably be moved
+        // but might not ever need to be. This endpoint really only ever gets called
+        // in local development when testing the api, etc
+        $this->auth0MgmtApi->updateApplication($auth0ClientId, [
+            'grant_types' => [
+                'implicit',
+                'authorization_code',
+                'refresh_token',
+                'client_credentials',
+                'password',
+                'http://auth0.com/oauth/grant-type/password-realm'
+            ]
+        ]);
 
-        $key = md5($username) . '_auth0_user_access_token';
-        $data = $cache->get($key, function (ItemInterface $item) use($username, $password, $auth0ClientId, $auth0ClientSecret, $auth0Audience) {
-            // auth0 setting for expiration is 86400 seconds for access tokens issued by the /token endpoint.
-            // keep an eye on this if you notice it expiring before this time and just adjust the seconds down here
-            $item->expiresAfter(86400);
-
-            $httpClient = HttpClient::create();
-
-            $data = array(
-                'grant_type' => 'password',
-                'client_id' => $auth0ClientId,
-                'client_secret' => $auth0ClientSecret,
-                'username' => $username,
-                'password' => $password,
-                'scope' => 'openid profile email',
-                'audience' => $auth0Audience
-            );
-
-            $response = $httpClient->request('POST', 'https://crm-development.auth0.com/oauth/token', [
-                'json' => $data,
-            ]);
-
-            $data = $response->toArray();
-
-            return $data;
-        });
+        $data = $this->authenticationApi->getAccessToken([
+            'grant_type' => 'http://auth0.com/oauth/grant-type/password-realm',
+            'username' => $username,
+            'password' => $password,
+            'scope' => 'openid profile email',
+            "realm" => $auth0Connection
+        ], true);
 
         return new ApiResponse(null, $data, Response::HTTP_CREATED, []);
     }

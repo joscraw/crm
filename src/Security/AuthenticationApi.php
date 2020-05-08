@@ -93,10 +93,11 @@ class AuthenticationApi
 
     /**
      * @param $data
+     * @param bool $fullResponse
      * @return array
      * @throws \Psr\Cache\InvalidArgumentException
      */
-    public function getAccessToken($data) {
+    public function getAccessToken($data, $fullResponse = false) {
 
         $cache = new FilesystemAdapter();
 
@@ -107,16 +108,19 @@ class AuthenticationApi
             'audience' => $this->auth0Audience
         ), $data);
 
-        $key = md5(json_encode($config)) . '_auth0_access_token';
-        $accessToken = $cache->get($key, function (ItemInterface $item) use($config) {
+        $key = md5(json_encode($config)) . '_auth0_access_token555';
+        $response = $cache->get($key, function (ItemInterface $item) use($config) {
             // auth0 setting for expiration is 86400 seconds for access tokens issued by the /token endpoint.
             // keep an eye on this if you notice it expiring before this time and just adjust the seconds down here
             $item->expiresAfter(86400);
 
-            $response = $this->authenticationApi->oauth_token($config);
-            return $response['access_token'];
+            return $this->authenticationApi->oauth_token($config);
         });
 
-        return $accessToken;
+        if($fullResponse) {
+            return $response;
+        }
+
+        return $response['access_token'];
     }
 }
