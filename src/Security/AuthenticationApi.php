@@ -3,9 +3,7 @@
 namespace App\Security;
 
 use Auth0\SDK\API\Authentication;
-use Firebase\JWT\JWT;
 use Symfony\Component\Cache\Adapter\FilesystemAdapter;
-use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Contracts\Cache\ItemInterface;
 
 class AuthenticationApi

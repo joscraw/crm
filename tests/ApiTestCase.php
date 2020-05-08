@@ -9,16 +9,12 @@ use App\Entity\User;
 use App\Security\Auth\PermissionManager;
 use App\Security\Auth0MgmtApi;
 use App\Security\AuthenticationApi;
-use App\Utils\ArrayHelper;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
-use Symfony\Component\HttpClient\HttpClient;
 use GuzzleHttp\Client;
 use Doctrine\Common\DataFixtures\Purger\ORMPurger;
 
 class ApiTestCase extends WebTestCase
 {
-
-    use ArrayHelper;
 
     private static $staticGuzzleClient;
     private static $staticSymfonyClient;
@@ -28,37 +24,13 @@ class ApiTestCase extends WebTestCase
     private static $staticAuth0ApiId;
 
     protected $guzzleClient;
-
     protected $symfonyClient;
 
-    /**
-     * @var string
-     */
     protected $auth0ApplicationClientId;
-
-    /**
-     * @var string
-     */
     protected $auth0ApplicationClientSecret;
-
-    /**
-     * @var string
-     */
     protected $auth0ConnectionId;
-
-    /**
-     * @var string
-     */
     protected $auth0ApiId;
-
-    /**
-     * @var string
-     */
     protected $auth0UserId;
-
-    /**
-     * @var string
-     */
     protected $auth0UserAccessToken;
 
     /**
@@ -154,7 +126,7 @@ class ApiTestCase extends WebTestCase
             'username' => 'phpunit@crm.dev',
             'password' => 'phpunit44!',
             'scope' => 'openid profile email',
-            'audience' => 'https://crm.dev/test-api',
+            'audience' => self::$container->getParameter('auth0_audience'),
             "realm" => "crm-test-user-pass"
         ]);
     }
@@ -235,7 +207,6 @@ class ApiTestCase extends WebTestCase
             'strategy' => 'auth0',
             'enabled_clients' => [
                 self::$staticAuth0ApplicationClientId
-                // todo add auth0 management application client id here as well
           ]
         ];
 
@@ -253,13 +224,10 @@ class ApiTestCase extends WebTestCase
         $container = self::$container;
         /** @var Auth0MgmtApi $auth0MgmtApi */
         $auth0MgmtApi = $container->get(Auth0MgmtApi::class);
-        $identifier = 'https://crm.dev/test-api';
 
-        $data = [
+        return $auth0MgmtApi->createApi(self::$container->getParameter('auth0_audience'), [
             'name' => 'crm-test'
-        ];
-
-        return $auth0MgmtApi->createApi($identifier, $data);
+        ]);
     }
 
     static public function deleteAuth0Api() {
@@ -273,9 +241,11 @@ class ApiTestCase extends WebTestCase
         $container = self::$container;
         /** @var Auth0MgmtApi $auth0MgmtApi */
         $auth0MgmtApi = $container->get(Auth0MgmtApi::class);
-        $identifier = 'https://crm.dev/test-api';
-        $scopes = ['openid', 'profile', 'email'];
-        $auth0MgmtApi->createClientGrant(self::$staticAuth0ApplicationClientId, $identifier, $scopes);
+        $auth0MgmtApi->createClientGrant(
+            self::$staticAuth0ApplicationClientId,
+            self::$container->getParameter('auth0_audience'),
+            ['openid', 'profile', 'email']
+        );
     }
 
     protected function createPortal() {
