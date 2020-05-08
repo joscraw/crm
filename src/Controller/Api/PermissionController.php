@@ -37,21 +37,6 @@ class PermissionController extends ApiController
 {
 
     /**
-     * @Route("/haha/test", name="ha_ha_test", methods={"GET"}, options = { "expose" = true })
-     * @param Request $request
-     * @return JsonResponse
-     */
-    public function getRecordFormAction(Request $request) {
-
-        return new JsonResponse(
-            [
-                'success' => true,
-            ],
-            Response::HTTP_OK
-        );
-    }
-
-    /**
      * Get Roles
      *
      * Lists the roles in the platform
