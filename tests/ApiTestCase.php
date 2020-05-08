@@ -20,42 +20,36 @@ class ApiTestCase extends WebTestCase
 
     use ArrayHelper;
 
-    /**
-     * @var HttpClient
-     */
-    private static $staticClient;
+    private static $staticGuzzleClient;
     private static $staticSymfonyClient;
-    private static $staticTestAuth0ApplicationClientId;
-    private static $staticTestAuth0ApplicationClientSecret;
-    private static $staticTestAuth0ConnectionId;
-    private static $staticTestAuth0ApiId;
+    private static $staticAuth0ApplicationClientId;
+    private static $staticAuth0ApplicationClientSecret;
+    private static $staticAuth0ConnectionId;
+    private static $staticAuth0ApiId;
 
-    /**
-     * @var HttpClient
-     */
-    protected $client;
+    protected $guzzleClient;
 
     protected $symfonyClient;
 
     /**
      * @var string
      */
-    protected $testAuth0ApplicationClientId;
+    protected $auth0ApplicationClientId;
 
     /**
      * @var string
      */
-    protected $testAuth0ApplicationClientSecret;
+    protected $auth0ApplicationClientSecret;
 
     /**
      * @var string
      */
-    protected $testAuth0ConnectionId;
+    protected $auth0ConnectionId;
 
     /**
      * @var string
      */
-    protected $testAuth0ApiId;
+    protected $auth0ApiId;
 
     /**
      * @var string
@@ -73,32 +67,32 @@ class ApiTestCase extends WebTestCase
      */
     static public function setUpBeforeClass() {
 
-        // todo, you need to pull the base_uri from the env incase someone
-        //  sets this app up on their local and doesn't use the same local domain
-        self::$staticClient = new Client([
-            'base_uri' => 'https://crm.dev',
+        self::$staticSymfonyClient = self::createClient([
+            'environment' => 'test',
+            'debug'       => false,
+        ]);
+
+        $siteBaseUrl = self::$container->getParameter('site_base_url');
+
+        self::$staticGuzzleClient = new Client([
+            'base_uri' => $siteBaseUrl,
             'verify' => false,
             'http_errors' => false
         ]);
 
-        self::$staticSymfonyClient = self::createClient([
-            'environment' => 'test',
-            //'debug'       => false,
-        ]);
+        $response = self::createAuth0Application();
+        self::$staticAuth0ApplicationClientId = $response['client_id'];
+        self::$staticAuth0ApplicationClientSecret = $response['client_secret'];
 
-        $response = self::createTestAuth0Application();
-        self::$staticTestAuth0ApplicationClientId = $response['client_id'];
-        self::$staticTestAuth0ApplicationClientSecret = $response['client_secret'];
+        self::updateApplicationGrantTypes();
 
-        self::updateTestApplicationGrantTypes();
+        $response = self::createAuth0DatabaseConnection();
+        self::$staticAuth0ConnectionId = $response['id'];
 
-        $response = self::createTestAuth0DatabaseConnection();
-        self::$staticTestAuth0ConnectionId = $response['id'];
+        $response = self::createAuth0Api();
+        self::$staticAuth0ApiId = $response['id'];
 
-        $response = self::createTestAuth0Api();
-        self::$staticTestAuth0ApiId = $response['id'];
-
-        self::authorizeTestApplicationToAccessTestApi();
+        self::authorizeApplicationToAccessApi();
     }
 
     /**
@@ -106,9 +100,9 @@ class ApiTestCase extends WebTestCase
      * this is called once after for the entire class.
      */
     static public function tearDownAfterClass() {
-        self::deleteTestAuth0Application();
-        self::deleteTestAuth0DatabaseConnection();
-        self::deleteTestAuth0Api();
+        self::deleteAuth0Application();
+        self::deleteAuth0DatabaseConnection();
+        self::deleteAuth0Api();
     }
 
     /**
@@ -116,16 +110,14 @@ class ApiTestCase extends WebTestCase
      */
     public function setUp()
     {
-
-        $this->client = self::$staticClient;
+        $this->guzzleClient = self::$staticGuzzleClient;
         $this->symfonyClient = self::$staticSymfonyClient;
-        $this->testAuth0ApplicationClientId = self::$staticTestAuth0ApplicationClientId;
-        $this->testAuth0ApplicationClientSecret = self::$staticTestAuth0ApplicationClientSecret;
-        $this->testAuth0ApiId = self::$staticTestAuth0ApiId;
+        $this->auth0ApplicationClientId = self::$staticAuth0ApplicationClientId;
+        $this->auth0ApplicationClientSecret = self::$staticAuth0ApplicationClientSecret;
+        $this->auth0ApiId = self::$staticAuth0ApiId;
 
         $this->purgeDatabase();
         $this->createPortal();
-
         $permissions = $this->createPermissions();
         $role = $this->createRole('ROLE_SUPER_ADMIN', 'Super Admin Role', null, $permissions);
 
@@ -133,7 +125,6 @@ class ApiTestCase extends WebTestCase
         $this->auth0UserId = $response['user_id'];
 
         $this->createDbUser($this->auth0UserId, [$role]);
-
         $this->auth0UserAccessToken = $this->getUserAccessToken();
     }
 
@@ -158,33 +149,14 @@ class ApiTestCase extends WebTestCase
 
         return $authenticationApi->getAccessToken([
             'grant_type' => 'http://auth0.com/oauth/grant-type/password-realm',
-            'client_id' => $this->testAuth0ApplicationClientId,
-            'client_secret' => $this->testAuth0ApplicationClientSecret,
+            'client_id' => $this->auth0ApplicationClientId,
+            'client_secret' => $this->auth0ApplicationClientSecret,
             'username' => 'phpunit@crm.dev',
             'password' => 'phpunit44!',
             'scope' => 'openid profile email',
             'audience' => 'https://crm.dev/test-api',
             "realm" => "crm-test-user-pass"
         ]);
-    }
-
-    // todo need the endpoint to create the user as well.
-    // todo then you can add this user to the test db so requests can authorize
-    // todo with that user. You need tear down logic as well to remove the
-    // todo application and db in auth0. You will need basic client credentials
-    // todo for making the requests. You need to be able to access the auth0 api in
-    // todo client id and stuff in the .env.test file as well. Do you get these
-    // todo from the response from auth0 after creating the application?
-    // todo need to build the logic for creating a user in auth0
-    // todo need to build in the logic to create user/portal
-
-    protected function createUser22(string $email, string $password): User {
-
-        // todo implement this next. You need to create a user in auth0
-        // todo and also create a user in the test db as well right?
-        // todo we need a generic sign up endpoint right? And a create user endpoint?
-        // todo need to think this one through a bit.
-
     }
 
     private function purgeDatabase()
@@ -215,7 +187,7 @@ class ApiTestCase extends WebTestCase
         return self::$container->get($id);
     }
 
-    static public function createTestAuth0Application() {
+    static public function createAuth0Application() {
         $container = self::$container;
         /** @var Auth0MgmtApi $auth0MgmtApi */
         $auth0MgmtApi = $container->get(Auth0MgmtApi::class);
@@ -227,7 +199,7 @@ class ApiTestCase extends WebTestCase
         return $auth0MgmtApi->createApplication($data);
     }
 
-    static public function updateTestApplicationGrantTypes() {
+    static public function updateApplicationGrantTypes() {
         $container = self::$container;
         /** @var Auth0MgmtApi $auth0MgmtApi */
         $auth0MgmtApi = $container->get(Auth0MgmtApi::class);
@@ -243,17 +215,17 @@ class ApiTestCase extends WebTestCase
             ],
         ];
 
-        return $auth0MgmtApi->updateApplication(self::$staticTestAuth0ApplicationClientId, $data);
+        return $auth0MgmtApi->updateApplication(self::$staticAuth0ApplicationClientId, $data);
     }
 
-    static public function deleteTestAuth0Application() {
+    static public function deleteAuth0Application() {
         $container = self::$container;
         /** @var Auth0MgmtApi $auth0MgmtApi */
         $auth0MgmtApi = $container->get(Auth0MgmtApi::class);
-        return $auth0MgmtApi->deleteApplication(self::$staticTestAuth0ApplicationClientId);
+        return $auth0MgmtApi->deleteApplication(self::$staticAuth0ApplicationClientId);
     }
 
-    static public function createTestAuth0DatabaseConnection() {
+    static public function createAuth0DatabaseConnection() {
         $container = self::$container;
         /** @var Auth0MgmtApi $auth0MgmtApi */
         $auth0MgmtApi = $container->get(Auth0MgmtApi::class);
@@ -262,7 +234,7 @@ class ApiTestCase extends WebTestCase
             'name' => 'crm-test-user-pass',
             'strategy' => 'auth0',
             'enabled_clients' => [
-                self::$staticTestAuth0ApplicationClientId
+                self::$staticAuth0ApplicationClientId
                 // todo add auth0 management application client id here as well
           ]
         ];
@@ -270,14 +242,14 @@ class ApiTestCase extends WebTestCase
         return $auth0MgmtApi->createConnection($data);
     }
 
-    static public function deleteTestAuth0DatabaseConnection() {
+    static public function deleteAuth0DatabaseConnection() {
         $container = self::$container;
         /** @var Auth0MgmtApi $auth0MgmtApi */
         $auth0MgmtApi = $container->get(Auth0MgmtApi::class);
-        $auth0MgmtApi->deleteConnection(self::$staticTestAuth0ConnectionId);
+        $auth0MgmtApi->deleteConnection(self::$staticAuth0ConnectionId);
     }
 
-    static public function createTestAuth0Api() {
+    static public function createAuth0Api() {
         $container = self::$container;
         /** @var Auth0MgmtApi $auth0MgmtApi */
         $auth0MgmtApi = $container->get(Auth0MgmtApi::class);
@@ -290,20 +262,20 @@ class ApiTestCase extends WebTestCase
         return $auth0MgmtApi->createApi($identifier, $data);
     }
 
-    static public function deleteTestAuth0Api() {
+    static public function deleteAuth0Api() {
         $container = self::$container;
         /** @var Auth0MgmtApi $auth0MgmtApi */
         $auth0MgmtApi = $container->get(Auth0MgmtApi::class);
-        $auth0MgmtApi->deleteApi(self::$staticTestAuth0ApiId);
+        $auth0MgmtApi->deleteApi(self::$staticAuth0ApiId);
     }
 
-    static public function authorizeTestApplicationToAccessTestApi() {
+    static public function authorizeApplicationToAccessApi() {
         $container = self::$container;
         /** @var Auth0MgmtApi $auth0MgmtApi */
         $auth0MgmtApi = $container->get(Auth0MgmtApi::class);
         $identifier = 'https://crm.dev/test-api';
         $scopes = ['openid', 'profile', 'email'];
-        $auth0MgmtApi->createClientGrant(self::$staticTestAuth0ApplicationClientId, $identifier, $scopes);
+        $auth0MgmtApi->createClientGrant(self::$staticAuth0ApplicationClientId, $identifier, $scopes);
     }
 
     protected function createPortal() {
