@@ -15,7 +15,6 @@ use App\Repository\GmailMessageRepository;
 use App\Repository\GmailAccountRepository;
 use App\Repository\GmailThreadRepository;
 use App\Repository\MarketingListRepository;
-use App\Repository\PermissionRepository;
 use App\Repository\PortalRepository;
 use App\Repository\PropertyGroupRepository;
 use App\Repository\PropertyRepository;
@@ -309,11 +308,6 @@ trait ServiceHelper
     protected $authenticationApi;
 
     /**
-     * @var PermissionRepository
-     */
-    protected $permissionRepository;
-
-    /**
      * ServiceHelper constructor.
      * @param EntityManagerInterface $entityManager
      * @param Packages $assetsManager
@@ -366,7 +360,6 @@ trait ServiceHelper
      * @param PortalResolver $portalResolver
      * @param Auth0MgmtApi $auth0MgmtApi
      * @param AuthenticationApi $authenticationApi
-     * @param PermissionRepository $permissionRepository
      */
     public function __construct(
         EntityManagerInterface $entityManager,
@@ -419,8 +412,7 @@ trait ServiceHelper
         PortalRepository $portalRepository,
         PortalResolver $portalResolver,
         Auth0MgmtApi $auth0MgmtApi,
-        AuthenticationApi $authenticationApi,
-        PermissionRepository $permissionRepository
+        AuthenticationApi $authenticationApi
     ) {
         $this->entityManager = $entityManager;
         $this->assetsManager = $assetsManager;
@@ -473,7 +465,6 @@ trait ServiceHelper
         $this->portalResolver = $portalResolver;
         $this->auth0MgmtApi = $auth0MgmtApi;
         $this->authenticationApi = $authenticationApi;
-        $this->permissionRepository = $permissionRepository;
     }
 
     /**

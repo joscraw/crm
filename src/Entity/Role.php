@@ -47,15 +47,9 @@ class Role
      */
     private $users;
 
-    /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\Permission", inversedBy="roles")
-     */
-    private $permissions;
-
     public function __construct()
     {
         $this->users = new ArrayCollection();
-        $this->permissions = new ArrayCollection();
     }
 
 
@@ -123,32 +117,6 @@ class Role
         if ($this->users->contains($user)) {
             $this->users->removeElement($user);
             $user->removeCustomRole($this);
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|Permission[]
-     */
-    public function getPermissions(): Collection
-    {
-        return $this->permissions;
-    }
-
-    public function addPermission(Permission $permission): self
-    {
-        if (!$this->permissions->contains($permission)) {
-            $this->permissions[] = $permission;
-        }
-
-        return $this;
-    }
-
-    public function removePermission(Permission $permission): self
-    {
-        if ($this->permissions->contains($permission)) {
-            $this->permissions->removeElement($permission);
         }
 
         return $this;

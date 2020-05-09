@@ -146,6 +146,9 @@ class CustomObjectController extends ApiController
      */
     public function index(Request $request)
     {
+        // todo need to add query parameter options to return an objects properties and property groups as well.
+        // todo do this on other requests as well
+
         /** @var User $user */
         $user = $this->getUser();
 

@@ -17,11 +17,6 @@ class AclEntry
     private $id;
 
     /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
-    private $fieldName;
-
-    /**
      * @ORM\Column(type="integer", nullable=true)
      */
     private $mask;
@@ -37,35 +32,24 @@ class AclEntry
     private $grantingStrategy = [];
 
     /**
-     * @ORM\Column(type="integer", nullable=true)
+     * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $objectIdentifier;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $classType;
+    private $attributeIdentifier;
 
     /**
-     * @ORM\Column(type="string", length=255, nullable=true)
+     * @ORM\ManyToOne(targetEntity="AclSecurityIdentity", inversedBy="aclEntries")
+     * @ORM\JoinColumn(nullable=false)
      */
     private $securityIdentity;
 
     public function getId(): ?int
     {
         return $this->id;
-    }
-
-    public function getFieldName(): ?string
-    {
-        return $this->fieldName;
-    }
-
-    public function setFieldName(?string $fieldName): self
-    {
-        $this->fieldName = $fieldName;
-
-        return $this;
     }
 
     public function getMask(): ?int
@@ -104,36 +88,36 @@ class AclEntry
         return $this;
     }
 
-    public function getObjectIdentifier(): ?int
+    public function getObjectIdentifier(): ?string
     {
         return $this->objectIdentifier;
     }
 
-    public function setObjectIdentifier(?int $objectIdentifier): self
+    public function setObjectIdentifier(?string $objectIdentifier): self
     {
         $this->objectIdentifier = $objectIdentifier;
 
         return $this;
     }
 
-    public function getClassType(): ?string
+    public function getAttributeIdentifier(): ?string
     {
-        return $this->classType;
+        return $this->attributeIdentifier;
     }
 
-    public function setClassType(?string $classType): self
+    public function setAttributeIdentifier(?string $attributeIdentifier): self
     {
-        $this->classType = $classType;
+        $this->attributeIdentifier = $attributeIdentifier;
 
         return $this;
     }
 
-    public function getSecurityIdentity(): ?string
+    public function getSecurityIdentity(): ?AclSecurityIdentity
     {
         return $this->securityIdentity;
     }
 
-    public function setSecurityIdentity(?string $securityIdentity): self
+    public function setSecurityIdentity(?AclSecurityIdentity $securityIdentity): self
     {
         $this->securityIdentity = $securityIdentity;
 

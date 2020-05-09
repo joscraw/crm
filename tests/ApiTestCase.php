@@ -18,19 +18,16 @@ class ApiTestCase extends WebTestCase
 
     private static $staticGuzzleClient;
     private static $staticSymfonyClient;
-    private static $staticAuth0ApplicationClientId;
-    private static $staticAuth0ApplicationClientSecret;
-    private static $staticAuth0ConnectionId;
-    private static $staticAuth0ApiId;
+
+    private static $staticAuth0Application;
+    private static $staticAuth0Connection;
+    private static $staticAuth0Api;
+
 
     protected $guzzleClient;
     protected $symfonyClient;
 
-    protected $auth0ApplicationClientId;
-    protected $auth0ApplicationClientSecret;
-    protected $auth0ConnectionId;
-    protected $auth0ApiId;
-    protected $auth0UserId;
+    protected $auth0User;
     protected $auth0UserAccessToken;
 
     /**
@@ -52,17 +49,27 @@ class ApiTestCase extends WebTestCase
             'http_errors' => false
         ]);
 
-        $response = self::createAuth0Application();
-        self::$staticAuth0ApplicationClientId = $response['client_id'];
-        self::$staticAuth0ApplicationClientSecret = $response['client_secret'];
+        self::$staticAuth0Application = self::createAuth0Application(['name' => 'crm-test']);
+        self::$staticAuth0Connection = self::createAuth0DatabaseConnection([
+            'name' => self::$container->getParameter('auth0_connection'),
+            'strategy' => 'auth0',
+            'enabled_clients' => [
+                self::$staticAuth0Application['client_id']
+            ]
+        ]);
 
-        self::updateApplicationGrantTypes();
+        self::$staticAuth0Api = self::createAuth0Api(['name' => 'crm-test']);
 
-        $response = self::createAuth0DatabaseConnection();
-        self::$staticAuth0ConnectionId = $response['id'];
-
-        $response = self::createAuth0Api();
-        self::$staticAuth0ApiId = $response['id'];
+        self::updateApplicationGrantTypes([
+            'grant_types' => [
+                'implicit',
+                'authorization_code',
+                'refresh_token',
+                'client_credentials',
+                'password',
+                'http://auth0.com/oauth/grant-type/password-realm'
+            ],
+        ]);
 
         self::authorizeApplicationToAccessApi();
     }
@@ -84,26 +91,47 @@ class ApiTestCase extends WebTestCase
     {
         $this->guzzleClient = self::$staticGuzzleClient;
         $this->symfonyClient = self::$staticSymfonyClient;
-        $this->auth0ApplicationClientId = self::$staticAuth0ApplicationClientId;
-        $this->auth0ApplicationClientSecret = self::$staticAuth0ApplicationClientSecret;
-        $this->auth0ApiId = self::$staticAuth0ApiId;
 
-        $this->purgeDatabase();
-        $this->createPortal();
-        $permissions = $this->createPermissions();
-        $role = $this->createRole('ROLE_SUPER_ADMIN', 'Super Admin Role', null, $permissions);
+        $this->purgeDatabase()
+            ->createPermissions();
 
-        $response = $this->createAuth0User();
-        $this->auth0UserId = $response['user_id'];
+        // todo we may not need just add this inside the test itself as not every test needs this role setup.
+        //$role = $this->createRole('ROLE_SUPER_ADMIN', 'Super Admin Role', null, $permissions);
 
-        $this->createDbUser($this->auth0UserId, [$role]);
-        $this->auth0UserAccessToken = $this->getUserAccessToken();
+        // todo add this in the test itself as well right?
+        //$this->auth0User = $this->createAuth0User();
+        //$this->auth0User = $response['user_id'];
+
+        // todo add this into the test itself as well right?
+        //$this->createDbUser($this->auth0UserId, [$role]);
+        // todo this should be called from within the test as well and accept a username and password
+        //$this->auth0UserAccessToken = $this->getUserAccessToken();
     }
 
     /**
      * Run after each test
      */
     public function tearDown() {
+    }
+
+    protected function getApplicationClientId() {
+        return self::$staticAuth0Application['client_id'];
+    }
+
+    protected function getApplicationClientSecret() {
+        return self::$staticAuth0Application['client_secret'];
+    }
+
+    protected function getConnectionId() {
+        return self::$staticAuth0Connection['id'];
+    }
+
+    protected function getApiId() {
+        return self::$staticAuth0Api['id'];
+    }
+
+    protected function getAuth0UserId() {
+        return $this->auth0User['id'];
     }
 
     /**
@@ -114,6 +142,8 @@ class ApiTestCase extends WebTestCase
      * @throws \Psr\Cache\InvalidArgumentException
      */
     public function getUserAccessToken() {
+        // todo this should accept a username and password
+        // todo so we aren't hardcoding the user we want to get an access token for
 
         $container = self::$container;
         /** @var AuthenticationApi $authenticationApi */
@@ -121,8 +151,8 @@ class ApiTestCase extends WebTestCase
 
         return $authenticationApi->getAccessToken([
             'grant_type' => 'http://auth0.com/oauth/grant-type/password-realm',
-            'client_id' => $this->auth0ApplicationClientId,
-            'client_secret' => $this->auth0ApplicationClientSecret,
+            'client_id' => $this->getApplicationClientId(),
+            'client_secret' => $this->getApplicationClientSecret(),
             'username' => 'phpunit@crm.dev',
             'password' => 'phpunit44!',
             'scope' => 'openid profile email',
@@ -135,6 +165,8 @@ class ApiTestCase extends WebTestCase
     {
         $purger = new ORMPurger($this->getService('doctrine.orm.default_entity_manager'));
         $purger->purge();
+
+        return $this;
     }
 
     /**
@@ -159,56 +191,33 @@ class ApiTestCase extends WebTestCase
         return self::$container->get($id);
     }
 
-    static public function createAuth0Application() {
+    static public function createAuth0Application($data) {
         $container = self::$container;
         /** @var Auth0MgmtApi $auth0MgmtApi */
         $auth0MgmtApi = $container->get(Auth0MgmtApi::class);
-
-        $data = [
-            'name' => 'crm-test',
-        ];
 
         return $auth0MgmtApi->createApplication($data);
     }
 
-    static public function updateApplicationGrantTypes() {
+    static public function updateApplicationGrantTypes($data) {
         $container = self::$container;
         /** @var Auth0MgmtApi $auth0MgmtApi */
         $auth0MgmtApi = $container->get(Auth0MgmtApi::class);
 
-        $data = [
-            'grant_types' => [
-                'implicit',
-                'authorization_code',
-                'refresh_token',
-                'client_credentials',
-                'password',
-                'http://auth0.com/oauth/grant-type/password-realm'
-            ],
-        ];
-
-        return $auth0MgmtApi->updateApplication(self::$staticAuth0ApplicationClientId, $data);
+        return $auth0MgmtApi->updateApplication(self::$staticAuth0Application['client_id'], $data);
     }
 
     static public function deleteAuth0Application() {
         $container = self::$container;
         /** @var Auth0MgmtApi $auth0MgmtApi */
         $auth0MgmtApi = $container->get(Auth0MgmtApi::class);
-        return $auth0MgmtApi->deleteApplication(self::$staticAuth0ApplicationClientId);
+        return $auth0MgmtApi->deleteApplication(self::$staticAuth0Application['client_id']);
     }
 
-    static public function createAuth0DatabaseConnection() {
+    static public function createAuth0DatabaseConnection($data) {
         $container = self::$container;
         /** @var Auth0MgmtApi $auth0MgmtApi */
         $auth0MgmtApi = $container->get(Auth0MgmtApi::class);
-
-        $data = [
-            'name' => self::$container->getParameter('auth0_connection'),
-            'strategy' => 'auth0',
-            'enabled_clients' => [
-                self::$staticAuth0ApplicationClientId
-          ]
-        ];
 
         return $auth0MgmtApi->createConnection($data);
     }
@@ -217,24 +226,22 @@ class ApiTestCase extends WebTestCase
         $container = self::$container;
         /** @var Auth0MgmtApi $auth0MgmtApi */
         $auth0MgmtApi = $container->get(Auth0MgmtApi::class);
-        $auth0MgmtApi->deleteConnection(self::$staticAuth0ConnectionId);
+        $auth0MgmtApi->deleteConnection(self::$staticAuth0Connection['id']);
     }
 
-    static public function createAuth0Api() {
+    static public function createAuth0Api($data) {
         $container = self::$container;
         /** @var Auth0MgmtApi $auth0MgmtApi */
         $auth0MgmtApi = $container->get(Auth0MgmtApi::class);
 
-        return $auth0MgmtApi->createApi(self::$container->getParameter('auth0_audience'), [
-            'name' => 'crm-test'
-        ]);
+        return $auth0MgmtApi->createApi(self::$container->getParameter('auth0_audience'), $data);
     }
 
     static public function deleteAuth0Api() {
         $container = self::$container;
         /** @var Auth0MgmtApi $auth0MgmtApi */
         $auth0MgmtApi = $container->get(Auth0MgmtApi::class);
-        $auth0MgmtApi->deleteApi(self::$staticAuth0ApiId);
+        $auth0MgmtApi->deleteApi(self::$staticAuth0Api['id']);
     }
 
     static public function authorizeApplicationToAccessApi() {
@@ -242,17 +249,17 @@ class ApiTestCase extends WebTestCase
         /** @var Auth0MgmtApi $auth0MgmtApi */
         $auth0MgmtApi = $container->get(Auth0MgmtApi::class);
         $auth0MgmtApi->createClientGrant(
-            self::$staticAuth0ApplicationClientId,
+            self::$staticAuth0Application['client_id'],
             self::$container->getParameter('auth0_audience'),
             ['openid', 'profile', 'email']
         );
     }
 
-    protected function createPortal() {
+    protected function createPortal($internalIdentifier = '7810945509', $name = 'PhpUnit Test Portal', $systemDefined = true) {
         $portal = new Portal();
-        $portal->setInternalIdentifier('7810945509');
-        $portal->setName('PhpUnit Test Portal');
-        $portal->setSystemDefined(true);
+        $portal->setInternalIdentifier($internalIdentifier);
+        $portal->setName($name);
+        $portal->setSystemDefined($systemDefined);
 
         $entityManager = $this->getService('doctrine.orm.default_entity_manager');
         $entityManager->persist($portal);
@@ -262,6 +269,7 @@ class ApiTestCase extends WebTestCase
     }
 
     protected function createAuth0User() {
+        // todo the data passed in here should be added as an argument also.
         $data = [
             'email' => 'phpunit@crm.dev',
             'name' => 'phpunit',
@@ -274,6 +282,7 @@ class ApiTestCase extends WebTestCase
         return $auth0MgmtApi->createUser($data);
     }
 
+    // todo the data for the user should be added as an argument also.
     protected function createDbUser($sub = null, $roles = []) {
         $user = (new User())
             ->setEmail('phpunit@crm.dev')
@@ -330,7 +339,14 @@ class ApiTestCase extends WebTestCase
         }
 
         $entityManager->flush();
-        return $permissionObjs;
+        return $this;
+    }
+
+    protected function getPermissions($scopes = []) {
+
+        $entityManager = $this->getService('doctrine.orm.default_entity_manager');
+
+        // todo this should take an array of scopes and return permission objects from the db for them
     }
 
 }

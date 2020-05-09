@@ -2,7 +2,6 @@
 
 namespace App\Dto;
 
-use App\Dto\DataTransformer\AclEntry_DtoTransformer;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 use App\Http\Api;
@@ -22,16 +21,7 @@ class AclEntry_Dto extends Dto
 {
 
     /**
-     * @Groups({Dto::GROUP_DEFAULT})
-     *
-     * @var integer
-     *
-     * @SWG\Property(property="id", type="integer", example=1)
-     */
-    public $id;
-
-    /**
-     * @SWG\Property(property="mask", type="integer", example=15, description="Possible values are 1,2,4,8, and the sum of any of those.")
+     * @SWG\Property(property="mask", type="integer", example=15, description="Possible values are 1,2,4,8,16,-1 or the sum of (1,2,4 and 8).")
      *
      * @Groups({Dto::GROUP_CREATE, Dto::GROUP_UPDATE, Dto::GROUP_DEFAULT})
      *
@@ -42,71 +32,25 @@ class AclEntry_Dto extends Dto
     private $mask;
 
     /**
-     * @SWG\Property(property="objectIdentifier", type="integer", example=3)
+     * @SWG\Property(property="objectIdentifier", type="string", example="App\Entity\PropertyGroup-1")
      *
      * @Groups({Dto::GROUP_CREATE, Dto::GROUP_UPDATE, Dto::GROUP_DEFAULT})
      *
-     * @Assert\NotBlank(message="Don't forget an object identifier.", groups={Dto::GROUP_CREATE, Dto::GROUP_UPDATE})
-     *
-     * @var integer
+     * @var string
      */
     private $objectIdentifier;
 
+    // todo we need validation here to make sure at least an object Identifier or an attribute identifier has been added.
+    // todo one or the other.
+
     /**
-     * @SWG\Property(property="classType", type="string", example=DtoFactory::CUSTOM_OBJECT)
+     * @SWG\Property(property="attributeIdentifier", type="string", example="can:login")
      *
      * @Groups({Dto::GROUP_CREATE, Dto::GROUP_UPDATE, Dto::GROUP_DEFAULT})
-     *
-     * @Assert\NotBlank(message="Don't forget a class type.", groups={Dto::GROUP_CREATE, Dto::GROUP_UPDATE})
      *
      * @var string
      */
-    private $classType;
-
-    /**
-     *
-     * @SWG\Property(property="securityIdentity", type="string", example="App\Entity\User-23")
-     *
-     * @Groups({Dto::GROUP_CREATE, Dto::GROUP_UPDATE, Dto::GROUP_DEFAULT})
-     *
-     * @Assert\NotBlank(message="Don't forget a security identity.", groups={Dto::GROUP_CREATE, Dto::GROUP_UPDATE})
-     *
-     * @var string
-     */
-    private $securityIdentity;
-
-    /**
-     * @SWG\Property(property="granting", type="boolean", default=true, example=true)
-     *
-     * @Groups({Dto::GROUP_CREATE, Dto::GROUP_UPDATE, Dto::GROUP_DEFAULT})
-     */
-    private $granting = true;
-
-    /**
-     * @SWG\Property(property="grantingStrategy", type="array", example={"create", "read", "update", "delete", "all"}, @SWG\Items(type="string"))
-     *
-     * @Groups({Dto::GROUP_DEFAULT})
-     */
-    private $grantingStrategy = [];
-
-    /**
-     * @return int
-     */
-    public function getId()
-    {
-        return $this->id;
-    }
-
-    /**
-     * @param int $id
-     * @return AclEntry_Dto
-     */
-    public function setId($id)
-    {
-        $this->id = $id;
-
-        return $this;
-    }
+    private $attributeIdentifier;
 
     /**
      * @return int
@@ -128,7 +72,7 @@ class AclEntry_Dto extends Dto
     }
 
     /**
-     * @return int
+     * @return string
      */
     public function getObjectIdentifier()
     {
@@ -136,7 +80,7 @@ class AclEntry_Dto extends Dto
     }
 
     /**
-     * @param int $objectIdentifier
+     * @param string $objectIdentifier
      * @return AclEntry_Dto
      */
     public function setObjectIdentifier($objectIdentifier)
@@ -149,81 +93,24 @@ class AclEntry_Dto extends Dto
     /**
      * @return string
      */
-    public function getClassType()
+    public function getAttributeIdentifier()
     {
-        return $this->classType;
+        return $this->attributeIdentifier;
     }
 
     /**
-     * @param string $classType
+     * @param string $attributeIdentifier
      * @return AclEntry_Dto
      */
-    public function setClassType($classType)
+    public function setAttributeIdentifier($attributeIdentifier)
     {
-        $this->classType = $classType;
-
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public function getSecurityIdentity(): string
-    {
-        return $this->securityIdentity;
-    }
-
-    /**
-     * @param string $securityIdentity
-     * @return AclEntry_Dto
-     */
-    public function setSecurityIdentity(string $securityIdentity): AclEntry_Dto
-    {
-        $this->securityIdentity = $securityIdentity;
-
-        return $this;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getGranting()
-    {
-        return $this->granting;
-    }
-
-    /**
-     * @param mixed $granting
-     * @return AclEntry_Dto
-     */
-    public function setGranting($granting): AclEntry_Dto
-    {
-        $this->granting = $granting;
-
-        return $this;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getGrantingStrategy()
-    {
-        return $this->grantingStrategy;
-    }
-
-    /**
-     * @param mixed $grantingStrategy
-     * @return AclEntry_Dto
-     */
-    public function setGrantingStrategy($grantingStrategy): AclEntry_Dto
-    {
-        $this->grantingStrategy = $grantingStrategy;
+        $this->attributeIdentifier = $attributeIdentifier;
 
         return $this;
     }
 
     public function getDataTransformer()
     {
-        return AclEntry_DtoTransformer::class;
+        return null;
     }
 }

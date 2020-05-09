@@ -3,8 +3,9 @@
 namespace App\Controller\Api;
 
 use App\Annotation\ApiRoute;
+use App\Dto\AclSecurityIdentity_Dto;
 use App\Dto\DtoFactory;
-use App\Entity\AclEntry;
+use App\Entity\AclSecurityIdentity;
 use App\Entity\Portal;
 use App\Entity\Role;
 use App\Entity\User;
@@ -15,7 +16,6 @@ use Nelmio\ApiDocBundle\Annotation\Model;
 use Pagerfanta\Adapter\DoctrineORMAdapter;
 use Pagerfanta\Pagerfanta;
 use Symfony\Component\Form\DataTransformerInterface;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Swagger\Annotations as SWG;
@@ -24,9 +24,6 @@ use App\Http\Api;
 use App\Dto\Dto;
 use App\Dto\Role_Dto;
 use App\Dto\Permission_Dto;
-use App\Dto\AclEntry_Dto;
-use App\Dto\AclLock_Dto;
-use Symfony\Component\Routing\Annotation\Route;
 
 
 /**
@@ -1099,156 +1096,9 @@ class PermissionController extends ApiController
     }
 
     /**
-     * ACL add entry to a given object, class, and/or field
+     * Access Control List
      *
-     * @ApiRoute("/acl/entry/add", name="acl_entry_add", methods={"POST"}, versions={"v1"}, scopes={"private"})
-     *
-     * @SWG\Post(
-     *     description=Api::DESCRIPTION,
-     *     produces={"application/json"},
-     *     consumes={"application/json"},
-     *
-     *     @SWG\Parameter(
-     *         name="body",
-     *         in="body",
-     *         required=true,
-     *         description="JSON payload",
-     *         format="application/json",
-     *         @Model(type=AclEntry_Dto::class, groups={Dto::GROUP_CREATE})
-     *     ),
-     *
-     *    @SWG\Parameter(
-     *     name="XDEBUG_SESSION_START",
-     *     in="query",
-     *     type="string",
-     *     description="Triggers an Xdebug Session.",
-     *     default="PHPSTORM"
-     *    ),
-     *
-     *   @SWG\Parameter(
-     *     name="verbosity",
-     *     in="query",
-     *     type="string",
-     *     description="Set any value here for a more descriptive error message in the response. Should only be used for debugging purposes only and never in production!"
-     *    ),
-     *
-     *    @SWG\Response(
-     *          response=201,
-     *          description="Returns the newly created AclEntry.",
-     *          @SWG\Schema(
-     *          type="object",
-     *          @SWG\Property(property="data", ref=@Model(type=AclEntry_Dto::class, groups={Dto::GROUP_DEFAULT}))
-     *          )
-     *    ),
-     *
-     *    @SWG\Response(
-     *      response=400,
-     *      description="Bad Request.",
-     *      @SWG\Schema(
-     *              type="object",
-     *              format="json",
-     *              @SWG\Property(property="message", type="string", example="Invalid Request format.")
-     *      )
-     *    ),
-     *
-     *    @SWG\Response(
-     *          response=401,
-     *          description="Unauthorized",
-     *          @SWG\Schema(
-     *              type="object",
-     *              format="json",
-     *              @SWG\Property(property="message", type="string", example="JWT expired. Please request a refresh.")
-     *          )
-     *     ),
-     *
-     *     @SWG\Response(
-     *         response=404,
-     *         description="Not found",
-     *         @SWG\Schema(
-     *              type="object",
-     *              format="json",
-     *              @SWG\Property(property="message", type="string", example="Not found.")
-     *         )
-     *     ),
-     *
-     *     @SWG\Response(
-     *          response=500,
-     *          description="Internal Server Error",
-     *          @SWG\Schema(
-     *              type="object",
-     *              format="json",
-     *              @SWG\Property(property="message", type="string", example="Internal server error. Infinite recursion detected.")
-     *          )
-     *      )
-     *
-     *
-     * )
-     *
-     *
-     * @SWG\Tag(name="Permissions")
-     * @Security(name="Bearer")
-     *
-     * @param Request $request
-     * @return ApiErrorResponse|ApiResponse
-     * @throws \App\Exception\DataTransformerNotFoundException
-     * @throws \App\Exception\DtoNotFoundException
-     * @throws \ReflectionException
-     */
-    public function aclAddEntry(Request $request) {
-
-        /** @var User $user */
-        $user = $this->getUser();
-        $version = $request->headers->get('X-Accept-Version');
-
-        $dto = $this->dtoFactory->create(DtoFactory::ACL_ENTRY, $version);
-
-        /** @var Role_Dto $dto */
-        $dto = $this->serializer->deserialize(
-            $request->getContent(),
-            $dto,
-            'json',
-            ['groups' => Dto::GROUP_CREATE]
-        );
-
-        $validationErrors = $this->validator->validate($dto, null, [Dto::GROUP_CREATE]);
-
-        if (count($validationErrors) > 0) {
-            return new ApiErrorResponse(
-                null,
-                ApiErrorResponse::TYPE_VALIDATION_ERROR,
-                $this->getErrorsFromValidator($validationErrors),
-                Response::HTTP_BAD_REQUEST
-            );
-        }
-
-        /** @var DataTransformerInterface $dataTransformer */
-        $dataTransformer = $this->dataTransformerFactory->get($dto->getDataTransformer());
-        /** @var AclEntry $aclEntry */
-        $aclEntry = $dataTransformer->reverseTransform($dto);
-
-        $grants = $this->permissionManager->resolveGrants([$aclEntry]);
-        if(!empty($grants[0])) {
-            $aclEntry->setGrantingStrategy($grants[0]);
-        }
-
-        $this->entityManager->persist($aclEntry);
-        $this->entityManager->flush();
-
-        $json = $this->serializer->serialize(
-            $dataTransformer->transform($aclEntry),
-            'json',
-            ['groups' => [Dto::GROUP_DEFAULT]]);
-
-        return new ApiResponse(null, $json,Response::HTTP_CREATED, [
-            'Location' => !empty(json_decode($json, true)['_links']['view']) ? json_decode($json, true)['_links']['view'] : '',
-        ], true);
-
-    }
-
-    /**
-     * ACL add lock for a given object, class, and/or field
-     *
-     * @ApiRoute("/acl/lock/add", name="acl_lock_add", methods={"POST"}, versions={"v1"}, scopes={"private"})
+     * @ApiRoute("/acl/list", name="acl_list", methods={"POST"}, versions={"v1"}, scopes={"private"})
      *
      * @SWG\Post(
      *     description=Api::DESCRIPTION,
@@ -1261,7 +1111,7 @@ class PermissionController extends ApiController
      *         required=true,
      *         description="JSON payload",
      *         format="application/json",
-     *         @Model(type=AclLock_Dto::class, groups={Dto::GROUP_CREATE})
+     *         @Model(type=AclSecurityIdentity_Dto::class, groups={Dto::GROUP_CREATE})
      *     ),
      *
      *    @SWG\Parameter(
@@ -1281,10 +1131,10 @@ class PermissionController extends ApiController
      *
      *    @SWG\Response(
      *          response=200,
-     *          description="Returns the newly created AclLock.",
+     *          description="Returns the access control list.",
      *          @SWG\Schema(
      *          type="object",
-     *          @SWG\Property(property="data", ref=@Model(type=AclLock_Dto::class, groups={Dto::GROUP_DEFAULT}))
+     *          @SWG\Property(property="data", ref=@Model(type=AclSecurityIdentity_Dto::class, groups={Dto::GROUP_DEFAULT}))
      *          )
      *    ),
      *
@@ -1328,6 +1178,7 @@ class PermissionController extends ApiController
      *          )
      *      )
      *
+     *
      * )
      *
      *
@@ -1340,15 +1191,15 @@ class PermissionController extends ApiController
      * @throws \App\Exception\DtoNotFoundException
      * @throws \ReflectionException
      */
-    public function aclAddLock(Request $request) {
+    public function accessControlList(Request $request) {
 
         /** @var User $user */
         $user = $this->getUser();
         $version = $request->headers->get('X-Accept-Version');
 
-        $dto = $this->dtoFactory->create(DtoFactory::ACL_LOCK, $version);
+        $dto = $this->dtoFactory->create(DtoFactory::ACL_SECURITY_IDENTITY, $version);
 
-        /** @var AclLock_Dto $dto */
+        /** @var AclSecurityIdentity_Dto $dto */
         $dto = $this->serializer->deserialize(
             $request->getContent(),
             $dto,
@@ -1369,17 +1220,18 @@ class PermissionController extends ApiController
 
         /** @var DataTransformerInterface $dataTransformer */
         $dataTransformer = $this->dataTransformerFactory->get($dto->getDataTransformer());
-        /** @var AclEntry $aclEntry */
-        $aclLock = $dataTransformer->reverseTransform($dto);
-        $this->entityManager->persist($aclLock);
+        /** @var AclSecurityIdentity $securityIdentity */
+        $securityIdentity = $dataTransformer->reverseTransform($dto);
+
+        $this->entityManager->persist($securityIdentity);
         $this->entityManager->flush();
 
         $json = $this->serializer->serialize(
-            $dataTransformer->transform($aclLock),
+            $dataTransformer->transform($securityIdentity),
             'json',
             ['groups' => [Dto::GROUP_DEFAULT]]);
 
-        return new ApiResponse(null, $json,Response::HTTP_CREATED, [
+        return new ApiResponse(null, $json,Response::HTTP_OK, [
             'Location' => !empty(json_decode($json, true)['_links']['view']) ? json_decode($json, true)['_links']['view'] : '',
         ], true);
 

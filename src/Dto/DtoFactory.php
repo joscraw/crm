@@ -26,7 +26,7 @@ class DtoFactory
     const PORTAL = 'portal';
     const SIGN_UP = 'sign_up';
     const ACL_ENTRY = 'acl_entry';
-    const ACL_LOCK = 'acl_lock';
+    const ACL_SECURITY_IDENTITY = 'acl_security_identity';
     const PERMISSION = 'permission';
     /**#@-*/
 
@@ -81,7 +81,7 @@ class DtoFactory
             case self::SIGN_UP:
             case self::PERMISSION:
             case self::ACL_ENTRY:
-            case self::ACL_LOCK:
+            case self::ACL_SECURITY_IDENTITY:
                 $dto = $this->fetchDtoFromIdentifierAndVersion($identifier, $version, $instantiate);
                 break;
             default:

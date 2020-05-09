@@ -1,0 +1,4 @@
+system:
+  permission_1:
+    scope: 'can:login'
+    description: 'Can login'

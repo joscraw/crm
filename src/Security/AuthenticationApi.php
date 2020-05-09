@@ -85,6 +85,7 @@ class AuthenticationApi
         ), $data);
 
         $key = md5(json_encode($config)) . '_auth0_access_token';
+
         $response = $cache->get($key, function (ItemInterface $item) use($config) {
             // auth0 setting for expiration is 86400 seconds for access tokens issued by the /token endpoint.
             // keep an eye on this if you notice it expiring before this time and just adjust the seconds down here
