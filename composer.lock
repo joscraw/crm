@@ -4,8 +4,56 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "bf78068dd1082e00cae418ee64127154",
+    "content-hash": "2e331090d931a215bf76da9b6ce6ac68",
     "packages": [
+        {
+            "name": "CRMWare/entity-extend-bundle",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "git@github.com:CRMWare/EntityExtendBundle.git",
+                "reference": "41ae93ecd815210233651fe1c8351d1bcd7d8d2a"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/CRMWare/EntityExtendBundle/zipball/41ae93ecd815210233651fe1c8351d1bcd7d8d2a",
+                "reference": "41ae93ecd815210233651fe1c8351d1bcd7d8d2a",
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
+            },
+            "type": "symfony-bundle",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.0-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "CRMWare\\EntityExtendBundle\\": "CRMWare/EntityExtendBundle"
+                }
+            },
+            "notification-url": "https://repo.packagist.com/crmware/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Josh Crawmer",
+                    "email": "joshcrawmer4@yahoo.com"
+                }
+            ],
+            "description": "CRMWare Entity Extend Bundle",
+            "support": {
+                "source": "https://github.com/CRMWare/EntityExtendBundle/tree/master",
+                "issues": "https://github.com/CRMWare/EntityExtendBundle/issues"
+            },
+            "time": "2020-05-12T08:03:12+00:00"
+        },
         {
             "name": "auth0/auth0-php",
             "version": "7.1.0",
@@ -18,7 +66,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/auth0/auth0-PHP/zipball/6e82ad3bec0028af31bf29aa20f340b4c70d86f0",
                 "reference": "6e82ad3bec0028af31bf29aa20f340b4c70d86f0",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "ext-json": "*",
@@ -68,7 +122,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/Behat/Transliterator/zipball/826ce7e9c2a6664c0d1f381cbb38b1fb80a7ee2c",
                 "reference": "826ce7e9c2a6664c0d1f381cbb38b1fb80a7ee2c",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": ">=5.3.3"
@@ -112,7 +172,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/blackfireio/php-sdk/zipball/4188f61bad20b45b19b61c3b6225f9aec2c8c8e4",
                 "reference": "4188f61bad20b45b19b61c3b6225f9aec2c8c8e4",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "composer/ca-bundle": "^1.0",
@@ -170,7 +236,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/box/spout/zipball/7964dadc2128f3a00ffa393395b618ea115c8032",
                 "reference": "7964dadc2128f3a00ffa393395b618ea115c8032",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "ext-xmlreader": "*",
@@ -239,7 +311,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/composer/ca-bundle/zipball/47fe531de31fca4a1b997f87308e7d7804348f7e",
                 "reference": "47fe531de31fca4a1b997f87308e7d7804348f7e",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "ext-openssl": "*",
@@ -295,7 +373,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/doctrine/annotations/zipball/b9d758e831c70751155c698c2f7df4665314a1cb",
                 "reference": "b9d758e831c70751155c698c2f7df4665314a1cb",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "doctrine/lexer": "1.*",
@@ -364,7 +448,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/doctrine/cache/zipball/382e7f4db9a12dc6c19431743a2b096041bcdd62",
                 "reference": "382e7f4db9a12dc6c19431743a2b096041bcdd62",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "~7.1"
@@ -446,7 +536,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/doctrine/collections/zipball/6b1e4b2b66f6d6e49983cebfe23a21b7ccc5b0d7",
                 "reference": "6b1e4b2b66f6d6e49983cebfe23a21b7ccc5b0d7",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.1.3"
@@ -516,7 +612,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/doctrine/common/zipball/2053eafdf60c2172ee1373d1b9289ba1db7f1fc6",
                 "reference": "2053eafdf60c2172ee1373d1b9289ba1db7f1fc6",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "doctrine/annotations": "^1.0",
@@ -599,7 +701,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/doctrine/dbal/zipball/aab745e7b6b2de3b47019da81e7225e14dcfdac8",
                 "reference": "aab745e7b6b2de3b47019da81e7225e14dcfdac8",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "doctrine/cache": "^1.0",
@@ -693,7 +801,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/doctrine/DoctrineBundle/zipball/f96fac225563f5b3b4eeb2f80eb982b7f56484d8",
                 "reference": "f96fac225563f5b3b4eeb2f80eb982b7f56484d8",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "doctrine/dbal": "^2.9.0",
@@ -781,7 +895,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/doctrine/DoctrineMigrationsBundle/zipball/856437e8de96a70233e1f0cc2352fc8dd15a899d",
                 "reference": "856437e8de96a70233e1f0cc2352fc8dd15a899d",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "doctrine/doctrine-bundle": "~1.0|~2.0",
@@ -849,7 +969,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/doctrine/event-manager/zipball/629572819973f13486371cb611386eb17851e85c",
                 "reference": "629572819973f13486371cb611386eb17851e85c",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.1"
@@ -925,7 +1051,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/doctrine/inflector/zipball/ec3a55242203ffa6a4b27c58176da97ff0a7aec1",
                 "reference": "ec3a55242203ffa6a4b27c58176da97ff0a7aec1",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.1"
@@ -992,7 +1124,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/doctrine/instantiator/zipball/ae466f726242e637cebdd526a7d991b9433bacf1",
                 "reference": "ae466f726242e637cebdd526a7d991b9433bacf1",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.1"
@@ -1048,7 +1186,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/doctrine/lexer/zipball/5242d66dbeb21a30dd8a3e66bf7a73b66e05e1f6",
                 "reference": "5242d66dbeb21a30dd8a3e66bf7a73b66e05e1f6",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.2"
@@ -1110,7 +1254,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/doctrine/migrations/zipball/8e124252d2f6be1124017d746d5994dd4095d66f",
                 "reference": "8e124252d2f6be1124017d746d5994dd4095d66f",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "doctrine/dbal": "^2.9",
@@ -1192,7 +1342,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/doctrine/orm/zipball/dafe298ce5d0b995ebe1746670704c0a35868a6a",
                 "reference": "dafe298ce5d0b995ebe1746670704c0a35868a6a",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "doctrine/annotations": "^1.8",
@@ -1276,7 +1432,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/doctrine/persistence/zipball/0af483f91bada1c9ded6c2cfd26ab7d5ab2094e0",
                 "reference": "0af483f91bada1c9ded6c2cfd26ab7d5ab2094e0",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "doctrine/annotations": "^1.0",
@@ -1359,7 +1521,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/doctrine/reflection/zipball/55e71912dfcd824b2fdd16f2d9afe15684cfce79",
                 "reference": "55e71912dfcd824b2fdd16f2d9afe15684cfce79",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "doctrine/annotations": "^1.0",
@@ -1437,7 +1605,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/egulias/EmailValidator/zipball/92dd169c32f6f55ba570c309d83f5209cefb5e23",
                 "reference": "92dd169c32f6f55ba570c309d83f5209cefb5e23",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "doctrine/lexer": "^1.0.1",
@@ -1495,7 +1669,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/GuilhemN/swagger/zipball/a02984db5edacdce2b4e09dae5ba8fe17a0e449e",
                 "reference": "a02984db5edacdce2b4e09dae5ba8fe17a0e449e",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.0"
@@ -1534,7 +1714,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/firebase/php-jwt/zipball/feb0e820b8436873675fd3aca04f3728eb2185cb",
                 "reference": "feb0e820b8436873675fd3aca04f3728eb2185cb",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": ">=5.3.0"
@@ -1584,7 +1770,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/FriendsOfSymfony/FOSCKEditorBundle/zipball/7ba78735ea75b9a6d4de403d7aced6c993a0557a",
                 "reference": "7ba78735ea75b9a6d4de403d7aced6c993a0557a",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "ext-json": "*",
@@ -1662,7 +1854,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/FriendsOfSymfony/FOSJsRoutingBundle/zipball/81cf14bf3db5e6fe3ef0442fc762891422005d3b",
                 "reference": "81cf14bf3db5e6fe3ef0442fc762891422005d3b",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.1",
@@ -1724,7 +1922,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/Atlantic18/DoctrineExtensions/zipball/81681364331b131518060e4776300a5346df1eb5",
                 "reference": "81681364331b131518060e4776300a5346df1eb5",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "behat/transliterator": "~1.2",
@@ -1806,7 +2010,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/googleapis/google-api-php-client/zipball/cd3c37998020d91ae4eafca4f26a92da4dabba83",
                 "reference": "cd3c37998020d91ae4eafca4f26a92da4dabba83",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "firebase/php-jwt": "~2.0||~3.0||~4.0||~5.0",
@@ -1867,7 +2077,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/googleapis/google-api-php-client-services/zipball/a33fd9ed19fe4e27f2ccebbf45646f38e7cb95af",
                 "reference": "a33fd9ed19fe4e27f2ccebbf45646f38e7cb95af",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": ">=5.4"
@@ -1904,7 +2120,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/googleapis/google-auth-library-php/zipball/45635ac69d0b95f38885531d4ebcdfcb2ebb6f36",
                 "reference": "45635ac69d0b95f38885531d4ebcdfcb2ebb6f36",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "firebase/php-jwt": "~2.0|~3.0|~4.0|~5.0",
@@ -1955,7 +2177,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/guzzle/guzzle/zipball/43ece0e75098b7ecd8d13918293029e555a50f82",
                 "reference": "43ece0e75098b7ecd8d13918293029e555a50f82",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "ext-json": "*",
@@ -2022,7 +2250,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/guzzle/promises/zipball/a59da6cf61d80060647ff4d3eb2c03a2bc694646",
                 "reference": "a59da6cf61d80060647ff4d3eb2c03a2bc694646",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": ">=5.5.0"
@@ -2073,7 +2307,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/guzzle/psr7/zipball/239400de7a173fe9901b9ac7c06497751f00727a",
                 "reference": "239400de7a173fe9901b9ac7c06497751f00727a",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": ">=5.4.0",
@@ -2144,7 +2384,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/jdorn/sql-formatter/zipball/64990d96e0959dff8e059dfcdc1af130728d92bc",
                 "reference": "64990d96e0959dff8e059dfcdc1af130728d92bc",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": ">=5.2.4"
@@ -2194,7 +2440,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/lcobucci/jwt/zipball/a11ec5f4b4d75d1fcd04e133dede4c317aac9e18",
                 "reference": "a11ec5f4b4d75d1fcd04e133dede4c317aac9e18",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "ext-mbstring": "*",
@@ -2249,7 +2501,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/thephpleague/flysystem/zipball/8132daec326565036bc8e8d1876f77ec183a7bd6",
                 "reference": "8132daec326565036bc8e8d1876f77ec183a7bd6",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "ext-fileinfo": "*",
@@ -2333,7 +2591,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/lexik/LexikFormFilterBundle/zipball/92df0638173979dc906bda7a33a10b98429d2057",
                 "reference": "92df0638173979dc906bda7a33a10b98429d2057",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "doctrine/orm": "^2.4.8",
@@ -2396,7 +2660,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/lexik/LexikJWTAuthenticationBundle/zipball/448551fc08c6cff37aad9d8f27f6b9615cd28966",
                 "reference": "448551fc08c6cff37aad9d8f27f6b9615cd28966",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "ext-openssl": "*",
@@ -2492,7 +2762,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/lightSAML/lightSAML/zipball/377f04d1fb25f2fb2e72dabeff10b336f1cbe4c5",
                 "reference": "377f04d1fb25f2fb2e72dabeff10b336f1cbe4c5",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": ">=5.6",
@@ -2554,7 +2830,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/MarkBaker/PHPComplex/zipball/1ea674a8308baf547cbcbd30c5fcd6d301b7c000",
                 "reference": "1ea674a8308baf547cbcbd30c5fcd6d301b7c000",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^5.6.0|^7.0.0"
@@ -2649,7 +2931,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/MarkBaker/PHPMatrix/zipball/5348c5a67e3b75cd209d70103f916a93b1f1ed21",
                 "reference": "5348c5a67e3b75cd209d70103f916a93b1f1ed21",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^5.6.0|^7.0.0"
@@ -2718,7 +3006,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/Seldaek/monolog/zipball/d5e2fb341cb44f7e2ab639d12a1e5901091ec287",
                 "reference": "d5e2fb341cb44f7e2ab639d12a1e5901091ec287",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": ">=5.3.0",
@@ -2796,7 +3090,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/namshi/jose/zipball/89a24d7eb3040e285dd5925fcad992378b82bcff",
                 "reference": "89a24d7eb3040e285dd5925fcad992378b82bcff",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "ext-date": "*",
@@ -2859,7 +3159,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/nelmio/NelmioApiDocBundle/zipball/ab014fe032beb1a7875939ff4162e8d05ad778ab",
                 "reference": "ab014fe032beb1a7875939ff4162e8d05ad778ab",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "exsyst/swagger": "^0.4.1",
@@ -2978,7 +3284,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/Ocramius/PackageVersions/zipball/44af6f3a2e2e04f2af46bcb302ad9600cba41c7d",
                 "reference": "44af6f3a2e2e04f2af46bcb302ad9600cba41c7d",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "composer-plugin-api": "^1.0.0",
@@ -3028,7 +3340,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/Ocramius/ProxyManager/zipball/4d154742e31c35137d5374c998e8f86b54db2e2f",
                 "reference": "4d154742e31c35137d5374c998e8f86b54db2e2f",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "ocramius/package-versions": "^1.1.3",
@@ -3098,7 +3416,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/1up-lab/OneupFlysystemBundle/zipball/bf8b1bdc4fca6e0ad072ff917b9c9e792d682588",
                 "reference": "bf8b1bdc4fca6e0ad072ff917b9c9e792d682588",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "league/flysystem": "^1.0.26",
@@ -3200,7 +3524,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/whiteoctober/Pagerfanta/zipball/a53ff01d521648d9dbca19b93ac6bc75a59b0972",
                 "reference": "a53ff01d521648d9dbca19b93ac6bc75a59b0972",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.0"
@@ -3269,7 +3599,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/php-mime-mail-parser/php-mime-mail-parser/zipball/27983433aabeccee832573c3c56e6a4855e57745",
                 "reference": "27983433aabeccee832573c3c56e6a4855e57745",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "ext-mailparse": "*",
@@ -3351,7 +3687,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/phpDocumentor/ReflectionCommon/zipball/6568f4687e5b41b054365f9ae03fcb1ed5f2069b",
                 "reference": "6568f4687e5b41b054365f9ae03fcb1ed5f2069b",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": ">=7.1"
@@ -3400,7 +3742,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/phpDocumentor/ReflectionDocBlock/zipball/da3fd972d6bafd628114f7e7e036f45944b62e9c",
                 "reference": "da3fd972d6bafd628114f7e7e036f45944b62e9c",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.0",
@@ -3452,7 +3800,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/phpDocumentor/TypeResolver/zipball/7462d5f123dfc080dfdf26897032a6513644fc95",
                 "reference": "7462d5f123dfc080dfdf26897032a6513644fc95",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.2",
@@ -3498,7 +3852,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/PHPOffice/PhpSpreadsheet/zipball/1648dc9ebef6ebe0c5a172e16cf66732918416e0",
                 "reference": "1648dc9ebef6ebe0c5a172e16cf66732918416e0",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "ext-ctype": "*",
@@ -3591,7 +3951,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/phpseclib/phpseclib/zipball/c78eb5058d5bb1a183133c36d4ba5b6675dfa099",
                 "reference": "c78eb5058d5bb1a183133c36d4ba5b6675dfa099",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": ">=5.3.3"
@@ -3683,7 +4049,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/php-fig/cache/zipball/d11b50ad223250cf17b86e38383413f5a6764bf8",
                 "reference": "d11b50ad223250cf17b86e38383413f5a6764bf8",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": ">=5.3.0"
@@ -3729,7 +4101,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/php-fig/container/zipball/b7ce3b176482dbbc1245ebf52b181af44c2cf55f",
                 "reference": "b7ce3b176482dbbc1245ebf52b181af44c2cf55f",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": ">=5.3.0"
@@ -3778,7 +4156,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/php-fig/http-message/zipball/f6561bf28d520154e4b0ec72be95418abe6d9363",
                 "reference": "f6561bf28d520154e4b0ec72be95418abe6d9363",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": ">=5.3.0"
@@ -3828,7 +4212,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/php-fig/link/zipball/eea8e8662d5cd3ae4517c9b864493f59fca95562",
                 "reference": "eea8e8662d5cd3ae4517c9b864493f59fca95562",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": ">=5.3.0"
@@ -3877,7 +4267,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/php-fig/log/zipball/0f73288fd15629204f9d42b7055f72dacbe811fc",
                 "reference": "0f73288fd15629204f9d42b7055f72dacbe811fc",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": ">=5.3.0"
@@ -3924,7 +4320,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/php-fig/simple-cache/zipball/408d5eafb83c57f6365a3ca330ff23aa4a5fa39b",
                 "reference": "408d5eafb83c57f6365a3ca330ff23aa4a5fa39b",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": ">=5.3.0"
@@ -3972,7 +4374,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/ralouphie/getallheaders/zipball/120b605dfeb996808c31b6477290a714d356e822",
                 "reference": "120b605dfeb996808c31b6477290a714d356e822",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": ">=5.6"
@@ -4012,7 +4420,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/robrichards/xmlseclibs/zipball/0a53d3c3aa87564910cae4ed01416441d3ae0db5",
                 "reference": "0a53d3c3aa87564910cae4ed01416441d3ae0db5",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "ext-openssl": "*",
@@ -4050,7 +4464,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/rollerworks/PasswordStrengthBundle/zipball/673021055a76d85a2817f4732a4d5feae0b4b4fb",
                 "reference": "673021055a76d85a2817f4732a4d5feae0b4b4fb",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.1",
@@ -4116,7 +4536,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/rollerworks/PasswordStrengthValidator/zipball/8c6441ba98253203964c2ecba53ef007e0324e33",
                 "reference": "8c6441ba98253203964c2ecba53ef007e0324e33",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.1",
@@ -4185,7 +4611,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/ScientaNL/DoctrineJsonFunctions/zipball/f8e2247c0d8afbe434636e87028372f1aaea53f1",
                 "reference": "f8e2247c0d8afbe434636e87028372f1aaea53f1",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "ext-pdo": "*",
@@ -4243,7 +4675,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/sensiolabs/SensioFrameworkExtraBundle/zipball/dfc2c4df9f7d465a65c770e9feb578fe071636f7",
                 "reference": "dfc2c4df9f7d465a65c770e9feb578fe071636f7",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "doctrine/annotations": "^1.0",
@@ -4321,7 +4759,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/stof/StofDoctrineExtensionsBundle/zipball/4d340daa1a8304faa62260be2adb0180e2138af3",
                 "reference": "4d340daa1a8304faa62260be2adb0180e2138af3",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "gedmo/doctrine-extensions": "^2.3.4",
@@ -4387,7 +4831,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/swiftmailer/swiftmailer/zipball/149cfdf118b169f7840bbe3ef0d4bc795d1780c9",
                 "reference": "149cfdf118b169f7840bbe3ef0d4bc795d1780c9",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "egulias/email-validator": "~2.0",
@@ -4449,7 +4899,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/amqp-pack/zipball/2433282bd6e57a530d6149bd282442870712e871",
                 "reference": "2433282bd6e57a530d6149bd282442870712e871",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "ext-amqp": "*",
@@ -4477,7 +4933,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/asset/zipball/7ec5fc653dab63d7519a6f411982ee224a696d66",
                 "reference": "7ec5fc653dab63d7519a6f411982ee224a696d66",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.1.3"
@@ -4533,7 +4995,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/cache/zipball/ba0aa1738d04df338c0fabdbecf9cf5fddcdb63f",
                 "reference": "ba0aa1738d04df338c0fabdbecf9cf5fddcdb63f",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.1.3",
@@ -4612,7 +5080,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/cache-contracts/zipball/23ed8bfc1a4115feca942cb5f1aacdf3dcdf3c16",
                 "reference": "23ed8bfc1a4115feca942cb5f1aacdf3dcdf3c16",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.2.5",
@@ -4670,7 +5144,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/config/zipball/7aa5817f1b7a8ed377752b90fcc47dfb3c67b40c",
                 "reference": "7aa5817f1b7a8ed377752b90fcc47dfb3c67b40c",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.1.3",
@@ -4734,7 +5214,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/console/zipball/f0aea3df20d15635b3cb9730ca5eea1c65b7f201",
                 "reference": "f0aea3df20d15635b3cb9730ca5eea1c65b7f201",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.1.3",
@@ -4810,7 +5296,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/debug/zipball/346636d2cae417992ecfd761979b2ab98b339a45",
                 "reference": "346636d2cae417992ecfd761979b2ab98b339a45",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.1.3",
@@ -4866,7 +5358,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/dependency-injection/zipball/9d0c2807962f7f12264ab459f48fb541dbd386bd",
                 "reference": "9d0c2807962f7f12264ab459f48fb541dbd386bd",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.1.3",
@@ -4939,7 +5437,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/doctrine-bridge/zipball/31c3d72f9e7a03e1b9d136084a9201c2225ee348",
                 "reference": "31c3d72f9e7a03e1b9d136084a9201c2225ee348",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "doctrine/event-manager": "~1.0",
@@ -5033,7 +5537,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/dotenv/zipball/7abe2c6d7d232cf5a88e79a57479876b35704a01",
                 "reference": "7abe2c6d7d232cf5a88e79a57479876b35704a01",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.1.3"
@@ -5090,7 +5600,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/error-handler/zipball/7e9828fc98aa1cf27b422fe478a84f5b0abb7358",
                 "reference": "7e9828fc98aa1cf27b422fe478a84f5b0abb7358",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.1.3",
@@ -5146,7 +5662,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/event-dispatcher/zipball/abc8e3618bfdb55e44c8c6a00abd333f831bbfed",
                 "reference": "abc8e3618bfdb55e44c8c6a00abd333f831bbfed",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.1.3",
@@ -5216,7 +5738,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/event-dispatcher-contracts/zipball/c43ab685673fb6c8d84220c77897b1d6cdbe1d18",
                 "reference": "c43ab685673fb6c8d84220c77897b1d6cdbe1d18",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.1.3"
@@ -5274,7 +5802,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/expression-language/zipball/8a1028a65623a8f7bba582b60e4fd308e6f43001",
                 "reference": "8a1028a65623a8f7bba582b60e4fd308e6f43001",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.1.3",
@@ -5325,7 +5859,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/filesystem/zipball/40c2606131d56eff6f193b6e2ceb92414653b591",
                 "reference": "40c2606131d56eff6f193b6e2ceb92414653b591",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.1.3",
@@ -5375,7 +5915,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/finder/zipball/5729f943f9854c5781984ed4907bbb817735776b",
                 "reference": "5729f943f9854c5781984ed4907bbb817735776b",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.1.3"
@@ -5424,7 +5970,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/flex/zipball/59b42aa1d3385a21683601c15e63eb35d2ebe8a4",
                 "reference": "59b42aa1d3385a21683601c15e63eb35d2ebe8a4",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "composer-plugin-api": "^1.0",
@@ -5473,7 +6025,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/form/zipball/08dfa1960bbd25caaf979a47e837696bf2ee6d65",
                 "reference": "08dfa1960bbd25caaf979a47e837696bf2ee6d65",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.1.3",
@@ -5557,7 +6115,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/framework-bundle/zipball/69ac426bfaca9270e549cea184eece00357f2675",
                 "reference": "69ac426bfaca9270e549cea184eece00357f2675",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "ext-xml": "*",
@@ -5687,7 +6251,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/http-client/zipball/88d1745f4095727b8bf0574a0f414331f4ec229c",
                 "reference": "88d1745f4095727b8bf0574a0f414331f4ec229c",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.1.3",
@@ -5755,7 +6325,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/http-client-contracts/zipball/378868b61b85c5cac6822d4f84e26999c9f2e881",
                 "reference": "378868b61b85c5cac6822d4f84e26999c9f2e881",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.2.5"
@@ -5812,7 +6388,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/http-foundation/zipball/ec5bd254c223786f5fa2bb49a1e705c1b8e7cee2",
                 "reference": "ec5bd254c223786f5fa2bb49a1e705c1b8e7cee2",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.1.3",
@@ -5867,7 +6449,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/http-kernel/zipball/1799a6c01f0db5851f399151abdb5d6393fec277",
                 "reference": "1799a6c01f0db5851f399151abdb5d6393fec277",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.1.3",
@@ -5957,7 +6545,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/inflector/zipball/53cfa47fe9142f39b5605df67bada3893dd4f46c",
                 "reference": "53cfa47fe9142f39b5605df67bada3893dd4f46c",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.1.3",
@@ -6015,7 +6609,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/intl/zipball/727fed5372915b5ea5e8177070f5e7e547063f24",
                 "reference": "727fed5372915b5ea5e8177070f5e7e547063f24",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.1.3",
@@ -6090,7 +6690,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/messenger/zipball/81c33bf3efea7c0e2ad3789c197a38d563872164",
                 "reference": "81c33bf3efea7c0e2ad3789c197a38d563872164",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.1.3",
@@ -6163,7 +6769,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/mime/zipball/7a583ffb6c7dd5aabb5db920817a3cc39261c517",
                 "reference": "7a583ffb6c7dd5aabb5db920817a3cc39261c517",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.1.3",
@@ -6225,7 +6837,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/monolog-bridge/zipball/7c7a9a2fc76b0cae1ea7d2429130c2f943e8f041",
                 "reference": "7c7a9a2fc76b0cae1ea7d2429130c2f943e8f041",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "monolog/monolog": "^1.25.1",
@@ -6292,7 +6910,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/monolog-bundle/zipball/dd80460fcfe1fa2050a7103ad818e9d0686ce6fd",
                 "reference": "dd80460fcfe1fa2050a7103ad818e9d0686ce6fd",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "monolog/monolog": "~1.22 || ~2.0",
@@ -6355,7 +6979,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/options-resolver/zipball/ade3d89dd3b875b83c8cff2980c9bb0daf6ef297",
                 "reference": "ade3d89dd3b875b83c8cff2980c9bb0daf6ef297",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.1.3"
@@ -6409,7 +7039,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/orm-pack/zipball/c57f5e05232ca40626eb9fa52a32bc8565e9231c",
                 "reference": "c57f5e05232ca40626eb9fa52a32bc8565e9231c",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "doctrine/doctrine-bundle": "^1.6.10|^2.0",
@@ -6437,7 +7073,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/polyfill-intl-icu/zipball/b3dffd68afa61ca70f2327f2dd9bbeb6aa53d70b",
                 "reference": "b3dffd68afa61ca70f2327f2dd9bbeb6aa53d70b",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": ">=5.3.3",
@@ -6495,7 +7137,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/polyfill-intl-idn/zipball/47bd6aa45beb1cd7c6a16b7d1810133b728bdfcf",
                 "reference": "47bd6aa45beb1cd7c6a16b7d1810133b728bdfcf",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": ">=5.3.3",
@@ -6557,7 +7205,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/polyfill-mbstring/zipball/81ffd3a9c6d707be22e3012b827de1c9775fc5ac",
                 "reference": "81ffd3a9c6d707be22e3012b827de1c9775fc5ac",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": ">=5.3.3"
@@ -6616,7 +7270,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/polyfill-php72/zipball/37b0976c78b94856543260ce09b460a7bc852747",
                 "reference": "37b0976c78b94856543260ce09b460a7bc852747",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": ">=5.3.3"
@@ -6671,7 +7331,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/polyfill-php73/zipball/0f27e9f464ea3da33cbe7ca3bdf4eb66def9d0f7",
                 "reference": "0f27e9f464ea3da33cbe7ca3bdf4eb66def9d0f7",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": ">=5.3.3"
@@ -6729,7 +7395,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/process/zipball/51c0135ef3f44c5803b33dc60e96bf4f77752726",
                 "reference": "51c0135ef3f44c5803b33dc60e96bf4f77752726",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.1.3"
@@ -6778,7 +7450,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/property-access/zipball/f6a51bd76a3a5c36c57221a4f491b9cf02663672",
                 "reference": "f6a51bd76a3a5c36c57221a4f491b9cf02663672",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.1.3",
@@ -6845,7 +7523,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/property-info/zipball/ab5bb41dee66b4f7b4e0f615772b07d8f466e218",
                 "reference": "ab5bb41dee66b4f7b4e0f615772b07d8f466e218",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.1.3",
@@ -6921,7 +7605,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/requirements-checker/zipball/991978163f5a653a17e7b7592157c096c2afd2f7",
                 "reference": "991978163f5a653a17e7b7592157c096c2afd2f7",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": ">=5.3.9"
@@ -6969,7 +7659,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/routing/zipball/51f3f20ad29329a0bdf5c0e2f722d3764b065273",
                 "reference": "51f3f20ad29329a0bdf5c0e2f722d3764b065273",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.1.3"
@@ -7045,7 +7741,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/security-bundle/zipball/c5356211aee87709bf174af504308eaf8aa5efd9",
                 "reference": "c5356211aee87709bf174af504308eaf8aa5efd9",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "ext-xml": "*",
@@ -7128,7 +7830,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/security-core/zipball/fc84e9481e5bd9d80f70c0d8151601211377a5dc",
                 "reference": "fc84e9481e5bd9d80f70c0d8151601211377a5dc",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.1.3",
@@ -7201,7 +7909,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/security-csrf/zipball/aeed1a2315019b5a090f5ad34c01f1935ea9b757",
                 "reference": "aeed1a2315019b5a090f5ad34c01f1935ea9b757",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.1.3",
@@ -7260,7 +7974,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/security-guard/zipball/df82bbbd01486ff21a053d325cf9159b4d70b544",
                 "reference": "df82bbbd01486ff21a053d325cf9159b4d70b544",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.1.3",
@@ -7314,7 +8034,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/security-http/zipball/ff3ab7cda1703195dbe7f97cccaf77478126e0cd",
                 "reference": "ff3ab7cda1703195dbe7f97cccaf77478126e0cd",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.1.3",
@@ -7380,7 +8106,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/serializer/zipball/842637bdcbed31c7dc62b3c30dfc8949f6457968",
                 "reference": "842637bdcbed31c7dc62b3c30dfc8949f6457968",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.1.3",
@@ -7461,7 +8193,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/serializer-pack/zipball/c5f18ba4ff989a42d7d140b7f85406e77cd8c4b2",
                 "reference": "c5f18ba4ff989a42d7d140b7f85406e77cd8c4b2",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "doctrine/annotations": "^1.0",
@@ -7491,7 +8229,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/service-contracts/zipball/144c5e51266b281231e947b51223ba14acf1a749",
                 "reference": "144c5e51266b281231e947b51223ba14acf1a749",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.2.5",
@@ -7549,7 +8293,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/stopwatch/zipball/5745b514fc56ae1907c6b8ed74f94f90f64694e9",
                 "reference": "5745b514fc56ae1907c6b8ed74f94f90f64694e9",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.1.3",
@@ -7599,7 +8349,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/swiftmailer-bundle/zipball/553d2474288349faed873da8ab7c1551a00d26ae",
                 "reference": "553d2474288349faed873da8ab7c1551a00d26ae",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": ">=7.1",
@@ -7664,7 +8420,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/translation/zipball/897fb68ee7933372517b551d6f08c6d4bb0b8c40",
                 "reference": "897fb68ee7933372517b551d6f08c6d4bb0b8c40",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.1.3",
@@ -7740,7 +8502,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/translation-contracts/zipball/8cc682ac458d75557203b2f2f14b0b92e1c744ed",
                 "reference": "8cc682ac458d75557203b2f2f14b0b92e1c744ed",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.2.5"
@@ -7797,7 +8565,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/twig-bridge/zipball/6121dd0156649047f38cfc02a5d64091692892f2",
                 "reference": "6121dd0156649047f38cfc02a5d64091692892f2",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.1.3",
@@ -7900,7 +8674,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/twig-bundle/zipball/98000ca747da189f460ae3f7b22b7c51fa884189",
                 "reference": "98000ca747da189f460ae3f7b22b7c51fa884189",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.1.3",
@@ -7975,7 +8755,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/validator/zipball/6b1774cf44c378617af362eaa154105952d488f8",
                 "reference": "6b1774cf44c378617af362eaa154105952d488f8",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.1.3",
@@ -8067,7 +8853,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/var-dumper/zipball/c587e04ce5d1aa62d534a038f574d9a709e814cf",
                 "reference": "c587e04ce5d1aa62d534a038f574d9a709e814cf",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.1.3",
@@ -8143,7 +8935,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/var-exporter/zipball/e566070effe60b8d16b99e958cdbd92aa2e470cb",
                 "reference": "e566070effe60b8d16b99e958cdbd92aa2e470cb",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.1.3"
@@ -8203,7 +9001,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/web-link/zipball/bc6432b92681b2f28ced2f3bbcf051e75eea569c",
                 "reference": "bc6432b92681b2f28ced2f3bbcf051e75eea569c",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.1.3",
@@ -8279,7 +9083,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/webpack-encore-bundle/zipball/787c2fdedde57788013339f05719c82ce07b6058",
                 "reference": "787c2fdedde57788013339f05719c82ce07b6058",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.1.3",
@@ -8332,7 +9142,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/yaml/zipball/76de473358fe802578a415d5bb43c296cf09d211",
                 "reference": "76de473358fe802578a415d5bb43c296cf09d211",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.1.3",
@@ -8391,7 +9207,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/twigphp/Twig/zipball/18772e0190734944277ee97a02a9a6c6555fcd94",
                 "reference": "18772e0190734944277ee97a02a9a6c6555fcd94",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.0",
@@ -8456,7 +9278,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/webmozart/assert/zipball/ab2cb0b3b559010b75981b1bdce728da3ee90ad6",
                 "reference": "ab2cb0b3b559010b75981b1bdce728da3ee90ad6",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^5.3.3 || ^7.0",
@@ -8504,7 +9332,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/whiteoctober/WhiteOctoberPagerfantaBundle/zipball/6df560869b5e09a3acf920890ab40598998b30ae",
                 "reference": "6df560869b5e09a3acf920890ab40598998b30ae",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "pagerfanta/pagerfanta": "^1.1.0|^2.0.0",
@@ -8565,7 +9399,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/willdurand/JsonpCallbackValidator/zipball/1a7d388bb521959e612ef50c5c7b1691b097e909",
                 "reference": "1a7d388bb521959e612ef50c5c7b1691b097e909",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": ">=5.3.0"
@@ -8605,7 +9445,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/zendframework/zend-code/zipball/46feaeecea14161734b56c1ace74f28cb329f194",
                 "reference": "46feaeecea14161734b56c1ace74f28cb329f194",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.1",
@@ -8659,7 +9505,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/zendframework/zend-eventmanager/zipball/a5e2583a211f73604691586b8406ff7296a946dd",
                 "reference": "a5e2583a211f73604691586b8406ff7296a946dd",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^5.6 || ^7.0"
@@ -8714,7 +9566,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/zircote/swagger-php/zipball/5fd9439cfb76713925e23f206e9db4bf35784683",
                 "reference": "5fd9439cfb76713925e23f206e9db4bf35784683",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "doctrine/annotations": "*",
@@ -8778,7 +9636,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/doctrine/data-fixtures/zipball/39e9777c9089351a468f780b01cffa3cb0a42907",
                 "reference": "39e9777c9089351a468f780b01cffa3cb0a42907",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "doctrine/common": "^2.11",
@@ -8842,7 +9706,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/doctrine/DoctrineFixturesBundle/zipball/8f07fcfdac7f3591f3c4bf13a50cbae05f65ed70",
                 "reference": "8f07fcfdac7f3591f3c4bf13a50cbae05f65ed70",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "doctrine/data-fixtures": "^1.3",
@@ -8909,7 +9779,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/EasyCorp/easy-log-handler/zipball/224e1dfcf9455aceee89cd0af306ac097167fac1",
                 "reference": "224e1dfcf9455aceee89cd0af306ac097167fac1",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "monolog/monolog": "~1.6|~2.0",
@@ -8960,7 +9836,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/php-fig/link-util/zipball/1a07821801a148be4add11ab0603e4af55a72fac",
                 "reference": "1a07821801a148be4add11ab0603e4af55a72fac",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": ">=5.5.0",
@@ -9014,7 +9896,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/avalanche123/Imagine/zipball/cb2361e5bb4410b681462d8e4f912bc5dabf84ab",
                 "reference": "cb2361e5bb4410b681462d8e4f912bc5dabf84ab",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": ">=5.3.2"
@@ -9072,7 +9960,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/liip/LiipImagineBundle/zipball/06740a0a0e9c0054d3e0589472fd19b975784c52",
                 "reference": "06740a0a0e9c0054d3e0589472fd19b975784c52",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "imagine/imagine": "^0.7.1|^1.1",
@@ -9173,7 +10067,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/9a9981c347c5c49d6dfe5cf826bb882b824080dc",
                 "reference": "9a9981c347c5c49d6dfe5cf826bb882b824080dc",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "ext-tokenizer": "*",
@@ -9225,7 +10125,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/browser-kit/zipball/e4b0dc1b100bf75b5717c5b451397f230a618a42",
                 "reference": "e4b0dc1b100bf75b5717c5b451397f230a618a42",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.1.3",
@@ -9284,7 +10190,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/css-selector/zipball/afc26133a6fbdd4f8842e38893e0ee4685c7c94b",
                 "reference": "afc26133a6fbdd4f8842e38893e0ee4685c7c94b",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.1.3"
@@ -9337,7 +10249,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/debug-bundle/zipball/2255db767f7f5bf6740e9f3b4f92199f6890ca2e",
                 "reference": "2255db767f7f5bf6740e9f3b4f92199f6890ca2e",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "ext-xml": "*",
@@ -9403,7 +10321,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/debug-pack/zipball/09a4a1e9bf2465987d4f79db0ad6c11cc632bc79",
                 "reference": "09a4a1e9bf2465987d4f79db0ad6c11cc632bc79",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "easycorp/easy-log-handler": "^1.0.7",
@@ -9433,7 +10357,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/dom-crawler/zipball/36bbcab9369fc2f583220890efd43bf262d563fd",
                 "reference": "36bbcab9369fc2f583220890efd43bf262d563fd",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.1.3",
@@ -9494,7 +10424,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/maker-bundle/zipball/c864e7f9b8d1e1f5f60acc3beda11299f637aded",
                 "reference": "c864e7f9b8d1e1f5f60acc3beda11299f637aded",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "doctrine/inflector": "^1.2",
@@ -9562,7 +10498,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/phpunit-bridge/zipball/00b8da18a52fa842b7a39613fb0a63720a354e74",
                 "reference": "00b8da18a52fa842b7a39613fb0a63720a354e74",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": ">=5.5.9"
@@ -9627,7 +10569,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/profiler-pack/zipball/99c4370632c2a59bb0444852f92140074ef02209",
                 "reference": "99c4370632c2a59bb0444852f92140074ef02209",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.0",
@@ -9655,7 +10603,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/templating/zipball/9995a4f65149d5ab7f0d9cca6d88136ae8bfaa72",
                 "reference": "9995a4f65149d5ab7f0d9cca6d88136ae8bfaa72",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.1.3",
@@ -9711,7 +10665,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/test-pack/zipball/ff87e800a67d06c423389f77b8209bc9dc469def",
                 "reference": "ff87e800a67d06c423389f77b8209bc9dc469def",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.0",
@@ -9739,7 +10699,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/web-profiler-bundle/zipball/92453ec17c365c561d9e65b06050b9e2a65e9306",
                 "reference": "92453ec17c365c561d9e65b06050b9e2a65e9306",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.1.3",
@@ -9803,7 +10769,13 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/web-server-bundle/zipball/301dad4563b21a791a796da9a736408215b9e9fc",
                 "reference": "301dad4563b21a791a796da9a736408215b9e9fc",
-                "shasum": ""
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://repo.packagist.com/crmware/dists/%package%/%version%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
             },
             "require": {
                 "php": "^7.1.3",
@@ -9854,6 +10826,7 @@
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
+        "crmware/entity-extend-bundle": 20,
         "nscs/nscs-bundle": 20
     },
     "prefer-stable": false,

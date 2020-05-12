@@ -115,6 +115,11 @@
         "type": "path",
         "url": "NSCSBundle"
       },
+      {
+        "type": "path",
+        "url": "../crm-packages/*",
+        "symlink": true
+      },
       {"type": "composer", "url": "https://repo.packagist.com/crmware/"},
       {"packagist.org": false}
     ]

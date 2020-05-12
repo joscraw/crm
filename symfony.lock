@@ -14,6 +14,9 @@
     "composer/ca-bundle": {
         "version": "1.2.6"
     },
+    "crmware/entity-extend-bundle": {
+        "version": "1.0-dev"
+    },
     "doctrine/annotations": {
         "version": "1.0",
         "recipe": {
