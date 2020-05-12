@@ -84,6 +84,16 @@ class PermissionController extends ApiController
      * )
      *
      * @SWG\Response(
+     *     response=403,
+     *     description="Forbidden",
+     *     @SWG\Schema(
+     *              type="object",
+     *              format="json",
+     *              @SWG\Property(property="message", type="string", example="You do not have access to that resource.")
+     *      )
+     * )
+     *
+     * @SWG\Response(
      *     response=500,
      *     description="Internal Server Error",
      *     @SWG\Schema(
@@ -138,6 +148,8 @@ class PermissionController extends ApiController
         // todo add query parameter here to limit scope of roles returned by a given portal
         // todo add query parameter to limit scope of roles returned by a given user
         // todo add query parameters to add permissions to response
+
+        $this->denyAccessUnlessGranted('read', Role::getObjectIdentifier());
 
 
         /** @var User $user */
@@ -1192,6 +1204,8 @@ class PermissionController extends ApiController
      * @throws \ReflectionException
      */
     public function accessControlList(Request $request) {
+
+        // todo validate that at least an object identifier or attribute identifier was passed up
 
         /** @var User $user */
         $user = $this->getUser();

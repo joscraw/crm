@@ -2,6 +2,8 @@
 
 namespace App\Tests;
 
+use App\Entity\AclEntry;
+use App\Entity\AclSecurityIdentity;
 use App\Entity\Permission;
 use App\Entity\Portal;
 use App\Entity\Role;
@@ -9,6 +11,7 @@ use App\Entity\User;
 use App\Security\Auth\PermissionManager;
 use App\Security\Auth0MgmtApi;
 use App\Security\AuthenticationApi;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use GuzzleHttp\Client;
 use Doctrine\Common\DataFixtures\Purger\ORMPurger;
@@ -92,20 +95,7 @@ class ApiTestCase extends WebTestCase
         $this->guzzleClient = self::$staticGuzzleClient;
         $this->symfonyClient = self::$staticSymfonyClient;
 
-        $this->purgeDatabase()
-            ->createPermissions();
-
-        // todo we may not need just add this inside the test itself as not every test needs this role setup.
-        //$role = $this->createRole('ROLE_SUPER_ADMIN', 'Super Admin Role', null, $permissions);
-
-        // todo add this in the test itself as well right?
-        //$this->auth0User = $this->createAuth0User();
-        //$this->auth0User = $response['user_id'];
-
-        // todo add this into the test itself as well right?
-        //$this->createDbUser($this->auth0UserId, [$role]);
-        // todo this should be called from within the test as well and accept a username and password
-        //$this->auth0UserAccessToken = $this->getUserAccessToken();
+        $this->purgeDatabase();
     }
 
     /**
@@ -141,7 +131,7 @@ class ApiTestCase extends WebTestCase
      * @return mixed
      * @throws \Psr\Cache\InvalidArgumentException
      */
-    public function getUserAccessToken() {
+    public function getUserAccessToken($username, $password) {
         // todo this should accept a username and password
         // todo so we aren't hardcoding the user we want to get an access token for
 
@@ -268,12 +258,11 @@ class ApiTestCase extends WebTestCase
         return $portal;
     }
 
-    protected function createAuth0User() {
-        // todo the data passed in here should be added as an argument also.
+    protected function createAuth0User($email, $name, $password) {
         $data = [
-            'email' => 'phpunit@crm.dev',
-            'name' => 'phpunit',
-            'password' => 'phpunit44!',
+            'email' => $email,
+            'name' => $name,
+            'password' => $password,
             'connection' => self::$container->getParameter('auth0_connection')
         ];
         $container = self::$container;
@@ -282,12 +271,11 @@ class ApiTestCase extends WebTestCase
         return $auth0MgmtApi->createUser($data);
     }
 
-    // todo the data for the user should be added as an argument also.
-    protected function createDbUser($sub = null, $roles = []) {
+    protected function createDbUser($email, $name, $password, $sub = null, $roles = []) {
         $user = (new User())
-            ->setEmail('phpunit@crm.dev')
-            ->setFirstName('phpunit')
-            ->setLastName('phpunit');
+            ->setEmail($email)
+            ->setFirstName($name)
+            ->setLastName($password);
         if($sub) {
             $user->setSub($sub);
         }
@@ -301,17 +289,13 @@ class ApiTestCase extends WebTestCase
         return $user;
     }
 
-    protected function createRole($name, $description, $forPortal = null, $permissions = []) {
+    protected function createRole($name, $description, $forPortal = null) {
         $role = new Role();
         $role->setName($name)
             ->setDescription($description);
 
         if($forPortal and $forPortal instanceof Portal) {
             $role->setPortal($forPortal);
-        }
-
-        foreach ($permissions as $permission) {
-            $role->addPermission($permission);
         }
 
         $entityManager = $this->getService('doctrine.orm.default_entity_manager');
@@ -321,32 +305,36 @@ class ApiTestCase extends WebTestCase
         return $role;
     }
 
-    protected function createPermissions() {
-        $entityManager = $this->getService('doctrine.orm.default_entity_manager');
+    protected function createAclEntry($securityIdentity, $mask, $objectIdentifier = null, $attributeIdentifier = null) {
 
-        $permissionManager = $this->getPrivateService(PermissionManager::class);
-        $permissions = $permissionManager->load();
-
-        $permissionObjs = [];
-        foreach($permissions as $key => $permissionSet) {
-            foreach($permissionSet as $permission) {
-                $permissionObj = new Permission();
-                $permissionObj->setScope($permission['scope']);
-                $permissionObj->setDescription($permission['description']);
-                $entityManager->persist($permissionObj);
-                $permissionObjs[] = $permissionObj;
-            }
+        if(!$objectIdentifier && !$attributeIdentifier) {
+            throw new \Exception("An object identifier or an attribute identifier must be specified.");
         }
 
-        $entityManager->flush();
-        return $this;
-    }
-
-    protected function getPermissions($scopes = []) {
-
+        /** @var EntityManagerInterface $entityManager */
         $entityManager = $this->getService('doctrine.orm.default_entity_manager');
 
-        // todo this should take an array of scopes and return permission objects from the db for them
-    }
 
+        $securityIdentityObj = $entityManager->getRepository(AclSecurityIdentity::class)->findOneBy([
+            'identity' => $securityIdentity
+        ]);
+
+        if(!$securityIdentityObj) {
+            $securityIdentityObj = new AclSecurityIdentity();
+            $securityIdentityObj->setIdentity($securityIdentity);
+            $entityManager->persist($securityIdentityObj);
+        }
+
+        $aclEntry = new AclEntry();
+        $aclEntry->setMask($mask);
+        $grants = $this->getPrivateService(PermissionManager::class)->resolveGrants($aclEntry);
+        $aclEntry->setGrantingStrategy($grants);
+        $aclEntry->setObjectIdentifier($objectIdentifier);
+        $aclEntry->setAttributeIdentifier($attributeIdentifier);
+        $securityIdentityObj->addAclEntry($aclEntry);
+
+        $entityManager = $this->getService('doctrine.orm.default_entity_manager');
+        $entityManager->persist($aclEntry);
+        $entityManager->flush();
+    }
 }

@@ -9,7 +9,7 @@ use App\Security\Auth\PermissionManager;
 abstract class AbstractACL
 {
 
-    public function getObjectIdentifier() {
+    public static function getObjectIdentifier() {
         return static::class;
     }
 

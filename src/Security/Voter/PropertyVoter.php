@@ -12,7 +12,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\Voter;
 
-class RoleVoter extends Voter
+class PropertyVoter extends Voter
 {
 
     const CREATE = 'create';
@@ -62,6 +62,9 @@ class RoleVoter extends Voter
 
     protected function supports($attribute, $subject)
     {
+
+        $name = "Josh";
+        return true;
         if (!in_array($attribute, [
             self::CREATE,
             self::READ,
@@ -86,12 +89,12 @@ class RoleVoter extends Voter
 
         $user = $token->getUser();
 
+        return false;
+
         if (!$user instanceof User) {
             // the user must be logged in; if not, deny access
             return false;
         }
-
-        return false;
 
         // If the user does not have any roles don't give them access
         // todo if we have permissions live on the user as well then we need

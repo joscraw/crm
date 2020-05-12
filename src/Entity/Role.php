@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Security\AbstractACL;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -12,7 +13,7 @@ use App\Validator\Constraints as CustomAssert;
  * @CustomAssert\RoleNameAlreadyExists()
  * @ORM\Entity(repositoryClass="App\Repository\RoleRepository")
  */
-class Role
+class Role extends AbstractACL
 {
     use TimestampableEntity;
 

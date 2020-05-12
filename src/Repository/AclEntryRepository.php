@@ -47,4 +47,21 @@ class AclEntryRepository extends ServiceEntityRepository
         ;
     }
     */
+
+    /**
+     * @param array $securityIdentities
+     * @param $objectIdentifier
+     * @return mixed
+     */
+    public function findBySecurityIdentitiesAndObjectIdentifier(array $securityIdentities, $objectIdentifier)
+    {
+        return $this->createQueryBuilder('acl_entry')
+            ->innerJoin('acl_entry.securityIdentity', 'security_identity')
+            ->where('security_identity.identity IN (:identities)')
+            ->andWhere('acl_entry.objectIdentifier = :objectIdentifier')
+            ->setParameter('identities', $securityIdentities)
+            ->setParameter('objectIdentifier', $objectIdentifier)
+            ->getQuery()
+            ->getResult();
+    }
 }
