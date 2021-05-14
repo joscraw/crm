@@ -2,7 +2,6 @@
 
 namespace App\Entity;
 
-use App\Model\Content;
 use App\Utils\RandomStringGenerator;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -14,6 +13,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\CustomObjectRepository")
+ * @ORM\EntityListeners({"App\EntityListener\CustomObjectListener"})
  * @ORM\HasLifecycleCallbacks()
  * @CustomAssert\CustomObjectLabelAlreadyExists(groups={"CREATE", "EDIT"})
  * @CustomAssert\CustomObjectInternalNameAlreadyExists(groups={"CREATE", "EDIT"})
@@ -100,9 +100,14 @@ class CustomObject /*implements \JsonSerializable*/
     private $forms;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\ObjectWorkflow", mappedBy="customObject")
+     * @ORM\OneToMany(targetEntity="App\Entity\RecordDuplicate", mappedBy="customObject", orphanRemoval=true)
      */
-    private $objectWorkflows;
+    private $recordDuplicates;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Workflow", mappedBy="customObject")
+     */
+    private $workflows;
 
     public function __construct()
     {
@@ -112,7 +117,8 @@ class CustomObject /*implements \JsonSerializable*/
         $this->reports = new ArrayCollection();
         $this->marketingLists = new ArrayCollection();
         $this->forms = new ArrayCollection();
-        $this->objectWorkflows = new ArrayCollection();
+        $this->recordDuplicates = new ArrayCollection();
+        $this->workflows = new ArrayCollection();
     }
 
     /**
@@ -412,30 +418,61 @@ class CustomObject /*implements \JsonSerializable*/
     }
 
     /**
-     * @return Collection|ObjectWorkflow[]
+     * @return Collection|RecordDuplicate[]
      */
-    public function getObjectWorkflows(): Collection
+    public function getRecordDuplicates(): Collection
     {
-        return $this->objectWorkflows;
+        return $this->recordDuplicates;
     }
 
-    public function addObjectWorkflow(ObjectWorkflow $objectWorkflow): self
+    public function addRecordDuplicate(RecordDuplicate $recordDuplicate): self
     {
-        if (!$this->objectWorkflows->contains($objectWorkflow)) {
-            $this->objectWorkflows[] = $objectWorkflow;
-            $objectWorkflow->setCustomObject($this);
+        if (!$this->recordDuplicates->contains($recordDuplicate)) {
+            $this->recordDuplicates[] = $recordDuplicate;
+            $recordDuplicate->setCustomObject($this);
         }
 
         return $this;
     }
 
-    public function removeObjectWorkflow(ObjectWorkflow $objectWorkflow): self
+    public function removeRecordDuplicate(RecordDuplicate $recordDuplicate): self
     {
-        if ($this->objectWorkflows->contains($objectWorkflow)) {
-            $this->objectWorkflows->removeElement($objectWorkflow);
+        if ($this->recordDuplicates->contains($recordDuplicate)) {
+            $this->recordDuplicates->removeElement($recordDuplicate);
             // set the owning side to null (unless already changed)
-            if ($objectWorkflow->getCustomObject() === $this) {
-                $objectWorkflow->setCustomObject(null);
+            if ($recordDuplicate->getCustomObject() === $this) {
+                $recordDuplicate->setCustomObject(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Workflow[]
+     */
+    public function getWorkflows(): Collection
+    {
+        return $this->workflows;
+    }
+
+    public function addWorkflow(Workflow $workflow): self
+    {
+        if (!$this->workflows->contains($workflow)) {
+            $this->workflows[] = $workflow;
+            $workflow->setCustomObject($this);
+        }
+
+        return $this;
+    }
+
+    public function removeWorkflow(Workflow $workflow): self
+    {
+        if ($this->workflows->contains($workflow)) {
+            $this->workflows->removeElement($workflow);
+            // set the owning side to null (unless already changed)
+            if ($workflow->getCustomObject() === $this) {
+                $workflow->setCustomObject(null);
             }
         }
 

@@ -2,28 +2,11 @@
 
 namespace App\Form;
 
-use App\Entity\CustomObject;
-use App\Entity\Portal;
-use App\Entity\Property;
-use App\Entity\WorkflowTrigger;
-use App\Form\Type\SelectizeSearchResultPropertiesType;
-use App\Model\CustomObjectField;
-use App\Model\DatePickerField;
-use App\Model\DropdownSelectField;
-use App\Model\FieldCatalog;
-use App\Model\PropertyBasedTrigger;
-use App\Model\SingleLineTextField;
 use App\Model\SingleLineTextFieldCondition;
 use App\Repository\CustomObjectRepository;
 use App\Repository\PropertyRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\ORM\EntityRepository;
-use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\Extension\Core\Type\ButtonType;
-use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
-use Symfony\Component\Form\Extension\Core\Type\CollectionType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;

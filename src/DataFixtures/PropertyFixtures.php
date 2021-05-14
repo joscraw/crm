@@ -3,7 +3,6 @@
 namespace App\DataFixtures;
 
 use App\Entity\Property;
-use App\Entity\PropertyGroup;
 use App\Model\FieldCatalog;
 use App\Model\SingleLineTextField;
 use Doctrine\Bundle\FixturesBundle\Fixture;
@@ -42,6 +41,7 @@ class PropertyFixtures extends Fixture implements DependentFixtureInterface
 
         $property = new Property();
         $property->setInternalName('email');
+        $property->setIsUnique(true);
         $property->setLabel('Email');
         $property->setRequired(true);
         $property->setFieldType(FieldCatalog::SINGLE_LINE_TEXT);

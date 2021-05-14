@@ -2,77 +2,19 @@
 
 namespace App\Controller\Api;
 
-use App\AuthorizationHandler\PermissionAuthorizationHandler;
-use App\Entity\Action;
-use App\Entity\CustomObject;
-use App\Entity\Filter;
-use App\Entity\Folder;
-use App\Entity\Form;
-use App\Entity\MarketingList;
-use App\Entity\ObjectWorkflow;
 use App\Entity\Portal;
-use App\Entity\Property;
-use App\Entity\PropertyGroup;
-use App\Entity\Record;
-use App\Entity\Report;
-use App\Entity\Role;
-use App\Entity\SendEmailAction;
-use App\Entity\Trigger;
-use App\Entity\TriggerFilter;
 use App\Entity\Workflow;
-use App\Form\CustomObjectType;
-use App\Form\DeleteFormType;
-use App\Form\DeleteListType;
-use App\Form\DeleteReportType;
 use App\Form\DeleteWorkflowType;
-use App\Form\FolderType;
-use App\Form\FormEditorEditOptionsType;
-use App\Form\FormType;
-use App\Form\MoveListToFolderType;
-use App\Form\PropertyGroupType;
-use App\Form\PropertyType;
-use App\Form\RecordType;
-use App\Repository\ObjectWorkflowRepository;
-use App\Repository\TriggerFilterRepository;
-use App\Repository\WorkflowRepository;
-use Symfony\Component\Serializer\Annotation\DiscriminatorMap;
-use App\Form\WorkflowType;
-use App\Model\AbstractField;
-use App\Model\FieldCatalog;
-use App\Entity\PropertyTrigger;
-use App\Entity\SetPropertyValueAction;
-use App\Model\WorkflowTriggerCatalog;
-use App\Repository\CustomObjectRepository;
-use App\Repository\FolderRepository;
-use App\Repository\FormRepository;
-use App\Repository\MarketingListRepository;
-use App\Repository\PropertyGroupRepository;
-use App\Repository\PropertyRepository;
-use App\Repository\RecordRepository;
-use App\Repository\ReportRepository;
-use App\Service\MessageGenerator;
 use App\Utils\ArrayHelper;
-use App\Utils\ListFolderBreadcrumbs;
 use App\Utils\MultiDimensionalArrayExtractor;
 use App\Utils\PropertyHelper;
 use App\Utils\RandomStringGenerator;
-use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Utils\ServiceHelper;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Serializer\Encoder\CsvEncoder;
-use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
-use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
-use Symfony\Component\Serializer\Normalizer\GetSetMethodNormalizer;
-use Symfony\Component\Serializer\Serializer;
-use Symfony\Component\Serializer\Encoder\XmlEncoder;
-use Symfony\Component\Serializer\Encoder\JsonEncoder;
-use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
-use Symfony\Component\Serializer\SerializerInterface;
 
 
 /**
@@ -85,133 +27,7 @@ class WorkflowController extends ApiController
     use ArrayHelper;
     use RandomStringGenerator;
     use PropertyHelper;
-
-    /**
-     * @var EntityManagerInterface
-     */
-    private $entityManager;
-
-    /**
-     * @var CustomObjectRepository
-     */
-    private $customObjectRepository;
-
-    /**
-     * @var PropertyRepository
-     */
-    private $propertyRepository;
-
-    /**
-     * @var PropertyGroupRepository
-     */
-    private $propertyGroupRepository;
-
-    /**
-     * @var RecordRepository
-     */
-    private $recordRepository;
-
-    /**
-     * @var SerializerInterface
-     */
-    private $serializer;
-
-    /**
-     * @var FormRepository
-     */
-    private $formRepository;
-
-    /**
-     * @var PermissionAuthorizationHandler
-     */
-    private $permissionAuthorizationHandler;
-
-    /**
-     * @var MarketingListRepository
-     */
-    private $marketingListRepository;
-
-    /**
-     * @var FolderRepository
-     */
-    private $folderRepository;
-
-    /**
-     * @var ListFolderBreadcrumbs
-     */
-    private $folderBreadcrumbs;
-
-    /**
-     * @var DenormalizerInterface
-     */
-    private $denormalizer;
-
-    /**
-     * @var TriggerFilterRepository
-     */
-    private $triggerFilterRepository;
-
-    /**
-     * @var WorkflowRepository
-     */
-    private $workflowRepository;
-
-    /**
-     * @var ObjectWorkflowRepository
-     */
-    private $objectWorkflowRepository;
-
-    /**
-     * WorkflowController constructor.
-     * @param EntityManagerInterface $entityManager
-     * @param CustomObjectRepository $customObjectRepository
-     * @param PropertyRepository $propertyRepository
-     * @param PropertyGroupRepository $propertyGroupRepository
-     * @param RecordRepository $recordRepository
-     * @param SerializerInterface $serializer
-     * @param FormRepository $formRepository
-     * @param PermissionAuthorizationHandler $permissionAuthorizationHandler
-     * @param MarketingListRepository $marketingListRepository
-     * @param FolderRepository $folderRepository
-     * @param ListFolderBreadcrumbs $folderBreadcrumbs
-     * @param DenormalizerInterface $denormalizer
-     * @param TriggerFilterRepository $triggerFilterRepository
-     * @param WorkflowRepository $workflowRepository
-     * @param ObjectWorkflowRepository $objectWorkflowRepository
-     */
-    public function __construct(
-        EntityManagerInterface $entityManager,
-        CustomObjectRepository $customObjectRepository,
-        PropertyRepository $propertyRepository,
-        PropertyGroupRepository $propertyGroupRepository,
-        RecordRepository $recordRepository,
-        SerializerInterface $serializer,
-        FormRepository $formRepository,
-        PermissionAuthorizationHandler $permissionAuthorizationHandler,
-        MarketingListRepository $marketingListRepository,
-        FolderRepository $folderRepository,
-        ListFolderBreadcrumbs $folderBreadcrumbs,
-        DenormalizerInterface $denormalizer,
-        TriggerFilterRepository $triggerFilterRepository,
-        WorkflowRepository $workflowRepository,
-        ObjectWorkflowRepository $objectWorkflowRepository
-    ) {
-        $this->entityManager = $entityManager;
-        $this->customObjectRepository = $customObjectRepository;
-        $this->propertyRepository = $propertyRepository;
-        $this->propertyGroupRepository = $propertyGroupRepository;
-        $this->recordRepository = $recordRepository;
-        $this->serializer = $serializer;
-        $this->formRepository = $formRepository;
-        $this->permissionAuthorizationHandler = $permissionAuthorizationHandler;
-        $this->marketingListRepository = $marketingListRepository;
-        $this->folderRepository = $folderRepository;
-        $this->folderBreadcrumbs = $folderBreadcrumbs;
-        $this->denormalizer = $denormalizer;
-        $this->triggerFilterRepository = $triggerFilterRepository;
-        $this->workflowRepository = $workflowRepository;
-        $this->objectWorkflowRepository = $objectWorkflowRepository;
-    }
+    use ServiceHelper;
 
     /**
      * DataTables passes unique params in the Request and expects a specific response payload
@@ -305,11 +121,11 @@ class WorkflowController extends ApiController
     /**
      * @Route("{internalIdentifier}/api/workflows/{uid}/add-custom-object", name="workflow_add_custom_object", methods={"POST"}, options = { "expose" = true })
      * @param Portal $portal
-     * @param ObjectWorkflow $workflow
+     * @param Workflow $workflow
      * @param Request $request
      * @return JsonResponse
      */
-    public function workflowAddCustomObjectAction(Portal $portal, ObjectWorkflow $workflow, Request $request) {
+    public function workflowAddCustomObjectAction(Portal $portal, Workflow $workflow, Request $request) {
 
         $customObjectId = $request->request->get('customObjectId', null);
 

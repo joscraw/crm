@@ -2,17 +2,7 @@
 
 namespace App\Request\ParamConverter;
 
-use App\Entity\Property;
-use App\Entity\Record;
-use App\Entity\Report;
-use App\Entity\Role;
 use App\Entity\User;
-use App\Repository\CustomObjectRepository;
-use App\Repository\PropertyGroupRepository;
-use App\Repository\PropertyRepository;
-use App\Repository\RecordRepository;
-use App\Repository\ReportRepository;
-use App\Repository\RoleRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;

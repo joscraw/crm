@@ -4,11 +4,14 @@ namespace App\Repository;
 
 ini_set('xdebug.max_nesting_level', 100000);
 
+use App\Api\ApiProblemException;
 use App\Entity\CustomObject;
 use App\Entity\Property;
 use App\Entity\Record;
 use App\EntityListener\PropertyListener;
 use App\Model\FieldCatalog;
+use App\Model\Filter\FilterData;
+use App\Model\Filter\Join;
 use App\Model\NumberField;
 use App\Utils\ArrayHelper;
 use App\Utils\RandomStringGenerator;
@@ -73,24 +76,26 @@ class RecordRepository extends ServiceEntityRepository
     */
 
     /**
-     * @param $search
+     * @param              $search
      * @param CustomObject $allowedCustomObjectToSearch
-     * @param $selectizeAllowedSearchableProperties
+     * @param              $selectizeAllowedSearchableProperties
+     *
      * @return mixed
      * @throws \Doctrine\DBAL\DBALException
      */
-    public function getSelectizeData($search, CustomObject $allowedCustomObjectToSearch, $selectizeAllowedSearchableProperties)
-    {
+    public function getSelectizeData($search, CustomObject $allowedCustomObjectToSearch,
+                                     $selectizeAllowedSearchableProperties
+    ) {
 
         $jsonExtract = "properties->>'$.\"%s\"' as %s";
-        $resultStr = [];
-        foreach($selectizeAllowedSearchableProperties as $allowedSearchableProperty) {
+        $resultStr   = [];
+        foreach ($selectizeAllowedSearchableProperties as $allowedSearchableProperty) {
             $resultStr[] = sprintf($jsonExtract, $allowedSearchableProperty->getInternalName(), $allowedSearchableProperty->getInternalName());
         }
-        $resultStr = empty($resultStr) ? '' : ',' . implode(",",$resultStr);
-        $query = sprintf("SELECT id, properties %s from record WHERE custom_object_id='%s' AND LOWER(properties) LIKE '%%%s%%'", $resultStr, $allowedCustomObjectToSearch->getId(), strtolower($search));
+        $resultStr = empty($resultStr) ? '' : ',' . implode(",", $resultStr);
+        $query     = sprintf("SELECT id, properties %s from record WHERE custom_object_id='%s' AND LOWER(properties) LIKE '%%%s%%'", $resultStr, $allowedCustomObjectToSearch->getId(), strtolower($search));
 
-        $em = $this->getEntityManager();
+        $em   = $this->getEntityManager();
         $stmt = $em->getConnection()->prepare($query);
         $stmt->execute();
         $results = $stmt->fetchAll();
@@ -102,19 +107,21 @@ class RecordRepository extends ServiceEntityRepository
     /**
      * @param $recordId
      * @param $selectizeAllowedSearchableProperties
+     *
      * @return mixed[]
      * @throws \Doctrine\DBAL\DBALException
      */
-    public function getSelectizeAllowedSearchablePropertiesById($recordId, $selectizeAllowedSearchableProperties) {
+    public function getSelectizeAllowedSearchablePropertiesById($recordId, $selectizeAllowedSearchableProperties)
+    {
         $jsonExtract = "properties->>'$.\"%s\"' as %s";
-        $resultStr = [];
-        foreach($selectizeAllowedSearchableProperties as $allowedSearchableProperty) {
+        $resultStr   = [];
+        foreach ($selectizeAllowedSearchableProperties as $allowedSearchableProperty) {
             $resultStr[] = sprintf($jsonExtract, $allowedSearchableProperty->getInternalName(), $allowedSearchableProperty->getInternalName());
         }
-        $resultStr = empty($resultStr) ? '' : ',' . implode(",",$resultStr);
-        $query = sprintf("SELECT id, properties %s from record WHERE id='%s'", $resultStr, $recordId);
+        $resultStr = empty($resultStr) ? '' : ',' . implode(",", $resultStr);
+        $query     = sprintf("SELECT id, properties %s from record WHERE id='%s'", $resultStr, $recordId);
 
-        $em = $this->getEntityManager();
+        $em   = $this->getEntityManager();
         $stmt = $em->getConnection()->prepare($query);
         $stmt->execute();
         $results = $stmt->fetchAll();
@@ -125,22 +132,25 @@ class RecordRepository extends ServiceEntityRepository
     /**
      * @param $recordIds
      * @param $selectizeAllowedSearchableProperties
+     *
      * @return mixed[]
      * @throws \Doctrine\DBAL\DBALException
      */
-    public function getSelectizeAllowedSearchablePropertiesByArrayOfIds($recordIds, $selectizeAllowedSearchableProperties) {
+    public function getSelectizeAllowedSearchablePropertiesByArrayOfIds($recordIds,
+                                                                        $selectizeAllowedSearchableProperties
+    ) {
         $jsonExtract = "properties->>'$.\"%s\"' as %s";
-        $resultStr = [];
-        foreach($selectizeAllowedSearchableProperties as $allowedSearchableProperty) {
+        $resultStr   = [];
+        foreach ($selectizeAllowedSearchableProperties as $allowedSearchableProperty) {
             $resultStr[] = sprintf($jsonExtract, $allowedSearchableProperty->getInternalName(), $allowedSearchableProperty->getInternalName());
         }
-        $resultStr = empty($resultStr) ? '' : ',' . implode(",",$resultStr);
+        $resultStr = empty($resultStr) ? '' : ',' . implode(",", $resultStr);
 
         $recordIds = "'" . implode("','", $recordIds) . "'";
 
         $query = sprintf("SELECT id, properties %s from record WHERE id IN (%s)", $resultStr, $recordIds);
 
-        $em = $this->getEntityManager();
+        $em   = $this->getEntityManager();
         $stmt = $em->getConnection()->prepare($query);
         $stmt->execute();
         $results = $stmt->fetchAll();
@@ -149,9 +159,10 @@ class RecordRepository extends ServiceEntityRepository
     }
 
     /**
-     * @param $data
+     * @param              $data
      * @param CustomObject $customObject
-     * @param $columnOrder
+     * @param              $columnOrder
+     *
      * @return array
      * @throws \Doctrine\DBAL\DBALException
      */
@@ -162,36 +173,37 @@ class RecordRepository extends ServiceEntityRepository
 
         // Setup fields for select
         $resultStr = $this->fields($columnOrder);
-        $resultStr = implode(",",$resultStr);
+        $resultStr = implode(",", $resultStr);
 
         // Setup Joins
-        $joins = [];
-        $joins = $this->joins($data, $joins);
+        $joins      = [];
+        $joins      = $this->joins($data, $joins);
         $joinString = implode(" ", $joins);
 
         // Setup Filters
-        $filters = [];
-        $filters = $this->filters($data, $filters);
+        $filters      = [];
+        $filters      = $this->filters($data, $filters);
         $filterString = implode(" OR ", $filters);
 
         $filterString = empty($filters) ? '' : "AND $filterString";
 
         $query = sprintf("SELECT DISTINCT root.id, %s from record root %s WHERE root.custom_object_id='%s' %s", $resultStr, $joinString, $customObject->getId(), $filterString);
 
-        $em = $this->getEntityManager();
+        $em   = $this->getEntityManager();
         $stmt = $em->getConnection()->prepare($query);
         $stmt->execute();
         $results = $stmt->fetchAll();
 
-        return array(
-            "results"  => $results
+        return array (
+            "results" => $results,
         );
     }
 
     /**
-     * @param $data
+     * @param              $data
      * @param CustomObject $customObject
-     * @param $columnOrder
+     * @param              $columnOrder
+     *
      * @return string
      */
     public function getReportMysqlOnly($data, CustomObject $customObject, $columnOrder)
@@ -201,16 +213,16 @@ class RecordRepository extends ServiceEntityRepository
 
         // Setup fields for select
         $resultStr = $this->fields($columnOrder);
-        $resultStr = implode(",",$resultStr);
+        $resultStr = implode(",", $resultStr);
 
         // Setup Joins
-        $joins = [];
-        $joins = $this->joins($data, $joins);
+        $joins      = [];
+        $joins      = $this->joins($data, $joins);
         $joinString = implode(" ", $joins);
 
         // Setup Filters
-        $filters = [];
-        $filters = $this->filters($data, $filters);
+        $filters      = [];
+        $filters      = $this->filters($data, $filters);
         $filterString = implode(" OR ", $filters);
 
         $filterString = empty($filters) ? '' : "AND $filterString";
@@ -222,44 +234,47 @@ class RecordRepository extends ServiceEntityRepository
 
     /**
      * This function is the new and improved logic for the report builder.
-     * @param $data
+     *
+     * @param              $data
      * @param CustomObject $customObject
-     * @param bool $mysqlOnly
-     * @param bool $start
-     * @param bool $length
-     * @param bool $search
-     * @param bool $orders
-     * @param bool $columns
+     * @param bool         $mysqlOnly
+     * @param bool         $start
+     * @param bool         $length
+     * @param bool         $search
+     * @param bool         $orders
+     * @param bool         $columns
+     *
      * @return array
      * @throws \Doctrine\DBAL\DBALException
      */
-    public function newReportLogicBuilder($data, CustomObject $customObject, $mysqlOnly = false, $start = false, $length = false, $search = false, $orders = false, $columns = false)
-    {
+    public function newReportLogicBuilder($data, CustomObject $customObject, $mysqlOnly = false, $start = false,
+                                          $length = false, $search = false, $orders = false, $columns = false
+    ) {
         $this->data = $data;
-        $root = sprintf("%s.%s", $this->generateRandomCharacters(5), $customObject->getInternalName());
+        $root       = sprintf("%s.%s", $this->generateRandomCharacters(5), $customObject->getInternalName());
 
         // setup the join aliases
         $this->newJoinAliasBuilder($data);
 
         // Setup fields for select
-        $resultStr = $this->newFieldLogicBuilder($data,  $root);
-        $resultStr = implode(",",$resultStr);
-        $resultStr  = !empty($resultStr) ? ', ' . $resultStr : '';
+        $resultStr = $this->newFieldLogicBuilder($data, $root);
+        $resultStr = implode(",", $resultStr);
+        $resultStr = !empty($resultStr) ? ', ' . $resultStr : '';
 
         // Setup Joins
-        $joins = [];
-        $joins = $this->newJoinLogicBuilder($root, $data, $joins);
+        $joins      = [];
+        $joins      = $this->newJoinLogicBuilder($root, $data, $joins);
         $joinString = implode(" ", $joins);
 
         // Setup Filters
-        $filters = [];
-        $filters = $this->newFilterLogicBuilder($root, $data, $filters);
+        $filters      = [];
+        $filters      = $this->newFilterLogicBuilder($root, $data, $filters);
         $filterString = !empty($filters) ? sprintf("(\n%s)", implode(" OR \n", $filters)) : '';
         $filterString = empty($filters) ? '' : "AND $filterString";
 
         // Setup Join "Where" Conditionals
-        $joinConditionals = [];
-        $joinConditionals = $this->newJoinConditionalBuilder($root, $data, $joinConditionals);
+        $joinConditionals      = [];
+        $joinConditionals      = $this->newJoinConditionalBuilder($root, $data, $joinConditionals);
         $joinConditionalString = !empty($joinConditionals) ? sprintf("(\n%s\n)", implode(" AND \n", $joinConditionals)) : '';
 
         // On joins that use the "Without" join type we add a WHERE clause in the query string already. So in that case add an AND clause instead
@@ -277,11 +292,11 @@ class RecordRepository extends ServiceEntityRepository
         }
 
         // Search
-        if(!empty($search['value']) && !empty($data['properties'])) {
-            $searches = [];
+        if (!empty($search['value']) && !empty($data['properties'])) {
+            $searches   = [];
             $searchItem = $search['value'];
-            foreach($data['properties'] as $propertyId => $property) {
-                $alias = !empty($property['alias']) ? $property['alias'] : $root;
+            foreach ($data['properties'] as $propertyId => $property) {
+                $alias      = !empty($property['alias']) ? $property['alias'] : $root;
                 $searches[] = sprintf('LOWER(`%s`.properties->>\'$."%s"\') LIKE \'%%%s%%\'', $alias, $property['internalName'], strtolower($searchItem));
             }
             $query .= !empty($searches) ? " AND \n" . sprintf("(\n%s\n)\n", implode("\n OR ", $searches)) : '';
@@ -305,14 +320,14 @@ class RecordRepository extends ServiceEntityRepository
         //  Event ID 1 Registration 4
 
         // Order
-        if($orders !== false) {
+        if ($orders !== false) {
             foreach ($orders as $key => $order) {
                 // Orders does not contain the name of the column, but its number,
                 // so add the name so we can handle it just like the $columns array
                 $orders[$key]['name'] = $columns[$order['column']]['name'];
             }
             foreach ($orders as $key => $order) {
-                if(isset($order['name'])) {
+                if (isset($order['name'])) {
                     $query .= "\n ORDER BY LOWER(`{$order['name']}`)";
                 }
                 $query .= ' ' . $order['dir'];
@@ -320,61 +335,106 @@ class RecordRepository extends ServiceEntityRepository
         }
 
         // limit
-        if($start !== false && $length !== false) {
+        if ($start !== false && $length !== false) {
             $query .= sprintf("\n LIMIT %s, %s", $start, $length);
         }
 
-        if($mysqlOnly) {
+        if ($mysqlOnly) {
             return $query;
         }
 
-        $em = $this->getEntityManager();
+        $em   = $this->getEntityManager();
         $stmt = $em->getConnection()->prepare($query);
         $stmt->execute();
         $results = $stmt->fetchAll();
-        return array(
-            "results"  => $results
+
+        return array (
+            "results" => $results,
         );
     }
 
     /**
+     * Filter records based on the FilterData object
+     *
+     * @param FilterData $filterData
+     *
+     * @return array
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    public function filterRecords(FilterData $filterData)
+    {
+        $filterData->generateAliases()
+                   ->generateColumnQueries()
+                   ->generateFilterCriteria()
+                   ->generateFilterQueries()
+                   ->generateJoinQueries()
+                   ->generateJoinConditionalQueries()
+                   ->generateSearchQueries()
+                   ->generateOrderQueries()
+                   ->validate();
+
+        $query = $filterData->getQuery();
+
+        $em   = $this->getEntityManager();
+        $stmt = $em->getConnection()->prepare($query);
+        if (!$stmt->execute()) {
+            throw new ApiProblemException(400, 'Error running query. Contact system administrator');
+        }
+
+        if ($filterData->getStatement() === 'SELECT') {
+            $results = $stmt->fetchAll();
+
+            return array (
+                'count' => count($results),
+                "results" => $results,
+            );
+        } elseif ($filterData->getStatement() === 'UPDATE') {
+            return array ("results" => 'Records successfully updated.');
+        } else {
+            throw new ApiProblemException(400, 'Statement not supported');
+        }
+    }
+
+    /**
      * This function is the new and improved logic for the report builder.
-     * @param $data
+     *
+     * @param              $data
      * @param CustomObject $customObject
-     * @param Property $propertyToUpdate
-     * @param $internalName
-     * @param $value
+     * @param Property     $propertyToUpdate
+     * @param              $internalName
+     * @param              $value
+     *
      * @return void
      * @throws \Doctrine\DBAL\DBALException
      */
     public function newUpdateLogicBuilder($data, CustomObject $customObject, Property $propertyToUpdate, $value)
     {
         $internalName = $propertyToUpdate->getInternalName();
-        $this->data = $data;
-        $root = sprintf("%s.%s", $this->generateRandomCharacters(5), $customObject->getInternalName());
+        $this->data   = $data;
+        $root         = sprintf("%s.%s", $this->generateRandomCharacters(5), $customObject->getInternalName());
 
         // setup the join aliases
         $this->newJoinAliasBuilder($data);
 
         // Setup Joins
-        $joins = [];
-        $joins = $this->newJoinLogicBuilder($root, $data, $joins);
+        $joins      = [];
+        $joins      = $this->newJoinLogicBuilder($root, $data, $joins);
         $joinString = implode(" ", $joins);
 
         // Setup Filters
-        $filters = [];
-        $filters = $this->newFilterLogicBuilder($root, $data, $filters);
+        $filters      = [];
+        $filters      = $this->newFilterLogicBuilder($root, $data, $filters);
         $filterString = !empty($filters) ? sprintf("(\n%s)", implode(" OR \n", $filters)) : '';
         $filterString = empty($filters) ? '' : "AND $filterString";
 
         // Setup Join "Where" Conditionals
-        $joinConditionals = [];
-        $joinConditionals = $this->newJoinConditionalBuilder($root, $data, $joinConditionals);
+        $joinConditionals      = [];
+        $joinConditionals      = $this->newJoinConditionalBuilder($root, $data, $joinConditionals);
         $joinConditionalString = !empty($joinConditionals) ? sprintf("(\n%s\n)", implode(" AND \n", $joinConditionals)) : '';
-        
+
         $query = sprintf("UPDATE record `%s` %s SET `%s`.properties = JSON_SET(`%s`.properties, '$.\"%s\"', '%s') \n WHERE %s %s", $root, $joinString, $root, $root, $internalName, $value, $joinConditionalString, $filterString);
 
-        $em = $this->getEntityManager();
+        $em   = $this->getEntityManager();
         $stmt = $em->getConnection()->prepare($query);
         $stmt->execute();
     }
@@ -382,21 +442,24 @@ class RecordRepository extends ServiceEntityRepository
 
     /**
      * This function is the new and improved logic for the report builder and just returns the count.
-     * @param $data
+     *
+     * @param              $data
      * @param CustomObject $customObject
-     * @param bool $mysqlOnly
-     * @param bool $start
-     * @param bool $length
-     * @param bool $search
-     * @param bool $orders
-     * @param bool $columns
+     * @param bool         $mysqlOnly
+     * @param bool         $start
+     * @param bool         $length
+     * @param bool         $search
+     * @param bool         $orders
+     * @param bool         $columns
+     *
      * @return array
      * @throws \Doctrine\DBAL\DBALException
      */
-    public function newReportLogicBuilderCount($data, CustomObject $customObject, $mysqlOnly = false, $start = false, $length = false, $search = false, $orders = false, $columns = false)
-    {
+    public function newReportLogicBuilderCount($data, CustomObject $customObject, $mysqlOnly = false, $start = false,
+                                               $length = false, $search = false, $orders = false, $columns = false
+    ) {
         $this->data = $data;
-        $root = sprintf("%s.%s", $this->generateRandomCharacters(5), $customObject->getInternalName());
+        $root       = sprintf("%s.%s", $this->generateRandomCharacters(5), $customObject->getInternalName());
 
         // setup the join aliases
         $this->newJoinAliasBuilder($data);
@@ -405,27 +468,27 @@ class RecordRepository extends ServiceEntityRepository
         $resultStr = '';
 
         // Setup Joins
-        $joins = [];
-        $joins = $this->newJoinLogicBuilder($root, $data, $joins);
+        $joins      = [];
+        $joins      = $this->newJoinLogicBuilder($root, $data, $joins);
         $joinString = implode(" ", $joins);
 
         // Setup Filters
-        $filters = [];
-        $filters = $this->newFilterLogicBuilder($root, $data, $filters);
+        $filters      = [];
+        $filters      = $this->newFilterLogicBuilder($root, $data, $filters);
         $filterString = !empty($filters) ? sprintf("(\n%s)", implode(" OR \n", $filters)) : '';
         $filterString = empty($filters) ? '' : "AND $filterString";
 
         // Setup Join "Where" Conditionals
-        $joinConditionals = [];
-        $joinConditionals = $this->newJoinConditionalBuilder($root, $data, $joinConditionals);
+        $joinConditionals      = [];
+        $joinConditionals      = $this->newJoinConditionalBuilder($root, $data, $joinConditionals);
         $joinConditionalString = !empty($joinConditionals) ? sprintf("(\n%s\n)", implode(" AND \n", $joinConditionals)) : '';
 
         // On joins that use the "Without" join type we add a WHERE clause in the query string already. So in that case add an AND clause instead
-/*        if (strpos($joinString, 'WHERE') !== false) {
-            $query = sprintf("SELECT DISTINCT `%s`.id %s from record `%s` %s AND %s \n %s", $root, $resultStr, $root, $joinString, $joinConditionalString, $filterString);
-        } else {
-            $query = sprintf("SELECT DISTINCT `%s`.id %s from record `%s` %s WHERE \n %s \n %s", $root, $resultStr, $root, $joinString, $joinConditionalString, $filterString);
-        }*/
+        /*        if (strpos($joinString, 'WHERE') !== false) {
+                    $query = sprintf("SELECT DISTINCT `%s`.id %s from record `%s` %s AND %s \n %s", $root, $resultStr, $root, $joinString, $joinConditionalString, $filterString);
+                } else {
+                    $query = sprintf("SELECT DISTINCT `%s`.id %s from record `%s` %s WHERE \n %s \n %s", $root, $resultStr, $root, $joinString, $joinConditionalString, $filterString);
+                }*/
 
         //  todo possibly remove this and use the above. All I'm doing here is removing the distinct from the query
         if (strpos($joinString, 'WHERE') !== false) {
@@ -435,11 +498,11 @@ class RecordRepository extends ServiceEntityRepository
         }
 
         // Search
-        if(!empty($search['value']) && !empty($data['properties'])) {
-            $searches = [];
+        if (!empty($search['value']) && !empty($data['properties'])) {
+            $searches   = [];
             $searchItem = $search['value'];
-            foreach($data['properties'] as $propertyId => $property) {
-                $alias = !empty($property['alias']) ? $property['alias'] : $root;
+            foreach ($data['properties'] as $propertyId => $property) {
+                $alias      = !empty($property['alias']) ? $property['alias'] : $root;
                 $searches[] = sprintf('LOWER(`%s`.properties->>\'$."%s"\') LIKE \'%%%s%%\'', $alias, $property['internalName'], strtolower($searchItem));
             }
             $query .= !empty($searches) ? " AND \n" . sprintf("(\n%s\n)\n", implode("\n OR ", $searches)) : '';
@@ -462,47 +525,50 @@ class RecordRepository extends ServiceEntityRepository
         //  Event ID 1 Registration 3
         //  Event ID 1 Registration 4
 
-        $em = $this->getEntityManager();
+        $em   = $this->getEntityManager();
         $stmt = $em->getConnection()->prepare($query);
         $stmt->execute();
         $results = $stmt->fetchAll();
+
         return count($results);
     }
 
     /**
      * This function loops through all the joins and creates aliases for each join
      * and then attaches the properties and filters to their corresponding aliases.
+     *
      * @param $data
+     *
      * @return array|void
      */
     private function newJoinAliasBuilder(&$data)
     {
-        if(empty($data['joins'])) {
+        if (empty($data['joins'])) {
             return;
         }
         // configure the aliases
         foreach ($data['joins'] as &$joinData) {
-            if(empty($joinData['relationship_property'])) {
+            if (empty($joinData['relationship_property'])) {
                 continue;
             }
             $joinDirection = $joinData['relationship_property']['join_direction'];
-            $joinType = $joinData['join_type'];
-            $randomString = $this->generateRandomCharacters(5);
-            if($joinType === 'With' && $joinDirection === 'normal_join' || $joinType === 'With/Without' && $joinDirection === 'normal_join') {
-                $alias = sprintf("%s.%s", $randomString, $joinData['relationship_property']['field']['customObject']['internalName']);
+            $joinType      = $joinData['join_type'];
+            $randomString  = $this->generateRandomCharacters(5);
+            if ($joinType === 'With' && $joinDirection === 'normal_join' || $joinType === 'With/Without' && $joinDirection === 'normal_join') {
+                $alias             = sprintf("%s.%s", $randomString, $joinData['relationship_property']['field']['customObject']['internalName']);
                 $joinData['alias'] = $alias;
                 // add the alias to each property
-                if(!empty($data['properties'])) {
-                    foreach($data['properties'] as $propertyId => &$property) {
-                        if($joinData['relationship_property']['field']['customObject']['id'] == $property['custom_object_id']) {
+                if (!empty($data['properties'])) {
+                    foreach ($data['properties'] as $propertyId => &$property) {
+                        if ($joinData['relationship_property']['field']['customObject']['id'] == $property['custom_object_id']) {
                             $property['alias'] = $alias;
                         }
                     }
                 }
                 // add each alias to each filter
-                if(!empty($data['filters'])) {
+                if (!empty($data['filters'])) {
                     foreach ($data['filters'] as &$filter) {
-                        if($joinData['relationship_property']['field']['customObject']['id'] == $filter['custom_object_id']) {
+                        if ($joinData['relationship_property']['field']['customObject']['id'] == $filter['custom_object_id']) {
                             $filter['alias'] = $alias;
                         }
                     }
@@ -512,19 +578,19 @@ class RecordRepository extends ServiceEntityRepository
             } elseif ($joinType === 'With' && $joinDirection === 'cross_join' ||
                 $joinType === 'With/Without' && $joinDirection === 'cross_join' ||
                 $joinType === 'Without' && $joinDirection === 'cross_join') {
-                $alias = sprintf("%s.%s", $randomString, $joinData['relationship_property']['custom_object_internal_name']);
+                $alias             = sprintf("%s.%s", $randomString, $joinData['relationship_property']['custom_object_internal_name']);
                 $joinData['alias'] = $alias;
-                if(!empty($data['properties'])) {
-                    foreach($data['properties'] as $propertyId => &$property) {
-                        if($joinData['relationship_property']['custom_object_id'] == $property['custom_object_id']) {
+                if (!empty($data['properties'])) {
+                    foreach ($data['properties'] as $propertyId => &$property) {
+                        if ($joinData['relationship_property']['custom_object_id'] == $property['custom_object_id']) {
                             $property['alias'] = $alias;
                         }
                     }
                 }
                 // add each alias to each filter
-                if(!empty($data['filters'])) {
+                if (!empty($data['filters'])) {
                     foreach ($data['filters'] as &$filter) {
-                        if($joinData['relationship_property']['custom_object_id'] == $filter['custom_object_id']) {
+                        if ($joinData['relationship_property']['custom_object_id'] == $filter['custom_object_id']) {
                             $filter['alias'] = $alias;
                         }
                     }
@@ -535,36 +601,38 @@ class RecordRepository extends ServiceEntityRepository
 
     /**
      * This function loops through all the joins and creates the Where conditionals needed
+     *
      * @param $root
      * @param $data
      * @param $joinConditionals
+     *
      * @return array
      */
     private function newJoinConditionalBuilder($root, &$data, &$joinConditionals)
     {
-        if(empty($data['joins'])) {
+        if (empty($data['joins'])) {
             return;
         }
 
         // configure the aliases
         foreach ($data['joins'] as &$joinData) {
 
-            if(empty($joinData['relationship_property']) || empty($joinData['relationship_property'])) {
+            if (empty($joinData['relationship_property']) || empty($joinData['relationship_property'])) {
                 $joinConditionals[] = sprintf("`%s`.custom_object_id = %s", $root, $data['selectedCustomObject']['id']);
                 continue;
             }
             $joinDirection = $joinData['relationship_property']['join_direction'];
-            $joinType = $joinData['join_type'];
-            $alias = $joinData['alias'];
+            $joinType      = $joinData['join_type'];
+            $alias         = $joinData['alias'];
 
             $skipJoinCondition = ($joinType === 'Without' && $joinDirection === 'normal_join') ||
                 ($joinType === 'With/Without');
 
-            if($skipJoinCondition) {
+            if ($skipJoinCondition) {
                 continue;
             }
 
-            if($joinType === 'With' && $joinDirection === 'normal_join' || $joinType === 'With/Without' && $joinDirection === 'normal_join') {
+            if ($joinType === 'With' && $joinDirection === 'normal_join' || $joinType === 'With/Without' && $joinDirection === 'normal_join') {
                 $joinConditionals[] = sprintf("`%s`.custom_object_id = %s", $alias, $joinData['relationship_property']['field']['customObject']['id']);
             } elseif ($joinType === 'Without' && $joinDirection === 'normal_join') {
                 // do nothing
@@ -574,25 +642,28 @@ class RecordRepository extends ServiceEntityRepository
                 $joinConditionals[] = sprintf("`%s`.custom_object_id = %s", $alias, $joinData['relationship_property']['custom_object_id']);
             }
         }
+
         return $joinConditionals;
     }
 
     /**
      * This function sets up the property fields we are querying
+     *
      * @param $data
      * @param $root
+     *
      * @return array
      */
     private function newFieldLogicBuilder($data, $root)
     {
-        if(empty($data['properties'])) {
+        if (empty($data['properties'])) {
             return [];
         }
         $resultStr = [];
-        foreach($data['properties'] as $propertyId => $property) {
-            $alias = !empty($property['alias']) ? $property['alias'] : $root;
+        foreach ($data['properties'] as $propertyId => $property) {
+            $alias      = !empty($property['alias']) ? $property['alias'] : $root;
             $columnName = $property['column_label'];
-            switch($property['fieldType']) {
+            switch ($property['fieldType']) {
                 case FieldCatalog::DATE_PICKER:
                     $jsonExtract = $this->getDatePickerQuery($alias);
                     $resultStr[] = sprintf($jsonExtract, $property['internalName'], $property['internalName'], $property['internalName'], $columnName);
@@ -603,10 +674,10 @@ class RecordRepository extends ServiceEntityRepository
                     break;
                 case FieldCatalog::NUMBER:
                     $field = $property['field'];
-                    if($field['type'] === NumberField::$types['Currency']) {
+                    if ($field['type'] === NumberField::$types['Currency']) {
                         $jsonExtract = $this->getNumberIsCurrencyQuery($alias);
                         $resultStr[] = sprintf($jsonExtract, $property['internalName'], $property['internalName'], $property['internalName'], $columnName);
-                    } elseif($field['type'] === NumberField::$types['Unformatted Number']) {
+                    } elseif ($field['type'] === NumberField::$types['Unformatted Number']) {
                         $jsonExtract = $this->getNumberIsUnformattedQuery($alias);
                         $resultStr[] = sprintf($jsonExtract, $property['internalName'], $property['internalName'], $property['internalName'], $columnName);
                     }
@@ -619,24 +690,27 @@ class RecordRepository extends ServiceEntityRepository
             }
 
         }
+
         return $resultStr;
     }
 
     /**
      * This function sets up the joins for the query
-     * @param $root
-     * @param $data
+     *
+     * @param       $root
+     * @param       $data
      * @param array $joins
-     * @param null $lastJoin
+     * @param null  $lastJoin
+     *
      * @return array
      */
     private function newJoinLogicBuilder($root, &$data, &$joins = [], $lastJoin = null)
     {
-        if(empty($data['joins'])) {
+        if (empty($data['joins'])) {
             return [];
         }
         foreach ($data['joins'] as $joinData) {
-            if(empty($joinData['relationship_property'])) {
+            if (empty($joinData['relationship_property'])) {
                 continue;
             }
             /*if(empty($joinData['connected_object']) || empty($joinData['connected_property'])) {
@@ -644,7 +718,7 @@ class RecordRepository extends ServiceEntityRepository
             }*/
 
             // if the join has a parent connection don't add the join here. It will be added below as a nested join
-            if(!empty($joinData['hasParentConnection'])) {
+            if (!empty($joinData['hasParentConnection'])) {
                 continue;
             }
             // add the main connections (joins)
@@ -654,31 +728,34 @@ class RecordRepository extends ServiceEntityRepository
             $this->childConnections($joinData, $data, $joins);
 
         }
+
         return $joins;
     }
 
-    private function childConnections($joinData, $data, &$joins) {
-        if(!empty($joinData['childConnections'])) {
-            foreach($joinData['childConnections'] as $uid => $childConnection) {
+    private function childConnections($joinData, $data, &$joins)
+    {
+        if (!empty($joinData['childConnections'])) {
+            foreach ($joinData['childConnections'] as $uid => $childConnection) {
                 $childConnection['alias'] = $data['joins'][$uid]['alias'];
                 // set the new root equal to the parent alias so the next join references the correct alias
-                $root = $joinData['alias'];
+                $root    = $joinData['alias'];
                 $joins[] = $this->calculateJoin($childConnection, $root);
 
-                if(!empty($childConnection['childConnections'])) {
+                if (!empty($childConnection['childConnections'])) {
                     $this->childConnections($childConnection, $data, $joins);
                 }
             }
         }
     }
 
-    private function calculateJoin($joinData, $root) {
+    private function calculateJoin($joinData, $root)
+    {
         $relationshipProperty = $joinData['relationship_property'];
-        $joinDirection = $joinData['relationship_property']['join_direction'];
-        $joinType = $joinData['join_type'];
-        $alias = !empty($joinData['alias']) ? $joinData['alias'] : $root;
-        $query = '';
-        if($joinType === 'With' && $joinDirection === 'normal_join') {
+        $joinDirection        = $joinData['relationship_property']['join_direction'];
+        $joinType             = $joinData['join_type'];
+        $alias                = !empty($joinData['alias']) ? $joinData['alias'] : $root;
+        $query                = '';
+        if ($joinType === 'With' && $joinDirection === 'normal_join') {
             $query = sprintf($this->getJoinQuery(),
                 'INNER JOIN', $alias, $root, $joinData['relationship_property']['internalName'], $alias,
                 $root, $joinData['relationship_property']['internalName'], $alias,
@@ -718,36 +795,41 @@ class RecordRepository extends ServiceEntityRepository
                 $alias, $joinData['relationship_property']['internalName'], $root,
                 $alias, $joinData['relationship_property']['internalName'], $alias, $joinData['relationship_property']['internalName']);
         }
+
         return $query;
     }
 
     /**
      * This function sets up the filters for the query
-     * @param $root
-     * @param $data
+     *
+     * @param       $root
+     * @param       $data
      * @param array $filters
+     *
      * @return array
      */
     private function newFilterLogicBuilder($root, &$data, &$filters = [])
     {
-        if(empty($data['filters'])) {
+        if (empty($data['filters'])) {
             return [];
         }
         foreach ($data['filters'] as $filter) {
             // if the filter has a parent filter don't add it here. It will be added as an AND conditional below
-            if(!empty($filter['hasParentFilter'])) {
+            if (!empty($filter['hasParentFilter'])) {
                 continue;
             }
-            $alias = !empty($filter['alias']) ? $filter['alias'] : $root;
+            $alias     = !empty($filter['alias']) ? $filter['alias'] : $root;
             $filters[] = $this->getConditionForReport($filter, $alias, $data);
         }
+
         return $filters;
     }
 
 
     /**
-     * @param $data
+     * @param              $data
      * @param CustomObject $customObject
+     *
      * @return array
      * @throws \Doctrine\DBAL\DBALException
      */
@@ -757,32 +839,33 @@ class RecordRepository extends ServiceEntityRepository
         $this->data = $data;
 
         // Setup Joins
-        $joins = [];
-        $joins = $this->joins($data, $joins);
+        $joins      = [];
+        $joins      = $this->joins($data, $joins);
         $joinString = implode(" ", $joins);
 
         // Setup Filters
-        $filters = [];
-        $filters = $this->filters($data, $filters);
+        $filters      = [];
+        $filters      = $this->filters($data, $filters);
         $filterString = implode(" OR ", $filters);
 
         $filterString = empty($filters) ? '' : "AND $filterString";
 
         $query = sprintf("SELECT count(root.id) as count from record root %s WHERE root.custom_object_id='%s' %s", $joinString, $customObject->getId(), $filterString);
 
-        $em = $this->getEntityManager();
+        $em   = $this->getEntityManager();
         $stmt = $em->getConnection()->prepare($query);
         $stmt->execute();
         $results = $stmt->fetchAll();
 
-        return array(
-            "results"  => $results
+        return array (
+            "results" => $results,
         );
     }
 
     /**
-     * @param $data
+     * @param              $data
      * @param CustomObject $customObject
+     *
      * @return array
      * @throws \Doctrine\DBAL\DBALException
      */
@@ -792,49 +875,51 @@ class RecordRepository extends ServiceEntityRepository
         $this->data = $data;
 
         // Setup Joins
-        $joins = [];
-        $joins = $this->joins($data, $joins);
+        $joins      = [];
+        $joins      = $this->joins($data, $joins);
         $joinString = implode(" ", $joins);
 
         // Setup Filters
-        $filters = [];
-        $filters = $this->filters($data, $filters);
+        $filters      = [];
+        $filters      = $this->filters($data, $filters);
         $filterString = implode(" OR ", $filters);
 
         $filterString = empty($filters) ? '' : "AND $filterString";
 
         $query = sprintf("SELECT root.id from record root %s WHERE root.custom_object_id='%s' %s", $joinString, $customObject->getId(), $filterString);
 
-        $em = $this->getEntityManager();
+        $em   = $this->getEntityManager();
         $stmt = $em->getConnection()->prepare($query);
         $stmt->execute();
         $results = $stmt->fetchAll();
 
-        return array(
-            "results"  => $results
+        return array (
+            "results" => $results,
         );
     }
 
     /**
-     * @param $start
-     * @param $length
-     * @param $search
-     * @param $orders
-     * @param $columns
-     * @param $propertiesForDatatable
-     * @param $customFilters
+     * @param              $start
+     * @param              $length
+     * @param              $search
+     * @param              $orders
+     * @param              $columns
+     * @param              $propertiesForDatatable
+     * @param              $customFilters
      * @param CustomObject $customObject
+     *
      * @return array
      * @throws \Doctrine\DBAL\DBALException
      */
-    public function getDataTableData($start, $length, $search, $orders, $columns, $propertiesForDatatable, $customFilters, CustomObject $customObject)
-    {
+    public function getDataTableData($start, $length, $search, $orders, $columns, $propertiesForDatatable,
+                                     $customFilters, CustomObject $customObject
+    ) {
 
         // Setup fields to select
         $resultStr = [];
-        foreach($propertiesForDatatable as $property) {
+        foreach ($propertiesForDatatable as $property) {
 
-            switch($property->getFieldType()) {
+            switch ($property->getFieldType()) {
 
                 case FieldCatalog::DATE_PICKER:
                     $jsonExtract = $this->getDatePickerQuery('root');
@@ -846,10 +931,10 @@ class RecordRepository extends ServiceEntityRepository
                     break;
                 case FieldCatalog::NUMBER:
                     $field = $property->getField();
-                    if($field->isCurrency()) {
+                    if ($field->isCurrency()) {
                         $jsonExtract = $this->getNumberIsCurrencyQuery('root');
                         $resultStr[] = sprintf($jsonExtract, $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $property->getInternalName());
-                    } elseif($field->isUnformattedNumber()) {
+                    } elseif ($field->isUnformattedNumber()) {
                         $jsonExtract = $this->getNumberIsUnformattedQuery('root');
                         $resultStr[] = sprintf($jsonExtract, $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $property->getInternalName());
                     }
@@ -862,13 +947,13 @@ class RecordRepository extends ServiceEntityRepository
         }
 
         // Setup Joins
-        $joins = [];
-        $joins = $this->joins($customFilters, $joins);
+        $joins      = [];
+        $joins      = $this->joins($customFilters, $joins);
         $joinString = implode(" ", $joins);
 
         // Setup Filters
-        $filters = [];
-        $filters = $this->filters($customFilters, $filters);
+        $filters      = [];
+        $filters      = $this->filters($customFilters, $filters);
         $filterString = implode(" AND ", $filters);
 
         $filterString = empty($filters) ? '' : "AND $filterString";
@@ -878,43 +963,43 @@ class RecordRepository extends ServiceEntityRepository
          */
         // Joins
         // Don't touch the Join logic unless absolutely necessary. It just works!
-/*        $joins = [];
-        $joinAlias = 2;
-        $previousJoinAlias = 1;
-        foreach($customFilters as &$customFilter) {
+        /*        $joins = [];
+                $joinAlias = 2;
+                $previousJoinAlias = 1;
+                foreach($customFilters as &$customFilter) {
 
-            if(empty($customFilter['customFilterJoins'])) {
-                $customFilter['aliasIndex'] = 1;
-                continue;
-            }
+                    if(empty($customFilter['customFilterJoins'])) {
+                        $customFilter['aliasIndex'] = 1;
+                        continue;
+                    }
 
-            $customFilterJoins = $customFilter['customFilterJoins'];
+                    $customFilterJoins = $customFilter['customFilterJoins'];
 
-            for($i = 0; $i < count($customFilterJoins); $i++) {
+                    for($i = 0; $i < count($customFilterJoins); $i++) {
 
-                if($customFilterJoins[$i]['multiple'] === 'true') {
-                    $joins[] = sprintf('INNER JOIN record r%s on JSON_SEARCH(r%s.properties->>\'$.%s\', \'one\', r%s.id) IS NOT NULL', $joinAlias, ($i == 0 ? $i + 1 : $previousJoinAlias), $customFilterJoins[$i]['internalName'], $joinAlias);
-                } else {
-                    $joins[] = sprintf('INNER JOIN record r%s on r%s.properties->>\'$.%s\' = r%s.id', $joinAlias, ($i == 0 ? $i + 1 : $previousJoinAlias), $customFilterJoins[$i]['internalName'], $joinAlias);
+                        if($customFilterJoins[$i]['multiple'] === 'true') {
+                            $joins[] = sprintf('INNER JOIN record r%s on JSON_SEARCH(r%s.properties->>\'$.%s\', \'one\', r%s.id) IS NOT NULL', $joinAlias, ($i == 0 ? $i + 1 : $previousJoinAlias), $customFilterJoins[$i]['internalName'], $joinAlias);
+                        } else {
+                            $joins[] = sprintf('INNER JOIN record r%s on r%s.properties->>\'$.%s\' = r%s.id', $joinAlias, ($i == 0 ? $i + 1 : $previousJoinAlias), $customFilterJoins[$i]['internalName'], $joinAlias);
+                        }
+
+                        $previousJoinAlias = $joinAlias;
+                        $joinAlias++;
+                    }
+
+                    $customFilter['aliasIndex'] = ($joinAlias - 1);
                 }
 
-                $previousJoinAlias = $joinAlias;
-                $joinAlias++;
-            }
+                $joinString = implode(" ", $joins);*/
 
-            $customFilter['aliasIndex'] = ($joinAlias - 1);
-        }
-
-        $joinString = implode(" ", $joins);*/
-
-        $resultStr = implode(",",$resultStr);
-        $query = sprintf("SELECT DISTINCT root.id, %s from record root %s WHERE root.custom_object_id='%s' %s", $resultStr, $joinString, $customObject->getId(), $filterString);
+        $resultStr = implode(",", $resultStr);
+        $query     = sprintf("SELECT DISTINCT root.id, %s from record root %s WHERE root.custom_object_id='%s' %s", $resultStr, $joinString, $customObject->getId(), $filterString);
 
 
         // Search
-        if(!empty($search['value'])) {
+        if (!empty($search['value'])) {
             $searchItem = $search['value'];
-            $query .= ' and LOWER(root.properties) LIKE \'%'.strtolower($searchItem).'%\'';
+            $query      .= ' and LOWER(root.properties) LIKE \'%' . strtolower($searchItem) . '%\'';
         }
 
         // Order
@@ -926,47 +1011,49 @@ class RecordRepository extends ServiceEntityRepository
 
         foreach ($orders as $key => $order) {
 
-                if(isset($order['name'])) {
-                    $query .= " ORDER BY LOWER({$order['name']})";
-                }
+            if (isset($order['name'])) {
+                $query .= " ORDER BY LOWER({$order['name']})";
+            }
 
-                $query .= ' ' . $order['dir'];
+            $query .= ' ' . $order['dir'];
         }
 
 
         // limit
         $query .= sprintf(' LIMIT %s, %s', $start, $length);
 
-        $em = $this->getEntityManager();
+        $em   = $this->getEntityManager();
         $stmt = $em->getConnection()->prepare($query);
         $stmt->execute();
         $results = $stmt->fetchAll();
 
-        return array(
-            "results"  => $results
+        return array (
+            "results" => $results,
         );
     }
 
     /**
-     * @param $start
-     * @param $length
-     * @param $search
-     * @param $orders
-     * @param $columns
-     * @param $propertiesForDatatable
-     * @param $customFilters
+     * @param              $start
+     * @param              $length
+     * @param              $search
+     * @param              $orders
+     * @param              $columns
+     * @param              $propertiesForDatatable
+     * @param              $customFilters
      * @param CustomObject $customObject
+     *
      * @return array
      * @throws \Doctrine\DBAL\DBALException
      */
-    public function getDataTableDataCount($start, $length, $search, $orders, $columns, $propertiesForDatatable, $customFilters, CustomObject $customObject)
-    {
+    public function getDataTableDataCount($start, $length, $search, $orders, $columns, $propertiesForDatatable,
+                                          $customFilters, CustomObject $customObject
+    ) {
 
         // Setup fields to select
         $resultStr = [];
-        foreach($propertiesForDatatable as $property) {
+        foreach ($propertiesForDatatable as $property) {
 
-            switch($property->getFieldType()) {
+            switch ($property->getFieldType()) {
 
                 case FieldCatalog::DATE_PICKER:
                     $jsonExtract = $this->getDatePickerQuery('root');
@@ -978,10 +1065,10 @@ class RecordRepository extends ServiceEntityRepository
                     break;
                 case FieldCatalog::NUMBER:
                     $field = $property->getField();
-                    if($field->isCurrency()) {
+                    if ($field->isCurrency()) {
                         $jsonExtract = $this->getNumberIsCurrencyQuery('root');
                         $resultStr[] = sprintf($jsonExtract, $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $property->getInternalName());
-                    } elseif($field->isUnformattedNumber()) {
+                    } elseif ($field->isUnformattedNumber()) {
                         $jsonExtract = $this->getNumberIsUnformattedQuery('root');
                         $resultStr[] = sprintf($jsonExtract, $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $property->getInternalName());
                     }
@@ -994,53 +1081,56 @@ class RecordRepository extends ServiceEntityRepository
         }
 
         // Setup Joins
-        $joins = [];
-        $joins = $this->joins($customFilters, $joins);
+        $joins      = [];
+        $joins      = $this->joins($customFilters, $joins);
         $joinString = implode(" ", $joins);
 
         // Setup Filters
-        $filters = [];
-        $filters = $this->filters($customFilters, $filters);
+        $filters      = [];
+        $filters      = $this->filters($customFilters, $filters);
         $filterString = implode(" AND ", $filters);
 
         $filterString = empty($filters) ? '' : "AND $filterString";
 
-        $resultStr = implode(",",$resultStr);
-        $query = sprintf("SELECT DISTINCT root.id, %s from record root %s WHERE root.custom_object_id='%s' %s", $resultStr, $joinString, $customObject->getId(), $filterString);
+        $resultStr = implode(",", $resultStr);
+        $query     = sprintf("SELECT DISTINCT root.id, %s from record root %s WHERE root.custom_object_id='%s' %s", $resultStr, $joinString, $customObject->getId(), $filterString);
 
         // Search
-        if(!empty($search['value'])) {
+        if (!empty($search['value'])) {
             $searchItem = $search['value'];
-            $query .= ' and LOWER(root.properties) LIKE \'%'.strtolower($searchItem).'%\'';
+            $query      .= ' and LOWER(root.properties) LIKE \'%' . strtolower($searchItem) . '%\'';
         }
 
-        $em = $this->getEntityManager();
+        $em   = $this->getEntityManager();
         $stmt = $em->getConnection()->prepare($query);
         $stmt->execute();
         $results = $stmt->fetchAll();
+
         return count($results);
     }
 
 
     /**
      * @param CustomObject $customObject
-     * @param $mergeTag
+     * @param              $mergeTag
+     *
      * @return bool
      * @throws \Doctrine\ORM\ORMException
      */
-    public function getPropertyFromMergeTag(CustomObject $customObject, $mergeTag) {
+    public function getPropertyFromMergeTag(CustomObject $customObject, $mergeTag)
+    {
 
         $propertyPathArray = explode(".", $mergeTag);
 
-        foreach($propertyPathArray as $propertyPath) {
+        foreach ($propertyPathArray as $propertyPath) {
 
             $property = $this->propertyRepository->findOneBy([
                 'internalName' => $propertyPath,
-                'customObject' => $customObject
+                'customObject' => $customObject,
             ]);
 
             // if a property is missing from the given property path we just need to leave this function
-            if(!$property) {
+            if (!$property) {
                 return false;
             }
 
@@ -1052,10 +1142,12 @@ class RecordRepository extends ServiceEntityRepository
              */
             $this->getEntityManager()->refresh($property);
 
-            if($property->getFieldType() === FieldCatalog::CUSTOM_OBJECT) {
+            if ($property->getFieldType() === FieldCatalog::CUSTOM_OBJECT) {
                 array_shift($propertyPathArray);
+
                 return $this->getPropertyFromMergeTag($property->getField()->getCustomObject(), implode(".", $propertyPathArray));
             }
+
             return $property;
         }
     }
@@ -1064,8 +1156,9 @@ class RecordRepository extends ServiceEntityRepository
      * This function uses dot annotation to query property values between
      * objects that have relationships.
      *
-     * @param $mergeTags
+     * @param        $mergeTags
      * @param Record $record
+     *
      * @return array
      * @throws \Doctrine\DBAL\DBALException
      * @throws \Doctrine\ORM\ORMException
@@ -1073,9 +1166,9 @@ class RecordRepository extends ServiceEntityRepository
     public function getPropertiesFromMergeTagsByRecord($mergeTags, Record $record)
     {
         $resultStr = [];
-        foreach($mergeTags as $mergeTag) {
+        foreach ($mergeTags as $mergeTag) {
 
-            if(!$property = $this->getPropertyFromMergeTag($record->getCustomObject(), $mergeTag)) {
+            if (!$property = $this->getPropertyFromMergeTag($record->getCustomObject(), $mergeTag)) {
                 continue;
             }
 
@@ -1084,7 +1177,7 @@ class RecordRepository extends ServiceEntityRepository
 
             $joinPath = !empty($mergeTagArray) ? sprintf('root.%s', implode(".", $mergeTagArray)) : 'root';
 
-            switch($property->getFieldType()) {
+            switch ($property->getFieldType()) {
 
                 case FieldCatalog::DATE_PICKER:
                     $jsonExtract = $this->getDatePickerQuery($joinPath);
@@ -1096,10 +1189,10 @@ class RecordRepository extends ServiceEntityRepository
                     break;
                 case FieldCatalog::NUMBER:
                     $field = $property->getField();
-                    if($field->isCurrency()) {
+                    if ($field->isCurrency()) {
                         $jsonExtract = $this->getNumberIsCurrencyQuery($joinPath);
                         $resultStr[] = sprintf($jsonExtract, $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $mergeTag);
-                    } elseif($field->isUnformattedNumber()) {
+                    } elseif ($field->isUnformattedNumber()) {
                         $jsonExtract = $this->getNumberIsUnformattedQuery($joinPath);
                         $resultStr[] = sprintf($jsonExtract, $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $mergeTag);
                     }
@@ -1112,29 +1205,29 @@ class RecordRepository extends ServiceEntityRepository
         }
 
         $joinData = [];
-        foreach($mergeTags as $mergeTag) {
+        foreach ($mergeTags as $mergeTag) {
             $mergeTagArray = explode(".", $mergeTag);
             array_pop($mergeTagArray);
             $mergeTag = implode(".", $mergeTagArray);
-            if(!empty($mergeTag)) {
+            if (!empty($mergeTag)) {
                 $this->setValueByDotNotation($joinData, $mergeTag, []);
             }
         }
 
-        $joins = [];
-        $joins = $this->joins($joinData, $joins, 'root');
+        $joins      = [];
+        $joins      = $this->joins($joinData, $joins, 'root');
         $joinString = implode(" ", $joins);
 
-        $resultStr = implode(",",$resultStr);
-        $query = sprintf("SELECT DISTINCT root.id, %s from record root %s WHERE root.id = '%s'", $resultStr, $joinString, $record->getId());
+        $resultStr = implode(",", $resultStr);
+        $query     = sprintf("SELECT DISTINCT root.id, %s from record root %s WHERE root.id = '%s'", $resultStr, $joinString, $record->getId());
 
-        $em = $this->getEntityManager();
+        $em   = $this->getEntityManager();
         $stmt = $em->getConnection()->prepare($query);
         $stmt->execute();
         $results = $stmt->fetchAll();
 
-        return array(
-            "results"  => $results
+        return array (
+            "results" => $results,
         );
     }
 
@@ -1150,8 +1243,9 @@ class RecordRepository extends ServiceEntityRepository
      * single property value between
      * objects that have relationships.
      *
-     * @param $mergeTag
+     * @param        $mergeTag
      * @param Record $record
+     *
      * @return bool
      * @throws \Doctrine\DBAL\DBALException
      * @throws \Doctrine\ORM\ORMException
@@ -1159,7 +1253,7 @@ class RecordRepository extends ServiceEntityRepository
     public function getRecordByPropertyDotAnnotation($mergeTag, Record $record)
     {
         $resultStr = [];
-        if(!$property = $this->getPropertyFromMergeTag($record->getCustomObject(), $mergeTag)) {
+        if (!$property = $this->getPropertyFromMergeTag($record->getCustomObject(), $mergeTag)) {
             return false;
         }
 
@@ -1168,7 +1262,7 @@ class RecordRepository extends ServiceEntityRepository
 
         $joinPath = !empty($mergeTagArray) ? sprintf('root.%s', implode(".", $mergeTagArray)) : 'root';
 
-        switch($property->getFieldType()) {
+        switch ($property->getFieldType()) {
 
             case FieldCatalog::DATE_PICKER:
                 $jsonExtract = $this->getDatePickerQuery($joinPath);
@@ -1180,10 +1274,10 @@ class RecordRepository extends ServiceEntityRepository
                 break;
             case FieldCatalog::NUMBER:
                 $field = $property->getField();
-                if($field->isCurrency()) {
+                if ($field->isCurrency()) {
                     $jsonExtract = $this->getNumberIsCurrencyQuery($joinPath);
                     $resultStr[] = sprintf($jsonExtract, $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $mergeTag);
-                } elseif($field->isUnformattedNumber()) {
+                } elseif ($field->isUnformattedNumber()) {
                     $jsonExtract = $this->getNumberIsUnformattedQuery($joinPath);
                     $resultStr[] = sprintf($jsonExtract, $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $mergeTag);
                 }
@@ -1194,44 +1288,45 @@ class RecordRepository extends ServiceEntityRepository
                 break;
         }
 
-        $joinData = [];
+        $joinData      = [];
         $mergeTagArray = explode(".", $mergeTag);
         array_pop($mergeTagArray);
         $mergeTag = implode(".", $mergeTagArray);
-        if(!empty($mergeTag)) {
+        if (!empty($mergeTag)) {
             $this->setValueByDotNotation($joinData, $mergeTag, []);
         }
 
-        $joins = [];
-        $joins = $this->joins($joinData, $joins, 'root');
+        $joins      = [];
+        $joins      = $this->joins($joinData, $joins, 'root');
         $joinString = implode(" ", $joins);
 
-        $resultStr = implode(",",$resultStr);
-        $query = sprintf("SELECT DISTINCT `{$joinPath}`.id, %s from record root %s WHERE root.id = '%s'", $resultStr, $joinString, $record->getId());
+        $resultStr = implode(",", $resultStr);
+        $query     = sprintf("SELECT DISTINCT `{$joinPath}`.id, %s from record root %s WHERE root.id = '%s'", $resultStr, $joinString, $record->getId());
 
-        $em = $this->getEntityManager();
+        $em   = $this->getEntityManager();
         $stmt = $em->getConnection()->prepare($query);
         $stmt->execute();
         $results = $stmt->fetchAll();
 
-        return array(
-            "results"  => $results
+        return array (
+            "results" => $results,
         );
     }
 
     /**
-     * @param $propertiesForDatatable
-     * @param $customFilters
+     * @param              $propertiesForDatatable
+     * @param              $customFilters
      * @param CustomObject $customObject
+     *
      * @return string
      */
     public function getCustomFiltersMysqlOnly($propertiesForDatatable, $customFilters, CustomObject $customObject)
     {
         // Setup fields to select
         $resultStr = [];
-        foreach($propertiesForDatatable as $property) {
+        foreach ($propertiesForDatatable as $property) {
 
-            switch($property->getFieldType()) {
+            switch ($property->getFieldType()) {
 
                 case FieldCatalog::DATE_PICKER:
                     $jsonExtract = $this->getDatePickerQuery('root');
@@ -1243,10 +1338,10 @@ class RecordRepository extends ServiceEntityRepository
                     break;
                 case FieldCatalog::NUMBER:
                     $field = $property->getField();
-                    if($field->isCurrency()) {
+                    if ($field->isCurrency()) {
                         $jsonExtract = $this->getNumberIsCurrencyQuery('root');
                         $resultStr[] = sprintf($jsonExtract, $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $property->getInternalName());
-                    } elseif($field->isUnformattedNumber()) {
+                    } elseif ($field->isUnformattedNumber()) {
                         $jsonExtract = $this->getNumberIsUnformattedQuery('root');
                         $resultStr[] = sprintf($jsonExtract, $property->getInternalName(), $property->getInternalName(), $property->getInternalName(), $property->getInternalName());
                     }
@@ -1261,26 +1356,27 @@ class RecordRepository extends ServiceEntityRepository
         }
 
         // Setup Joins
-        $joins = [];
-        $joins = $this->joins($customFilters, $joins);
+        $joins      = [];
+        $joins      = $this->joins($customFilters, $joins);
         $joinString = implode(" ", $joins);
 
         // Setup Filters
-        $filters = [];
-        $filters = $this->filters($customFilters, $filters);
+        $filters      = [];
+        $filters      = $this->filters($customFilters, $filters);
         $filterString = implode(" OR ", $filters);
 
         $filterString = empty($filters) ? '' : "AND $filterString";
 
-        $resultStr = implode(",",$resultStr);
-        $query = sprintf("SELECT DISTINCT root.id, %s from record root %s WHERE root.custom_object_id='%s' %s", $resultStr, $joinString, $customObject->getId(), $filterString);
+        $resultStr = implode(",", $resultStr);
+        $query     = sprintf("SELECT DISTINCT root.id, %s from record root %s WHERE root.custom_object_id='%s' %s", $resultStr, $joinString, $customObject->getId(), $filterString);
 
         return $query;
     }
 
     /**
-     * @param $customFilters
+     * @param              $customFilters
      * @param CustomObject $customObject
+     *
      * @return array
      * @throws \Doctrine\DBAL\DBALException
      */
@@ -1290,52 +1386,52 @@ class RecordRepository extends ServiceEntityRepository
         $joinHierarchy = ['root' => []];
         foreach ($customFilters as $key => &$value) {
 
-            $value['fieldType'] = $value['property']['fieldType'];
+            $value['fieldType']    = $value['property']['fieldType'];
             $value['internalName'] = $value['property']['internalName'];
 
             $newJoin = implode(".", $value['joins']);
-            if($this->getValueByDotNotation($newJoin, $joinHierarchy) === false || $this->getValueByDotNotation($newJoin, $joinHierarchy) === null) {
+            if ($this->getValueByDotNotation($newJoin, $joinHierarchy) === false || $this->getValueByDotNotation($newJoin, $joinHierarchy) === null) {
                 $this->setValueByDotNotation($joinHierarchy, $newJoin, ['filters' => []]);
-                $data = $this->getValueByDotNotation($newJoin, $joinHierarchy);
+                $data              = $this->getValueByDotNotation($newJoin, $joinHierarchy);
                 $data['filters'][] = $value;
                 $this->setValueByDotNotation($joinHierarchy, $newJoin, $data);
             } else {
-                $data = $this->getValueByDotNotation($newJoin, $joinHierarchy);
+                $data              = $this->getValueByDotNotation($newJoin, $joinHierarchy);
                 $data['filters'][] = $value;
                 $this->setValueByDotNotation($joinHierarchy, $newJoin, $data);
             }
         }
 
         // Setup Joins
-        $joins = [];
-        $joins = $this->joins($joinHierarchy, $joins);
+        $joins      = [];
+        $joins      = $this->joins($joinHierarchy, $joins);
         $joinString = implode(" ", $joins);
 
         // Setup Filters
-        $filters = [];
-        $filters = $this->filters($joinHierarchy, $filters);
+        $filters      = [];
+        $filters      = $this->filters($joinHierarchy, $filters);
         $filterString = implode(" OR ", $filters);
 
         $filterString = empty($filters) ? '' : "AND $filterString";
 
         $query = sprintf("SELECT DISTINCT root.id from record root %s WHERE root.custom_object_id='%s' %s", $joinString, $customObject->getId(), $filterString);
 
-        $em = $this->getEntityManager();
+        $em   = $this->getEntityManager();
         $stmt = $em->getConnection()->prepare($query);
         $stmt->execute();
         $results = $stmt->fetchAll();
 
-        return array(
-            "results"  => $results
+        return array (
+            "results" => $results,
         );
     }
 
     private function fields($columnOrder)
     {
         $resultStr = [];
-        foreach($columnOrder as $column) {
+        foreach ($columnOrder as $column) {
 
-            switch($column['fieldType']) {
+            switch ($column['fieldType']) {
 
                 case FieldCatalog::DATE_PICKER:
                     $jsonExtract = $this->getDatePickerQuery(implode(".", $column['joins']));
@@ -1348,10 +1444,10 @@ class RecordRepository extends ServiceEntityRepository
                 case FieldCatalog::NUMBER:
                     $field = $column['field'];
 
-                    if($field['type'] === NumberField::$types['Currency']) {
+                    if ($field['type'] === NumberField::$types['Currency']) {
                         $jsonExtract = $this->getNumberIsCurrencyQuery(implode(".", $column['joins']));
                         $resultStr[] = sprintf($jsonExtract, $column['internalName'], $column['internalName'], $column['internalName'], $column['internalName']);
-                    } elseif($field['type'] === NumberField::$types['Unformatted Number']) {
+                    } elseif ($field['type'] === NumberField::$types['Unformatted Number']) {
                         $jsonExtract = $this->getNumberIsUnformattedQuery(implode(".", $column['joins']));
                         $resultStr[] = sprintf($jsonExtract, $column['internalName'], $column['internalName'], $column['internalName'], $column['internalName']);
                     }
@@ -1378,36 +1474,40 @@ class RecordRepository extends ServiceEntityRepository
             if ($key === 'filters') {
 
                 continue;
-            } else if (!empty($data[$key]['uID'])) {
-
-                continue;
-            } else if ($key === 'root') {
-
-                $this->joins($data[$key], $joins, $key);
-
             } else {
+                if (!empty($data[$key]['uID'])) {
 
-                $newJoin = "$lastJoin.$key";
+                    continue;
+                } else {
+                    if ($key === 'root') {
 
-                $joins[] = sprintf(
-                    $this->getJoinQuery(),
-                    'INNER JOIN',
-                    $newJoin,
-                    $lastJoin,
-                    $key,
-                    $newJoin,
-                    $lastJoin,
-                    $key,
-                    $newJoin,
-                    $lastJoin,
-                    $key,
-                    $newJoin,
-                    $lastJoin,
-                    $key,
-                    $newJoin
-                );
+                        $this->joins($data[$key], $joins, $key);
 
-                $this->joins($data[$key], $joins, $newJoin);
+                    } else {
+
+                        $newJoin = "$lastJoin.$key";
+
+                        $joins[] = sprintf(
+                            $this->getJoinQuery(),
+                            'INNER JOIN',
+                            $newJoin,
+                            $lastJoin,
+                            $key,
+                            $newJoin,
+                            $lastJoin,
+                            $key,
+                            $newJoin,
+                            $lastJoin,
+                            $key,
+                            $newJoin,
+                            $lastJoin,
+                            $key,
+                            $newJoin
+                        );
+
+                        $this->joins($data[$key], $joins, $newJoin);
+                    }
+                }
             }
         }
 
@@ -1424,21 +1524,24 @@ class RecordRepository extends ServiceEntityRepository
 
                 $this->filters($data[$key], $filters);
 
-            } else if ($key === 'filters') {
+            } else {
+                if ($key === 'filters') {
 
-                foreach($data[$key] as $filter) {
+                    foreach ($data[$key] as $filter) {
 
-                    // We don't want to set up the OR conditioned filters quite yet
-                    if(!empty($filter['referencedFilterPath'])) {
-                        continue;
+                        // We don't want to set up the OR conditioned filters quite yet
+                        if (!empty($filter['referencedFilterPath'])) {
+                            continue;
+                        }
+
+                        $filters[] = $this->getConditionForReport($filter, implode(".", $filter['joins']));
+
                     }
 
-                    $filters[] = $this->getConditionForReport($filter, implode(".", $filter['joins']));
-
                 }
-
             }
         }
+
         return $filters;
     }
 
@@ -1446,18 +1549,20 @@ class RecordRepository extends ServiceEntityRepository
     /**
      * @param $customFilter
      * @param $alias
+     *
      * @return string
      */
-    private function getCondition($customFilter, $alias) {
+    private function getCondition($customFilter, $alias)
+    {
 
         $query = '';
-        switch($customFilter['fieldType']) {
+        switch ($customFilter['fieldType']) {
             case 'number_field':
-                switch($customFilter['operator']) {
+                switch ($customFilter['operator']) {
                     case 'EQ':
 
                         $value = number_format((float)$customFilter['value'], 2, '.', '');
-                        if(trim($customFilter['value']) === '') {
+                        if (trim($customFilter['value']) === '') {
                             $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, r%s.properties->>\'$.%s\', \'\') = \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         } else {
                             $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, r%s.properties->>\'$.%s\', \'\') = \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], $value);
@@ -1467,7 +1572,7 @@ class RecordRepository extends ServiceEntityRepository
                     case 'NEQ':
 
                         $value = number_format((float)$customFilter['value'], 2, '.', '');
-                        if(trim($customFilter['value']) === '') {
+                        if (trim($customFilter['value']) === '') {
                             $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, r%s.properties->>\'$.%s\', \'\') != \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         } else {
                             $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, r%s.properties->>\'$.%s\', \'\') != \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], $value);
@@ -1477,7 +1582,7 @@ class RecordRepository extends ServiceEntityRepository
                     case 'LT':
 
                         $value = number_format((float)$customFilter['value'], 2, '.', '');
-                        if(trim($customFilter['value']) === '') {
+                        if (trim($customFilter['value']) === '') {
                             // TODO revisit this one. how do you compare less than to an empty string? What should we do? Right now this is just returning 0 results
                             $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, r%s.properties->>\'$.%s\', \'\') < \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         } else {
@@ -1489,7 +1594,7 @@ class RecordRepository extends ServiceEntityRepository
 
                         $value = number_format((float)$customFilter['value'], 2, '.', '');
 
-                        if(trim($customFilter['value']) === '') {
+                        if (trim($customFilter['value']) === '') {
                             // TODO revisit this one. how do you compare greater than to an empty string? What should we do? Right now this is just returning 0 results
                             $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, r%s.properties->>\'$.%s\', \'\') > \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         } else {
@@ -1499,15 +1604,15 @@ class RecordRepository extends ServiceEntityRepository
                         break;
                     case 'BETWEEN':
 
-                        if($customFilter['field']['type'] === NumberField::$types['Currency']) {
-                            $lowValue = number_format((float)$customFilter['low_value'], 2, '.', '');
+                        if ($customFilter['field']['type'] === NumberField::$types['Currency']) {
+                            $lowValue  = number_format((float)$customFilter['low_value'], 2, '.', '');
                             $highValue = number_format((float)$customFilter['high_value'], 2, '.', '');
                         } else {
-                            $lowValue = $customFilter['low_value'];
+                            $lowValue  = $customFilter['low_value'];
                             $highValue = $customFilter['high_value'];
                         }
 
-                        if(trim($customFilter['low_value']) === '' || trim($customFilter['high_value']) === '') {
+                        if (trim($customFilter['low_value']) === '' || trim($customFilter['high_value']) === '') {
                             // TODO revisit this one. IF the low value or high value is empty, what should we do? Right now this is just returning 0 results
                             $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, r%s.properties->>\'$.%s\', \'\') BETWEEN \'%s\' AND \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], '', '');
                         } else {
@@ -1529,10 +1634,10 @@ class RecordRepository extends ServiceEntityRepository
                 break;
             case 'single_line_text_field':
             case 'multi_line_text_field':
-                switch($customFilter['operator']) {
+                switch ($customFilter['operator']) {
                     case 'EQ':
 
-                        if(trim($customFilter['value']) === '') {
+                        if (trim($customFilter['value']) === '') {
                             $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), \'\') = \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         } else {
                             $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), \'\') LIKE \'%%%s%%\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], strtolower($customFilter['value']));
@@ -1541,7 +1646,7 @@ class RecordRepository extends ServiceEntityRepository
                         break;
                     case 'NEQ':
 
-                        if(trim($customFilter['value']) === '') {
+                        if (trim($customFilter['value']) === '') {
                             $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), \'\') != \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         } else {
                             $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), \'\') NOT LIKE \'%%%s%%\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], strtolower($customFilter['value']));
@@ -1561,10 +1666,10 @@ class RecordRepository extends ServiceEntityRepository
                 }
                 break;
             case 'date_picker_field':
-                switch($customFilter['operator']) {
+                switch ($customFilter['operator']) {
                     case 'EQ':
 
-                        if(trim($customFilter['value']) === '') {
+                        if (trim($customFilter['value']) === '') {
                             $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), null) = \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         } else {
                             $query = sprintf(' and IF(DATE_FORMAT( CAST( JSON_UNQUOTE( r%s.properties->>\'$.%s\' ) as DATETIME ), \'%%m-%%d-%%Y\' ), DATE_FORMAT( CAST( JSON_UNQUOTE( r%s.properties->>\'$.%s\' ) as DATETIME ), \'%%m-%%d-%%Y\' ), \'\') = \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], $customFilter['value']);
@@ -1573,7 +1678,7 @@ class RecordRepository extends ServiceEntityRepository
                         break;
                     case 'NEQ':
 
-                        if(trim($customFilter['value']) === '') {
+                        if (trim($customFilter['value']) === '') {
                             $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), null) != \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         } else {
                             $query = sprintf(' and IF(DATE_FORMAT( CAST( JSON_UNQUOTE( r%s.properties->>\'$.%s\' ) as DATETIME ), \'%%m-%%d-%%Y\' ), DATE_FORMAT( CAST( JSON_UNQUOTE( r%s.properties->>\'$.%s\' ) as DATETIME ), \'%%m-%%d-%%Y\' ), \'\') != \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], $customFilter['value']);
@@ -1582,7 +1687,7 @@ class RecordRepository extends ServiceEntityRepository
                         break;
                     case 'LT':
 
-                        if(trim($customFilter['value']) === '') {
+                        if (trim($customFilter['value']) === '') {
                             // TODO revisit this one. how do you compare less than to an empty string? What should we do? Right now this is just returning 0 results
                             $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), \'\') < \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         } else {
@@ -1592,7 +1697,7 @@ class RecordRepository extends ServiceEntityRepository
                         break;
                     case 'GT':
 
-                        if(trim($customFilter['value']) === '') {
+                        if (trim($customFilter['value']) === '') {
                             // TODO revisit this one. how do you compare greater than to an empty string? What should we do? Right now this is just returning 0 results
                             $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), \'\') > \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         } else {
@@ -1603,7 +1708,7 @@ class RecordRepository extends ServiceEntityRepository
 
                     case 'BETWEEN':
 
-                        if(trim($customFilter['low_value']) === '' || trim($customFilter['high_value']) === '') {
+                        if (trim($customFilter['low_value']) === '' || trim($customFilter['high_value']) === '') {
                             // TODO revisit this one. IF the low value or high value is empty, what should we do? Right now this is just returning 0 results
                             $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, r%s.properties->>\'$.%s\', \'\') BETWEEN \'%s\' AND \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], '', '');
                         } else {
@@ -1626,14 +1731,14 @@ class RecordRepository extends ServiceEntityRepository
                 break;
             case 'single_checkbox_field':
 
-                switch($customFilter['operator']) {
+                switch ($customFilter['operator']) {
                     case 'IN':
 
-                        if(trim($customFilter['value']) === '') {
+                        if (trim($customFilter['value']) === '') {
                             $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), null) = \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         } else {
                             $values = explode(',', $customFilter['value']);
-                            if($values == ['0','1'] || $values == ['1','0']) {
+                            if ($values == ['0', '1'] || $values == ['1', '0']) {
                                 $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), \'\') = \'%s\' OR IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), \'\') = \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], 'true', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], 'false');
                             } elseif ($values == ['0']) {
                                 $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), \'\') = \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], 'false');
@@ -1645,11 +1750,11 @@ class RecordRepository extends ServiceEntityRepository
                         break;
                     case 'NOT_IN':
 
-                        if(trim($customFilter['value']) === '') {
+                        if (trim($customFilter['value']) === '') {
                             $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), null) != \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         } else {
                             $values = explode(',', $customFilter['value']);
-                            if($values == ['0','1'] || $values == ['1','0']) {
+                            if ($values == ['0', '1'] || $values == ['1', '0']) {
                                 $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), \'\') != \'%s\' AND IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), \'\') != \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], 'true', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], 'false');
                             } elseif ($values == ['0']) {
                                 $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), \'\') != \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], 'false');
@@ -1675,16 +1780,16 @@ class RecordRepository extends ServiceEntityRepository
             case 'dropdown_select_field':
             case 'radio_select_field':
 
-                switch($customFilter['operator']) {
+                switch ($customFilter['operator']) {
                     case 'IN':
 
-                        if(trim($customFilter['value']) === '') {
+                        if (trim($customFilter['value']) === '') {
                             $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), null) = \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         } else {
                             $values = explode(',', $customFilter['value']);
 
                             $conditions = [];
-                            foreach($values as $value) {
+                            foreach ($values as $value) {
                                 $conditions[] = sprintf(' IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), \'\') = \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], strtolower($value));
                             }
 
@@ -1694,13 +1799,13 @@ class RecordRepository extends ServiceEntityRepository
                         break;
                     case 'NOT_IN':
 
-                        if(trim($customFilter['value']) === '') {
+                        if (trim($customFilter['value']) === '') {
                             $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), null) != \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         } else {
                             $values = explode(',', $customFilter['value']);
 
                             $conditions = [];
-                            foreach($values as $value) {
+                            foreach ($values as $value) {
                                 $conditions[] = sprintf(' IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), \'\') != \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], strtolower($value));
                             }
 
@@ -1723,16 +1828,16 @@ class RecordRepository extends ServiceEntityRepository
                 break;
             case 'multiple_checkbox_field':
 
-                switch($customFilter['operator']) {
+                switch ($customFilter['operator']) {
                     case 'IN':
 
-                        if(trim($customFilter['value']) === '') {
+                        if (trim($customFilter['value']) === '') {
                             $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), null) = \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         } else {
                             $values = explode(',', $customFilter['value']);
 
                             $conditions = [];
-                            foreach($values as $value) {
+                            foreach ($values as $value) {
                                 $conditions[] = sprintf(' JSON_SEARCH(IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), \'[]\'), \'one\', \'%s\') IS NOT NULL', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], strtolower($value));
                             }
 
@@ -1742,13 +1847,13 @@ class RecordRepository extends ServiceEntityRepository
                         break;
                     case 'NOT_IN':
 
-                        if(trim($customFilter['value']) === '') {
+                        if (trim($customFilter['value']) === '') {
                             $query = sprintf(' and IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), null) = \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         } else {
                             $values = explode(',', $customFilter['value']);
 
                             $conditions = [];
-                            foreach($values as $value) {
+                            foreach ($values as $value) {
                                 $conditions[] = sprintf(' JSON_SEARCH(IF(r%s.properties->>\'$.%s\' IS NOT NULL, LOWER(r%s.properties->>\'$.%s\'), \'[]\'), \'one\', \'%s\') IS NULL', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], strtolower($value));
                             }
 
@@ -1774,22 +1879,24 @@ class RecordRepository extends ServiceEntityRepository
     }
 
     /**
-     * @param $customFilter
-     * @param $alias
+     * @param      $customFilter
+     * @param      $alias
      * @param null $data
      * @param bool $isChildFilter
+     *
      * @return string
      */
-    private function getConditionForReport($customFilter, $alias, $data = null, $isChildFilter = false) {
+    private function getConditionForReport($customFilter, $alias, $data = null, $isChildFilter = false)
+    {
 
-        $query = '';
+        $query      = '';
         $andFilters = [];
-        switch($customFilter['fieldType']) {
+        switch ($customFilter['fieldType']) {
             case 'number_field':
-                switch($customFilter['operator']) {
+                switch ($customFilter['operator']) {
                     case 'EQ':
                         $value = str_replace(',', '', $customFilter['value']);
-                        if(trim($customFilter['value']) === '') {
+                        if (trim($customFilter['value']) === '') {
                             $andFilters[] = sprintf('IF(`%s`.properties->>\'$."%s"\' IS NOT NULL, `%s`.properties->>\'$."%s"\', \'\') = \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         } else {
                             $andFilters[] = sprintf('IF(`%s`.properties->>\'$."%s"\' IS NOT NULL, `%s`.properties->>\'$."%s"\', \'\') = \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], $value);
@@ -1798,7 +1905,7 @@ class RecordRepository extends ServiceEntityRepository
                         break;
                     case 'NEQ':
                         $value = str_replace(',', '', $customFilter['value']);
-                        if(trim($customFilter['value']) === '') {
+                        if (trim($customFilter['value']) === '') {
                             $andFilters[] = sprintf('IF(`%s`.properties->>\'$."%s"\' IS NOT NULL, `%s`.properties->>\'$."%s"\', \'\') != \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         } else {
                             $andFilters[] = sprintf('IF(`%s`.properties->>\'$."%s"\' IS NOT NULL, `%s`.properties->>\'$."%s"\', \'\') != \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], $value);
@@ -1807,7 +1914,7 @@ class RecordRepository extends ServiceEntityRepository
                         break;
                     case 'LT':
                         $value = str_replace(',', '', $customFilter['value']);
-                        if(trim($customFilter['value']) === '') {
+                        if (trim($customFilter['value']) === '') {
                             // TODO revisit this one. how do you compare less than to an empty string? What should we do? Right now this is just returning 0 results
                             $andFilters[] = sprintf('IF(`%s`.properties->>\'$."%s"\' IS NOT NULL, `%s`.properties->>\'$."%s"\', \'\') < \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         } else {
@@ -1817,7 +1924,7 @@ class RecordRepository extends ServiceEntityRepository
                         break;
                     case 'GT':
                         $value = str_replace(',', '', $customFilter['value']);
-                        if(trim($customFilter['value']) === '') {
+                        if (trim($customFilter['value']) === '') {
                             // TODO revisit this one. how do you compare greater than to an empty string? What should we do? Right now this is just returning 0 results
                             $andFilters[] = sprintf('IF(`%s`.properties->>\'$."%s"\' IS NOT NULL, `%s`.properties->>\'$."%s"\', \'\') > \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         } else {
@@ -1825,9 +1932,9 @@ class RecordRepository extends ServiceEntityRepository
                         }
                         break;
                     case 'BETWEEN':
-                        $lowValue = str_replace(',', '', $customFilter['low_value']);
+                        $lowValue  = str_replace(',', '', $customFilter['low_value']);
                         $highValue = str_replace(',', '', $customFilter['high_value']);
-                        if(trim($customFilter['low_value']) === '' || trim($customFilter['high_value']) === '') {
+                        if (trim($customFilter['low_value']) === '' || trim($customFilter['high_value']) === '') {
                             // TODO revisit this one. IF the low value or high value is empty, what should we do? Right now this is just returning 0 results
                             $andFilters[] = sprintf('IF(`%s`.properties->>\'$."%s"\' IS NOT NULL, `%s`.properties->>\'$."%s"\', \'\') BETWEEN \'%s\' AND \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], '', '');
                         } else {
@@ -1844,16 +1951,16 @@ class RecordRepository extends ServiceEntityRepository
                 break;
             case 'single_line_text_field':
             case 'multi_line_text_field':
-                switch($customFilter['operator']) {
+                switch ($customFilter['operator']) {
                     case 'EQ':
-                        if(trim($customFilter['value']) === '') {
+                        if (trim($customFilter['value']) === '') {
                             $andFilters[] = sprintf('IF(`%s`.properties->>\'$."%s"\' IS NOT NULL, LOWER(`%s`.properties->>\'$."%s"\'), \'\') = \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         } else {
                             $andFilters[] = sprintf('IF(`%s`.properties->>\'$."%s"\' IS NOT NULL, LOWER(`%s`.properties->>\'$."%s"\'), \'\') LIKE \'%%%s%%\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], strtolower($customFilter['value']));
                         }
                         break;
                     case 'NEQ':
-                        if(trim($customFilter['value']) === '') {
+                        if (trim($customFilter['value']) === '') {
                             $andFilters[] = sprintf('IF(`%s`.properties->>\'$."%s"\' IS NOT NULL, LOWER(`%s`.properties->>\'$."%s"\'), \'\') != \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         } else {
                             $andFilters[] = sprintf('IF(`%s`.properties->>\'$."%s"\' IS NOT NULL, LOWER(`%s`.properties->>\'$."%s"\'), \'\') NOT LIKE \'%%%s%%\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], strtolower($customFilter['value']));
@@ -1868,23 +1975,23 @@ class RecordRepository extends ServiceEntityRepository
                 }
                 break;
             case 'date_picker_field':
-                switch($customFilter['operator']) {
+                switch ($customFilter['operator']) {
                     case 'EQ':
-                        if(trim($customFilter['value']) === '') {
+                        if (trim($customFilter['value']) === '') {
                             $andFilters[] = sprintf('IF(`%s`.properties->>\'$."%s"\' IS NOT NULL, LOWER(`%s`.properties->>\'$."%s"\'), null) = \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         } else {
                             $andFilters[] = sprintf('STR_TO_DATE(`%s`.properties->>\'$."%s"\', \'%%m/%%d/%%Y\') = STR_TO_DATE(\'%s\', \'%%m/%%d/%%Y\')', $alias, $customFilter['internalName'], $customFilter['value']);
                         }
                         break;
                     case 'NEQ':
-                        if(trim($customFilter['value']) === '') {
+                        if (trim($customFilter['value']) === '') {
                             $andFilters[] = sprintf('IF(`%s`.properties->>\'$."%s"\' IS NOT NULL, LOWER(`%s`.properties->>\'$."%s"\'), null) != \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         } else {
                             $andFilters[] = sprintf('STR_TO_DATE(`%s`.properties->>\'$."%s"\', \'%%m/%%d/%%Y\') != STR_TO_DATE(\'%s\', \'%%m/%%d/%%Y\')', $alias, $customFilter['internalName'], $customFilter['value']);
                         }
                         break;
                     case 'LT':
-                        if(trim($customFilter['value']) === '') {
+                        if (trim($customFilter['value']) === '') {
                             // TODO revisit this one. how do you compare less than to an empty string? What should we do? Right now this is just returning 0 results
                             $andFilters[] = sprintf('IF(`%s`.properties->>\'$."%s"\' IS NOT NULL, LOWER(`%s`.properties->>\'$."%s"\'), \'\') < \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         } else {
@@ -1892,7 +1999,7 @@ class RecordRepository extends ServiceEntityRepository
                         }
                         break;
                     case 'GT':
-                        if(trim($customFilter['value']) === '') {
+                        if (trim($customFilter['value']) === '') {
                             // TODO revisit this one. how do you compare greater than to an empty string? What should we do? Right now this is just returning 0 results
                             $andFilters[] = sprintf('IF(`%s`.properties->>\'$."%s"\' IS NOT NULL, LOWER(`%s`.properties->>\'$."%s"\'), \'\') > \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         } else {
@@ -1900,7 +2007,7 @@ class RecordRepository extends ServiceEntityRepository
                         }
                         break;
                     case 'BETWEEN':
-                        if(trim($customFilter['low_value']) === '' || trim($customFilter['high_value']) === '') {
+                        if (trim($customFilter['low_value']) === '' || trim($customFilter['high_value']) === '') {
                             // TODO revisit this one. IF the low value or high value is empty, what should we do? Right now this is just returning 0 results
                             $andFilters[] = sprintf('IF(`%s`.properties->>\'$."%s"\' IS NOT NULL, `%s`.properties->>\'$."%s"\', \'\') BETWEEN \'%s\' AND \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], '', '');
                         } else {
@@ -1917,14 +2024,14 @@ class RecordRepository extends ServiceEntityRepository
                 break;
             case 'single_checkbox_field':
 
-                switch($customFilter['operator']) {
+                switch ($customFilter['operator']) {
                     case 'IN':
 
-                        if(trim($customFilter['value']) === '') {
+                        if (trim($customFilter['value']) === '') {
                             $andFilters[] = sprintf('IF(`%s`.properties->>\'$."%s"\' IS NOT NULL, LOWER(`%s`.properties->>\'$."%s"\'), null) = \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         } else {
                             $values = explode(',', $customFilter['value']);
-                            if($values == ['0','1'] || $values == ['1','0']) {
+                            if ($values == ['0', '1'] || $values == ['1', '0']) {
                                 $andFilters[] = sprintf('(IF(`%s`.properties->>\'$."%s"\' IS NOT NULL, LOWER(`%s`.properties->>\'$."%s"\'), \'\') = \'%s\' OR IF(`%s`.properties->>\'$."%s"\' IS NOT NULL, LOWER(`%s`.properties->>\'$."%s"\'), \'\') = \'%s\')', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], '1', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], '0');
                             } elseif ($values == ['0']) {
                                 $andFilters[] = sprintf('IF(`%s`.properties->>\'$."%s"\' IS NOT NULL, LOWER(`%s`.properties->>\'$."%s"\'), \'\') = \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], '0');
@@ -1934,11 +2041,11 @@ class RecordRepository extends ServiceEntityRepository
                         }
                         break;
                     case 'NOT_IN':
-                        if(trim($customFilter['value']) === '') {
+                        if (trim($customFilter['value']) === '') {
                             $andFilters[] = sprintf('IF(`%s`.properties->>\'$."%s"\' IS NOT NULL, LOWER(`%s`.properties->>\'$."%s"\'), null) != \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         } else {
                             $values = explode(',', $customFilter['value']);
-                            if($values == ['0','1'] || $values == ['1','0']) {
+                            if ($values == ['0', '1'] || $values == ['1', '0']) {
                                 $andFilters[] = sprintf('(IF(`%s`.properties->>\'$."%s"\' IS NOT NULL, LOWER(`%s`.properties->>\'$."%s"\'), \'\') != \'%s\' AND IF(`%s`.properties->>\'$."%s"\' IS NOT NULL, LOWER(`%s`.properties->>\'$."%s"\'), \'\') != \'%s\')', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], '1', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], '0');
                             } elseif ($values == ['0']) {
                                 $andFilters[] = sprintf('IF(`%s`.properties->>\'$."%s"\' IS NOT NULL, LOWER(`%s`.properties->>\'$."%s"\'), \'\') != \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], '0');
@@ -1957,29 +2064,29 @@ class RecordRepository extends ServiceEntityRepository
                 break;
             case 'dropdown_select_field':
             case 'radio_select_field':
-                switch($customFilter['operator']) {
+                switch ($customFilter['operator']) {
                     case 'IN':
-                        if(trim($customFilter['value']) === '') {
+                        if (trim($customFilter['value']) === '') {
                             $andFilters[] = sprintf('IF(`%s`.properties->>\'$."%s"\' IS NOT NULL, LOWER(`%s`.properties->>\'$."%s"\'), null) = \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         } else {
-                            $values = explode(',', $customFilter['value']);
+                            $values     = explode(',', $customFilter['value']);
                             $conditions = [];
-                            foreach($values as $value) {
+                            foreach ($values as $value) {
                                 $conditions[] = sprintf('IF(`%s`.properties->>\'$."%s"\' IS NOT NULL, LOWER(`%s`.properties->>\'$."%s"\'), \'\') = \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], strtolower($value));
                             }
                             $andFilters[] = sprintf("(%s)", implode(" OR ", $conditions));
                         }
                         break;
                     case 'NOT_IN':
-                        if(trim($customFilter['value']) === '') {
+                        if (trim($customFilter['value']) === '') {
                             $andFilters[] = sprintf('IF(`%s`.properties->>\'$."%s"\' IS NOT NULL, LOWER(`%s`.properties->>\'$."%s"\'), null) != \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         } else {
-                            $values = explode(',', $customFilter['value']);
+                            $values     = explode(',', $customFilter['value']);
                             $conditions = [];
-                            foreach($values as $value) {
+                            foreach ($values as $value) {
                                 $conditions[] = sprintf('IF(`%s`.properties->>\'$."%s"\' IS NOT NULL, LOWER(`%s`.properties->>\'$."%s"\'), \'\') != \'%s\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], strtolower($value));
                             }
-                            $andFilters[] = sprintf("(%s)",implode(" AND ", $conditions));
+                            $andFilters[] = sprintf("(%s)", implode(" AND ", $conditions));
                         }
                         break;
                     case 'HAS_PROPERTY':
@@ -1991,26 +2098,26 @@ class RecordRepository extends ServiceEntityRepository
                 }
                 break;
             case 'multiple_checkbox_field':
-                switch($customFilter['operator']) {
+                switch ($customFilter['operator']) {
                     case 'IN':
-                        if(trim($customFilter['value']) === '') {
+                        if (trim($customFilter['value']) === '') {
                             $andFilters[] = sprintf('IF(`%s`.properties->>\'$."%s"\' IS NOT NULL, LOWER(`%s`.properties->>\'$."%s"\'), null) = \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         } else {
-                            $values = explode(',', $customFilter['value']);
+                            $values     = explode(',', $customFilter['value']);
                             $conditions = [];
-                            foreach($values as $value) {
+                            foreach ($values as $value) {
                                 $conditions[] = sprintf('IF(`%s`.properties->>\'$."%s"\' IS NOT NULL, LOWER(`%s`.properties->>\'$."%s"\'), \'\') LIKE \'%%%s%%\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], strtolower($value));
                             }
                             $andFilters[] = sprintf("(%s)", implode(" OR ", $conditions));
                         }
                         break;
                     case 'NOT_IN':
-                        if(trim($customFilter['value']) === '') {
+                        if (trim($customFilter['value']) === '') {
                             $andFilters[] = sprintf('IF(`%s`.properties->>\'$."%s"\' IS NOT NULL, LOWER(`%s`.properties->>\'$."%s"\'), null) != \'\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName']);
                         } else {
-                            $values = explode(',', $customFilter['value']);
+                            $values     = explode(',', $customFilter['value']);
                             $conditions = [];
-                            foreach($values as $value) {
+                            foreach ($values as $value) {
                                 $conditions[] = sprintf('IF(`%s`.properties->>\'$."%s"\' IS NOT NULL, LOWER(`%s`.properties->>\'$."%s"\'), \'\') NOT LIKE \'%%%s%%\'', $alias, $customFilter['internalName'], $alias, $customFilter['internalName'], strtolower($value));
                             }
                             $andFilters[] = sprintf("(%s)", implode(" AND ", $conditions));
@@ -2027,34 +2134,37 @@ class RecordRepository extends ServiceEntityRepository
         }
 
         // add the child filters (AND conditionals)
-        if(!empty($customFilter['childFilters'])) {
-            foreach($customFilter['childFilters'] as $uid => $childFilter) {
-                $alias = !empty($data['filters'][$uid]['alias']) ? $data['filters'][$uid]['alias'] : $alias;
+        if (!empty($customFilter['childFilters'])) {
+            foreach ($customFilter['childFilters'] as $uid => $childFilter) {
+                $alias        = !empty($data['filters'][$uid]['alias']) ? $data['filters'][$uid]['alias'] : $alias;
                 $andFilters[] = $this->getConditionForReport($childFilter, $alias, $data, true);
             }
         }
         $query .= !empty($andFilters) ? implode(" AND ", $andFilters) : '';
-        if(!$isChildFilter) {
+        if (!$isChildFilter) {
             $query = sprintf("(\n%s\n)", $query) . PHP_EOL;
         }
+
         return $query;
     }
 
     /**
      * @param CustomObject $customObject
+     *
      * @return mixed
      */
     public function findCountByCustomObject(CustomObject $customObject)
     {
         return $this->createQueryBuilder('record')
-            ->select('COUNT(record) as count')
-            ->where('record.customObject = :customObject')
-            ->setParameter('customObject', $customObject->getId())
-            ->getQuery()
-            ->getResult();
+                    ->select('COUNT(record) as count')
+                    ->where('record.customObject = :customObject')
+                    ->setParameter('customObject', $customObject->getId())
+                    ->getQuery()
+                    ->getResult();
     }
 
-    private function getDatePickerQuery($alias = 'r1') {
+    private function getDatePickerQuery($alias = 'r1')
+    {
         return <<<HERE
     CASE 
         WHEN `${alias}`.properties->>'$."%s"' IS NULL THEN "-" 
@@ -2064,7 +2174,8 @@ class RecordRepository extends ServiceEntityRepository
 HERE;
     }
 
-    private function getNumberIsCurrencyQuery($alias = 'r1') {
+    private function getNumberIsCurrencyQuery($alias = 'r1')
+    {
         return <<<HERE
     CASE 
         WHEN `${alias}`.properties->>'$."%s"' IS NULL THEN "-" 
@@ -2074,7 +2185,8 @@ HERE;
 HERE;
     }
 
-    private function getNumberIsUnformattedQuery($alias = 'r1') {
+    private function getNumberIsUnformattedQuery($alias = 'r1')
+    {
         return <<<HERE
     CASE
         WHEN `${alias}`.properties->>'$."%s"' IS NULL THEN "-" 
@@ -2084,7 +2196,8 @@ HERE;
 HERE;
     }
 
-    private function getDefaultQuery($alias = 'r1') {
+    private function getDefaultQuery($alias = 'r1')
+    {
         return <<<HERE
     CASE
         WHEN `${alias}`.properties->>'$."%s"' IS NULL THEN "-" 
@@ -2094,7 +2207,8 @@ HERE;
 HERE;
     }
 
-    private function getSingleCheckboxQuery($alias = 'r1') {
+    private function getSingleCheckboxQuery($alias = 'r1')
+    {
         return <<<HERE
     CASE
         WHEN `${alias}`.properties->>'$."%s"' IS NULL THEN "-" 
@@ -2111,9 +2225,11 @@ HERE;
      * We store relations to multiple objects as a semicolon delimited string
      * Single object example: {chapter: "11"}
      * Multiple object example: {chapter: "11;12;13"}
+     *
      * @return string
      */
-    private function getJoinQuery() {
+    private function getJoinQuery()
+    {
         return <<<HERE
 
     /* Given the id "11" This first statement matches: {"property_name": "11"} */
@@ -2130,9 +2246,11 @@ HERE;
 
     /**
      * Normal Join Looking for records without a match
+     *
      * @return string
      */
-    private function getWithoutJoinQuery() {
+    private function getWithoutJoinQuery()
+    {
         return <<<HERE
     WHERE (`%s`.properties->>'$."%s"' IS NULL OR `%s`.properties->>'$."%s"' = '')
 HERE;
@@ -2140,18 +2258,22 @@ HERE;
 
     /**
      * Normal Join Looking for records without a match
+     *
      * @return string
      */
-    private function getWithoutCrossJoinQuery() {
+    private function getWithoutCrossJoinQuery()
+    {
         return <<<HERE
     /* Given the id "11" This first statement matches: {"property_name": "11"} */
-    LEFT JOIN record `%s` on `%s`.properties->>'$."%s"' NOT REGEXP concat('^', `%s`.id, '$')
+    LEFT JOIN record `%s` on `%s`.properties->>'$."%s"' REGEXP concat('^', `%s`.id, '$')
     /* Given the id "11" This second statement matches: {"property_name": "12;11"} */
-     AND `%s`.properties->>'$."%s"' NOT REGEXP concat(';', `%s`.id, '$') 
+     OR `%s`.properties->>'$."%s"' REGEXP concat(';', `%s`.id, '$') 
      /* Given the id "11" This second statement matches: {"property_name": "12;11;13"} */
-     AND `%s`.properties->>'$."%s"' NOT REGEXP concat(';', `%s`.id, ';') 
+     OR `%s`.properties->>'$."%s"' REGEXP concat(';', `%s`.id, ';') 
      /* Given the id "11" This second statement matches: {"property_name": "11;12;13"} */
-     AND `%s`.properties->>'$."%s"' NOT REGEXP concat('^', `%s`.id, ';')
+     OR `%s`.properties->>'$."%s"' REGEXP concat('^', `%s`.id, ';')
+    WHERE (`%s`.properties->>'$."%s"' IS NULL OR `%s`.properties->>'$."%s"' = '')
+>>>>>>> conversations
 HERE;
     }
 
@@ -2160,53 +2282,11 @@ HERE;
      * We store relations to multiple objects as a semicolon delimited string
      * Single object example: {chapter: "11"}
      * Multiple object example: {chapter: "11;12;13"}
+     *
      * @return string
      */
-    private function getWithOrWithoutJoinQuery() {
-        return <<<HERE
-
-    /* Given the id "11" This first statement matches: {"property_name": "11"} */
-     LEFT JOIN record `%s` on 
-     (`%s`.properties->>'$."%s"' REGEXP concat('^', `%s`.id, '$') AND `%s`.custom_object_id = '%s')
-     /* Given the id "11" This second statement matches: {"property_name": "12;11"} */
-     OR (`%s`.properties->>'$."%s"' REGEXP concat(';', `%s`.id, '$') AND `%s`.custom_object_id = '%s')
-     /* Given the id "11" This second statement matches: {"property_name": "12;11;13"} */
-     OR (`%s`.properties->>'$."%s"' REGEXP concat(';', `%s`.id, ';') AND `%s`.custom_object_id = '%s')
-     /* Given the id "11" This second statement matches: {"property_name": "11;12;13"} */
-     OR (`%s`.properties->>'$."%s"' REGEXP concat('^', `%s`.id, ';')AND `%s`.custom_object_id = '%s')
-
-HERE;
-    }
-
-    /**
-     * We store relations to a single object as a string.
-     * We store relations to multiple objects as a semicolon delimited string
-     * Single object example: {chapter: "11"}
-     * Multiple object example: {chapter: "11;12;13"}
-     * @return string
-     */
-    private function getWithOrWithoutCrossJoinQuery() {
-        return <<<HERE
-    /* Given the id "11" This first statement matches: {"property_name": "11"} */
-     LEFT JOIN record `%s` on 
-     (`%s`.properties->>'$."%s"' REGEXP concat('^', `%s`.id, '$') AND `%s`.custom_object_id = '%s')
-    /* Given the id "11" This second statement matches: {"property_name": "12;11"} */
-     OR (`%s`.properties->>'$."%s"' REGEXP concat(';', `%s`.id, '$') AND `%s`.custom_object_id = '%s')
-     /* Given the id "11" This second statement matches: {"property_name": "12;11;13"} */
-     OR (`%s`.properties->>'$."%s"' REGEXP concat(';', `%s`.id, ';') AND `%s`.custom_object_id = '%s')
-     /* Given the id "11" This second statement matches: {"property_name": "11;12;13"} */
-     OR (`%s`.properties->>'$."%s"' REGEXP concat('^', `%s`.id, ';') AND `%s`.custom_object_id = '%s')
-HERE;
-    }
-
-    /**
-     * We store relations to a single object as a string.
-     * We store relations to multiple objects as a semicolon delimited string
-     * Single object example: {chapter: "11"}
-     * Multiple object example: {chapter: "11;12;13"}
-     * @return string
-     */
-    private function getCrossJoinQuery() {
+    private function getCrossJoinQuery()
+    {
         return <<<HERE
     /* Given the id "11" This first statement matches: {"property_name": "11"} */
     %s record `%s` on `%s`.properties->>'$."%s"' REGEXP concat('^', `%s`.id, '$')

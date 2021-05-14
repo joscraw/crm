@@ -6,8 +6,6 @@ use App\Service\PhpSpreadsheetHelper;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
-use Symfony\Component\Validator\Exception\UnexpectedTypeException;
-use Symfony\Component\Validator\Exception\UnexpectedValueException;
 
 /**
  * Class RecordImportSpreadsheetValidator
@@ -35,10 +33,16 @@ class RecordImportSpreadsheetValidator extends ConstraintValidator
      */
     public function validate($file, Constraint $constraint)
     {
+        if(!$file) {
+            return;
+        }
+
         // Let's let PHPSpreadsheet validate it for us and try to load the columns from the spreadsheet
         // If it can't we aren't going to be able to load the file in anyways to import so let's just
         // throw an error back to the end user
-        if(!$this->phpSpreadsheetHelper->getColumnNames($file)) {
+        try {
+            $this->phpSpreadsheetHelper->getColumns($file);
+        } catch (\Exception $exception) {
             $this->context->buildViolation($constraint->message)
                 ->addViolation();
         }

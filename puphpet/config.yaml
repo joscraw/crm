@@ -185,9 +185,9 @@ apache:
         - rewrite
     vhosts:
         vhost1:
-            servername: crm.test
+            servername: crm.dev
             serveraliases:
-                - www.crm.test
+                - www.crm.dev
             docroot: /var/www/public
             port: '80'
             setenvif:
@@ -240,6 +240,7 @@ php:
             - zip
             - amqp
             - gd
+            - mailparse
         pear: {  }
         pecl: {  }
     ini:

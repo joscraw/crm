@@ -2,12 +2,9 @@
 
 namespace App\Form;
 
-use App\Entity\CustomObject;
 use App\Entity\Record;
-use App\Entity\Report;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
-use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 

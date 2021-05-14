@@ -30,6 +30,25 @@ class ReportPreviewResultsTable {
         if(!_.isEmpty(this.data.properties)) {
             this.refreshTable({}, this.data.properties);
         }
+
+        /* this.unbindEvents()
+             .bindEvents();*/
+    }
+
+    bindEvents() {
+        this.$wrapper.on('click', ReportPreviewResultsTable._selectors.paginationButton, (e) => {
+            debugger;
+        });
+        return this;
+    }
+
+    /**
+     * Because this component can keep getting run each time a filter is added
+     * you need to remove the handlers otherwise they will keep stacking up
+     */
+    unbindEvents() {
+        this.$wrapper.off('click', ReportPreviewResultsTable._selectors.paginationButton);
+        return this;
     }
 
     refreshTable(data, columns) {
@@ -40,6 +59,15 @@ class ReportPreviewResultsTable {
             $('#reportPreviewResultsTable tbody').empty();
         }
         this.activatePlugins(data, columns);
+    }
+
+    /**
+     * Call like this.selectors
+     */
+    static get _selectors() {
+        return {
+            paginationButton: '.paginate_button a',
+        }
     }
 
     activatePlugins(data = {}, columns = {}) {
@@ -95,7 +123,13 @@ class ReportPreviewResultsTable {
             */
             /*"dom": "rt",*/
             "columns": datatableColumns,
-            "initComplete": () => {},
+            "initComplete": () => {
+                debugger;
+                this.$wrapper.on('click', ReportPreviewResultsTable._selectors.paginationButton, (e) => {
+                    // Prevents Weird behavior where clicking pagination was updating the Browser URL
+                    e.stopPropagation();
+                });
+            },
             "pageLength": 10,
             "ajax": {
                 url: Routing.generate('report_records_for_datatable', {internalIdentifier: this.portalInternalIdentifier, internalName: this.data.selectedCustomObject.internalName}),

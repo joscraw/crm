@@ -2,7 +2,6 @@
 
 namespace App\Serializer;
 
-use App\Entity\Property;
 use App\Model\AbstractField;
 use App\Model\CustomObjectField;
 use App\Model\DatePickerField;
@@ -17,7 +16,6 @@ use App\Model\SingleLineTextField;
 use App\Repository\CustomObjectRepository;
 use App\Repository\PropertyRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Serializer\Exception\BadMethodCallException;
 use Symfony\Component\Serializer\Exception\ExtraAttributesException;
 use Symfony\Component\Serializer\Exception\InvalidArgumentException;
@@ -26,9 +24,6 @@ use Symfony\Component\Serializer\Exception\RuntimeException;
 use Symfony\Component\Serializer\Exception\UnexpectedValueException;
 use Symfony\Component\Serializer\Normalizer\DenormalizerAwareInterface;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
-use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
-use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
-use Symfony\Component\Serializer\SerializerInterface;
 
 /**
  * Class PropertyFieldDenormalizer

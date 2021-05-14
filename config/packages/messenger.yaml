@@ -1,7 +1,29 @@
 framework:
     messenger:
+        default_bus: messenger.bus.default
+
+        buses:
+            messenger.bus.default:
+                middleware:
+                    - App\Messenger\AuditMiddleware
+
+            event.bus:
+                default_middleware: allow_no_handlers
+
+        # Uncomment this (and the failed transport below) to send failed messages to this transport for later handling.
+        failure_transport: failed
+
         transports:
-             async: '%env(MESSENGER_TRANSPORT_DSN)%'
+            # https://symfony.com/doc/current/messenger.html#transports
+            async:
+                dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+                retry_strategy:
+                    delay: 500
+
+            failed: 'doctrine://default?queue_name=failed'
+
         routing:
             # Route your messages to the transports
-            'App\Message\ImportSpreadsheet': async
+            'App\Message\ImportSpreadsheetMessage': async
+            #'App\Message\WorkflowPropertyUpdateActionMessage': async
+            #'App\Message\Event\WorkflowCompletedEvent': async

@@ -2,9 +2,7 @@
 
 namespace App\Model;
 
-use JsonSerializable;
 use Symfony\Component\Serializer\Annotation\DiscriminatorMap;
-use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * @DiscriminatorMap(typeProperty="name", mapping={

@@ -47,4 +47,9 @@ class WorkflowEnrollmentRepository extends ServiceEntityRepository
         ;
     }
     */
+
+    public function findAllQueryBuilder()
+    {
+        return $this->createQueryBuilder('workflow_enrollment');
+    }
 }

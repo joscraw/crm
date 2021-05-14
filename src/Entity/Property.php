@@ -3,7 +3,6 @@
 namespace App\Entity;
 
 use App\Model\AbstractField;
-use App\Model\DropdownSelectField;
 use App\Model\FieldCatalog;
 use App\Model\FormFieldProperties;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -124,24 +123,32 @@ class Property
     protected $defaultPropertyOrder;
 
     /**
+     * This flag is used for system defined properties which can't be deleted
      * @ORM\Column(type="boolean")
      */
     protected $systemDefined = false;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\TriggerFilter", mappedBy="property")
+     * This property is used to determine whether or not we show that property in
+     * the create, edit, and list view for the properties
+     *
+     * @ORM\Column(type="boolean", nullable=true)
      */
-    private $triggerFilters;
+    private $hidden;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\SetPropertyValueAction", mappedBy="property")
+     * @ORM\Column(type="boolean", nullable=true)
      */
-    private $setPropertyValueActions;
+    private $isUnique = false;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\WorkflowPropertyUpdateAction", mappedBy="property", orphanRemoval=true)
+     */
+    private $workflowPropertyUpdateActions;
 
     public function __construct()
     {
-        $this->triggerFilters = new ArrayCollection();
-        $this->setPropertyValueActions = new ArrayCollection();
+        $this->workflowPropertyUpdateActions = new ArrayCollection();
     }
 
 
@@ -372,62 +379,55 @@ class Property
         return $this;
     }
 
-    /**
-     * @return Collection|TriggerFilter[]
-     */
-    public function getTriggerFilters(): Collection
+    public function isHidden(): ?bool
     {
-        return $this->triggerFilters;
+        return $this->hidden;
     }
 
-    public function addTriggerFilter(TriggerFilter $triggerFilter): self
+    public function setHidden(?bool $hidden): self
     {
-        if (!$this->triggerFilters->contains($triggerFilter)) {
-            $this->triggerFilters[] = $triggerFilter;
-            $triggerFilter->setProperty($this);
-        }
+        $this->hidden = $hidden;
 
         return $this;
     }
 
-    public function removeTriggerFilter(TriggerFilter $triggerFilter): self
+    public function getIsUnique(): ?bool
     {
-        if ($this->triggerFilters->contains($triggerFilter)) {
-            $this->triggerFilters->removeElement($triggerFilter);
-            // set the owning side to null (unless already changed)
-            if ($triggerFilter->getProperty() === $this) {
-                $triggerFilter->setProperty(null);
-            }
-        }
+        return $this->isUnique;
+    }
+
+    public function setIsUnique(?bool $isUnique): self
+    {
+        $this->isUnique = $isUnique;
 
         return $this;
     }
 
     /**
-     * @return Collection|SetPropertyValueAction[]
+     * @return Collection|WorkflowPropertyUpdateAction[]
      */
-    public function getSetPropertyValueActions(): Collection
+    public function getWorkflowPropertyUpdateActions(): Collection
     {
-        return $this->setPropertyValueActions;
+        return $this->workflowPropertyUpdateActions;
     }
 
-    public function addSetPropertyValueAction(SetPropertyValueAction $setPropertyValueAction): self
+    public function addWorkflowPropertyUpdateAction(WorkflowPropertyUpdateAction $workflowPropertyUpdateAction): self
     {
-        if (!$this->setPropertyValueActions->contains($setPropertyValueAction)) {
-            $this->setPropertyValueActions[] = $setPropertyValueAction;
-            $setPropertyValueAction->setProperty($this);
+        if (!$this->workflowPropertyUpdateActions->contains($workflowPropertyUpdateAction)) {
+            $this->workflowPropertyUpdateActions[] = $workflowPropertyUpdateAction;
+            $workflowPropertyUpdateAction->setProperty($this);
         }
 
         return $this;
     }
 
-    public function removeSetPropertyValueAction(SetPropertyValueAction $setPropertyValueAction): self
+    public function removeWorkflowPropertyUpdateAction(WorkflowPropertyUpdateAction $workflowPropertyUpdateAction): self
     {
-        if ($this->setPropertyValueActions->contains($setPropertyValueAction)) {
-            $this->setPropertyValueActions->removeElement($setPropertyValueAction);
+        if ($this->workflowPropertyUpdateActions->contains($workflowPropertyUpdateAction)) {
+            $this->workflowPropertyUpdateActions->removeElement($workflowPropertyUpdateAction);
             // set the owning side to null (unless already changed)
-            if ($setPropertyValueAction->getProperty() === $this) {
-                $setPropertyValueAction->setProperty(null);
+            if ($workflowPropertyUpdateAction->getProperty() === $this) {
+                $workflowPropertyUpdateAction->setProperty(null);
             }
         }
 

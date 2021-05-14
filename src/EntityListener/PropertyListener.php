@@ -2,24 +2,11 @@
 
 namespace App\EntityListener;
 
-use App\Entity\CustomObject;
 use App\Entity\Property;
 use App\Model\AbstractField;
-use App\Model\CustomObjectField;
-use App\Repository\PropertyRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Event\LifecycleEventArgs;
-use Doctrine\ORM\Event\PreUpdateEventArgs;
-use Psr\Log\LoggerInterface;
-use Symfony\Component\PropertyInfo\Extractor\PhpDocExtractor;
-use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\SerializerInterface;
-
-
-
-use Symfony\Component\Serializer\Encoder\XmlEncoder;
-use Symfony\Component\Serializer\Encoder\JsonEncoder;
-use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 
 /**
  * Class PropertyListener

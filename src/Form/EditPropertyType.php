@@ -29,7 +29,6 @@ use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
-use Symfony\Component\Form\FormInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 /**
@@ -89,6 +88,9 @@ class EditPropertyType extends AbstractType
                 ]
             ])
             ->add('required', CheckboxType::class, [
+                'required' => false,
+            ])
+            ->add('isUnique', CheckboxType::class, [
                 'required' => false,
             ])
             ->add('fieldType', ChoiceType::class, array(

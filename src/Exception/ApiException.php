@@ -3,7 +3,6 @@
 namespace App\Controller\Exception;
 
 use \Exception as Exception;
-use Symfony\Component\HttpFoundation\Response;
 
 abstract class ApiException extends Exception
 {

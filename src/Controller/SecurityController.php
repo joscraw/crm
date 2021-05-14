@@ -2,65 +2,22 @@
 
 namespace App\Controller;
 
-use App\Entity\User;
 use App\Form\ForgotPasswordType;
 use App\Form\ResetPasswordType;
-use App\Mailer\ResetPasswordMailer;
 use App\Model\ForgotPassword;
 use App\Model\ResetPassword;
-use App\Repository\UserRepository;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Utils\ServiceHelper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
 class SecurityController extends AbstractController
 {
-
-    /**
-     * @var EntityManagerInterface
-     */
-    private $entityManager;
-
-    /**
-     * @var UserRepository
-     */
-    private $userRepository;
-
-    /**
-     * @var UserPasswordEncoderInterface
-     */
-    private $passwordEncoder;
-
-    /**
-     * @var ResetPasswordMailer
-     */
-    private $resetPasswordMailer;
-
-    /**
-     * SecurityController constructor.
-     * @param EntityManagerInterface $entityManager
-     * @param UserRepository $userRepository
-     * @param UserPasswordEncoderInterface $passwordEncoder
-     * @param ResetPasswordMailer $resetPasswordMailer
-     */
-    public function __construct(
-        EntityManagerInterface $entityManager,
-        UserRepository $userRepository,
-        UserPasswordEncoderInterface $passwordEncoder,
-        ResetPasswordMailer $resetPasswordMailer
-    ) {
-        $this->entityManager = $entityManager;
-        $this->userRepository = $userRepository;
-        $this->passwordEncoder = $passwordEncoder;
-        $this->resetPasswordMailer = $resetPasswordMailer;
-    }
-
+    use ServiceHelper;
 
     /**
      * @Route("/login-form", name="login_form", methods={"GET"}, options = { "expose" = true })

@@ -6,9 +6,12 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
+use App\Validator\Constraints as CustomAssert;
 
 /**
+ * @CustomAssert\RecordProperty()
  * @ORM\Entity(repositoryClass="App\Repository\RecordRepository")
+ * @ORM\EntityListeners({"App\EntityListener\RecordListener"})
  */
 class Record
 {
@@ -37,14 +40,31 @@ class Record
      */
     private $workflowEnrollments;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\RecordDuplicate", mappedBy="conflictingRecord", orphanRemoval=true)
+     */
+    private $recordDuplicates;
+
     public function __construct()
     {
         $this->workflowEnrollments = new ArrayCollection();
+        $this->recordDuplicates = new ArrayCollection();
     }
 
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function __get($key) {
+        $properties = $this->getProperties();
+        return array_key_exists($key, $properties) ? $properties[$key] : null;
+    }
+
+    public function __set($key, $value) {
+        $properties = $this->getProperties();
+        $properties[$key] = $value;
+        $this->setProperties($properties);
     }
 
     public function getCustomObject(): ?CustomObject
@@ -96,6 +116,37 @@ class Record
             // set the owning side to null (unless already changed)
             if ($workflowEnrollment->getRecord() === $this) {
                 $workflowEnrollment->setRecord(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|RecordDuplicate[]
+     */
+    public function getRecordDuplicates(): Collection
+    {
+        return $this->recordDuplicates;
+    }
+
+    public function addRecordDuplicate(RecordDuplicate $recordDuplicate): self
+    {
+        if (!$this->recordDuplicates->contains($recordDuplicate)) {
+            $this->recordDuplicates[] = $recordDuplicate;
+            $recordDuplicate->setConflictingRecord($this);
+        }
+
+        return $this;
+    }
+
+    public function removeRecordDuplicate(RecordDuplicate $recordDuplicate): self
+    {
+        if ($this->recordDuplicates->contains($recordDuplicate)) {
+            $this->recordDuplicates->removeElement($recordDuplicate);
+            // set the owning side to null (unless already changed)
+            if ($recordDuplicate->getConflictingRecord() === $this) {
+                $recordDuplicate->setConflictingRecord(null);
             }
         }
 

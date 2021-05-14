@@ -2,12 +2,8 @@
 
 namespace App\Validator\Constraints;
 
-use App\Repository\PropertyGroupRepository;
-use App\Repository\PropertyRepository;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
-use Symfony\Component\Validator\Exception\UnexpectedTypeException;
-use Symfony\Component\Validator\Exception\UnexpectedValueException;
 
 /**
  * Class SystemDefinedValidator

@@ -2,29 +2,19 @@
 
 namespace App\Controller;
 
-use App\AuthorizationHandler\PermissionAuthorizationHandler;
 use App\Entity\CustomObject;
 use App\Entity\Portal;
 use App\Entity\Role;
 use App\Form\CustomObjectType;
 use App\Form\DeleteCustomObjectType;
 use App\Form\EditCustomObjectType;
-use App\Message\WorkflowMessage;
-use App\Repository\CustomObjectRepository;
-use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Utils\ServiceHelper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
-use Symfony\Component\Serializer\Normalizer\GetSetMethodNormalizer;
-use Symfony\Component\Serializer\Serializer;
-use Symfony\Component\Serializer\Encoder\XmlEncoder;
-use Symfony\Component\Serializer\Encoder\JsonEncoder;
-use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 
 /**
  * Class CustomObjectSettingsController
@@ -35,43 +25,26 @@ use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
  */
 class CustomObjectSettingsController extends AbstractController
 {
-    /**
-     * @var EntityManagerInterface
-     */
-    private $entityManager;
-
-    /**
-     * @var CustomObjectRepository
-     */
-    private $customObjectRepository;
-
-    /**
-     * @var PermissionAuthorizationHandler
-     */
-    private $permissionAuthorizationHandler;
-
-    /**
-     * CustomObjectSettingsController constructor.
-     * @param EntityManagerInterface $entityManager
-     * @param CustomObjectRepository $customObjectRepository
-     * @param PermissionAuthorizationHandler $permissionAuthorizationHandler
-     */
-    public function __construct(
-        EntityManagerInterface $entityManager,
-        CustomObjectRepository $customObjectRepository,
-        PermissionAuthorizationHandler $permissionAuthorizationHandler
-    ) {
-        $this->entityManager = $entityManager;
-        $this->customObjectRepository = $customObjectRepository;
-        $this->permissionAuthorizationHandler = $permissionAuthorizationHandler;
-    }
+    use ServiceHelper;
 
     /**
      * @Route(name="custom_object_settings", methods={"GET"}, options = { "expose" = true })
      * @param Portal $portal
+     * @param AdapterInterface $cache
      * @return \Symfony\Component\HttpFoundation\Response
+     * @throws \Psr\Cache\InvalidArgumentException
      */
     public function indexAction(Portal $portal) {
+
+/*        $item = $cache->getItem('markdown_'.md5($portal->getInternalIdentifier()));
+        if (!$item->isHit()) {
+            $item->set($portal->getInternalIdentifier());
+            $cache->save($item);
+        }
+        $portalIdentifier = $item->get();
+
+        $name = "josh";*/
+
 
      /*   $connectionFactory = new RedisConnectionFactory([
             'host' => 'localhost',

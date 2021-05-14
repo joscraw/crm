@@ -2,43 +2,14 @@
 
 namespace App\Form;
 
-use App\Entity\CustomObject;
 use App\Entity\Folder;
 use App\Entity\Portal;
-use App\Entity\Property;
-use App\Entity\Record;
-use App\Form\DataTransformer\IdArrayToRecordArrayTransformer;
-use App\Form\DataTransformer\IdToRecordTransformer;
-use App\Form\DataTransformer\RecordCheckboxTransformer;
-use App\Form\DataTransformer\RecordDateTimeTransformer;
-use App\Form\DataTransformer\RecordGenericTransformer;
-use App\Form\DataTransformer\RecordNumberCurrencyTransformer;
-use App\Form\DataTransformer\RecordNumberUnformattedTransformer;
-use App\Model\DatePickerField;
-use App\Model\FieldCatalog;
 use App\Repository\FolderRepository;
-use App\Repository\PropertyGroupRepository;
-use App\Repository\PropertyRepository;
-use App\Repository\RecordRepository;
-use Doctrine\ORM\EntityRepository;
-use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\CallbackTransformer;
-use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
-use Symfony\Component\Form\Extension\Core\Type\DateType;
-use Symfony\Component\Form\Extension\Core\Type\HiddenType;
-use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
-use Symfony\Component\Form\Extension\Core\Type\TextareaType;
-use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
-use Symfony\Component\Form\FormEvent;
-use Symfony\Component\Form\FormEvents;
-use Symfony\Component\Form\FormInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Validator\Constraints\NotBlank;
-use Symfony\Component\Validator\Constraints\NotNull;
 
 /**
  * Class MoveListToFolderType

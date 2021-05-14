@@ -6,12 +6,17 @@
         "ext-ctype": "*",
         "ext-iconv": "*",
         "ext-json": "*",
+        "blackfire/php-sdk": "^1.22",
+        "box/spout": "^3.1",
         "doctrine/doctrine-bundle": "^2.0",
         "excelwebzone/recaptcha-bundle": "^1.5",
         "friendsofsymfony/ckeditor-bundle": "^2.1",
         "friendsofsymfony/jsrouting-bundle": "^2.2",
+        "google/apiclient": "^2.0",
         "lexik/form-filter-bundle": "^5.0",
         "nscs/nscs-bundle": "*@dev",
+        "oneup/flysystem-bundle": "^3.4",
+        "php-mime-mail-parser/php-mime-mail-parser": "^5.0",
         "phpoffice/phpspreadsheet": "^1.10",
         "rollerworks/password-strength-bundle": "^2.0",
         "scienta/doctrine-json-functions": "^4.0",
@@ -38,7 +43,8 @@
         "symfony/validator": "4.4.*",
         "symfony/web-link": "4.4.*",
         "symfony/webpack-encore-bundle": "^1.0",
-        "symfony/yaml": "4.4.*"
+        "symfony/yaml": "4.4.*",
+        "ext-http": "*"
     },
     "require-dev": {
         "doctrine/doctrine-fixtures-bundle": "^3.1",

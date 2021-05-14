@@ -2,6 +2,15 @@
     "behat/transliterator": {
         "version": "v1.2.0"
     },
+    "blackfire/php-sdk": {
+        "version": "v1.22.0"
+    },
+    "box/spout": {
+        "version": "v3.1.0"
+    },
+    "composer/ca-bundle": {
+        "version": "1.2.6"
+    },
     "doctrine/annotations": {
         "version": "1.0",
         "recipe": {
@@ -107,6 +116,9 @@
     "fig/link-util": {
         "version": "1.0.0"
     },
+    "firebase/php-jwt": {
+        "version": "v5.0.0"
+    },
     "friendsofsymfony/ckeditor-bundle": {
         "version": "2.0",
         "recipe": {
@@ -128,6 +140,24 @@
     "gedmo/doctrine-extensions": {
         "version": "v2.4.36"
     },
+    "google/apiclient": {
+        "version": "2.0",
+        "recipe": {
+            "repo": "github.com/symfony/recipes-contrib",
+            "branch": "master",
+            "version": "2.0",
+            "ref": "49c5d7a66d863d28513979bf0666dc77599100c0"
+        },
+        "files": [
+            "config/packages/google_apiclient.yaml"
+        ]
+    },
+    "google/apiclient-services": {
+        "version": "v0.121"
+    },
+    "google/auth": {
+        "version": "v1.6.1"
+    },
     "google/recaptcha": {
         "version": "1.1",
         "recipe": {
@@ -137,11 +167,39 @@
             "ref": "155d19cc6b4fddd9393064f553bdbe3f2f16c918"
         }
     },
+    "guzzlehttp/guzzle": {
+        "version": "6.5.2"
+    },
+    "guzzlehttp/promises": {
+        "version": "v1.3.1"
+    },
+    "guzzlehttp/psr7": {
+        "version": "1.6.1"
+    },
+    "imagine/imagine": {
+        "version": "1.2.3"
+    },
     "jdorn/sql-formatter": {
         "version": "v1.2.17"
     },
+    "league/flysystem": {
+        "version": "1.0.63"
+    },
     "lexik/form-filter-bundle": {
         "version": "v5.0.7"
+    },
+    "liip/imagine-bundle": {
+        "version": "1.8",
+        "recipe": {
+            "repo": "github.com/symfony/recipes-contrib",
+            "branch": "master",
+            "version": "1.8",
+            "ref": "1d42bc3f713130582e6e0c475c49bc327ab0a2a2"
+        },
+        "files": [
+            "config/packages/liip_imagine.yaml",
+            "config/routes/liip_imagine.yaml"
+        ]
     },
     "markbaker/complex": {
         "version": "1.4.7"
@@ -164,8 +222,23 @@
     "ocramius/proxy-manager": {
         "version": "2.1.1"
     },
+    "oneup/flysystem-bundle": {
+        "version": "3.0",
+        "recipe": {
+            "repo": "github.com/symfony/recipes-contrib",
+            "branch": "master",
+            "version": "3.0",
+            "ref": "0eb87bba411c227da027fe5f7c1dc7954b02f242"
+        },
+        "files": [
+            "config/packages/oneup_flysystem.yaml"
+        ]
+    },
     "php": {
         "version": "7.2"
+    },
+    "php-mime-mail-parser/php-mime-mail-parser": {
+        "version": "5.0.5"
     },
     "phpdocumentor/reflection-common": {
         "version": "1.0.1"
@@ -179,11 +252,17 @@
     "phpoffice/phpspreadsheet": {
         "version": "1.10.1"
     },
+    "phpseclib/phpseclib": {
+        "version": "2.0.23"
+    },
     "psr/cache": {
         "version": "1.0.1"
     },
     "psr/container": {
         "version": "1.0.0"
+    },
+    "psr/http-message": {
+        "version": "1.0.1"
     },
     "psr/link": {
         "version": "1.0.0"
@@ -193,6 +272,9 @@
     },
     "psr/simple-cache": {
         "version": "1.0.1"
+    },
+    "ralouphie/getallheaders": {
+        "version": "3.0.3"
     },
     "rollerworks/password-strength-bundle": {
         "version": "v2.0.3"
@@ -472,6 +554,9 @@
             "version": "2.5",
             "ref": "3db029c03e452b4a23f7fc45cec7c922c2247eb8"
         }
+    },
+    "symfony/templating": {
+        "version": "v4.4.5"
     },
     "symfony/test-pack": {
         "version": "v1.0.4"

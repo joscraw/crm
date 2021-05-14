@@ -2,25 +2,13 @@
 
 namespace App\Form;
 
-use App\Entity\CustomObject;
-use App\Entity\Property;
-use App\Entity\Record;
-use App\Form\DataTransformer\SelectizeSearchResultPropertyTransformer;
 use App\Form\DataTransformer\IdToRecordTransformer;
 use App\Form\Loader\RecordChoiceLoader;
 use App\Repository\PropertyRepository;
 use App\Repository\RecordRepository;
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\ChoiceList\ArrayChoiceList;
-use Symfony\Component\Form\ChoiceList\ChoiceListInterface;
-use Symfony\Component\Form\ChoiceList\Loader\ChoiceLoaderInterface;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
-use Symfony\Component\Form\Extension\Core\Type\SubmitType;
-use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
-use Symfony\Component\Form\FormEvent;
-use Symfony\Component\Form\FormEvents;
-use Symfony\Component\Form\FormInterface;
 use Symfony\Component\OptionsResolver\Options;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 

@@ -3,7 +3,6 @@
 namespace App\Form;
 
 use App\Entity\CustomObject;
-use App\Entity\Portal;
 use App\Entity\Property;
 use App\Entity\PropertyGroup;
 use App\Model\CustomObjectField;
@@ -56,6 +55,9 @@ class PropertyType extends AbstractType
                 ]
             ])
             ->add('required', CheckboxType::class, [
+                'required' => false,
+            ])
+            ->add('isUnique', CheckboxType::class, [
                 'required' => false,
             ])
             ->add('fieldType', ChoiceType::class, array(

@@ -2,57 +2,23 @@
 
 namespace App\Controller\Api;
 
-use App\AuthorizationHandler\PermissionAuthorizationHandler;
 use App\Entity\CustomObject;
 use App\Entity\Filter;
 use App\Entity\Portal;
-use App\Entity\Property;
-use App\Entity\PropertyGroup;
 use App\Entity\Record;
-use App\Entity\Role;
-use App\Entity\Spreadsheet;
 use App\Form\BulkEditType;
-use App\Form\CustomObjectType;
 use App\Form\DeleteRecordType;
-use App\Form\ImportRecordType;
-use App\Form\PropertyGroupType;
-use App\Form\PropertyType;
 use App\Form\RecordType;
 use App\Form\SaveFilterType;
-use App\Message\ImportSpreadsheet;
-use App\Message\WorkflowMessage;
 use App\Model\FieldCatalog;
-use App\Repository\CustomObjectRepository;
-use App\Repository\FilterRepository;
-use App\Repository\PropertyGroupRepository;
-use App\Repository\PropertyRepository;
-use App\Repository\RecordRepository;
-use App\Service\MessageGenerator;
-use App\Service\PhpSpreadsheetHelper;
-use App\Service\UploaderHelper;
-use App\Service\WorkflowProcessor;
+use App\Model\Filter\FilterData;
 use App\Utils\ArrayHelper;
 use App\Utils\MultiDimensionalArrayExtractor;
-use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\Form\FormError;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
+use App\Utils\ServiceHelper;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Response;
-
-
-use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
-use Symfony\Component\Serializer\Normalizer\GetSetMethodNormalizer;
-use Symfony\Component\Serializer\Serializer;
-use Symfony\Component\Serializer\Encoder\XmlEncoder;
-use Symfony\Component\Serializer\Encoder\JsonEncoder;
-use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
-use Symfony\Component\Serializer\SerializerInterface;
-
 
 /**
  * Class RecordController
@@ -64,109 +30,7 @@ class RecordController extends ApiController
 {
     use MultiDimensionalArrayExtractor;
     use ArrayHelper;
-
-    /**
-     * @var EntityManagerInterface
-     */
-    private $entityManager;
-
-    /**
-     * @var CustomObjectRepository
-     */
-    private $customObjectRepository;
-
-    /**
-     * @var PropertyRepository
-     */
-    private $propertyRepository;
-
-    /**
-     * @var PropertyGroupRepository
-     */
-    private $propertyGroupRepository;
-
-    /**
-     * @var RecordRepository
-     */
-    private $recordRepository;
-
-    /**
-     * @var SerializerInterface
-     */
-    private $serializer;
-
-    /**
-     * @var PermissionAuthorizationHandler
-     */
-    private $permissionAuthorizationHandler;
-
-    /**
-     * @var FilterRepository
-     */
-    private $filterRepository;
-
-    /**
-     * @var WorkflowProcessor
-     */
-    private $workflowProcessor;
-
-    /**
-     * @var MessageBusInterface $bus
-     */
-    private $bus;
-
-    /**
-     * @var PhpSpreadsheetHelper;
-     */
-    private $phpSpreadsheetHelper;
-
-    /**
-     * @var UploaderHelper
-     */
-    private $uploadHelper;
-
-    /**
-     * RecordController constructor.
-     * @param EntityManagerInterface $entityManager
-     * @param CustomObjectRepository $customObjectRepository
-     * @param PropertyRepository $propertyRepository
-     * @param PropertyGroupRepository $propertyGroupRepository
-     * @param RecordRepository $recordRepository
-     * @param SerializerInterface $serializer
-     * @param PermissionAuthorizationHandler $permissionAuthorizationHandler
-     * @param FilterRepository $filterRepository
-     * @param WorkflowProcessor $workflowProcessor
-     * @param MessageBusInterface $bus
-     * @param PhpSpreadsheetHelper $phpSpreadsheetHelper
-     * @param UploaderHelper $uploadHelper
-     */
-    public function __construct(
-        EntityManagerInterface $entityManager,
-        CustomObjectRepository $customObjectRepository,
-        PropertyRepository $propertyRepository,
-        PropertyGroupRepository $propertyGroupRepository,
-        RecordRepository $recordRepository,
-        SerializerInterface $serializer,
-        PermissionAuthorizationHandler $permissionAuthorizationHandler,
-        FilterRepository $filterRepository,
-        WorkflowProcessor $workflowProcessor,
-        MessageBusInterface $bus,
-        PhpSpreadsheetHelper $phpSpreadsheetHelper,
-        UploaderHelper $uploadHelper
-    ) {
-        $this->entityManager = $entityManager;
-        $this->customObjectRepository = $customObjectRepository;
-        $this->propertyRepository = $propertyRepository;
-        $this->propertyGroupRepository = $propertyGroupRepository;
-        $this->recordRepository = $recordRepository;
-        $this->serializer = $serializer;
-        $this->permissionAuthorizationHandler = $permissionAuthorizationHandler;
-        $this->filterRepository = $filterRepository;
-        $this->workflowProcessor = $workflowProcessor;
-        $this->bus = $bus;
-        $this->phpSpreadsheetHelper = $phpSpreadsheetHelper;
-        $this->uploadHelper = $uploadHelper;
-    }
+    use ServiceHelper;
 
     /**
      * @Route("/{internalName}/create-form", name="create_record_form", methods={"GET"}, options = { "expose" = true })
@@ -178,9 +42,9 @@ class RecordController extends ApiController
 
         $properties = $this->propertyRepository->findDefaultProperties($customObject);
 
-        $form = $this->createForm(RecordType::class, null, [
-            'properties' => $properties,
-            'portal' => $portal
+        $record = new Record();
+        $form = $this->createForm(RecordType::class, $record, [
+            'properties' => $properties
         ]);
 
         $formMarkup = $this->renderView(
@@ -264,11 +128,8 @@ class RecordController extends ApiController
             'customObject' => $customObject->getId()
         ]);
 
-        $recordProperties = $record->getProperties();
-
-        $form = $this->createForm(RecordType::class, $recordProperties, [
+        $form = $this->createForm(RecordType::class, $record, [
             'properties' => $properties,
-            'portal' => $portal
         ]);
 
         $propertyGroups = $customObject->getPropertyGroups();
@@ -317,11 +178,8 @@ class RecordController extends ApiController
             'customObject' => $customObject->getId()
         ]);
 
-        $recordProperties = $record->getProperties();
-
-        $form = $this->createForm(RecordType::class, $recordProperties, [
-            'properties' => $properties,
-            'portal' => $portal
+        $form = $this->createForm(RecordType::class, $record, [
+            'properties' => $properties
         ]);
 
         $propertyGroups = $customObject->getPropertyGroups();
@@ -354,8 +212,6 @@ class RecordController extends ApiController
                 ], Response::HTTP_BAD_REQUEST
             );
         }
-
-        $record->setProperties($form->getData());
         $this->entityManager->persist($record);
         $this->entityManager->flush();
 
@@ -392,10 +248,10 @@ class RecordController extends ApiController
         }
 
         $properties = $this->propertyRepository->findDefaultProperties($customObject);
-
-        $form = $this->createForm(RecordType::class, null, [
-            'properties' => $properties,
-            'portal' => $portal
+        $record = new Record();
+        $record->setCustomObject($customObject);
+        $form = $this->createForm(RecordType::class, $record, [
+            'properties' => $properties
         ]);
 
         $form->handleRequest($request);
@@ -417,10 +273,8 @@ class RecordController extends ApiController
             );
         }
 
-        $record = new Record();
-        $record->setProperties($form->getData());
-        $record->setCustomObject($customObject);
-
+        /** @var Record $record */
+        $record = $form->getData();
         $this->entityManager->persist($record);
         $this->entityManager->flush();
 
@@ -794,113 +648,25 @@ class RecordController extends ApiController
     }
 
     /**
-     * @Route("/{internalName}/import-form", name="record_import_form", methods={"GET", "POST"}, options = { "expose" = true })
+     * Filters for CRM Records
+     *
+     * @Route("/filter", name="record_filter", methods={"POST"}, options = { "expose" = true })
      * @param Portal $portal
      * @param CustomObject $customObject
      * @param Request $request
-     * @return JsonResponse
+     * @return Response
      */
-    public function importFormAction(Portal $portal, CustomObject $customObject, Request $request) {
-        $form = $this->createForm(ImportRecordType::class, null, [
-            'customObject' => $customObject
-        ]);
-        $form->handleRequest($request);
-        $formMarkup = $this->renderView(
-            'Api/form/record_import_form.html.twig',
-            [
-                'form' => $form->createView(),
-                'columns' => []
-            ]
-        );
-        if ($form->isSubmitted() && $form->isValid()) {
-            /** @var UploadedFile $file */
-            $file = $form->get('file')->getData();
-            $columns = $this->phpSpreadsheetHelper->getColumnNames($file);
-            $columns = $this->phpSpreadsheetHelper->formFriendly($columns);
-            $formMarkup = $this->renderView(
-                'Api/form/record_import_form.html.twig',
-                [
-                    'form' => $form->createView(),
-                    'columns' => $columns
-                ]
-            );
-        } elseif ($form->isSubmitted() && !$form->isValid()) {
-            return new JsonResponse([
-                'success' => true,
-                'formMarkup' => $formMarkup,
-            ], Response::HTTP_BAD_REQUEST);
-        }
-        return new JsonResponse([
-            'success' => true,
-            'formMarkup' => $formMarkup,
-        ], Response::HTTP_OK);
-    }
+    public function filterAction(Portal $portal, CustomObject $customObject, Request $request) {
 
-    /**
-     * @Route("/{internalName}/import", name="record_import", methods={"POST"}, options = { "expose" = true })
-     * @param Portal $portal
-     * @param CustomObject $customObject
-     * @param Request $request
-     * @return JsonResponse
-     */
-    public function importAction(Portal $portal, CustomObject $customObject, Request $request) {
-        $user = $this->getUser();
-        $form = $this->createForm(ImportRecordType::class, null, [
-            'customObject' => $customObject
-        ]);
-        $form->handleRequest($request);
-        $formMarkup = $this->renderView(
-            'Api/form/record_import_form.html.twig',
-            [
-                'form' => $form->createView(),
-                'columns' => []
-            ]
-        );
-        if($form->isSubmitted()) {
-            $importData = $form->getData();
-            // We don't need to pass the file object into the message
-            unset($importData['file']);
-          /*  $duplicates = $this->arrayNotUnique($importData);
-            foreach($duplicates as $duplicate) {
-                if($duplicate !== 'unmapped') {
-                    $form->addError(new FormError('You can\'t map more than one column to the same property!'));
-                }
-                break;
-            }*/
-            $formMarkup = $this->renderView(
-                'Api/form/record_import_form.html.twig',
-                [
-                    'form' => $form->createView(),
-                    'columns' => []
-                ]
-            );
-        }
-        if($form->isSubmitted() && $form->isValid()) {
-            $importData = $form->getData();
-            /** @var UploadedFile $file */
-            $file = $form->get('file')->getData();
-            $mimeType = $file->getMimeType();
-            $newFilename = $this->uploadHelper->upload($file, UploaderHelper::SPREADSHEET);
-            $spreadsheet = new Spreadsheet();
-            $spreadsheet->setCustomObject($customObject);
-            $spreadsheet->setOriginalName($file->getClientOriginalName() ?? $newFilename);
-            $spreadsheet->setMimeType($mimeType ?? 'application/octet-stream');
-            $spreadsheet->setFileName($newFilename);
-            $this->entityManager->persist($spreadsheet);
-            $this->entityManager->flush();
-            // We don't need to pass the file object into the message
-            unset($importData['file']);
-            $this->bus->dispatch(new ImportSpreadsheet($spreadsheet->getId(), $importData));
-            return new JsonResponse([
-                'success' => true,
-                'formMarkup' => $formMarkup,
-            ], Response::HTTP_OK);
-        }
-        return new JsonResponse(
-            [
-                'success' => false,
-                'formMarkup' => $formMarkup,
-            ], Response::HTTP_BAD_REQUEST
-        );
+        $data = $request->request->get('filterData', []);
+        /** @var FilterData $filterData */
+        $filterData = $this->serializer->deserialize(json_encode($data, true), FilterData::class, 'json');
+        $results = $filterData->runQuery($this->entityManager);
+        $response = new JsonResponse([
+            'success' => true,
+            'data'  => $results
+        ], Response::HTTP_OK);
+
+        return $response;
     }
 }

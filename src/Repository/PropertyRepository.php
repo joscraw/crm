@@ -189,6 +189,23 @@ class PropertyRepository extends ServiceEntityRepository
     }
 
     /**
+     * @param $internalName
+     * @param CustomObject $customObject
+     * @return mixed
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     */
+    public function findOneByInternalNameAndCustomObject($internalName, CustomObject $customObject)
+    {
+        return $this->createQueryBuilder('property')
+            ->where('property.internalName = :internalName')
+            ->andWhere('property.customObject = :customObject')
+            ->setParameter('internalName', $internalName)
+            ->setParameter('customObject', $customObject->getId())
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    /**
      * @param $ids
      * @return mixed
      */
@@ -277,7 +294,13 @@ class PropertyRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('property')
             ->where('property.customObject = :customObject')
             ->andWhere('property.isDefaultProperty  = :bool')
+            ->andWhere('property.internalName != :id')
+            ->andWhere('property.internalName != :created_at')
+            ->andWhere('property.internalName != :updated_at')
             ->setParameter('bool', true)
+            ->setParameter('id', 'id')
+            ->setParameter('created_at', 'created_at')
+            ->setParameter('updated_at', 'updated_at')
             ->setParameter('customObject', $customObject->getId())
             ->orderBy('property.defaultPropertyOrder', 'ASC')
             ->getQuery()
